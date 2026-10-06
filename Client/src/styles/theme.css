@@ -1,0 +1,20 @@
+:root {
+  --ink: #173c33;
+  --pine: #123f34;
+  --deep: #0b2f28;
+  --leaf: #168557;
+  --mint: #dff2df;
+  --cream: #f9faf4;
+  --paper: #fffdf6;
+  --muted: #637b70;
+  --line: #e2e9de;
+  --gold: #e9b956;
+  --ds-radius: 20px;
+  --ds-shadow: 0 12px 32px #123f3414;
+  font-family: 'DM Sans', 'Avenir Next', system-ui, sans-serif;
+  color: var(--ink);
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { scroll-behavior: auto; }
+}

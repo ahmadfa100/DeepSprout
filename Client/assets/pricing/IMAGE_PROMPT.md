@@ -1,0 +1,5 @@
+# Pricing banner illustration
+
+Generated with the built-in image generator in `illustration-story` mode using the supplied Pricing SVG's embedded art and the current Insights hero as visual references. The selected 1933 × 814 output is `hero-v1.png`; signboard labels are live HTML.
+
+Prompt: “High-resolution DeepSprout pricing page hero illustration. Three friendly white sprout-headed DeepSprout robots in a green lakeside landscape: one reading a green book at left, one cheerful central robot gesturing toward the future, one small thoughtful robot at right. Soft blue mountains, warm sun, forests, flowers, and a wooden three-sign signpost on the far right. Match the crisp premium 2.5D storybook rendering and mascot identity of the DeepSprout Insights hero. Wide landscape image for the right 65% of a website hero; keep the three wooden signboards blank and spacious for live HTML labels. No text, letters, numbers, logos, UI, or watermarks. Warm ivory, emerald, mint, pale blue, soft gold, sharp refined details, gentle lighting.”
