@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5fff7">
+  <meta name="description" content="Create your DeepSprout account and start building deeper focus and healthier digital habits.">
+  <title>Create an account — DeepSprout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="register.css">
+  <link rel="stylesheet" href="../../../../src/styles/theme.css">
+  <link rel="stylesheet" href="../../../../src/layouts/site-layout/site-layout.css">
+  <script src="../../../../src/layouts/site-layout/site-layout.js" defer></script>
+  <script src="register.js" defer></script>
+</head>
+<body data-page="register" data-root="../../../../">
+  <main class="auth-scene register-scene" id="main">
+    <div class="auth-glow" aria-hidden="true"></div>
+    <span class="floating-leaf leaf-one" aria-hidden="true"></span>
+    <span class="floating-leaf leaf-two" aria-hidden="true"></span>
+    <section class="login-card register-card" aria-labelledby="register-title">
+      <a class="login-brand register-brand" href="../../../../index.html" aria-label="DeepSprout home"><img src="../../../../assets/auth/deepsprout-floral-mark.png" alt="" width="64" height="64"></a>
+      <h1 id="register-title">Create your account</h1>
+      <p class="register-intro">Start your journey toward deeper focus and better digital habits.</p>
+      <form id="register-form" novalidate>
+        <div class="form-field">
+          <label for="full-name">Full Name</label>
+          <div class="input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.3"/><path d="M4 21v-1.5c0-3.2 3.6-5.2 8-5.2s8 2 8 5.2V21H4Z"/></svg><input id="full-name" name="name" type="text" placeholder="Your full name" autocomplete="name" required aria-describedby="full-name-error"></div>
+          <p class="field-error" id="full-name-error" aria-live="polite"></p>
+        </div>
+        <div class="form-field">
+          <label for="email">Email</label>
+          <div class="input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="m3.5 6 8.5 6.4L20.5 6"/></svg><input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" inputmode="email" required aria-describedby="email-error"></div>
+          <p class="field-error" id="email-error" aria-live="polite"></p>
+        </div>
+        <div class="form-field">
+          <label for="password">Password</label>
+          <div class="input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/><circle cx="12" cy="16" r="1"/></svg><input id="password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" required minlength="8" aria-describedby="password-error"><button class="password-toggle" type="button" aria-label="Show password" aria-pressed="false" aria-controls="password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.3 12S6 6 12 6s9.7 6 9.7 6S18 18 12 18s-9.7-6-9.7-6Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+          <p class="field-error" id="password-error" aria-live="polite"></p>
+        </div>
+        <div class="form-field">
+          <label for="confirm-password">Confirm Password</label>
+          <div class="input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/><circle cx="12" cy="16" r="1"/></svg><input id="confirm-password" name="confirm-password" type="password" placeholder="Confirm your password" autocomplete="new-password" required aria-describedby="confirm-password-error"><button class="password-toggle" type="button" aria-label="Show confirmation password" aria-pressed="false" aria-controls="confirm-password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.3 12S6 6 12 6s9.7 6 9.7 6S18 18 12 18s-9.7-6-9.7-6Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+          <p class="field-error" id="confirm-password-error" aria-live="polite"></p>
+        </div>
+        <div class="agreement"><input type="checkbox" id="terms" name="terms" required aria-label="I agree to the Terms of Service and Privacy Policy" aria-describedby="terms-error"><label for="terms">I agree to the</label><button type="button" data-auth-info="Terms of Service">Terms of Service</button><span>and</span><button type="button" data-auth-info="Privacy Policy">Privacy Policy.</button></div>
+        <p class="field-error terms-error" id="terms-error" aria-live="polite"></p>
+        <button class="login-submit register-submit" type="submit">Create account <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-7-6 7 6-7 6"/></svg></button>
+      </form>
+      <div class="login-divider"><span>or continue with</span></div>
+      <div class="social-options" aria-label="Other registration options">
+        <button type="button" data-auth-action="Google"><span class="google-g" aria-hidden="true">G</span>Google</button>
+        <button type="button" data-auth-action="Apple"><svg class="apple-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.6 12.6c0-2.1 1.7-3.1 1.8-3.2-.9-1.4-2.3-1.6-2.8-1.6-1.2-.1-2.2.7-2.8.7-.7 0-1.6-.7-2.7-.7-1.4 0-2.7.8-3.4 2-.9 1.5-.7 4.3.7 6.5.7 1.1 1.6 2.4 2.8 2.3 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 2-1.1 2.7-2.2.8-1.2 1.1-2.4 1.1-2.5-.1 0-3-1.1-3-3.3ZM15.7 6.3c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.6.7-1 1.6-.9 2.5.9.1 1.8-.4 2.5-1.1Z"/></svg>Apple</button>
+        <button type="button" data-auth-action="Facebook"><span class="facebook-mark" aria-hidden="true">f</span>Facebook</button>
+      </div>
+      <p class="signup-line">Already have an account? <a href="../../../../login.html">Log in</a></p>
+    </section>
+  </main>
+  <div data-site-footer></div>
+  <div class="auth-toast" id="auth-toast" role="status" aria-live="polite" hidden></div>
+  <dialog class="auth-dialog" id="auth-dialog" aria-labelledby="dialog-title"><button class="dialog-close" type="button" aria-label="Close dialog">×</button><img src="../../../../assets/auth/deepsprout-floral-mark.png" alt="" width="56" height="56"><h2 id="dialog-title"></h2><p id="dialog-message"></p><button class="dialog-done" type="button">Got it</button></dialog>
+</body>
+</html>

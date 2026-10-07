@@ -47,7 +47,6 @@ const openInfo = (title, message) => {
 document.querySelectorAll('[data-auth-action]').forEach(button => button.addEventListener('click', () => {
   const action = button.dataset.authAction;
   if (action === 'forgot') openInfo('Forgot your password?', 'Password reset is not connected yet. No email will be sent from this preview.');
-  else if (action === 'signup') openInfo('A new beginning', 'Account registration is not connected yet. You can explore the DeepSprout pages from the Home link below.');
   else openInfo(`Continue with ${action}`, `${action} sign-in is not connected yet in this preview.`);
 }));
 document.querySelectorAll('[data-auth-info]').forEach(button => button.addEventListener('click', () => {
