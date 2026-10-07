@@ -21,3 +21,15 @@ Garden includes interactive plot details, links to matching Training activities,
 Login validates email and password, toggles password visibility, and links to Register. Register validates name, email, password length, password confirmation, and acceptance of terms. Both pages show clear messages for actions needing a backend, including social sign-in. Authentication is not connected to a backend, and credentials are never sent or saved.
 
 Animations follow the user's reduced-motion preference. No framework or build step is required.
+
+## Home scroll story
+
+The Home page keeps its markup and existing practice demos in `src/pages/public/home/`. Its story layer lives in `animations/`:
+
+- `story.css` contains the scene styling and responsive/reduced-motion states.
+- `motion-preferences.js` reads pointer and motion preferences.
+- `growth-system.js` owns the page-wide growth stage and the interactive garden progress.
+- `scroll-story.js` connects the noise-to-seed, trail, journey, and final planting scenes to native scroll with GSAP ScrollTrigger.
+- `micro-interactions.js` adds a small desktop pointer response and cleans it up when media preferences change.
+
+GSAP 3.13.0 and ScrollTrigger are pinned locally in `assets/vendor/gsap/`, so the page can be opened from `file://` without a CDN for its motion scripts. The bundled files retain their GreenSock license headers; see [GSAP's standard license](https://gsap.com/standard-license/). The existing hero and closing mascot illustrations are single flat images, so their animation is limited to subtle whole-image movement; limbs and facial features are not separated for rigging. The noise-to-seed and growth details are HTML/CSS/SVG. Native scrolling, keyboard access to controls, and static content remain available when motion is reduced or JavaScript animation is unavailable.

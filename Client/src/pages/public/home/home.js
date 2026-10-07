@@ -1,18 +1,5 @@
 document.documentElement.classList.add('js');
 
-const hero = document.querySelector('.hero');
-if (window.matchMedia('(pointer: fine) and (prefers-reduced-motion: no-preference)').matches) {
-  hero.addEventListener('pointermove', event => {
-    const bounds = hero.getBoundingClientRect();
-    hero.style.setProperty('--px', `${((event.clientX - bounds.left) / bounds.width - 0.5) * -18}px`);
-    hero.style.setProperty('--py', `${((event.clientY - bounds.top) / bounds.height - 0.5) * -10}px`);
-  }, { passive: true });
-  hero.addEventListener('pointerleave', () => {
-    hero.style.setProperty('--px', '0px');
-    hero.style.setProperty('--py', '0px');
-  });
-}
-
 const revealItems = document.querySelectorAll('.reveal');
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver(entries => {
@@ -119,9 +106,7 @@ const habitButtons = [...document.querySelectorAll('[data-habit]')];
 habitButtons.forEach(button => button.addEventListener('click', () => {
   button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true'));
   const done = habitButtons.filter(item => item.getAttribute('aria-pressed') === 'true').length;
-  document.getElementById('garden-count').textContent = `${done} / ${habitButtons.length}`;
-  document.getElementById('progress-fill').style.width = `${done / habitButtons.length * 100}%`;
-  document.getElementById('garden-scene').style.setProperty('--plant-scale', String(0.32 + done * 0.2));
+  window.DeepSproutGrowth?.setHabitProgress(done, habitButtons.length);
 }));
 
 const focusDialog = document.getElementById('focus-dialog');
