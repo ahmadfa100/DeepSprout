@@ -80,6 +80,7 @@
 .steps { position:relative; --journey-progress:0; }
 .journey-stem { position:absolute; top:65px; bottom:65px; left:57px; width:2px; background:#ffffff2e; pointer-events:none; }
 .journey-stem>span { position:absolute; inset:0; background:#a8ddac; transform:scaleY(var(--journey-progress)); transform-origin:top; }
+.journey-guide { position:absolute; z-index:3; top:58px; left:50px; width:16px; height:19px; border:2px solid #def4b7; border-radius:65% 35% 65% 35%; background:linear-gradient(135deg,#d4eea8,#71bd79); box-shadow:0 0 0 6px #b3e7a526,0 0 22px #c8edac72; transform:rotate(-26deg); pointer-events:none; }
 .step { position:relative; z-index:1; padding-right:10px; transition:background .4s,border-color .4s; }
 .step::before { content:attr(data-phase); position:absolute; top:16px; left:88px; color:#a8d6b3; opacity:0; font:700 .56rem 'DM Sans',sans-serif; letter-spacing:.16em; transform:translateY(5px); transition:opacity .4s,transform .4s; }
 .step.is-current { background:linear-gradient(90deg,#d9f4d912,transparent 83%); border-color:#a8ddac69; }
@@ -106,6 +107,37 @@
 .final-content { z-index:1; }
 .final-cta .button { transition:transform .25s,box-shadow .25s,background .25s; }
 
+/* A compact, sticky chapter gives the noise-to-seed moment room to read. */
+.noise-scene { height:190svh; min-height:0; padding:0; overflow:visible; background:#1b3437; }
+.noise-scene::before { display:none; }
+.noise-chapter { position:sticky; top:0; display:flex; align-items:center; height:100svh; min-height:0; overflow:hidden; }
+.noise-layout { height:100%; min-height:0; }
+.noise-copy .section-kicker { color:#b9d8b0; }
+.noise-copy h2 { color:#fbfff4; }
+.noise-copy h2 em { color:#d4eba4; }
+.noise-copy>p:not(.section-kicker) { color:#d0dfd8; }
+.noise-caption { color:#d5edbf; }
+.noise-caption::before { background:#b9d8b0; }
+.noise-visual { height:min(68svh,580px); }
+.noise-visual::before { inset:0; background:radial-gradient(circle,#d7e9ca24 0%,transparent 67%); }
+.noise-core { inset:7% 12% 3%; border-color:#80aa9442; background:#2a4142; box-shadow:0 35px 80px #071f244f; }
+.noise-core::before { background:linear-gradient(#6d8f70,#47755e); }
+.noise-world { position:absolute; z-index:1; inset:0; opacity:0; clip-path:circle(0% at 50% 72%); }
+.noise-world img { display:block; width:100%; height:100%; max-width:none; object-fit:cover; object-position:65% 43%; }
+.noise-feed { position:absolute; z-index:3; left:calc(50% - 106px); top:6%; display:flex; flex-direction:column; justify-content:flex-end; gap:8px; width:212px; height:305px; padding:20px; border:1px solid #e7f2e27d; border-radius:25px; background:linear-gradient(155deg,#4a6164 0%,#1d3139 56%,#132b32 100%); box-shadow:0 24px 48px #07191d70, inset 0 0 0 5px #ffffff12; overflow:hidden; }
+.feed-glow { position:absolute; top:12%; left:19%; width:62%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle,#d2dfac9e,transparent 70%); }
+.feed-play { position:absolute; top:31%; left:calc(50% - 28px); display:grid; place-items:center; width:56px; height:56px; border:1px solid #ffffff8c; border-radius:50%; color:#fff; font-size:17px; background:#ffffff24; }
+.feed-bar { position:relative; display:block; width:82%; height:5px; border-radius:5px; background:#e9f2e4a3; }
+.feed-bar.short { width:55%; }
+.feed-progress { position:relative; height:3px; width:100%; margin-top:8px; border-radius:3px; background:linear-gradient(90deg,#d8e993 34%,#ffffff57 34%); }
+.noise-card { top:59%; }
+.noise-soil { background:#617c58; box-shadow:0 11px 0 #4d7d60; }
+.noise-ground-ring { border-color:#c0dfa9; }
+.garden-world-image { position:absolute; z-index:3; inset:0; background:url('../../../../../assets/garden/scene-v1.png') center/cover no-repeat; clip-path:inset(0 calc(100% - var(--garden-reveal,0%)) 0 0); transition:clip-path .9s cubic-bezier(.2,.7,.2,1); }
+.garden-card .growth-flower { z-index:4; }
+.final-cta { min-height:600px; }
+.final-art { opacity:1; transform:scale(1); }
+
 @media(max-width:1100px) {
   .story-trail { left:0; width:24px; opacity:.24; }
   .story-trail svg { width:24px; }
@@ -113,10 +145,12 @@
   .hero-cloud.cloud-distant { left:66%; top:50%; }
   .hero-cloud.cloud-near { display:none; }
   .hero-foreground-leaf { opacity:.55; }
-  .noise-scene { padding:70px 0; }
+  .noise-scene { height:170svh; min-height:0; padding:0; }
   .noise-layout { grid-template-columns:1fr 1fr; gap:5%; }
   .noise-copy h2 { font-size:clamp(2.5rem,4.8vw,3.8rem); }
+  .noise-visual { height:min(62svh,510px); }
   .journey-stem { left:55px; }
+  .journey-guide { left:48px; }
   .how-intro { position:static; }
 }
 @media(max-width:767px) {
@@ -126,14 +160,17 @@
   .accent-experience { left:3%; bottom:14px; }
   .hero-art { background-position:57% bottom; background-size:auto 53%; }
   .hero-cloud,.hero-foreground-leaf,.hero-sun-glow { display:none; }
-  .noise-scene { min-height:0; padding:66px 0 48px; }
-  .noise-layout { display:block; min-height:0; }
+  .noise-scene { height:auto; min-height:0; padding:0; }
+  .noise-chapter { position:relative; display:block; height:auto; min-height:0; padding:70px 0 52px; }
+  .noise-layout { display:block; height:auto; min-height:0; }
   .noise-copy { max-width:none; }
   .noise-copy h2 { font-size:clamp(2.3rem,9vw,3.5rem); }
   .noise-copy>p:not(.section-kicker) { font-size:.9rem; }
   .noise-caption { margin-top:17px; }
   .noise-visual { height:390px; margin-top:25px; }
   .noise-core { inset:17% 8% 3%; }
+  .noise-feed { left:calc(50% - 87px); top:5%; width:174px; height:250px; padding:15px; }
+  .noise-card { top:57%; }
   .noise-fragment { font-size:.61rem; padding:7px 9px; }
   .fragment-reply,.fragment-swipe,.fragment-next { display:none; }
   .fragment-heart { left:0; top:11%; }
@@ -142,6 +179,7 @@
   .benefit-ribbon { justify-content:flex-start; padding-left:18px; }
   .benefit-ribbon .ribbon-track span { font-size:.67rem; word-spacing:1rem; }
   .journey-stem { left:35px; top:56px; bottom:56px; }
+  .journey-guide { left:28px; top:49px; }
   .step::before { left:60px; top:12px; }
   .step h3 { padding-top:9px; }
   .final-planting { left:51%; bottom:9%; transform:scale(.7); opacity:.7; }
@@ -150,6 +188,9 @@
   .hero-art { background-position:57% bottom; background-size:auto 53%; }
   .noise-visual { height:330px; }
   .noise-core { inset:17% 6% 3%; }
+  .noise-feed { left:calc(50% - 73px); width:146px; height:206px; padding:12px; }
+  .feed-play { top:27%; }
+  .noise-card { top:55%; }
   .noise-card { width:216px; left:calc(50% - 108px); padding:8px; min-height:61px; }
   .noise-card strong { font-size:.7rem; }
   .noise-card small { font-size:.58rem; }
@@ -158,6 +199,13 @@
   .final-planting { display:none; }
 }
 @media(prefers-reduced-motion:reduce) {
+  .noise-scene { height:auto; min-height:0; background:#f4f9ed; }
+  .noise-chapter { position:relative; height:auto; min-height:0; padding:75px 0; }
+  .noise-copy h2,.noise-copy>p:not(.section-kicker) { color:#25443b; }
+  .noise-copy h2 em,.noise-copy .section-kicker,.noise-caption { color:#24885d; }
+  .noise-world { opacity:1; clip-path:none; }
+  .noise-feed { opacity:0; }
+  .garden-world-image { transition:none; }
   .growth-accent { opacity:.6; transform:none; transition:none; }
   .hero-art,.hero-cloud,.hero-sun-glow,.hero-foreground-leaf,.final-art,.feature-cue,.noise-seed,.noise-sprout,.final-sprout { animation:none!important; transition:none!important; }
   .js .feature-cue,.js .experience-points span,.js .experience .demo-top,.js .experience .demo-tabs { opacity:1; transform:none; }
@@ -169,4 +217,5 @@
   .growth-flower { opacity:1; transform:scale(1); }
   .story-trail .trail-growth { stroke-dashoffset:0; }
   .journey-stem>span { transform:scaleY(1); }
+  .journey-guide { display:none; }
 }

@@ -23,7 +23,9 @@
     if (count) count.textContent = `${safeCompleted} / ${safeTotal}`;
     if (progress) progress.style.width = `${safeCompleted / safeTotal * 100}%`;
     garden.style.setProperty('--plant-scale', String(.32 + safeCompleted * .2));
+    garden.style.setProperty('--garden-reveal', `${safeCompleted / safeTotal * 100}%`);
   };
   setGrowthStage(0);
+  setHabitProgress(0, document.querySelectorAll('[data-habit]').length);
   window.DeepSproutGrowth = { setGrowthStage, setHabitProgress, getStage: () => currentStage };
 })();

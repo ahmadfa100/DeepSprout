@@ -29,7 +29,9 @@ The Home page keeps its markup and existing practice demos in `src/pages/public/
 - `story.css` contains the scene styling and responsive/reduced-motion states.
 - `motion-preferences.js` reads pointer and motion preferences.
 - `growth-system.js` owns the page-wide growth stage and the interactive garden progress.
-- `scroll-story.js` connects the noise-to-seed, trail, journey, and final planting scenes to native scroll with GSAP ScrollTrigger.
+- `scroll-story.js` connects a short sticky noise-to-seed chapter, the growing trail, journey seed, and final illustrated reveal to native scroll with GSAP ScrollTrigger.
 - `micro-interactions.js` adds a small desktop pointer response and cleans it up when media preferences change.
 
 GSAP 3.13.0 and ScrollTrigger are pinned locally in `assets/vendor/gsap/`, so the page can be opened from `file://` without a CDN for its motion scripts. The bundled files retain their GreenSock license headers; see [GSAP's standard license](https://gsap.com/standard-license/). The existing hero and closing mascot illustrations are single flat images, so their animation is limited to subtle whole-image movement; limbs and facial features are not separated for rigging. The noise-to-seed and growth details are HTML/CSS/SVG. Native scrolling, keyboard access to controls, and static content remain available when motion is reduced or JavaScript animation is unavailable.
+
+The Home story reuses `assets/garden/scene-v1.png` for the calm world inside the transformation and for the garden revealed by the three sample habit controls. The reveal follows the control state directly, with no saved progress or backend connection.

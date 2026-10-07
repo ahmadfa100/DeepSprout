@@ -64,23 +64,37 @@
     const seed = document.querySelector('.noise-seed');
     const sprout = document.querySelector('.noise-sprout');
     const ring = document.querySelector('.noise-ground-ring');
-    gsap.set(seed, { autoAlpha: 0, scale: .35, y: -115, rotation: -26 });
-    gsap.set(sprout, { autoAlpha: 0, scale: .2, transformOrigin: '50% 100%' });
-    gsap.set(ring, { autoAlpha: 0, scale: .55 });
+    gsap.set(seed, { autoAlpha: 0, scale: .3, y: -125, rotation: -26 });
+    gsap.set(sprout, { autoAlpha: 0, scale: .12, transformOrigin: '50% 100%' });
+    gsap.set(ring, { autoAlpha: 0, scale: .4 });
+    gsap.set('.noise-world', { autoAlpha: 0, clipPath: 'circle(0% at 50% 72%)', scale: 1.13 });
+    gsap.set('.noise-soil', { autoAlpha: .4, scaleX: .65 });
     const noiseToSeed = gsap.timeline({
       scrollTrigger: {
-        trigger: '.noise-scene', start: mobile ? 'top 83%' : 'top 73%',
-        end: mobile ? 'bottom 34%' : 'bottom 32%', scrub: mobile ? .35 : .75,
-        onUpdate: self => growth.setGrowthStage(self.progress > .57 ? 2 : 1),
+        trigger: '.noise-scene', start: mobile ? 'top 78%' : 'top top',
+        end: mobile ? 'bottom 25%' : 'bottom bottom', scrub: mobile ? .38 : .7,
+        onUpdate: self => growth.setGrowthStage(self.progress > .7 ? 2 : 1),
         onLeaveBack: () => growth.setGrowthStage(0)
       }, defaults: { ease: 'power2.out' }
     });
-    noiseToSeed.to(fragments, { autoAlpha: .16, x: i => (i % 2 ? 9 : -9), y: 9, duration: .32, stagger: .025 }, 0)
-      .to(noiseCard, { autoAlpha: 0, scale: .32, rotation: -8, x: 20, y: 76, duration: .35 }, .19)
-      .to(seed, { autoAlpha: 1, scale: 1, y: 0, duration: .33 }, .4)
-      .to(ring, { autoAlpha: .44, scale: 1, duration: .26 }, .66)
-      .to(seed, { autoAlpha: 0, scale: .55, y: 37, duration: .18 }, .69)
-      .to(sprout, { autoAlpha: 1, scale: 1, duration: .36, ease: 'power3.out' }, .77);
+    noiseToSeed.fromTo(fragments,
+      { autoAlpha: .48, x: i => (i % 2 ? -22 : 19), y: i => (i % 3 ? 14 : -16) },
+      { autoAlpha: 1, x: 0, y: 0, duration: .22, stagger: .025 }, 0)
+      .to(fragments, { autoAlpha: 0, x: i => (i % 2 ? -37 : 42), y: i => (i % 3 ? -29 : 37), scale: .72, duration: .23, stagger: .018 }, .27)
+      .to('.noise-feed', { autoAlpha: 0, scale: .08, y: 115, rotation: -11, duration: .31, ease: 'power3.in' }, .39)
+      .to(noiseCard, { autoAlpha: 0, scale: .1, y: 56, rotation: -8, duration: .29, ease: 'power3.in' }, .4)
+      .to(seed, { autoAlpha: 1, scale: 1, y: -82, duration: .18 }, .51)
+      .to(seed, { y: 0, rotation: 7, duration: .18, ease: 'power3.in' }, .66)
+      .to('.noise-soil', { autoAlpha: 1, scaleX: 1, duration: .18 }, .76)
+      .to(ring, { autoAlpha: .75, scale: 1, duration: .2 }, .77)
+      .to('.noise-world', { autoAlpha: 1, clipPath: 'circle(135% at 50% 72%)', scale: 1, duration: .43, ease: 'power2.inOut' }, .76)
+      .to('.noise-scene', { backgroundColor: '#f5f9ec', duration: .34 }, .77)
+      .to('.noise-core', { backgroundColor: '#eaf5df', borderColor: '#b8d8ab', duration: .34 }, .77)
+      .to('.noise-copy h2,.noise-copy>p:not(.section-kicker)', { color: '#25443b', duration: .31 }, .79)
+      .to('.noise-copy h2 em,.noise-copy .section-kicker,.noise-caption', { color: '#24885d', duration: .31 }, .79)
+      .to(seed, { autoAlpha: 0, scale: .48, y: 30, duration: .14 }, .84)
+      .to(sprout, { autoAlpha: 1, scale: 1.28, duration: .38, ease: 'power3.out' }, .89)
+      .to(ring, { autoAlpha: .3, scale: 1.4, duration: .31 }, .95);
 
     gsap.fromTo('.trail-growth', { strokeDashoffset: 1000 }, {
       strokeDashoffset: 0, ease: 'none', scrollTrigger: {
@@ -107,6 +121,13 @@
         trigger: '.steps', start: 'top 72%', end: 'bottom 33%', scrub: .45
       }
     });
+    gsap.fromTo('.journey-guide', { y: 0 }, {
+      y: () => Math.max(0, document.querySelector('.steps').offsetHeight - (mobile ? 112 : 130)),
+      ease: 'none', scrollTrigger: {
+        trigger: '.steps', start: 'top 72%', end: 'bottom 33%', scrub: .45,
+        invalidateOnRefresh: true
+      }
+    });
     document.querySelectorAll('.step').forEach(step => ScrollTrigger.create({
       trigger: step, start: 'top 73%', end: 'bottom 32%',
       onToggle: self => step.classList.toggle('is-current', self.isActive)
@@ -123,6 +144,7 @@
         end: mobile ? 'center 50%' : 'center 43%', scrub: .65
       }, defaults: { ease: 'power2.out' }
     });
+    gsap.set('.final-art', { clipPath: 'circle(15% at 56% 67%)', scale: 1.06 });
     gsap.set('.final-seed', { autoAlpha: 0, y: -62, scale: .7 });
     gsap.set('.final-seed-ring', { autoAlpha: 0, scale: .5 });
     gsap.set('.final-sprout', { autoAlpha: 0, scaleY: .12, scaleX: .7 });
@@ -131,7 +153,7 @@
       .to('.final-seed', { autoAlpha: 0, y: 28, scale: .4, duration: .24 }, .55)
       .to('.final-seed-ring', { autoAlpha: 0, scale: 1.7, duration: .34 }, .62)
       .to('.final-sprout', { autoAlpha: 1, scaleY: 1, scaleX: 1, duration: .42, ease: 'power3.out' }, .67)
-      .to('.final-art', { opacity: 1, scale: 1, duration: .62 }, .36);
+      .to('.final-art', { clipPath: 'circle(135% at 56% 67%)', scale: 1, duration: .82, ease: 'power2.inOut' }, .28);
 
     syncStageAtCurrentScroll();
   });
