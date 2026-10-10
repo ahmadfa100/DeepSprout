@@ -46,7 +46,7 @@ export function createVortex(root){
  function screenPoint(x,y,z=0){const distance=18-z,h=2*Math.tan(42*Math.PI/360)*distance;return new THREE.Vector3((x-.5)*h*camera.aspect,(.5-y)*h,z)}
  function moveToLayer(mesh,z){const parent=z>0?front:back;if(mesh.parent!==parent)parent.add(mesh)}
  function render(p,time,reduced,stopped,dt=.016){
-  if(disposed)return;const stamp=performance.now();lastP=p;media.update(p,stopped||failed,reduced);if(failed){fallback.style.opacity=smooth(.08,.3,p);return;}
+  if(disposed)return;const stamp=performance.now();lastP=p;media.update(p,stopped||failed,reduced);if(failed){fallback.style.opacity=smooth(.245,.34,p);return;}
   const burst=smooth(.67,.85,p),trap=smooth(.86,1,p),spiral=smooth(.40,.69,p),travel=p*8+(reduced?0:time*.07);
   atmosphere.visible=p>.50;uniforms.uProgress.value=p;uniforms.uTime.value=reduced?0:time;
   uniforms.uCenter.value.set(mix(.632,.568,trap),mix(.59,.54,trap));
@@ -54,12 +54,12 @@ export function createVortex(root){
   const centerX=mix(.632,.568,trap),centerY=mix(.43,.47,trap);
   visibleCards=0;
   cards.forEach(({mesh,uniforms:u},i)=>{
-   const appear=i===0?.10:i<3?.20+(i-1)*.018:i<7?.36+(i-3)*.024:i<16?.52+(i-7)*.015:i<32?.70+(i-16)*.006:.87+(i-32)*.006;
+   const appear=i===0?.245:i<3?.275+(i-1)*.025:i<7?.38+(i-3)*.019:i<16?.52+(i-7)*.015:i<32?.70+(i-16)*.006:.87+(i-32)*.006;
    const opacity=smooth(appear,appear+.035,p);mesh.visible=opacity>.001;if(!mesh.visible)return;visibleCards++;
    let x,y,z,size,rotation;
    if(i<3){
     const a=(i/3)*TAU+2.4+(p-.2)*7.5+(reduced?0:time*.075)*smooth(.2,.32,p);
-    const orbit=smooth(.18,.28,p);x=mix(.91,centerX+Math.cos(a)*.16,orbit);y=mix(.33,.48+Math.sin(a)*.17,orbit);z=Math.sin(a)*2;size=mix(.45,1.45,orbit);rotation=Math.sin(a)*.19;
+    const orbit=smooth(.245,.36,p);x=mix(.91,centerX+Math.cos(a)*.16,orbit);y=mix(.33,.48+Math.sin(a)*.17,orbit);z=Math.sin(a)*2;size=mix(.45,1.45,orbit);rotation=Math.sin(a)*.19;
    }else{const a=i*2.399+p*6; x=centerX+Math.cos(a)*(.20+(i%3)*.06);y=centerY+Math.sin(a)*(.21+(i%4)*.055);z=Math.sin(a)*3.2;size=1.45+(i%4)*.15;rotation=Math.sin(a)*.3}
    // The late structure is a funnel, with apparent radius, depth, and angular phase coupled.
    const depth=((i*.41421356237)%1),a=i*2.399963+travel*1.65;
@@ -75,11 +75,13 @@ export function createVortex(root){
    mesh.renderOrder=Math.round(z*10);
   });
   chips.forEach((mesh,i)=>{
-   const start=i===0?.09:i<3?.30+i*.045:.69+(i-3)*.022,alpha=smooth(start,start+.04,p);mesh.visible=alpha>.001;mesh.material.opacity=alpha;
+   const start=i===0?.10:i<3?.30+i*.045:.69+(i-3)*.022,alpha=smooth(start,start+.04,p);mesh.visible=alpha>.001;mesh.material.opacity=alpha;
    if(!mesh.visible)return;
    let x,y,z,s;
-   if(i===0&&p<.3){x=.927;y=.276;z=1;s=.92}else{const a=i*2.4+travel*1.3,rad=.22+(i%3)*.10;x=centerX+Math.cos(a)*rad;y=centerY+Math.sin(a)*rad*1.4;z=i%3===0?3:-3;s=2.3+(i%2)*.25}
-   mesh.position.copy(screenPoint(x,y,z));mesh.scale.setScalar(s);mesh.rotation.z=Math.sin(i+travel)*.21;moveToLayer(mesh,z);
+   const a=i*2.4+travel*1.3,rad=.22+(i%3)*.10;
+   x=centerX+Math.cos(a)*rad;y=centerY+Math.sin(a)*rad*1.4;z=i%3===0?3:-3;s=2.3+(i%2)*.25;
+   if(i===0&&p<.3){const drift=smooth(.10,.23,p),join=smooth(.23,.30,p);x=mix(mix(.95,.927,drift),x,join);y=mix(mix(.265,.276,drift),y,join);z=mix(1,z,join);s=mix(.72,s,join)}
+   mesh.position.copy(screenPoint(x,y,z));mesh.scale.setScalar(s);mesh.rotation.z=Math.sin(i+travel)*.21*(i===0?smooth(.23,.30,p):1);moveToLayer(mesh,z);
   });
   const debris=smooth(.38,.78,p);
   rubble.forEach((mesh,layer)=>{mesh.visible=p>.38;mesh.material.opacity=debris*.92;mesh.count=Math.round(130*debris);
@@ -88,7 +90,7 @@ export function createVortex(root){
   leaves.visible=p>.29;leaves.material.opacity=smooth(.29,.52,p)*.7;leaves.count=Math.round(48*smooth(.28,.7,p));
   for(let i=0;i<leaves.count;i++){const a=i*2.399+travel*1.7,r=.17+(i%7)*.063;dummy.position.copy(screenPoint(centerX+Math.cos(a)*r,centerY+Math.sin(a)*r*1.5,(i%5)-2));dummy.rotation.set(a*.8,i,a);dummy.scale.set(.07,.19,.014);dummy.updateMatrix();leaves.setMatrixAt(i,dummy.matrix)}leaves.instanceMatrix.needsUpdate=true;
   trails.forEach((mesh,k)=>{
-   mesh.visible=p>.23;mesh.material.opacity=smooth(.23,.34,p)*mix(.19,.75,burst)*(k>2?smooth(.49,.74,p):1);
+   mesh.visible=p>.26;mesh.material.opacity=smooth(.26,.34,p)*mix(.19,.75,burst)*(k>2?smooth(.49,.74,p):1);
    const arr=mesh.geometry.attributes.position.array;
    for(let j=0;j<180;j++){
     const points=[];

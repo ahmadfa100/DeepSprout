@@ -23,12 +23,12 @@ function paint(p,dt=0){
  if(reduced.matches)p=unlocked?CAPTURES[stageAt(p)]:0;
  const stage=stageAt(p),violet=smooth(.25,.8,p),burst=smooth(.69,.85,p),trap=smooth(.86,1,p);
 
- if(unlocked&&!reduced.matches&&!debugHold){const hold=p>.08;if(hold!==ambientHeld){ambientHeld=hold;if(hold)timeline.pause();else if(!stopped())timeline.resume()}}
- root.dataset.reelStage=String(stage);root.dataset.reelProgress=p.toFixed(5);if(unlocked&&bimo.status!=='live')character.dataset.pose=p>.12?'awake':'focus';
+ if(unlocked&&!reduced.matches&&!debugHold){const hold=p>.10;if(hold!==ambientHeld){ambientHeld=hold;if(hold)timeline.pause();else if(!stopped())timeline.resume()}}
+ root.dataset.reelStage=String(stage);root.dataset.reelProgress=p.toFixed(5);if(unlocked&&bimo.status!=='live')character.dataset.pose=p>.195?'awake':'focus';
  if(stage!==lastStage){lastStage=stage;heading.textContent=copyStates[stage][0];support.textContent=copyStates[stage][1];copy.querySelector('.story-kicker').textContent=stage===6?'JUST ONE MORE…':'THE ATTENTION COLLAPSE';if(reduced.matches)bimo.renderPose();root.dispatchEvent(new CustomEvent('reels:stage',{detail:{stage,name:STAGES[stage],progress:p}}))}
- const heroFade=1-smooth(.08,.14,p);originalCopy.style.opacity=heroFade;originalCopy.style.transform=`translateY(${-smooth(.08,.15,p)*18}px)`;originalCopy.inert=heroFade<.05;originalCopy.setAttribute('aria-hidden',String(heroFade<.05));
+ const heroFade=1-smooth(.13,.18,p);originalCopy.style.opacity=heroFade;originalCopy.style.transform=`translateY(${-smooth(.13,.18,p)*18}px)`;originalCopy.inert=heroFade<.05;originalCopy.setAttribute('aria-hidden',String(heroFade<.05));
  const start=BOUNDS[stage],end=BOUNDS[stage+1]??1.1;
- let opacity=smooth(start+.008,start+.037,p)*(1-smooth(end-.035,end-.006,p));if(stage===0||stage===5)opacity=0;if(stage===4)opacity*=1-smooth(.55,.61,p);if(stage===6)opacity=smooth(.905,.96,p);
+ let opacity=smooth(start+.008,start+.037,p)*(1-smooth(end-.035,end-.006,p));if(stage===1)opacity=smooth(.18,.205,p)*(1-smooth(.22,.23,p));if(stage===0||stage===5)opacity=0;if(stage===4)opacity*=1-smooth(.55,.61,p);if(stage===6)opacity=smooth(.905,.96,p);
  copy.style.opacity=opacity;copy.style.transform=`translateY(${(1-opacity)*13}px)`;
  cue.style.opacity=unlocked?(1-smooth(.035,.10,p))*.9:0;
  bar.style.transform=`scaleX(${p})`;
@@ -40,7 +40,7 @@ function paint(p,dt=0){
  root.querySelector('.root-core').setAttribute('stroke',`rgb(${Math.round(245+tint*7)},${Math.round(255-tint*114)},${Math.round(196+tint*59)})`);
  effects.style.opacity=(1-smooth(.38,.76,p)*.66+(p>.38&&p<.72?Math.sin(p*550)*.10:0)).toFixed(2);
  root.querySelector('.ambient-svg').style.opacity=1-burst*.75;
- if(p>.08&&!reduced.matches){root.querySelector('.cloud-layers').style.transform=`translateX(${(Math.sin(clock*.08)*3).toFixed(1)}px)`;root.querySelector('.lake-motion').style.transform=`translateX(${(Math.sin(clock*.13)*2).toFixed(1)}px)`}
+ if(p>.10&&!reduced.matches){root.querySelector('.cloud-layers').style.transform=`translateX(${(Math.sin(clock*.08)*3).toFixed(1)}px)`;root.querySelector('.lake-motion').style.transform=`translateX(${(Math.sin(clock*.13)*2).toFixed(1)}px)`}
  else{root.querySelector('.cloud-layers').style.transform='';root.querySelector('.lake-motion').style.transform=''}
  const mobile=innerWidth<=700;
  world.style.transform=mobile?'translateX(-63.3%)':'none';
@@ -49,7 +49,7 @@ function paint(p,dt=0){
  if(!reduced.matches||lastStaticStage!==stage){vortex.render(p,clock,reduced.matches,stopped()||debugHold,dt);lastStaticStage=stage}
 }
 function sync(){
- if(stopped()||reduced.matches){timeline.pause();bimo.pause()}else{if(visualProgress>.08){timeline.pause();ambientHeld=true}else{timeline.resume();ambientHeld=false}bimo.resume()}
+ if(stopped()||reduced.matches){timeline.pause();bimo.pause()}else{if(visualProgress>.10){timeline.pause();ambientHeld=true}else{timeline.resume();ambientHeld=false}bimo.resume()}
  motion.setAttribute('aria-pressed',String(paused));motion.setAttribute('aria-label',paused?'Resume animation':'Pause animation');
  vortex.render(visualProgress,clock,reduced.matches,true);last=0;
 }

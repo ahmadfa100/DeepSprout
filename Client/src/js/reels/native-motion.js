@@ -1,3 +1,4 @@
+import {noticeBlend} from './story-math.js';
 // Motion sampled from the APPROVED native V2 controller; no character redraw or new poses.
 // Playback binds the samples to the original Rive view model and state machine.
 export function createNativeMotion(instance,clips,{sceneTime,isStopped,storyProgress}){
@@ -24,7 +25,7 @@ export function createNativeMotion(instance,clips,{sceneTime,isStopped,storyProg
   return v;
  }
  function render(){
-  const intro=sceneTime(), progress=storyProgress();stage.value=progress>.72?4:progress>.37?3:progress>.115?2:intro>=4.1?1:0;
+  const intro=sceneTime(), progress=storyProgress();stage.value=progress>.72?4:progress>.38?3:progress>=.22?2:intro>=4.1?1:0;
   const values=[];
   for(let i=0;i<properties.length;i++){
    const [start,end]=windows[i],raw=Math.max(0,Math.min(1,(intro-start)/(end-start))),blend=raw*raw*(3-2*raw);
@@ -33,9 +34,9 @@ export function createNativeMotion(instance,clips,{sceneTime,isStopped,storyProg
   }
   // Continuous blends between native pose captures: same bindings, same canvas.
   const smooth=(a,b,v)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t)};
-  if(clips.narrative&&progress>.09){
+  if(clips.narrative&&progress>.155){
    const data=clips.narrative;
-   const gaze=progress<.2?.8:progress<.36?Math.cos(2.4+(progress-.2)*7.5)*.8:progress<.52?.7:Math.sin(progress*37)*.8;
+   const gaze=progress<.25?.8:progress<.36?(.8+(Math.cos(2.4+(progress-.2)*7.5)*.8-.8)*smooth(.25,.36,progress)):progress<.52?.7:Math.sin(progress*37)*.8;
    const direction=gaze<0?'left':'right',gazeMix=Math.abs(gaze)/.8;
    const sample=(name,i)=>{
     const rows=data.tracks[name],t=(clock%5),at=Math.min(Math.floor(t/.1),rows.length-2);
@@ -43,14 +44,15 @@ export function createNativeMotion(instance,clips,{sceneTime,isStopped,storyProg
     return rows[at][i+1]+(rows[at+1][i+1]-rows[at][i+1])*f;
    };
    const pose=(n,i)=>sample(n+'-center',i)+(sample(n+'-'+direction,i)-sample(n+'-center',i))*gazeMix;
-   const notice=smooth(.09,.17,progress),concern=smooth(.35,.43,progress),overwhelm=smooth(.66,.78,progress);
+   const concern=smooth(.38,.43,progress),overwhelm=smooth(.66,.78,progress);
    for(let i=0;i<values.length;i++){
     let v=pose(2,i);v+=(pose(3,i)-v)*concern;v+=(pose(4,i)-v)*overwhelm;
-    values[i]+=(v-values[i])*notice;
+    values[i]+=(v-values[i])*noticeBlend(clips.keys[i],progress);
    }
-   instance.viewModelInstance.number('lookX').value=gaze;
-   instance.viewModelInstance.number('lookY').value=-.45;
+   instance.viewModelInstance.number('lookX').value=gaze*noticeBlend('eyeX',progress);
+   instance.viewModelInstance.number('lookY').value=-.45*noticeBlend('eyeY',progress);
   }
+  if(progress<=.155){instance.viewModelInstance.number('lookX').value=0;instance.viewModelInstance.number('lookY').value=0}
   // Reapply the approved controller's planted-leg solve AFTER blending.
   // Interpolating two solved leg chains alone does not preserve their anchor.
   const get=name=>values[indices[name]],put=(name,v)=>{values[indices[name]]=v};

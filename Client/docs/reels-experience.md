@@ -26,18 +26,20 @@ Reproducibility: `scripts/reels/export-narrative.py`, `compare-frames.py`, and
 
 | Progress | State | Bimo | Media and stones |
 | --- | --- | --- | --- |
-| 0–.08 | Post Hero calm | DEEP FOCUS | Same balanced stack; no reels or decoders |
-| .08–.20 | Tiny distraction | Opens into NOTICE | Small peripheral card/chip; top stone wobbles |
-| .20–.36 | Temptation orbit | NOTICE, authored gaze | Three cards; one live source, two posters |
-| .36–.52 | First collapse | CONCERNED | Seven cards; top stone slips, hesitates, accelerates and impacts |
+| 0–.10 | Post Hero calm | DEEP FOCUS | Same balanced stack; no reels or decoders |
+| .10–.23 | Tiny distraction | Senses cue → opens eyes → NOTICE | One tiny peripheral chip; micro-vibration then settle |
+| .23–.38 | Temptation orbit | NOTICE holds, then authored gaze | First card at .245; next at .275/.30; growing top wobble |
+| .38–.52 | First collapse | CONCERNED | Seven cards; top stone slips, hesitates, accelerates and impacts |
 | .52–.70 | Swarm / spiral | Guarded CONCERNED | 10–16 cards; next two stones fall; Z depth expands |
 | .70–.88 | Black-hole burst | OVERWHELMED | Up to 32 cards; remaining stones collapse into the funnel |
 | .88–1 | The trap | OVERWHELMED, recoiling | Up to 46 cards; world obscured; “Where did the day go?” |
 
 Native scrolling changes `targetProgress` across an eight-viewport travel region.
-`visualProgress` follows exponentially, capped at .145 progress/second forward
-and .19 backward. Even an End-key fling takes about seven seconds to tell the
-story. No wheel cancellation, body scroll lock, random jitter or one-shot physics
+`visualProgress` follows exponentially, capped at .06 progress/second forward
+and .08 backward through .25, smoothly returning to the original .145/.19 caps
+by .38. The existing 500 ms post-intro hold remains. Even aggressive input gives
+Stage 1 at least 2.16 seconds of animation time; NOTICE has at least 416 ms
+before the first card begins fading in. Later pacing is unchanged. No wheel cancellation, body scroll lock, random jitter or one-shot physics
 is used. Reverse scroll derives all poses, density, grade and camera from progress.
 Low-amplitude ambient drift continues when scroll stops, so poster locations are
 not intended to be pixel-identical at different wall-clock times.
@@ -55,7 +57,8 @@ controller, or `.riv` was edited. The lab adapter extends the existing clip-blen
 approach and retains its planted-leg solve. Pointer tracking stays disabled;
 `useExternalLook` stays enabled. The original awake/focus transition is reused.
 
-Only five video elements exist. They are muted, looping, inline, and initially
+Only five video elements exist. The existing first-source warmup at .205 is
+retained; its card becomes visible after .245. They are muted, looping, inline, and initially
 have no source. Stage 2 starts one; collapse allows two; swarm allows five. A
 sustained slow-frame condition lowers the active cap to three. Pause, hidden tabs,
 reverse-to-calm and page teardown stop playback. Failed/delayed videos retain one
@@ -108,7 +111,7 @@ and full-resolution 1440×900 and 1280×800 PNGs in the evidence directory.
 | Gold | Comparison / remaining deviation |
 | --- | --- |
 | 00 Calm | Same Hero V2 composition, seven stones, closed eyes and roots. Existing vector Bimo differs from the painted reference. A small scroll cue is added. |
-| 01 Tiny distraction | Peripheral small card and chip, NOTICE, top wobble. Live narrative copy replaces the concept's hero wording. |
+| 01 Tiny distraction | Now a single peripheral chip, delayed NOTICE, and a small vibration/settle. Live narrative copy replaces the concept's hero wording. Original gold comparison captures predate this pacing refinement. |
 | 02 Temptation | Three spatial cards around Bimo and restrained paths. Supplied real media replaces the reference's dog/food/landscape imagery. |
 | 03 Collapse | Original top stone visibly falls with a guarded reaction; seven cards. The original plateau is graded, not physically cracked or repainted. |
 | 04 Swarm | 10–16 cards, depth, leaves/rubble and growing violet funnel. Shader atmosphere is procedural rather than painted storm-cloud artwork. |
@@ -141,3 +144,38 @@ Approved Hero source/asset hashes are recorded in `preservation.json`. Existing
 unrelated homepage edits are excluded from the Reels commit. The unchanged Hero
 runtime prerequisites and supplied media are included because they had not yet
 been tracked and the new lab must work from a checkout.
+
+## Focused interruption pacing refinement
+
+Early boundaries changed from **0/.08/.20/.36** to **0/.10/.23/.38**.
+The .52/.70/.88 boundaries and later choreography remain unchanged.
+
+- .10–.14: one small “1 new reel” chip fades in near the right edge. It drifts
+  slightly inward through .23; no card crosses Bimo during this introduction.
+- .155–.205: the existing native head/neck channels slowly blend toward NOTICE.
+  Eye channels remain in deep focus until .18, then open through .21. Body
+  channels blend during .19–.22; the emotion stage reaches NOTICE at .22.
+- .22–.245: NOTICE registers before a card arrives. First card fades in at .245,
+  next cards at .275 and .30; their orbit reaches the existing path by .36.
+- Top stone stays still through .175, vibrates below 0.5° around .195, settles
+  completely by .215, then begins a stronger wobble at .24. Existing slip/fall
+  timing from .38 onward is unchanged. Other stone motion is unchanged.
+- Hero copy remains fully readable through .13 and fades by .18; the tiny-stage
+  narrative follows afterward. Original calm world motion continues through .10.
+- All motion remains derived from progress; reversing restores closed eyes,
+  neutral external gaze and a stable stack. No input lock was added.
+
+Focused regression test: `tests/reels-pacing.test.cjs`. Run with `REELS_URL`
+pointing at the lab server and the same optional Playwright/Chrome variables as
+above. Evidence and timing traces: `references/reels-pacing-validation/`.
+The earlier full-sequence evidence remains an archival baseline.
+
+Validation on Chrome at 1440×900 passed all five requested input patterns:
+very slow scrolling, normal wheel input, an aggressive 18,000 px swipe, reverse
+through Stage 1, and repeated forward/back changes. The aggressive swipe moved
+native target progress ahead immediately while Stage 1 took **2,167 ms**;
+cue-to-head onset took **917 ms**, and NOTICE-to-card onset took **417 ms**.
+There were no page errors. Nine visual captures cover the early beats plus burst
+and trap. A 982-sample comparison against the previous commit confirmed identical
+stone poses from .38 and native Bimo bindings from .43 onward. Shader, media,
+Hero architecture, artwork and styles remain unchanged.
