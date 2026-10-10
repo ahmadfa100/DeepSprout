@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fcfbf3"><title>DeepSprout — Less scrolling. More living.</title>
+  <meta name="description" content="DeepSprout helps you reclaim your focus, build healthier digital habits, and make more time for what matters.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 36V18M20 26Q2 28 4 6Q21 5 20 26M20 22Q18 3 37 3Q39 24 20 22' fill='%23689948' stroke='%232b503b' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="src/styles/hero/hero.css">
+  <link rel="preload" as="image" href="assets/hero/bimo-focus.png">
+  <script defer src="assets/vendor/gsap/gsap.min.js"></script>
+  <script defer src="assets/vendor/rive/rive.js"></script>
+  <script type="module" src="src/js/hero/hero.js"></script>
+</head>
+<body>
+ <main class="hero" id="hero" data-phase="BALANCED" aria-labelledby="hero-title">
+  <div class="scene" aria-hidden="true">
+   <div id="environment"></div><div id="effects"></div><div id="stones"></div>
+   <div class="bimo" id="bimo"><img id="bimo-poster" src="assets/hero/bimo-focus.png" alt="" width="700" height="860"><canvas id="bimo-canvas" width="700" height="860"></canvas></div>
+  </div>
+  <div class="hero-copy">
+   <h1 id="hero-title"><span class="line line-first"><span class="text-reveal">Less scrolling.</span></span><span class="line line-living"><span class="text-reveal">More living.</span></span></h1>
+   <p class="hero-body">DeepSprout helps you reclaim your focus,<br class="desktop-break"> build healthier digital habits, and make<br class="desktop-break"> more time for what matters.</p>
+   <div class="hero-actions"><button class="cta cta-primary" id="focus-check" type="button">Take the quick focus check <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button><button class="cta cta-secondary" id="replay" type="button" title="Replay the opening scene"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg>See how it works</button></div>
+  </div>
+  <button class="motion-control" id="motion-control" type="button" aria-label="Pause animation" aria-pressed="false"><svg class="pause-symbol" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10"/></svg><svg class="play-symbol" viewBox="0 0 20 20" aria-hidden="true"><path d="m7 5 8 5-8 5Z"/></svg></button>
+  <noscript><p class="static-note">Enable JavaScript to see the opening animation.</p></noscript>
+ </main>
+ <dialog id="focus-dialog" aria-labelledby="check-title"><form method="dialog"><button class="dialog-close" aria-label="Close focus check">×</button></form><h2 id="check-title">Let's find your starting point.</h2><p>How often does scrolling interrupt something you meant to do?</p><div class="check-options"><button data-result="You've already noticed the pattern. Try one 25-minute focus session today.">Sometimes <span>→</span></button><button data-result="A short focus session can help you reclaim one moment at a time. Start with 10 minutes.">Most days <span>→</span></button><button data-result="Start gently: put your phone aside for five minutes and focus on one small task.">Many times a day <span>→</span></button></div><p id="check-result" aria-live="polite"></p></dialog>
+</body>
+</html>

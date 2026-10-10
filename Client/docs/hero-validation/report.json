@@ -1,0 +1,149 @@
+{
+  "live": [
+    {
+      "state": {
+        "phase": "ARRIVAL",
+        "time": 0.749,
+        "duration": 5.925,
+        "character": "live",
+        "inputs": {
+          "emotionStage": 1,
+          "pointerLookEnabled": false,
+          "useExternalLook": true
+        },
+        "stones": 7,
+        "paused": false,
+        "reducedMotion": false
+      },
+      "stone": "translate: none; rotate: none; scale: none; transform-origin: 0px 0px; opacity: 0.0148;",
+      "root": "1px",
+      "scrollY": 0
+    },
+    {
+      "state": {
+        "phase": "ARRIVAL",
+        "time": 1.749,
+        "duration": 5.925,
+        "character": "live",
+        "inputs": {
+          "emotionStage": 1,
+          "pointerLookEnabled": false,
+          "useExternalLook": true
+        },
+        "stones": 7,
+        "paused": false,
+        "reducedMotion": false
+      },
+      "stone": "translate: none; rotate: none; scale: none; transform-origin: 0px 0px; opacity: 0.9207;",
+      "root": "1px",
+      "scrollY": 0
+    },
+    {
+      "state": {
+        "phase": "ALIGN",
+        "time": 2.599,
+        "duration": 5.925,
+        "character": "live",
+        "inputs": {
+          "emotionStage": 1,
+          "pointerLookEnabled": false,
+          "useExternalLook": true
+        },
+        "stones": 7,
+        "paused": false,
+        "reducedMotion": false
+      },
+      "stone": "translate: none; rotate: none; scale: none; transform-origin: 0px 0px; opacity: 1;",
+      "root": "1px",
+      "scrollY": 0
+    },
+    {
+      "state": {
+        "phase": "GROW",
+        "time": 3.998,
+        "duration": 5.925,
+        "character": "live",
+        "inputs": {
+          "emotionStage": 1,
+          "pointerLookEnabled": false,
+          "useExternalLook": true
+        },
+        "stones": 7,
+        "paused": false,
+        "reducedMotion": false
+      },
+      "stone": "translate: none; rotate: none; scale: none; transform-origin: 0px 0px; opacity: 1;",
+      "root": "1px",
+      "scrollY": 0
+    },
+    {
+      "state": {
+        "phase": "LIVING_IDLE",
+        "time": 5.925,
+        "duration": 5.925,
+        "character": "live",
+        "inputs": {
+          "emotionStage": 1,
+          "pointerLookEnabled": false,
+          "useExternalLook": true
+        },
+        "stones": 7,
+        "paused": false,
+        "reducedMotion": false
+      },
+      "stone": "translate: none; rotate: none; scale: none; transform-origin: 0px 0px; opacity: 1;",
+      "root": "0px",
+      "scrollY": 0
+    },
+    {
+      "state": {
+        "phase": "LIVING_IDLE",
+        "time": 5.925,
+        "duration": 5.925,
+        "character": "live",
+        "inputs": {
+          "emotionStage": 1,
+          "pointerLookEnabled": false,
+          "useExternalLook": true
+        },
+        "stones": 7,
+        "paused": false,
+        "reducedMotion": false
+      },
+      "stone": "translate: none; rotate: none; scale: none; transform-origin: 0px 0px; opacity: 1;",
+      "root": "0px",
+      "scrollY": 0
+    }
+  ],
+  "sizes": [
+    {
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "width": 700,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "overflow": false
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "httpFailures": [],
+  "result": "PASS"
+}

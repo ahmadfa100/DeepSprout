@@ -22,16 +22,18 @@ Login validates email and password, toggles password visibility, and links to Re
 
 Animations follow the user's reduced-motion preference. No framework or build step is required.
 
-## Home scroll story
+## Home: Break the Loop
 
-The Home page keeps its markup and existing practice demos in `src/pages/public/home/`. Its story layer lives in `animations/`:
+The homepage is a continuous attention story: garden → distractions → infinity ribbon → stillness → seed → roots → path → garden. Scrolling remains native. Stop in the loop for about 1.3 seconds to let the world settle, or keep scrolling to continue through the fallback.
 
-- `story.css` contains the scene styling and responsive/reduced-motion states.
-- `motion-preferences.js` reads pointer and motion preferences.
-- `growth-system.js` owns the page-wide growth stage and the interactive garden progress.
-- `scroll-story.js` connects a short sticky noise-to-seed chapter, the growing trail, journey seed, and final illustrated reveal to native scroll with GSAP ScrollTrigger.
-- `micro-interactions.js` adds a small desktop pointer response and cleans it up when media preferences change.
+- `src/pages/public/home/animations/scroll-story.js` owns the state, filtered velocity, stillness, camera/seed handoff, and root/journey reveals.
+- `animations/loop-scene.js` projects a shaded SVG ribbon and HTML feed fragments, then unfolds the same geometry into a path. No Three.js/WebGL dependency is needed.
+- `animations/story.css` contains scene styling and separate mobile/reduced-motion layouts.
+- `animations/growth-system.js` ties the sample garden's growth to intentional habit controls.
+- `animations/motion-preferences.js` remains the small shared preference helper. The older pointer `micro-interactions.js` is no longer loaded by this page.
 
-GSAP 3.13.0 and ScrollTrigger are pinned locally in `assets/vendor/gsap/`, so the page can be opened from `file://` without a CDN for its motion scripts. The bundled files retain their GreenSock license headers; see [GSAP's standard license](https://gsap.com/standard-license/). The existing hero and closing mascot illustrations are single flat images, so their animation is limited to subtle whole-image movement; limbs and facial features are not separated for rigging. The noise-to-seed and growth details are HTML/CSS/SVG. Native scrolling, keyboard access to controls, and static content remain available when motion is reduced or JavaScript animation is unavailable.
+GSAP 3.13.0 and ScrollTrigger remain bundled locally in `assets/vendor/gsap/`; their license headers are retained. There is no framework, package installation, or build step for the site. Reduced motion and failed/missing animation libraries produce a readable static page. Existing artwork is flat, so mascot movement remains a whole-image treatment.
 
-The Home story reuses `assets/garden/scene-v1.png` for the calm world inside the transformation and for the garden revealed by the three sample habit controls. The reveal follows the control state directly, with no saved progress or backend connection.
+See [the implementation handoff](docs/break-the-loop.md) for scenes, architecture, all changed files, asset requirements, device behavior, and performance limits.
+
+A browser regression suite lives at `tests/home-story.test.cjs`. With this folder served on port 8765 and Playwright available to Node, run `node tests/home-story.test.cjs`. Set `BASE_URL` for another local origin, `CHROME_PATH` for an installed Chromium browser, and `NODE_PATH` if using an external Playwright installation. These are test-only dependencies.

@@ -1,0 +1,42 @@
+{
+  "cases": [
+    "Normal autoplay: one persistent canvas; no empty character frame; 25 samples at ~125ms master-clock intervals",
+    "All three cloud groups visibly displace at different rates; living idle remains active after 20 seconds without replay",
+    "Rive delayed 5.6 seconds: decoded posters stay visible, initialized canvas takes over without empty frames",
+    "Focus image delayed: outgoing poster retained until incoming image is decoded",
+    "Immediate aggressive scroll: all phases visited, persistent painted Bimo and gate unlock only on completion",
+    "Reduced motion: complete focused/balanced scene; cloud groups remain static"
+  ],
+  "errors": [],
+  "sequences": {
+    "normal-transition": {
+      "samples": 25,
+      "auditedFrames": 494,
+      "minPaintedPixels": 9756,
+      "surfaceWrites": 2
+    },
+    "delayed-rive-transition": {
+      "samples": 25,
+      "auditedFrames": 505,
+      "minPaintedPixels": 9756,
+      "surfaceWrites": 2
+    },
+    "delayed-focus-image": {
+      "samples": 25,
+      "auditedFrames": 505,
+      "minPaintedPixels": 9756,
+      "surfaceWrites": 2
+    },
+    "aggressive-transition": {
+      "samples": 25,
+      "auditedFrames": 270,
+      "minPaintedPixels": 9756,
+      "surfaceWrites": 2
+    }
+  },
+  "cloudDisplacement6s": [
+    2.670200824737549,
+    -7.184927940368652,
+    6.989253520965576
+  ]
+}

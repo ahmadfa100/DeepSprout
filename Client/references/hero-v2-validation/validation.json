@@ -1,0 +1,210 @@
+{
+  "cases": [
+    "Normal autoplay; Bimo awake through lift; all six phases; seven aligned stones; idle moves <=1px; intro never repeats",
+    "immediate-scroll: native scroll, absorbed intent, every phase visited, unlock only at progress=1",
+    "aggressive-scroll: native scroll, absorbed intent, every phase visited, unlock only at progress=1",
+    "Actual hidden/restored Chrome tab: document.hidden=true, paused clock, smooth resume",
+    "Delayed Rive: immediate awake still, hidden canvas, initialized live crossfade",
+    "Reduced motion: complete stack and focus pose; immediate gate; no animation",
+    "Reduced-motion first paint without JavaScript: seven aligned stones and focused poster",
+    "1440×900 and 1280×800: six captures each, seven persistent stones; pause/resume; keyboard dialog focus return"
+  ],
+  "errors": [],
+  "measurements": {
+    "autoplay": {
+      "duration": 8.2,
+      "phaseOrder": [
+        {
+          "phase": "ARRIVAL",
+          "time": 0.014
+        },
+        {
+          "phase": "LIFT",
+          "time": 1.206
+        },
+        {
+          "phase": "VERTICAL_ALIGNMENT",
+          "time": 3.806
+        },
+        {
+          "phase": "PERFECT_BALANCE",
+          "time": 5.405
+        },
+        {
+          "phase": "GROW",
+          "time": 6.406
+        },
+        {
+          "phase": "LIVING_IDLE",
+          "time": 8.2
+        },
+        {
+          "unlock": 1
+        }
+      ],
+      "rafMedian": 16.699999999999818,
+      "rafP95": 16.700000000000728,
+      "resources": [
+        {
+          "name": "inter-800.ttf",
+          "bytes": 327624,
+          "ms": 12
+        },
+        {
+          "name": "hero.css",
+          "bytes": 9684,
+          "ms": 22
+        },
+        {
+          "name": "stone-growth.webp",
+          "bytes": 84782,
+          "ms": 26
+        },
+        {
+          "name": "inter-400.ttf",
+          "bytes": 325120,
+          "ms": 27
+        },
+        {
+          "name": "bimo-awake.png",
+          "bytes": 166243,
+          "ms": 48
+        },
+        {
+          "name": "environment.webp",
+          "bytes": 247186,
+          "ms": 60
+        },
+        {
+          "name": "first-paint.webp",
+          "bytes": 321566,
+          "ms": 60
+        },
+        {
+          "name": "stone-heart.webp",
+          "bytes": 89294,
+          "ms": 27
+        },
+        {
+          "name": "stone-clock.webp",
+          "bytes": 93184,
+          "ms": 31
+        },
+        {
+          "name": "stone-lotus.webp",
+          "bytes": 93444,
+          "ms": 34
+        },
+        {
+          "name": "stone-book.webp",
+          "bytes": 88942,
+          "ms": 36
+        },
+        {
+          "name": "stone-sprout.webp",
+          "bytes": 94092,
+          "ms": 52
+        },
+        {
+          "name": "stone-community.webp",
+          "bytes": 93298,
+          "ms": 58
+        },
+        {
+          "name": "hero.js",
+          "bytes": 3989,
+          "ms": 22
+        },
+        {
+          "name": "bimo-focus.png",
+          "bytes": 168787,
+          "ms": 55
+        },
+        {
+          "name": "gsap.min.js",
+          "bytes": 72733,
+          "ms": 63
+        },
+        {
+          "name": "rive.js",
+          "bytes": 570366,
+          "ms": 83
+        },
+        {
+          "name": "stones.js",
+          "bytes": 1014,
+          "ms": 16
+        },
+        {
+          "name": "effects.js",
+          "bytes": 3400,
+          "ms": 15
+        },
+        {
+          "name": "bimo.js",
+          "bytes": 4499,
+          "ms": 18
+        },
+        {
+          "name": "timeline.js",
+          "bytes": 6121,
+          "ms": 21
+        },
+        {
+          "name": "intro-gate.js",
+          "bytes": 2377,
+          "ms": 23
+        },
+        {
+          "name": "inter-500.ttf",
+          "bytes": 325604,
+          "ms": 19
+        },
+        {
+          "name": "scene-config.js",
+          "bytes": 1690,
+          "ms": 15
+        },
+        {
+          "name": "native-motion.js",
+          "bytes": 2504,
+          "ms": 19
+        },
+        {
+          "name": "world-motion.js",
+          "bytes": 1656,
+          "ms": 18
+        },
+        {
+          "name": "motion-clips.json",
+          "bytes": 110356,
+          "ms": 7
+        },
+        {
+          "name": "rive.wasm",
+          "bytes": 2052944,
+          "ms": 19
+        },
+        {
+          "name": "bimo.riv",
+          "bytes": 27681,
+          "ms": 2
+        }
+      ]
+    }
+  },
+  "screenshots": [
+    "1440x900-00-arrival.png",
+    "1440x900-01-lift.png",
+    "1440x900-02-vertical-alignment.png",
+    "1440x900-03-perfect-balance.png",
+    "1440x900-04-grow.png",
+    "1440x900-05-living-idle.png",
+    "1280x800-00-arrival.png",
+    "1280x800-01-lift.png",
+    "1280x800-02-vertical-alignment.png",
+    "1280x800-03-perfect-balance.png",
+    "1280x800-04-grow.png",
+    "1280x800-05-living-idle.png"
+  ]
+}

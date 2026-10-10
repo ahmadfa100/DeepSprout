@@ -20,6 +20,7 @@
   const setHabitProgress = (completed, total) => {
     const safeTotal = Math.max(1, total);
     const safeCompleted = Math.min(safeTotal, Math.max(0, completed));
+    setGrowthStage(Math.round(safeCompleted / safeTotal * 7));
     if (count) count.textContent = `${safeCompleted} / ${safeTotal}`;
     if (progress) progress.style.width = `${safeCompleted / safeTotal * 100}%`;
     garden.style.setProperty('--plant-scale', String(.32 + safeCompleted * .2));

@@ -1,0 +1,4 @@
+name: bimo-rive-v2
+logs:
+  file: build/rive.log
+  problems: build/problems.log

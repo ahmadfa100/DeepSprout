@@ -1,0 +1,15 @@
+{
+  "unchangedHashes": {
+    "Client/hero-lab.html": "7f4482a6093e8976c8f4ab13aa53940a9d8dcb10da820980d5dc4977dbcd5798",
+    "Client/src/pages/public/home/home.html": "d52022a7f97b01f875f2a703dc6c29bc98c1f5ddc83d8196673fb10cd14532a7",
+    "Client/src/js/hero-v2/scene-config.js": "b5683836c822192d98fbc17674e81612f96f62c668ef02106c850d8ea62d3f0f",
+    "Client/src/js/hero-v2/intro-gate.js": "0b910d28566de947fc2b1f30e533a2e48715b3b47bfbe4d4af1d08c8e25d826c",
+    "Client/assets/hero-v2/bimo.riv": "5859c5c938120bf22108431530ce465211f1a94abfb7e05471d7d49963bebac8",
+    "Client/assets/hero-v2/motion-clips.json": "f14b0da6df2855434ba5e0aa1601aca562aa00e6dac5a4cb535dba6242c2a9d9",
+    "Client/assets/hero-v2/environment.webp": "8d4ebf7c9c61987acc92f001f21fe00ec5e012c9c510c327f1d9209cc3d82c75",
+    "experiments/bimo-rive-v2/scene.rml": "71dc0a4d0c585437ab4b8857187d340c8b27d393d5cf9a5c2be119af80477c4f",
+    "experiments/bimo-rive-v2/bimo_controller.luau": "e8270d6235277b0e6c72ad94934ad06425609fbe753e459a91c89e96e3feab30",
+    "experiments/bimo-rive-v2/pose_library.luau": "28162147ec36ccabbea67edabe2fb8b465ff6740c4e6e8d675008eed98bdbe97"
+  },
+  "copyAndCTAMarkupByteIdentical": true
+}

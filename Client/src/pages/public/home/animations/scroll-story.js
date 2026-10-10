@@ -1,167 +1,194 @@
+/* The scene owns its own time; native scrolling is never intercepted.
+   Scroll reveals the story. Stillness changes its direction. */
 (() => {
-  const motion = window.DeepSproutMotion;
-  const growth = window.DeepSproutGrowth;
-  const main = document.getElementById('story-main');
-  if (!motion || !growth || !main || !window.gsap || !window.ScrollTrigger) return;
+  const section = document.querySelector('.attention-story');
+  const stage = section?.querySelector('.story-stage');
+  if (!stage || !window.DeepSproutLoop || !window.gsap || !window.ScrollTrigger) return;
   const { gsap, ScrollTrigger } = window;
   gsap.registerPlugin(ScrollTrigger);
-  const media = gsap.matchMedia();
-
-  const stageStops = [
-    ['#discover', 3], ['#how', 4], ['#experience', 5],
-    ['#progress', 6], ['#start', 7]
-  ];
-  const syncStageAtCurrentScroll = () => {
-    let stage = 0;
-    const noise = document.getElementById('noise');
-    if (noise) {
-      const noiseBounds = noise.getBoundingClientRect();
-      if (noiseBounds.top <= innerHeight * .7) stage = 1;
-      if (noiseBounds.bottom <= innerHeight * .45) stage = 2;
-    }
-    stageStops.forEach(([selector, value]) => {
-      if (document.querySelector(selector)?.getBoundingClientRect().top <= innerHeight * .65) stage = value;
-    });
-    growth.setGrowthStage(stage);
-  };
-
-  media.add({
-    desktop: '(min-width: 1024px)',
-    tablet: '(min-width: 768px) and (max-width: 1023px)',
-    mobile: '(max-width: 767px)',
-    reduceMotion: '(prefers-reduced-motion: reduce)'
-  }, context => {
-    const { desktop, tablet, mobile, reduceMotion } = context.conditions;
-    if (reduceMotion) {
-      syncStageAtCurrentScroll();
-      return;
-    }
-
-    // TODO: Replace whole-image mascot motion with layered head, eyes, arms, legs, and sprout assets when exported.
-    const heroEntrance = gsap.timeline({ defaults: { ease: 'power2.out' } });
-    heroEntrance.fromTo('.hero-art', { autoAlpha: .74, scale: 1.07 }, { autoAlpha: 1, scale: 1.025, duration: 1.15 });
-    heroEntrance.fromTo('.hero-eyebrow,.hero h1,.hero-lead,.hero-actions,.hero-notes',
-      { autoAlpha: 0, y: 19 }, { autoAlpha: 1, y: 0, duration: .66, stagger: .12 }, .12);
-    if (desktop) heroEntrance.fromTo('.floating-note', { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: .8 }, .65);
-
-    if (desktop || tablet) {
-      const ambient = gsap.timeline({ paused: true, repeat: -1, yoyo: true, defaults: { ease: 'sine.inOut' } });
-      ambient.to('.hero-art', { y: -3, duration: 7.5 }, 0)
-        .to('.cloud-distant', { x: 4, y: -2, duration: 8.5 }, 0)
-        .to('.cloud-near', { x: -3, y: 2, duration: 7.3 }, 0)
-        .to('.hero-sun-glow', { opacity: .52, duration: 8 }, 0)
-        .to('.hero-foreground-leaf.leaf-a', { rotation: -36, duration: 6.4 }, 0)
-        .to('.hero-foreground-leaf.leaf-b', { rotation: 19, duration: 7.8 }, 0);
-      ScrollTrigger.create({
-        trigger: '.hero', start: 'top bottom', end: 'bottom top',
-        onEnter: () => ambient.play(), onEnterBack: () => ambient.play(),
-        onLeave: () => ambient.pause(), onLeaveBack: () => ambient.pause()
-      });
-    }
-
-    const fragments = gsap.utils.toArray('.noise-fragment');
-    const noiseCard = document.querySelector('.noise-card');
-    const seed = document.querySelector('.noise-seed');
-    const sprout = document.querySelector('.noise-sprout');
-    const ring = document.querySelector('.noise-ground-ring');
-    gsap.set(seed, { autoAlpha: 0, scale: .3, y: -125, rotation: -26 });
-    gsap.set(sprout, { autoAlpha: 0, scale: .12, transformOrigin: '50% 100%' });
-    gsap.set(ring, { autoAlpha: 0, scale: .4 });
-    gsap.set('.noise-world', { autoAlpha: 0, clipPath: 'circle(0% at 50% 72%)', scale: 1.13 });
-    gsap.set('.noise-soil', { autoAlpha: .4, scaleX: .65 });
-    const noiseToSeed = gsap.timeline({
-      scrollTrigger: {
-        trigger: '.noise-scene', start: mobile ? 'top 78%' : 'top top',
-        end: mobile ? 'bottom 25%' : 'bottom bottom', scrub: mobile ? .38 : .7,
-        onUpdate: self => growth.setGrowthStage(self.progress > .7 ? 2 : 1),
-        onLeaveBack: () => growth.setGrowthStage(0)
-      }, defaults: { ease: 'power2.out' }
-    });
-    noiseToSeed.fromTo(fragments,
-      { autoAlpha: .48, x: i => (i % 2 ? -22 : 19), y: i => (i % 3 ? 14 : -16) },
-      { autoAlpha: 1, x: 0, y: 0, duration: .22, stagger: .025 }, 0)
-      .to(fragments, { autoAlpha: 0, x: i => (i % 2 ? -37 : 42), y: i => (i % 3 ? -29 : 37), scale: .72, duration: .23, stagger: .018 }, .27)
-      .to('.noise-feed', { autoAlpha: 0, scale: .08, y: 115, rotation: -11, duration: .31, ease: 'power3.in' }, .39)
-      .to(noiseCard, { autoAlpha: 0, scale: .1, y: 56, rotation: -8, duration: .29, ease: 'power3.in' }, .4)
-      .to(seed, { autoAlpha: 1, scale: 1, y: -82, duration: .18 }, .51)
-      .to(seed, { y: 0, rotation: 7, duration: .18, ease: 'power3.in' }, .66)
-      .to('.noise-soil', { autoAlpha: 1, scaleX: 1, duration: .18 }, .76)
-      .to(ring, { autoAlpha: .75, scale: 1, duration: .2 }, .77)
-      .to('.noise-world', { autoAlpha: 1, clipPath: 'circle(135% at 50% 72%)', scale: 1, duration: .43, ease: 'power2.inOut' }, .76)
-      .to('.noise-scene', { backgroundColor: '#f5f9ec', duration: .34 }, .77)
-      .to('.noise-core', { backgroundColor: '#eaf5df', borderColor: '#b8d8ab', duration: .34 }, .77)
-      .to('.noise-copy h2,.noise-copy>p:not(.section-kicker)', { color: '#25443b', duration: .31 }, .79)
-      .to('.noise-copy h2 em,.noise-copy .section-kicker,.noise-caption', { color: '#24885d', duration: .31 }, .79)
-      .to(seed, { autoAlpha: 0, scale: .48, y: 30, duration: .14 }, .84)
-      .to(sprout, { autoAlpha: 1, scale: 1.28, duration: .38, ease: 'power3.out' }, .89)
-      .to(ring, { autoAlpha: .3, scale: 1.4, duration: .31 }, .95);
-
-    gsap.fromTo('.trail-growth', { strokeDashoffset: 1000 }, {
-      strokeDashoffset: 0, ease: 'none', scrollTrigger: {
-        trigger: main, start: 'top top', end: 'bottom bottom', scrub: .6
-      }
-    });
-    stageStops.forEach(([selector, stage]) => ScrollTrigger.create({
-      trigger: selector, start: 'top 65%',
-      onEnter: () => growth.setGrowthStage(stage),
-      onEnterBack: () => growth.setGrowthStage(stage),
-      onLeaveBack: () => growth.setGrowthStage(stage - 1)
-    }));
-
-    document.querySelectorAll('.feature-card').forEach(card => {
-      ScrollTrigger.create({
-        trigger: card, start: 'top 83%', once: true,
-        onEnter: () => card.classList.add('is-story-active')
-      });
-    });
-
-    const stem = document.querySelector('.journey-stem>span');
-    gsap.fromTo(stem, { scaleY: 0 }, {
-      scaleY: 1, ease: 'none', scrollTrigger: {
-        trigger: '.steps', start: 'top 72%', end: 'bottom 33%', scrub: .45
-      }
-    });
-    gsap.fromTo('.journey-guide', { y: 0 }, {
-      y: () => Math.max(0, document.querySelector('.steps').offsetHeight - (mobile ? 112 : 130)),
-      ease: 'none', scrollTrigger: {
-        trigger: '.steps', start: 'top 72%', end: 'bottom 33%', scrub: .45,
-        invalidateOnRefresh: true
-      }
-    });
-    document.querySelectorAll('.step').forEach(step => ScrollTrigger.create({
-      trigger: step, start: 'top 73%', end: 'bottom 32%',
-      onToggle: self => step.classList.toggle('is-current', self.isActive)
-    }));
-
-    ScrollTrigger.create({
-      trigger: '.experience', start: 'top 72%', once: true,
-      onEnter: () => document.querySelector('.experience')?.classList.add('is-story-active')
-    });
-
-    const finalTimeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: '.final-cta', start: mobile ? 'top 85%' : 'top 78%',
-        end: mobile ? 'center 50%' : 'center 43%', scrub: .65
-      }, defaults: { ease: 'power2.out' }
-    });
-    gsap.set('.final-art', { clipPath: 'circle(15% at 56% 67%)', scale: 1.06 });
-    gsap.set('.final-seed', { autoAlpha: 0, y: -62, scale: .7 });
-    gsap.set('.final-seed-ring', { autoAlpha: 0, scale: .5 });
-    gsap.set('.final-sprout', { autoAlpha: 0, scaleY: .12, scaleX: .7 });
-    finalTimeline.to('.final-seed', { autoAlpha: 1, y: 0, scale: 1, duration: .4 }, 0)
-      .to('.final-seed-ring', { autoAlpha: .6, scale: 1.2, duration: .3 }, .37)
-      .to('.final-seed', { autoAlpha: 0, y: 28, scale: .4, duration: .24 }, .55)
-      .to('.final-seed-ring', { autoAlpha: 0, scale: 1.7, duration: .34 }, .62)
-      .to('.final-sprout', { autoAlpha: 1, scaleY: 1, scaleX: 1, duration: .42, ease: 'power3.out' }, .67)
-      .to('.final-art', { clipPath: 'circle(135% at 56% 67%)', scale: 1, duration: .82, ease: 'power2.inOut' }, .28);
-
-    syncStageAtCurrentScroll();
+  const CONFIG = Object.freeze({
+    speedReference:1800, speedSmoothing:5, calmThreshold:.032,
+    stillnessSeconds:1.3, settleSeconds:2.1, releaseSeconds:2,
+    invitationStart:.48, fallbackStart:.75, resetBefore:.12,
+    maxDelta:.05
   });
+  const clamp = v => Math.max(0, Math.min(1, v));
+  const smooth = v => { const t = clamp(v); return t * t * (3 - 2 * t); };
+  const range = (v, a, b) => smooth((v - a) / (b - a));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const $ = selector => stage.querySelector(selector);
+  const ui = {
+    hero:$('.hero-content'), art:$('.hero-art'), wash:$('.hero-wash'), thought:$('.story-thought'),
+    pause:$('.pause-invitation'), pauseSecond:$('.pause-invitation small'), ring:$('.stillness-orbit circle'),
+    wave:$('.focus-wave'), seed:$('.attention-seed'), seedMessage:$('.seed-message'), soil:$('.story-soil'),
+    root:$('.opening-root'), rootPath:$('.opening-root path'), underground:$('.underground-caption'),
+    warmth:$('.story-warmth'), number:$('.chapter-number'), name:$('.chapter-name'),
+    progress:$('.story-progress>span'), hint:$('.story-scroll-hint'), toggle:$('.motion-toggle')
+  };
+  const debug = new URLSearchParams(location.search).has('storyDebug');
+  let userPaused = false;
+  let currentController = null;
+  const media = gsap.matchMedia();
+  media.add({ desktop:'(min-width:768px)', mobile:'(max-width:767px)', reduced:'(prefers-reduced-motion:reduce)' }, context => {
+    const { mobile, reduced } = context.conditions;
+    if (reduced) { document.documentElement.classList.remove('story-enabled'); return; }
+    document.documentElement.classList.add('story-enabled');
+    const loop = new window.DeepSproutLoop(stage, mobile, (mobile || innerWidth < 1024) || (navigator.hardwareConcurrency || 8) <= 4);
+    let progress = 0, speed = 0, phase = 0, stillFor = 0, calmTime = -1, elapsed = 0;
+    let inView = true, lastTime = 0, raf = 0, lastScene = '', invitationTime = 0;
+    let lastScrollY = window.scrollY, lastScrollTime = performance.now(), sampledVelocity = 0;
+    const entrance = gsap.fromTo('.hero-eyebrow,.hero h1,.hero-lead,.hero-actions,.hero-notes',
+      { opacity:0 }, { opacity:1, duration:1, stagger:.1, ease:'sine.out' });
+    const alpha = (el, value) => { el.style.opacity = clamp(value); };
+    const setScene = (state, number, name) => {
+      if (lastScene === state) return;
+      lastScene = state;
+      stage.dataset.scene = state;
+      ui.number.textContent = number;
+      ui.name.textContent = name;
+    };
+    const startCalm = () => { if (calmTime < 0) { calmTime = 0; window.DeepSproutGrowth?.setGrowthStage(1); } };
+    const reset = () => { calmTime = -1; stillFor = 0; invitationTime = 0; };
+    const draw = dt => {
+      elapsed += dt;
+      const stale = (performance.now() - lastScrollTime) / 1000;
+      const velocity = Math.abs(sampledVelocity) * Math.exp(-stale * 12);
+      const targetSpeed = clamp(velocity / CONFIG.speedReference);
+      speed += (targetSpeed - speed) * (1 - Math.exp(-CONFIG.speedSmoothing * dt));
+      if (progress < CONFIG.resetBefore && calmTime >= 0) reset();
+      const invited = progress >= CONFIG.invitationStart && progress < .86;
+      if (invited) invitationTime += dt; else invitationTime = 0;
+      if (calmTime < 0 && invited) {
+        stillFor = speed < CONFIG.calmThreshold ? stillFor + dt : 0;
+        if (stillFor >= CONFIG.stillnessSeconds) startCalm();
+      }
+      if (progress >= CONFIG.fallbackStart) startCalm();
+      if (calmTime >= 0) calmTime += dt;
+      // The spatial fallback means fast scrolling / restored scroll positions never strand a scene.
+      const fallback = range(progress, .76, .94);
+      const calm = Math.max(calmTime < 0 ? 0 : range(calmTime, 0, CONFIG.settleSeconds), fallback);
+      const release = Math.max(calmTime < 0 ? 0 : range(calmTime, CONFIG.settleSeconds, CONFIG.settleSeconds + CONFIG.releaseSeconds), fallback);
+      const descent = range(progress, .84, 1);
+      phase += dt * (.17 + speed * 1.65) * (1 - calm * .98);
+      const opening = range(progress, .1, .29);
+      alpha(ui.hero, 1 - opening);
+      ui.hero.inert = opening > .95;
+      ui.hero.style.visibility = opening > .999 ? 'hidden' : 'visible';
+      alpha(ui.thought, range(progress, .2, .32) * (1 - range(progress, .48, .56)) * (1 - calm));
+      alpha(ui.pause, range(progress, .48, .56) * (1 - range(release, 0, .25)) * (1 - descent));
+      alpha(ui.pauseSecond, range(invitationTime, .35, 1));
+      ui.pause.querySelector('p').textContent = calm > .1 ? 'There you are.' : 'Don’t scroll.';
+      ui.pauseSecond.textContent = calm > .1 ? 'A little stillness changes everything.' : 'Just for a moment.';
+      ui.ring.style.strokeDashoffset = 1 - (calm > 0 ? 1 : clamp(stillFor / CONFIG.stillnessSeconds));
+      const wave = range(calmTime, 1.6, 3.3);
+      alpha(ui.wave, Math.sin(wave * Math.PI) * .65 * (1 - descent));
+      ui.wave.style.transform = `scale(${.15 + wave * 6}) rotate(${wave * 18}deg)`;
+      const seedVisible = range(release, .18, .65);
+      alpha(ui.seed, seedVisible);
+      const seedX = loop.width * .5;
+      const seedY = loop.height * .47;
+      // Ground rises past the seed: a camera follow, rather than a cut to another section.
+      ui.seed.style.transform = `translate3d(${seedX-11}px,${seedY-16 + Math.sin(elapsed * 1.2) * 2 * (1-descent)}px,0) rotate(${lerp(-32, 14, descent)}deg) scale(${lerp(1.4, .85, descent)})`;
+      alpha(ui.seedMessage, range(release, .45, .9) * (1 - range(descent, 0, .35)));
+      ui.soil.style.transform = `translateY(${112 * (1 - descent)}%)`;
+      alpha(ui.underground, range(descent, .55, 1));
+      alpha(ui.root, range(descent, .55, .8));
+      ui.rootPath.style.strokeDashoffset = 1 - range(descent, .62, 1);
+      const breeze = Math.sin(elapsed * .6) * (1.7 + speed * 2.2) * (1 - calm * .6);
+      ui.art.style.transform = `translate3d(0,${breeze - descent * loop.height * .72}px,0) scale(${1 + opening * .018})`;
+      alpha(ui.warmth, .15 + calm * .48);
+      ui.progress.style.transform = `scaleX(${progress})`;
+      if (descent > .7) setScene('ROOT', '07', 'LET IT TAKE ROOT');
+      else if (descent > .02) setScene('DESCENT', '06', 'A SMALL BEGINNING');
+      else if (release > .5) setScene('SEED', '05', 'ATTENTION, RECLAIMED');
+      else if (calm > .01) setScene('CALM', '04', 'ROOM TO BREATHE');
+      else if (progress >= .48) setScene('LOOP', '03', 'THE ENDLESS FEED');
+      else if (progress >= .29) setScene('OVERLOADED', '02', 'ONE MORE. AND ONE MORE.');
+      else if (progress >= .12) setScene('DISTRACTED', '02', 'THE WORLD GETS LOUDER');
+      else setScene('SERENE', '01', 'A QUIETER MORNING');
+      const hint = release > .5 ? 'FOLLOW THE SEED' : 'SCROLL GENTLY';
+      if (ui.hint.firstChild.textContent.trim() !== hint) ui.hint.firstChild.textContent = `${hint} `;
+      loop.render({ progress, phase, speed, calm, release, descent, time:elapsed });
+      if (debug) stage.dataset.debug = JSON.stringify({ progress:+progress.toFixed(3), speed:+speed.toFixed(3), stillFor:+stillFor.toFixed(2), calm:+calm.toFixed(2), release:+release.toFixed(2) });
+    };
+    const tick = now => {
+      raf = 0;
+      if (document.hidden || !inView || userPaused) return;
+      // Quiet scenes and small screens need only 30 visual updates per second.
+      if (lastTime && (mobile || progress < .1 || calmTime > 4.1) && now - lastTime < 1000 / 30) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      const dt = lastTime ? Math.min(CONFIG.maxDelta, (now - lastTime) / 1000) : 0;
+      lastTime = now;
+      draw(dt);
+      raf = requestAnimationFrame(tick);
+    };
+    const wake = () => {
+      if (!raf && !document.hidden && inView && !userPaused) { lastTime = 0; raf = requestAnimationFrame(tick); }
+    };
+    const stop = () => { cancelAnimationFrame(raf); raf = 0; lastTime = 0; };
+    const syncVisibility = () => {
+      document.documentElement.classList.toggle('story-offscreen', !inView || document.hidden);
+      if (document.hidden || !inView) stop(); else wake();
+    };
+    const observer = new IntersectionObserver(entries => { inView = entries[0].isIntersecting; syncVisibility(); }, { threshold:0 });
+    observer.observe(section);
+    const onScroll = () => {
+      const now = performance.now();
+      const delta = window.scrollY - lastScrollY;
+      if (Math.abs(delta) > .3) {
+        sampledVelocity = delta / Math.max(.016, (now - lastScrollTime) / 1000);
+        lastScrollTime = now;
+        lastScrollY = window.scrollY;
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive:true });
+    document.addEventListener('visibilitychange', syncVisibility);
+    const trigger = ScrollTrigger.create({
+      trigger:section, start:() => `top ${mobile ? 68 : innerWidth <= 1150 ? 68 : 76}px`,
+      end:'bottom bottom', onUpdate:self => { progress = self.progress; if (userPaused) draw(0); else wake(); },
+      onRefresh:self => { loop.resize(); progress = self.progress; draw(0); }, invalidateOnRefresh:true
+    });
+    currentController = { pause() { stop(); entrance.pause(); }, resume() { entrance.resume(); wake(); } };
+    draw(0); wake();
 
-  // One refresh after fonts and the non-lazy hero artwork settle; ScrollTrigger handles later resizes.
-  const fontReady = document.fonts?.ready || Promise.resolve();
-  fontReady.then(() => {
-    if (document.readyState === 'complete') ScrollTrigger.refresh();
-    else window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
-  }).catch(() => {});
+    const rootSelector = mobile ? '.root-mobile-network' : '.root-network';
+    const branches = [...document.querySelectorAll(`${rootSelector} path`)];
+    gsap.set(branches, { strokeDasharray:1, strokeDashoffset:1 });
+    gsap.to('.root-trunk', { strokeDashoffset:0, ease:'none', scrollTrigger:{ trigger:'.root-world', start:'top 80%', end:'bottom 80%', scrub:.5 } });
+    document.querySelectorAll('.feature-card').forEach((card, i) => {
+      const branch = branches[i + 1];
+      ScrollTrigger.create({ trigger:card, start:'top 85%', once:true, onEnter:() => {
+        if (branch) gsap.to(branch, { strokeDashoffset:0, duration:1, ease:'sine.inOut', onComplete:() => card.classList.add('is-rooted') });
+        else card.classList.add('is-rooted');
+      } });
+    });
+    gsap.fromTo('.path-open', { strokeDasharray:1, strokeDashoffset:1 }, { strokeDashoffset:0, duration:1.8, ease:'sine.inOut', scrollTrigger:{ trigger:'.how', start:'top 65%', once:true } });
+    gsap.fromTo('.journey-stem>span', { scaleY:0 }, { scaleY:1, ease:'none', scrollTrigger:{ trigger:'.steps', start:'top 70%', end:'bottom 60%', scrub:.5 } });
+    document.querySelectorAll('.step').forEach(step => ScrollTrigger.create({ trigger:step, start:'top 72%', end:'bottom 40%', toggleClass:'is-current' }));
+    return () => {
+      stop(); trigger.kill(); entrance.kill(); observer.disconnect(); loop.destroy();
+      document.removeEventListener('visibilitychange', syncVisibility);
+      window.removeEventListener('scroll', onScroll);
+      document.documentElement.classList.remove('story-enabled', 'story-offscreen');
+      gsap.killTweensOf(branches);
+      Object.values(ui).forEach(el => el?.removeAttribute('style'));
+      ui.hero.inert = false;
+      document.querySelectorAll('.feature-card').forEach(card => card.classList.add('is-rooted'));
+      currentController = null;
+    };
+  });
+  ui.toggle.addEventListener('click', () => {
+    userPaused = !userPaused;
+    ui.toggle.setAttribute('aria-pressed', String(userPaused));
+    ui.toggle.innerHTML = userPaused ? 'Resume motion <span aria-hidden="true">▷</span>' : 'Pause motion <span aria-hidden="true">Ⅱ</span>';
+    document.documentElement.classList.toggle('story-paused', userPaused);
+    if (userPaused) currentController?.pause(); else currentController?.resume();
+
+  });
+  window.addEventListener('pagehide', () => currentController?.pause());
+  window.addEventListener('pageshow', () => { if (!userPaused) currentController?.resume(); });
+  (document.fonts?.ready || Promise.resolve()).then(() => ScrollTrigger.refresh());
+  window.addEventListener('load', () => ScrollTrigger.refresh(), { once:true });
 })();
