@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#c8eefa">
+<title>DeepSprout — Hero Opening V2</title>
+<meta name="description" content="DeepSprout helps you reclaim your focus, build healthier digital habits, and make more time for what matters.">
+<link rel="icon" href="data:,">
+<link rel="preload" as="font" type="font/ttf" crossorigin href="assets/hero-v2/fonts/inter-800.ttf">
+<link rel="preload" as="font" type="font/ttf" crossorigin href="assets/hero-v2/fonts/inter-400.ttf">
+<link rel="stylesheet" href="src/styles/hero-v2/hero.css">
+<style>@media(prefers-reduced-motion:reduce){.stone[data-stone=growth]{--x:63.2775%!important;--y:3.9320%!important;--w:6.1603%!important;--rotation:-4deg!important}.stone[data-stone=heart]{--x:63.2775%!important;--y:9.3518%!important;--w:6.2799%!important;--rotation:5deg!important}.stone[data-stone=lotus]{--x:63.2775%!important;--y:14.7715%!important;--w:6.4593%!important;--rotation:-3deg!important}.stone[data-stone=clock]{--x:63.2775%!important;--y:20.2976%!important;--w:6.3397%!important;--rotation:4deg!important}.stone[data-stone=book]{--x:63.2775%!important;--y:25.8236%!important;--w:6.3995%!important;--rotation:-2deg!important}.stone[data-stone=community]{--x:63.2775%!important;--y:31.3496%!important;--w:6.3995%!important;--rotation:3deg!important}.stone[data-stone=sprout]{--x:63.2775%!important;--y:36.8757%!important;--w:6.3995%!important;--rotation:-2deg!important}}</style>
+<link rel="preload" as="image" href="assets/hero-v2/environment.webp">
+<link rel="preload" as="image" href="assets/hero-v2/bimo-awake.png">
+<link rel="preload" as="image" href="assets/hero-v2/first-paint.webp">
+<link rel="preload" as="image" href="assets/hero-v2/stone-growth.webp">
+<link rel="preload" as="image" href="assets/hero-v2/stone-heart.webp">
+<link rel="preload" as="image" href="assets/hero-v2/stone-lotus.webp">
+<link rel="preload" as="image" href="assets/hero-v2/stone-clock.webp">
+<link rel="preload" as="image" href="assets/hero-v2/stone-book.webp">
+<link rel="preload" as="image" href="assets/hero-v2/stone-community.webp">
+<link rel="preload" as="image" href="assets/hero-v2/stone-sprout.webp">
+<script defer src="assets/vendor/gsap/gsap.min.js">
+</script>
+<script defer src="assets/vendor/rive/rive.js">
+</script>
+<script type="module" src="src/js/hero-v2/hero.js">
+</script>
+</head>
+<body>
+<div class="hero-track">
+<main id="hero-v2" class="hero" data-phase="ARRIVAL" data-story-unlocked="false" data-intro-complete="false" aria-labelledby="hero-title">
+<div class="world" aria-hidden="true">
+<div class="environment">
+</div>
+<svg class="cloud-layers" viewBox="0 0 1672 941" preserveAspectRatio="none">
+<defs>
+<filter id="cloud-edge" x="-10%" y="-25%" width="120%" height="150%"><feGaussianBlur stdDeviation="7"/></filter>
+<mask id="cloud-far-mask" maskUnits="userSpaceOnUse"><rect x="729" y="95" width="274" height="112" rx="26" fill="white" filter="url(#cloud-edge)"/></mask>
+<mask id="cloud-mid-mask" maskUnits="userSpaceOnUse"><rect x="978" y="300" width="214" height="105" rx="24" fill="white" filter="url(#cloud-edge)"/></mask>
+<mask id="cloud-near-mask" maskUnits="userSpaceOnUse"><rect x="318" y="25" width="480" height="318" rx="62" fill="white" filter="url(#cloud-edge)"/></mask>
+</defs>
+<g class="cloud-far"><image href="assets/hero-v2/environment.webp" width="1672" height="941" mask="url(#cloud-far-mask)"/></g>
+<g class="cloud-mid"><image href="assets/hero-v2/environment.webp" width="1672" height="941" mask="url(#cloud-mid-mask)"/></g>
+<g class="cloud-near"><image href="assets/hero-v2/environment.webp" width="1672" height="941" mask="url(#cloud-near-mask)"/></g>
+</svg>
+<div class="environment-part foreground-left">
+</div>
+<div class="environment-part foreground-right">
+</div>
+<svg class="lake-motion" viewBox="0 0 1672 941" preserveAspectRatio="none">
+<defs><linearGradient id="water-light"><stop stop-color="#efffff" stop-opacity="0"/><stop offset=".4" stop-color="#f4ffff" stop-opacity=".8"/><stop offset=".65" stop-color="#f4ffff" stop-opacity=".7"/><stop offset="1" stop-color="#efffff" stop-opacity="0"/></linearGradient></defs>
+<g class="lake-band-far" opacity=".22" fill="url(#water-light)"><rect x="279" y="597" width="446" height="2" rx="1"/><rect x="1013" y="611" width="459" height="2" rx="1"/></g>
+<g class="lake-band-mid" opacity=".15" fill="url(#water-light)"><rect x="361" y="631" width="499" height="3" rx="1.5"/><rect x="1129" y="645" width="375" height="2" rx="1"/></g>
+<g class="lake-band-near" opacity=".19" fill="url(#water-light)"><rect x="507" y="664" width="331" height="3" rx="1.5"/><rect x="1104" y="674" width="304" height="3" rx="1.5"/></g>
+<g class="lake-grow" opacity="0" fill="url(#water-light)"><rect x="316" y="615" width="1217" height="8" rx="4"/></g>
+</svg>
+<svg class="ambient-svg" viewBox="0 0 1672 941" preserveAspectRatio="none">
+
+<g stroke="#e8fac1" stroke-width="2" fill="none">
+<path class="lift-trail" d="M711 704Q680 415 909 158" pathLength="1"/>
+<path class="lift-trail" d="M1333 713Q1410 365 1160 109" pathLength="1"/>
+<path class="lift-trail" d="M1486 793Q1607 620 1480 423" pathLength="1"/>
+</g>
+<g fill="#9dc340" stroke="#648e39" stroke-width="1">
+<g transform="translate(927 427) rotate(-45)" opacity=".55"><g class="idle-leaf"><path d="M0 0Q-18-5-13-25Q4-18 0 0Z"/></g></g>
+<g transform="translate(1198 599) rotate(35)" opacity=".55"><g class="idle-leaf"><path d="M0 0Q-18-5-13-25Q4-18 0 0Z"/></g></g>
+<g transform="translate(840 703) rotate(-25)" opacity=".55"><g class="idle-leaf"><path d="M0 0Q-18-5-13-25Q4-18 0 0Z"/></g></g>
+<g transform="translate(1337 724) rotate(55)" opacity=".55"><g class="idle-leaf"><path d="M0 0Q-18-5-13-25Q4-18 0 0Z"/></g></g>
+</g>
+</svg>
+<div class="stone" data-stone="growth" style="--x:42.5239%;--y:74.8140%;--w:8.8517%;--rotation:-11deg">
+<div class="stone-idle">
+<span class="stone-glow">
+</span>
+<img src="assets/hero-v2/stone-growth.webp" alt="" width="375" height="247">
+</div>
+</div>
+<div class="stone" data-stone="heart" style="--x:79.7249%;--y:75.7705%;--w:9.5096%;--rotation:8deg">
+<div class="stone-idle">
+<span class="stone-glow">
+</span>
+<img src="assets/hero-v2/stone-heart.webp" alt="" width="432" height="250">
+</div>
+</div>
+<div class="stone" data-stone="lotus" style="--x:33.3732%;--y:82.1467%;--w:10.7656%;--rotation:-8deg">
+<div class="stone-idle">
+<span class="stone-glow">
+</span>
+<img src="assets/hero-v2/stone-lotus.webp" alt="" width="388" height="250">
+</div>
+</div>
+<div class="stone" data-stone="clock" style="--x:47.0694%;--y:85.6536%;--w:11.0048%;--rotation:9deg">
+<div class="stone-idle">
+<span class="stone-glow">
+</span>
+<img src="assets/hero-v2/stone-clock.webp" alt="" width="396" height="245">
+</div>
+</div>
+<div class="stone" data-stone="book" style="--x:59.8684%;--y:89.2667%;--w:11.6029%;--rotation:0deg">
+<div class="stone-idle">
+<span class="stone-glow">
+</span>
+<img src="assets/hero-v2/stone-book.webp" alt="" width="380" height="252">
+</div>
+</div>
+<div class="stone" data-stone="community" style="--x:76.5550%;--y:87.3539%;--w:10.9450%;--rotation:7deg">
+<div class="stone-idle">
+<span class="stone-glow">
+</span>
+<img src="assets/hero-v2/stone-community.webp" alt="" width="434" height="256">
+</div>
+</div>
+<div class="stone" data-stone="sprout" style="--x:88.8756%;--y:84.2721%;--w:10.8254%;--rotation:-7deg">
+<div class="stone-idle">
+<span class="stone-glow">
+</span>
+<img src="assets/hero-v2/stone-sprout.webp" alt="" width="405" height="246">
+</div>
+</div>
+<div id="effects">
+</div>
+<div class="bimo" data-pose="awake" data-runtime="poster">
+<div class="bimo-stills">
+<img class="awake-still" src="assets/hero-v2/bimo-awake.png" alt="" width="700" height="860">
+<img class="focus-still" src="assets/hero-v2/bimo-focus.png" alt="" width="700" height="860">
+</div>
+<canvas width="700" height="860">
+</canvas>
+</div>
+<img class="first-paint" src="assets/hero-v2/first-paint.webp" alt="" width="1672" height="941">
+</div>
+<div class="copy">
+<h1 id="hero-title">
+<span class="headline-line">Less scrolling.</span>
+<span class="headline-line headline-living">More living.</span>
+</h1>
+<p class="lead">DeepSprout helps you reclaim your focus,<br class="desktop-break"> build healthier digital habits, and make<br class="desktop-break"> more time for what matters.</p>
+<div class="actions">
+<button class="cta cta-primary" id="focus-check" type="button">Take the quick focus check <svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M4 12h16m-6-6 6 6-6 6"/>
+</svg>
+</button>
+<button class="cta cta-secondary" id="replay" type="button" title="Replay the opening">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="m7 4 13 8-13 8Z"/>
+</svg>See how it works</button>
+</div>
+</div>
+<button class="motion-control" id="motion-control" aria-label="Pause animation" aria-pressed="false" type="button">
+<svg class="pause" viewBox="0 0 20 20" aria-hidden="true">
+<path d="M7 5v10M13 5v10"/>
+</svg>
+<svg class="play" viewBox="0 0 20 20" aria-hidden="true">
+<path d="m7 5 8 5-8 5Z"/>
+</svg>
+</button>
+</main>
+</div>
+<div id="story-slot" hidden>
+</div>
+<dialog id="focus-dialog" aria-labelledby="check-title">
+<form method="dialog">
+<button class="dialog-close" aria-label="Close focus check">×</button>
+</form>
+<h2 id="check-title">Let's find your starting point.</h2>
+<p>How often does scrolling interrupt something you meant to do?</p>
+<div class="check-options">
+<button data-result="You've already noticed the pattern. Try one 25-minute focus session today.">Sometimes <span>→</span>
+</button>
+<button data-result="A short focus session can help you reclaim one moment at a time. Start with 10 minutes.">Most days <span>→</span>
+</button>
+<button data-result="Start gently: put your phone aside for five minutes and focus on one small task.">Many times a day <span>→</span>
+</button>
+</div>
+<p id="check-result" aria-live="polite">
+</p>
+</dialog>
+</body>
+</html>

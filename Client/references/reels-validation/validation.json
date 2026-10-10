@@ -1,0 +1,248 @@
+{
+  "cases": [
+    "Natural intro → fast wheel: seven stages visited; progress capped; persistent 700×860 canvas; ≤5 decoders; scripted gaze",
+    "Backward scroll restores calm, same stones, stopped videos; repeated direction changes preserve character",
+    "Controlled scroll through burst; adaptive 3–5 live sources at peak",
+    "Pause/resume and viewport resize preserve Bimo; pause stops media",
+    "Seven captured states at both 1440×900 and 1280×800; actual painted Bimo pixels in all states",
+    "Delayed reel + failed reel: poster fallback, dense cards retained, remaining sources play",
+    "Reduced motion: static representative scenes, no ambient clock or video requests",
+    "390×844 fallback composition: no horizontal overflow"
+  ],
+  "errors": [],
+  "screenshots": [
+    "1440x900-00-post-hero-calm.png",
+    "1440x900-01-tiny-distraction.png",
+    "1440x900-02-temptation-orbit.png",
+    "1440x900-03-first-collapse.png",
+    "1440x900-04-swarm-spiral.png",
+    "1440x900-05-black-hole-burst.png",
+    "1440x900-06-the-trap.png",
+    "1280x800-00-post-hero-calm.png",
+    "1280x800-01-tiny-distraction.png",
+    "1280x800-02-temptation-orbit.png",
+    "1280x800-03-first-collapse.png",
+    "1280x800-04-swarm-spiral.png",
+    "1280x800-05-black-hole-burst.png",
+    "1280x800-06-the-trap.png"
+  ],
+  "metrics": {
+    "fastSwipe": [
+      {
+        "p": 0,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.026578500000000158,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.07973550000000021,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.13774999999999998,
+        "stage": "TINY DISTRACTION",
+        "cards": 1,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.18125,
+        "stage": "TINY DISTRACTION",
+        "cards": 1,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.23200000000000004,
+        "stage": "TEMPTATION ORBIT",
+        "cards": 3,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.3020639999999999,
+        "stage": "TEMPTATION ORBIT",
+        "cards": 3,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.3600784999999997,
+        "stage": "FIRST COLLAPSE",
+        "cards": 3,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.4277354999999997,
+        "stage": "FIRST COLLAPSE",
+        "cards": 6,
+        "active": 2,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.4953924999999997,
+        "stage": "FIRST COLLAPSE",
+        "cards": 7,
+        "active": 2,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.5582064999999996,
+        "stage": "SWARM / SPIRAL",
+        "cards": 10,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.6451920000000001,
+        "stage": "SWARM / SPIRAL",
+        "cards": 16,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.7297705000000001,
+        "stage": "BLACK-HOLE BURST",
+        "cards": 21,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.814349,
+        "stage": "BLACK-HOLE BURST",
+        "cards": 32,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.8723345000000007,
+        "stage": "BLACK-HOLE BURST",
+        "cards": 33,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.9472560000000002,
+        "stage": "THE TRAP",
+        "cards": 45,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.992465750961525,
+        "stage": "THE TRAP",
+        "cards": 46,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.9988904448558003,
+        "stage": "THE TRAP",
+        "cards": 46,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.9998368427527248,
+        "stage": "THE TRAP",
+        "cards": 46,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      }
+    ],
+    "peakRAF": {
+      "median": 33.299999999995634,
+      "p95": 50.099999999998545,
+      "samples": 55
+    },
+    "peakVideos": 3
+  }
+}
