@@ -9,12 +9,12 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  browser=await chromium.launch({headless:true,executablePath});
  async function page(options={}){const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:1,...options});const p=await context.newPage();p.on('pageerror',e=>results.errors.push(e.message));p.on('console',m=>{if(m.type()==='error')results.errors.push(m.text())});await p.addInitScript(()=>{window.visited=[];window.raf=[];let last=0;function tick(t){if(last)raf.push(t-last);last=t;requestAnimationFrame(tick)}requestAnimationFrame(tick);document.addEventListener('reels:stage',e=>visited.push(e.detail.stage),true)});return p}
  async function ready(p){await p.goto(base+'/hero-reels-lab.html?reelsDebug');await p.waitForFunction(()=>window.reelsLab?.state.character==='live',{},{timeout:15000})}
- async function scroll(p,progress){await p.evaluate(v=>{const t=document.querySelector('.hero-track'),h=document.querySelector('.hero').offsetHeight;window.scrollTo(0,(t.offsetHeight-h)*v)},progress)}
+ async function scroll(p,progress){await p.evaluate(v=>window.scrollTo(0,reelsLab.state.distances.story*v),progress)}
  const normal=await page();await ready(normal);await normal.evaluate(()=>{window.sameBimo=document.querySelector('.bimo canvas');window.sameStones=[...document.querySelectorAll('.stone')]});await normal.waitForFunction(()=>reelsLab.state.unlocked,{},{timeout:16000});
  assert.equal(await normal.evaluate(()=>reelsLab.state.renderer.media.loaded),0);assert.equal(await normal.evaluate(()=>reelsLab.state.inputs.emotionStage),1);
  // Fast native scroll: each narrative phase must remain perceptible and the bitmap never changes.
  await normal.evaluate(()=>{window.samples=[];window.sampling=true;function check(){const s=reelsLab.state,c=document.querySelector('.bimo canvas');samples.push({p:s.visualProgress,stage:s.stage,cards:s.renderer.cards,active:s.renderer.media.playing,same:c===sameBimo,canvas:[c.width,c.height]});if(sampling)requestAnimationFrame(check)}check()});
- await normal.mouse.wheel(0,18000);await normal.waitForTimeout(180);assert.ok(await normal.evaluate(()=>reelsLab.state.visualProgress)<.12);
+ await normal.mouse.wheel(0,7200);await normal.waitForTimeout(180);assert.ok(await normal.evaluate(()=>reelsLab.state.visualProgress)<.12);
  await normal.waitForFunction(()=>reelsLab.state.visualProgress>.995,{},{timeout:16000});
  const sequence=await normal.evaluate(()=>{sampling=false;return{visited,samples,state:reelsLab.state}});
  assert.deepEqual([...new Set(sequence.visited)],[0,1,2,3,4,5,6]);assert.ok(sequence.samples.every(s=>s.same&&s.active<=5&&s.canvas[0]===700&&s.canvas[1]===860));

@@ -1,0 +1,42 @@
+{
+  "cases": [
+    "Curved inward paths have decreasing radius/depth/scale; pure scroll evaluation is deterministic and reversible.",
+    "1440×900: collapse phases, pixel-tested dark hold, circular light without rectangular ingress, forward/reverse/rapid native scroll, continuous heading handoff, editorial content, zero overflow, same Bimo/stones, offscreen pause.",
+    "390×844: collapse phases, pixel-tested dark hold, circular light without rectangular ingress, forward/reverse/rapid native scroll, continuous heading handoff, editorial content, zero overflow, same Bimo/stones, offscreen pause.",
+    "End/Home native jumps; reduced motion retains final figures with no live media; no-JS readable content/source links; WebGL failure still completes the CSS portal."
+  ],
+  "errors": [],
+  "screenshots": [
+    "1440-trap.png",
+    "1440-gravity.png",
+    "1440-collapse.png",
+    "1440-bimo.png",
+    "1440-consumption.png",
+    "1440-void.png",
+    "1440-spark.png",
+    "1440-light.png",
+    "1440-heading.png",
+    "1440-clarity.png",
+    "1440-stats.png",
+    "1440.brain-rot.png",
+    "1440.clarity-research.png",
+    "390-trap.png",
+    "390-gravity.png",
+    "390-collapse.png",
+    "390-bimo.png",
+    "390-consumption.png",
+    "390-void.png",
+    "390-spark.png",
+    "390-light.png",
+    "390-heading.png",
+    "390-clarity.png",
+    "390-stats.png",
+    "390-stats-lower.png",
+    "390.brain-rot.png",
+    "390.clarity-research.png",
+    "reduced-motion.png",
+    "no-javascript.png",
+    "webgl-fallback-void.png",
+    "webgl-fallback-clarity.png"
+  ]
+}

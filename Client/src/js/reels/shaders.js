@@ -5,7 +5,7 @@ export const vortexVertex=`varying vec2 vUv; void main(){vUv=uv;gl_Position=vec4
 export const vortexFragment=`
 precision highp float;
 varying vec2 vUv;
-uniform float uProgress,uTime,uAspect;
+uniform float uProgress,uTime,uAspect,uExit;
 uniform vec2 uCenter;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}
@@ -13,8 +13,9 @@ float fbm(vec2 p){float v=0.,a=.5;mat2 m=mat2(.8,-.6,.6,.8);for(int i=0;i<3;i++)
 void main(){
  float birth=smoothstep(.50,.78,uProgress),capture=smoothstep(.76,.98,uProgress);
  vec2 q=vUv-uCenter;q.x*=uAspect;float r=length(q);float a=atan(q.y,q.x);
- float phase=uProgress*8.+uTime*.10;
- float spiral=a+log(r+.032)*2.35-phase;
+ float phase=uProgress*8.+uTime*.10+uExit*uExit*32.;
+ float warpedRadius=r*(1.+uExit*uExit*7.);
+ float spiral=a+log(warpedRadius+.032)*2.35-phase;
  vec2 flow=vec2(cos(spiral),sin(spiral))*(2.+r*5.);
  float cloud=fbm(flow+vec2(r*12.,phase*.5));
  float folds=fbm(flow*3.4+cloud*2.);
@@ -22,7 +23,7 @@ void main(){
  float ribbon=pow(.5+.5*sin(spiral*5.+cloud*6.+detail*.5),16.);
  float thread=pow(.5+.5*sin(spiral*5.+cloud*6.+detail*.5+folds*.55),110.);
  float thread2=pow(.5+.5*sin(spiral*9.+folds*3.+r*15.),85.);
- float core=smoothstep(.035,.145,r);
+ float core=smoothstep(.035+uExit*.045,.145+uExit*.075,r);
  float rim=exp(-abs(r-(.08+.014*sin(a*3.+phase)))*55.);
  float aperture=1.-smoothstep(.11,.34,r);
  vec3 ink=vec3(.022,.012,.09);
@@ -35,11 +36,12 @@ void main(){
  color+=vec3(.35,.25,1.)*thread2*.85;
  color+=vec3(1.,.62,.22)*pow(thread2,2.)*smoothstep(.56,.75,cloud)*1.7;
  color+=vec3(.53,.16,1.)*rim*.6;
- color=mix(ink,color,core);
+ color=mix(mix(ink,vec3(.004,.002,.012),uExit),color,core);
  color*=.8+smoothstep(.7,.83,uProgress)*.35;
  float edge=smoothstep(.12,.9,r);
  float alpha=birth*(mix(.32,.995,capture)+ribbon*.38+thread*.35+aperture*.48);
  alpha=clamp(alpha,0.,.98);
+ alpha=mix(alpha,1.,smoothstep(0.,.12,uExit));
  // Premultiplied-like dark edge shaping keeps the eye on the character and throat.
  color*=1.-edge*.26;
  gl_FragColor=vec4(color,alpha);

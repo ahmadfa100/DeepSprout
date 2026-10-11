@@ -2,6 +2,7 @@ import * as THREE from '../../../assets/vendor/three/three.module.min.js';
 import {clamp,mix,smooth} from './story-math.js';
 import {planeVertex,vortexVertex,vortexFragment,cardFragment} from './shaders.js';
 import {createMedia} from './media.js';
+import {spiralIn} from './collapse.js';
 const TAU=Math.PI*2;
 function chromeTexture(){
  const c=document.createElement('canvas');c.width=384;c.height=660;const x=c.getContext('2d');
@@ -22,7 +23,7 @@ export function createVortex(root){
  ['2026-10-09_09-38-43.png','2026-10-09_09-40-26.png','2026-10-09_09-38-29.png','image.png'].forEach((name,i)=>{const image=new Image();image.src=new URL('../../../reels/posters/'+name,import.meta.url).href;image.style.setProperty('--i',i);fallback.append(image)});root.querySelector('.world').append(fallback);
  let width=1440,height=900,quality=innerWidth<700?1:Math.min(devicePixelRatio,1.5),slow=0,verySlow=0,frames=0,disposed=false;
  if(!failed){for(const r of [backRenderer,frontRenderer]){r.setClearColor(0,0);r.outputColorSpace=THREE.SRGBColorSpace}root.dataset.webgl='ready'}
- const uniforms={uProgress:{value:0},uTime:{value:0},uAspect:{value:1.6},uCenter:{value:new THREE.Vector2(.625,.58)}};
+ const uniforms={uProgress:{value:0},uTime:{value:0},uExit:{value:0},uAspect:{value:1.6},uCenter:{value:new THREE.Vector2(.625,.58)}};
  const atmosphere=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({vertexShader:vortexVertex,fragmentShader:vortexFragment,uniforms,transparent:true,depthTest:false,depthWrite:false}));atmosphere.frustumCulled=false;atmosphere.renderOrder=-100;back.add(atmosphere);
  const geometry=new THREE.PlaneGeometry(1,1.72),chrome=chromeTexture();
  const cards=Array.from({length:46},(_,i)=>{
@@ -42,20 +43,23 @@ export function createVortex(root){
  const trails=Array.from({length:7},(_,i)=>{const mat=new THREE.MeshBasicMaterial({color:[0xc270ff,0xff92f2,0x8376ff,0xffba7a][i%4],transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending});const mesh=new THREE.Mesh(trailGeo.clone(),mat);(i%2?front:back).add(mesh);return mesh});
  function resize(){const box=root.querySelector('.world').getBoundingClientRect();width=box.width;height=box.height;camera.aspect=width/height;camera.updateProjectionMatrix();uniforms.uAspect.value=camera.aspect;if(!failed)for(const r of [backRenderer,frontRenderer]){r.setPixelRatio(quality);r.setSize(width,height,false)}}
  const observer=new ResizeObserver(resize);observer.observe(root.querySelector('.world'));resize();
- let visibleCards=0,lastP=0,cpu=0;
+ let visibleCards=0,lastP=0,lastExit=0,cpu=0;
  function screenPoint(x,y,z=0){const distance=18-z,h=2*Math.tan(42*Math.PI/360)*distance;return new THREE.Vector3((x-.5)*h*camera.aspect,(.5-y)*h,z)}
  function moveToLayer(mesh,z){const parent=z>0?front:back;if(mesh.parent!==parent)parent.add(mesh)}
- function render(p,time,reduced,stopped,dt=.016){
-  if(disposed)return;const stamp=performance.now();lastP=p;media.update(p,stopped||failed,reduced);if(failed){fallback.style.opacity=smooth(.245,.34,p);return;}
+ function render(p,time,reduced,stopped,dt=.016,exit=0){
+  if(disposed)return;const stamp=performance.now();lastP=p;lastExit=exit;media.update(p,stopped||failed||exit>.53,reduced);
+  if(failed){fallback.style.opacity=smooth(.245,.34,p);fallback.querySelectorAll('img').forEach((el,i)=>{const pose=spiralIn(.36+i*.16,.20+i*.10,0,1,exit,.04+i*.025,.43+i*.025,.7);el.style.left=`${pose.x*100}%`;el.style.top=`${pose.y*100}%`;el.style.transform=`rotate(${-14+i*9+pose.turn*180/Math.PI}deg) scale(${pose.size})`;el.style.visibility=pose.swallowed?'hidden':'visible'});return;}
+  // Nothing behind the expanding void is submitted to WebGL once swallowed.
+  if(exit>=.70){visibleCards=0;return}
   const burst=smooth(.67,.85,p),trap=smooth(.86,1,p),spiral=smooth(.40,.69,p),travel=p*8+(reduced?0:time*.07);
-  atmosphere.visible=p>.50;uniforms.uProgress.value=p;uniforms.uTime.value=reduced?0:time;
+  atmosphere.visible=p>.50;uniforms.uProgress.value=p;uniforms.uTime.value=reduced?0:time;uniforms.uExit.value=exit;
   uniforms.uCenter.value.set(mix(.632,.568,trap),mix(.59,.54,trap));
   camera.position.set(0,0,18-burst*.8);camera.rotation.z=burst*.025-trap*.05;
   const centerX=mix(.632,.568,trap),centerY=mix(.43,.47,trap);
   visibleCards=0;
   cards.forEach(({mesh,uniforms:u},i)=>{
    const appear=i===0?.245:i<3?.275+(i-1)*.025:i<7?.38+(i-3)*.019:i<16?.52+(i-7)*.015:i<32?.70+(i-16)*.006:.87+(i-32)*.006;
-   const opacity=smooth(appear,appear+.035,p);mesh.visible=opacity>.001;if(!mesh.visible)return;visibleCards++;
+   const opacity=smooth(appear,appear+.035,p);mesh.visible=opacity>.001;if(!mesh.visible)return;
    let x,y,z,size,rotation;
    if(i<3){
     const a=(i/3)*TAU+2.4+(p-.2)*7.5+(reduced?0:time*.075)*smooth(.2,.32,p);
@@ -70,6 +74,9 @@ export function createVortex(root){
    x=mix(x,hx,blend);y=mix(y,hy,blend);z=mix(z,hz,blend);size=mix(size,1.0+depth*2.8,blend);rotation=mix(rotation,Math.sin(a)*.4+Math.cos(a)*.18,blend);
    // Keep the face readable; occlusion remains across hands/boots and the periphery.
    if(z>0&&Math.abs(x-centerX)<.085&&Math.abs(y-.52)<.16)x+=x<centerX?-.105:.105;
+   const pulled=spiralIn(x,y,z,size,exit,.025+(i%7)*.015,.36+(i%7)*.022,.65+(i%4)*.14);
+   if(pulled.swallowed){mesh.visible=false;return}visibleCards++;
+   x=pulled.x;y=pulled.y;z=pulled.z;size=pulled.size;rotation+=pulled.turn;
    mesh.position.copy(screenPoint(x,y,z));mesh.rotation.set(Math.sin(a*.7)*.18*spiral,Math.cos(a)*.26*spiral,rotation);mesh.scale.setScalar(size*(i===0&&p<.2?1:1));moveToLayer(mesh,z);
    u.uMap.value=media.texture(i,i<5&&p>.205);u.uOpacity.value=opacity;u.uGlow.value=mix(.10,1,smooth(.3,.75,p));u.uBlur.value=smooth(5,9,z)*burst*.9;
    mesh.renderOrder=Math.round(z*10);
@@ -81,16 +88,17 @@ export function createVortex(root){
    const a=i*2.4+travel*1.3,rad=.22+(i%3)*.10;
    x=centerX+Math.cos(a)*rad;y=centerY+Math.sin(a)*rad*1.4;z=i%3===0?3:-3;s=2.3+(i%2)*.25;
    if(i===0&&p<.3){const drift=smooth(.10,.23,p),join=smooth(.23,.30,p);x=mix(mix(.95,.927,drift),x,join);y=mix(mix(.265,.276,drift),y,join);z=mix(1,z,join);s=mix(.72,s,join)}
-   mesh.position.copy(screenPoint(x,y,z));mesh.scale.setScalar(s);mesh.rotation.z=Math.sin(i+travel)*.21*(i===0?smooth(.23,.30,p):1);moveToLayer(mesh,z);
+   const pulled=spiralIn(x,y,z,s,exit,.015+(i%5)*.015,.34+(i%5)*.026,.85);mesh.visible=!pulled.swallowed;
+   mesh.position.copy(screenPoint(pulled.x,pulled.y,pulled.z));mesh.scale.setScalar(pulled.size);mesh.rotation.z=Math.sin(i+travel)*.21*(i===0?smooth(.23,.30,p):1)+pulled.turn;moveToLayer(mesh,pulled.z);
   });
   const debris=smooth(.38,.78,p);
-  rubble.forEach((mesh,layer)=>{mesh.visible=p>.38;mesh.material.opacity=debris*.92;mesh.count=Math.round(130*debris);
-   for(let i=0;i<mesh.count;i++){const d=((i*.754877+layer*.23)%1),a=i*2.399+travel*1.9,r=.13+d*.72,z=layer?1+d*6:-4-d*19;const position=screenPoint(centerX+Math.cos(a)*r,centerY+Math.sin(a)*r*1.45,z);dummy.position.copy(position);dummy.rotation.set(a,i*.8,a*1.3);const s=.04+d*d*.34;dummy.scale.set(s,s*.8,s*.65);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix)}mesh.instanceMatrix.needsUpdate=true;
+  rubble.forEach((mesh,layer)=>{mesh.visible=p>.38&&exit<.46;mesh.material.opacity=debris*.92;mesh.count=Math.round(130*debris);
+   for(let i=0;i<mesh.count;i++){const d=((i*.754877+layer*.23)%1),a=i*2.399+travel*1.9,r=.13+d*.72,z=layer?1+d*6:-4-d*19;const pulled=spiralIn(centerX+Math.cos(a)*r,centerY+Math.sin(a)*r*1.45,z,.04+d*d*.34,exit,.01+d*.05,.32+d*.14,1.15);dummy.position.copy(screenPoint(pulled.x,pulled.y,pulled.z));dummy.rotation.set(a,i*.8,a*1.3+pulled.turn);const s=pulled.size;dummy.scale.set(s,s*.8,s*.65);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix)}mesh.instanceMatrix.needsUpdate=true;
   });
-  leaves.visible=p>.29;leaves.material.opacity=smooth(.29,.52,p)*.7;leaves.count=Math.round(48*smooth(.28,.7,p));
-  for(let i=0;i<leaves.count;i++){const a=i*2.399+travel*1.7,r=.17+(i%7)*.063;dummy.position.copy(screenPoint(centerX+Math.cos(a)*r,centerY+Math.sin(a)*r*1.5,(i%5)-2));dummy.rotation.set(a*.8,i,a);dummy.scale.set(.07,.19,.014);dummy.updateMatrix();leaves.setMatrixAt(i,dummy.matrix)}leaves.instanceMatrix.needsUpdate=true;
+  leaves.visible=p>.29&&exit<.46;leaves.material.opacity=smooth(.29,.52,p)*.7;leaves.count=Math.round(48*smooth(.28,.7,p));
+  for(let i=0;i<leaves.count;i++){const a=i*2.399+travel*1.7,r=.17+(i%7)*.063;const pulled=spiralIn(centerX+Math.cos(a)*r,centerY+Math.sin(a)*r*1.5,(i%5)-2,1,exit,.015+(i%4)*.02,.38+(i%4)*.025,1.1);dummy.position.copy(screenPoint(pulled.x,pulled.y,pulled.z));dummy.rotation.set(a*.8,i,a+pulled.turn);dummy.scale.set(.07*pulled.size,.19*pulled.size,.014*pulled.size);dummy.updateMatrix();leaves.setMatrixAt(i,dummy.matrix)}leaves.instanceMatrix.needsUpdate=true;
   trails.forEach((mesh,k)=>{
-   mesh.visible=p>.26;mesh.material.opacity=smooth(.26,.34,p)*mix(.19,.75,burst)*(k>2?smooth(.49,.74,p):1);
+   mesh.visible=p>.26&&exit<.54;mesh.material.opacity=smooth(.26,.34,p)*mix(.19,.75,burst)*(k>2?smooth(.49,.74,p):1);
    const arr=mesh.geometry.attributes.position.array;
    for(let j=0;j<180;j++){
     const points=[];
@@ -98,7 +106,8 @@ export function createVortex(root){
      const a=t*TAU*(1.05+spiral*1.25)+k*TAU/7+travel*.8;
      const r=mix(.19,mix(.055,.72,t),spiral),z=mix(Math.sin(a)*2,-19+t*26,spiral);
      const x=centerX+Math.cos(a)*r,y=mix(.48,centerY,spiral)+Math.sin(a)*r*mix(.48,1.3,spiral);
-     const v=screenPoint(x,y,z),w=(.014+burst*.013)*(1+k%2);points.push(v.clone().add(new THREE.Vector3(0,w,0)),v.clone().add(new THREE.Vector3(0,-w,0)));
+     const pulled=spiralIn(x,y,z,1,exit,.02+k*.009,.38+t*.12+k*.006,.9);
+     const v=screenPoint(pulled.x,pulled.y,pulled.z),w=(.014+burst*.013)*(1+k%2)*pulled.size;points.push(v.clone().add(new THREE.Vector3(0,w,0)),v.clone().add(new THREE.Vector3(0,-w,0)));
     }
     [points[0],points[1],points[2],points[2],points[1],points[3]].forEach((v,n)=>{const o=(j*6+n)*3;arr[o]=v.x;arr[o+1]=v.y;arr[o+2]=v.z});
    }
@@ -109,5 +118,5 @@ export function createVortex(root){
   if(frames===90){if(slow>60&&quality>.8){quality=Math.max(.8,quality-.25);resize()}if(verySlow>40)media.limit(3);frames=0;slow=0;verySlow=0}
  }
  for(const c of [backCanvas,frontCanvas]){c.addEventListener('webglcontextlost',e=>{e.preventDefault();failed=true;root.dataset.webgl='unavailable';media.update(0,true,true)});c.addEventListener('webglcontextrestored',()=>{failed=false;root.dataset.webgl='ready';resize()})}
- return{render,resize,prepareMedia:p=>media.update(p,false,false),quality(value){quality=value;resize()},maxVideos:value=>media.limit(value),get state(){return{cpu,cards:visibleCards,media:media.state,quality,webgl:!failed,progress:lastP}},destroy(){disposed=true;observer.disconnect();media.destroy();for(const scene of [front,back])scene.traverse(o=>{o.geometry?.dispose();if(o.material){o.material.map?.dispose();o.material.dispose()}});chrome.dispose();backRenderer?.dispose();frontRenderer?.dispose()}};
+ return{render,resize,prepareMedia:p=>media.update(p,false,false),quality(value){quality=value;resize()},maxVideos:value=>media.limit(value),get state(){return{cpu,cards:visibleCards,media:media.state,quality,webgl:!failed,progress:lastP,exit:lastExit}},destroy(){disposed=true;observer.disconnect();media.destroy();for(const scene of [front,back])scene.traverse(o=>{o.geometry?.dispose();if(o.material){o.material.map?.dispose();o.material.dispose()}});chrome.dispose();backRenderer?.dispose();frontRenderer?.dispose()}};
 }

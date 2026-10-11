@@ -1,0 +1,45 @@
+{
+  "reels": {
+    "cases": [
+      "Natural intro \u2192 fast wheel: seven stages visited; progress capped; persistent 700\u00d7860 canvas; \u22645 decoders; scripted gaze",
+      "Backward scroll restores calm, same stones, stopped videos; repeated direction changes preserve character",
+      "Controlled scroll through burst; adaptive 3\u20135 live sources at peak",
+      "Pause/resume and viewport resize preserve Bimo; pause stops media",
+      "Seven captured states at both 1440\u00d7900 and 1280\u00d7800; actual painted Bimo pixels in all states",
+      "Delayed reel + failed reel: poster fallback, dense cards retained, remaining sources play",
+      "Reduced motion: static representative scenes, no ambient clock or video requests",
+      "390\u00d7844 fallback composition: no horizontal overflow"
+    ],
+    "errors": [],
+    "peakRAF": {
+      "median": 16.700000000000728,
+      "p95": 33.29999999999927,
+      "samples": 89
+    }
+  },
+  "pacing": {
+    "cases": [
+      "Native pose channels: peripheral cue retains deep focus; head precedes eyes; NOTICE completes at .22; reverse restores pose. Top stone: stable, micro-vibration <0.5\u00b0, settle, growing wobble, no early fall.",
+      "Real Chrome native scrolling: very slow, normal wheel, aggressive swipe, reverse Stage 1, repeated forward/back. Original canvas and stones persist."
+    ],
+    "errors": []
+  },
+  "lifecycle": {
+    "passed": true,
+    "hidden": true,
+    "progressBefore": 0.6002262513324635,
+    "progressAfter": 0.6002262513324635,
+    "clockBefore": 14.316499999999994,
+    "clockAfter": 14.316499999999994,
+    "playingWhileHidden": 0
+  },
+  "vortexClarity": {
+    "cases": [
+      "Curved inward paths have decreasing radius/depth/scale; pure scroll evaluation is deterministic and reversible.",
+      "1440\u00d7900: collapse phases, pixel-tested dark hold, circular light without rectangular ingress, forward/reverse/rapid native scroll, continuous heading handoff, editorial content, zero overflow, same Bimo/stones, offscreen pause.",
+      "390\u00d7844: collapse phases, pixel-tested dark hold, circular light without rectangular ingress, forward/reverse/rapid native scroll, continuous heading handoff, editorial content, zero overflow, same Bimo/stones, offscreen pause.",
+      "End/Home native jumps; reduced motion retains final figures with no live media; no-JS readable content/source links; WebGL failure still completes the CSS portal."
+    ],
+    "errors": []
+  }
+}

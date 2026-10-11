@@ -1,7 +1,9 @@
 # Reels / attention collapse — integration lab
 
 Open `Client/hero-reels-lab.html` through a static HTTP server. This is a separate lab;
-the main homepage and approved Hero V2 files are unchanged. It ends at **THE TRAP**.
+the main homepage and approved Hero V2 files are unchanged. The original sequence
+ends at **THE TRAP**; the added [vortex → clarity continuation](vortex-clarity.md)
+extends this same lab through collapse, light, sourced statistics and Brain Rot.
 
 ## Architecture and continuity
 

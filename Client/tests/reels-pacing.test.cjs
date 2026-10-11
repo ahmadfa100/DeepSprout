@@ -30,7 +30,7 @@ const result={cases:[],runs:{},errors:[]};let browser;
  await page.waitForFunction(()=>window.reelsLab?.state.character==='live',null,{timeout:20000});
  await page.waitForFunction(()=>reelsLab.state.unlocked,null,{timeout:18000});
  await page.evaluate(()=>{window.originalCanvas=document.querySelector('.bimo canvas');window.originalStones=[...document.querySelectorAll('.stone')];});
- async function scroll(p){await page.evaluate(p=>{const t=document.querySelector('.hero-track'),h=document.querySelector('.hero').offsetHeight;scrollTo(0,(t.offsetHeight-h)*p)},p)}
+ async function scroll(p){await page.evaluate(p=>scrollTo(0,reelsLab.state.distances.story*p),p)}
  async function reset(p=0){await page.evaluate(p=>reelsLab.seek(p),p);await page.waitForTimeout(500);await scroll(p);await page.evaluate(()=>reelsLab.play())}
  async function sample(){await page.evaluate(()=>{window.samples=[];window.sampling=true;function collect(t){const s=reelsLab.state;samples.push({t,p:s.visualProgress,target:s.targetProgress,emotion:s.inputs.emotionStage,cards:s.renderer.cards});if(sampling)requestAnimationFrame(collect)}requestAnimationFrame(collect)})}
  async function finish(name){const data=await page.evaluate(()=>{sampling=false;return samples});assert.ok(data.every(s=>s.p>=.245||s.cards===0),'No card before NOTICE hold ends');assert.ok(data.every(s=>s.p>=.22||s.emotion===1),'Focus state retained until NOTICE');result.runs[name]=data.filter((_,i)=>i%5===0);return data}
@@ -40,7 +40,7 @@ const result={cases:[],runs:{},errors:[]};let browser;
  await reset();await sample();
  for(let i=1;i<=10;i++){await page.mouse.wheel(0,280);await page.waitForTimeout(180)}
  await page.waitForFunction(()=>reelsLab.state.visualProgress>.37,null,{timeout:12000});await finish('normal');
- await reset();await sample();await page.mouse.wheel(0,18000);await page.waitForTimeout(200);
+ await reset();await sample();await page.mouse.wheel(0,7200);await page.waitForTimeout(200);
  assert.ok(await page.evaluate(()=>reelsLab.state.targetProgress)>.9,'Native scroll is not locked');
  await page.waitForFunction(()=>reelsLab.state.visualProgress>.995,null,{timeout:20000});
  const fast=await finish('aggressive');

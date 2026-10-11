@@ -1,0 +1,42 @@
+{
+  "reels": {
+    "cases": [
+      "Natural intro \u2192 fast wheel: seven stages visited; progress capped; persistent 700\u00d7860 canvas; \u22645 decoders; scripted gaze",
+      "Backward scroll restores calm, same stones, stopped videos; repeated direction changes preserve character",
+      "Controlled scroll through burst; adaptive 3\u20135 live sources at peak",
+      "Pause/resume and viewport resize preserve Bimo; pause stops media",
+      "Seven captured states at both 1440\u00d7900 and 1280\u00d7800; actual painted Bimo pixels in all states",
+      "Delayed reel + failed reel: poster fallback, dense cards retained, remaining sources play",
+      "Reduced motion: static representative scenes, no ambient clock or video requests",
+      "390\u00d7844 fallback composition: no horizontal overflow"
+    ],
+    "errors": [],
+    "peakRAF": {
+      "median": 16.700000000000728,
+      "p95": 16.799999999999272,
+      "samples": 96
+    }
+  },
+  "pacing": {
+    "cases": [
+      "Native pose channels: peripheral cue retains deep focus; head precedes eyes; NOTICE completes at .22; reverse restores pose. Top stone: stable, micro-vibration <0.5\u00b0, settle, growing wobble, no early fall.",
+      "Real Chrome native scrolling: very slow, normal wheel, aggressive swipe, reverse Stage 1, repeated forward/back. Original canvas and stones persist."
+    ],
+    "errors": [],
+    "fastDurationsMs": {
+      "calm": 1683.2999999999993,
+      "tiny": 2166.600000000002,
+      "cueBeforeHead": 916.6000000000022,
+      "noticeBeforeCards": 416.59999999999854
+    }
+  },
+  "lifecycle": {
+    "passed": true,
+    "hidden": true,
+    "progressBefore": 0.6003040762008262,
+    "progressAfter": 0.6003040762008262,
+    "clockBefore": 15.71669999999995,
+    "clockAfter": 15.71669999999995,
+    "playingWhileHidden": 0
+  }
+}

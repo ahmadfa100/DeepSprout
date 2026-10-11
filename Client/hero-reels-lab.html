@@ -11,6 +11,8 @@
 <link rel="preload" as="font" type="font/ttf" crossorigin href="assets/hero-v2/fonts/inter-400.ttf">
 <link rel="stylesheet" href="src/styles/hero-v2/hero.css">
 <link rel="stylesheet" href="src/styles/reels/reels.css">
+<link rel="stylesheet" href="src/styles/reels/clarity.css">
+<link rel="stylesheet" href="src/styles/journey/journey.css">
 
 <link rel="preload" as="image" href="assets/hero-v2/environment.webp">
 <link rel="preload" as="image" href="assets/hero-v2/bimo-awake.png">
@@ -28,6 +30,7 @@
 </script>
 <script type="module" src="src/js/reels/experience.js">
 </script>
+<script type="module" src="src/js/journey/journey.js"></script>
 </head>
 <body>
 <div class="hero-track">
@@ -155,7 +158,8 @@
 <div class="story-copy" aria-live="off"><p class="story-kicker">THE ATTENTION COLLAPSE</p><h2></h2><p class="story-support"></p></div>
 <div class="scroll-cue" aria-hidden="true"><span>Scroll to see what pulls us away</span><i>↓</i></div>
 <div class="story-progress" aria-hidden="true"><span></span></div>
-<p class="sr-only" id="story-description">A small notification becomes an overwhelming storm of reels. Bimo loses his balanced stones and is pulled into endless scrolling. A few minutes became hours.</p>
+<div class="vortex-transition" aria-hidden="true"><div class="transition-void"></div><div class="transition-glow"></div><div class="transition-light"></div></div>
+<p class="sr-only" id="story-description">A small notification becomes an overwhelming storm of reels. Bimo loses his balanced stones and is pulled into endless scrolling. A few minutes became hours. The reels spiral into the vortex, followed by Bimo. Darkness gives way to warm light and a reminder: you are not alone.</p>
 <button class="motion-control" id="motion-control" aria-label="Pause animation" aria-pressed="false" type="button">
 <svg class="pause" viewBox="0 0 20 20" aria-hidden="true">
 <path d="M7 5v10M13 5v10"/>
@@ -166,8 +170,140 @@
 </button>
 </main>
 </div>
-<div id="story-slot" hidden>
-</div>
+<section id="not-alone" class="clarity-section" aria-labelledby="not-alone-title">
+ <header class="clarity-intro">
+  <div class="clarity-copy">
+   <p class="clarity-eyebrow">A moment of clarity</p>
+   <h2 id="not-alone-title"><span class="clarity-mask"><span>You are</span></span><span class="clarity-mask"><span class="accent">not alone.</span></span></h2>
+   <p class="clarity-support">Millions of people are caught in the same cycle of endless scrolling, lost time, and constant distraction.</p>
+   <p class="clarity-scroll" aria-hidden="true"><i></i>There is a bigger picture</p>
+  </div>
+ </header>
+ <div class="clarity-wrap">
+  <!-- Content source of truth: update counts, population labels, dates and citations together. -->
+  <section class="clarity-facts" aria-labelledby="facts-title">
+   <div class="facts-heading"><p class="clarity-eyebrow">01 / The wider picture</p><h3 id="facts-title">A shared experience.<br><span>A clearer picture.</span></h3></div>
+   <div class="facts-rule" aria-hidden="true"></div>
+   <div class="stat-row">
+    <article class="clarity-stat">
+     <span class="stat-index" aria-hidden="true">01 — TIME</span>
+     <p class="stat-number"><span class="sr-only">2 hours and 21 minutes</span><span data-count="141" data-format="minutes" aria-hidden="true">2h 21m</span></p>
+     <p class="stat-label">Average daily social media use among internet users in GWI’s global survey.</p>
+     <a class="stat-source" href="https://datareportal.com/reports/digital-2025-global-overview-report" target="_blank" rel="noopener noreferrer">DataReportal / GWI · Digital 2025 ↗</a>
+    </article>
+    <article class="clarity-stat">
+     <span class="stat-index" aria-hidden="true">02 — ALWAYS ON</span>
+     <p class="stat-number"><span class="sr-only">46 percent</span><span data-count="46" data-format="percent" aria-hidden="true">46%</span></p>
+     <p class="stat-label">Of U.S. teens ages 13–17 say they are online <strong>“almost constantly.”</strong></p>
+     <a class="stat-source" href="https://www.pewresearch.org/internet/2024/12/12/teens-social-media-and-technology-2024/" target="_blank" rel="noopener noreferrer">Pew Research Center · 2024 survey ↗</a>
+    </article>
+    <article class="clarity-stat">
+     <span class="stat-index" aria-hidden="true">03 — TOO MUCH</span>
+     <p class="stat-number"><span class="sr-only">38 percent</span><span data-count="38" data-format="percent" aria-hidden="true">38%</span></p>
+     <p class="stat-label">Of U.S. teens ages 13–17 say they spend <strong>too much time</strong> on their smartphone.</p>
+     <a class="stat-source" href="https://www.pewresearch.org/internet/2024/03/11/how-teens-and-parents-approach-screen-time/" target="_blank" rel="noopener noreferrer">Pew Research Center · 2023 survey, published 2024 ↗</a>
+    </article>
+   </div>
+   <p class="facts-context">Different populations, different measures. These figures describe time spent and self-reported experiences; they do not establish that every online experience is harmful.</p>
+  </section>
+  <section class="brain-rot" aria-labelledby="brain-rot-title">
+   <p class="clarity-eyebrow">02 / A name for the feeling</p>
+   <h3 id="brain-rot-title"><span>Brain</span> <span>Rot.</span></h3>
+   <div class="brain-description">
+    <p class="brain-lead">You’ve probably heard the term.</p>
+    <div><p>It’s a popular way of describing the mental fatigue and sense of lost focus people associate with consuming too much low-value digital content.</p><p class="brain-note">A cultural term, not a medical diagnosis or evidence of brain damage. Oxford Languages named “brain rot” its <a href="https://corp.oup.com/news/brain-rot-named-oxford-word-of-the-year-2024/" target="_blank" rel="noopener noreferrer">Word of the Year for 2024</a>.</p></div>
+   </div>
+  </section>
+  <section class="clarity-research" aria-labelledby="research-title">
+   <div class="research-heading"><h3 id="research-title">The research behind the problem.</h3><p>Explore the reports and language context cited here. Independent sources, not affiliations or endorsements.</p></div>
+   <ul class="research-row">
+    <li class="research-source"><a href="https://www.pewresearch.org/internet/2024/12/12/teens-social-media-and-technology-2024/" target="_blank" rel="noopener noreferrer"><span>Pew Research Center</span><span aria-hidden="true">↗</span></a><p>U.S. teen internet use, 2024.<br>Screen-time experiences, published 2024.</p></li>
+    <li class="research-source"><a href="https://datareportal.com/reports/digital-2025-global-overview-report" target="_blank" rel="noopener noreferrer"><span>DataReportal / GWI</span><span aria-hidden="true">↗</span></a><p>Global digital overview, 2025.<br>Survey-based social media use.</p></li>
+    <li class="research-source"><a href="https://corp.oup.com/news/brain-rot-named-oxford-word-of-the-year-2024/" target="_blank" rel="noopener noreferrer"><span>Oxford Languages</span><span aria-hidden="true">↗</span></a><p>Language context, 2024.<br>The meaning and rise of “brain rot.”</p></li>
+   </ul>
+   <p class="clarity-end">DeepSprout / Make room for what matters.</p>
+   <svg class="research-thread" viewBox="0 0 140 120" aria-hidden="true"><path d="M12 0V34Q12 56 38 56H84Q116 56 116 88V120" pathLength="1"/><circle cx="12" cy="5" r="4"/></svg>
+  </section>
+ </div>
+</section>
+<section id="product-journey" class="product-journey" aria-labelledby="journey-title">
+ <h2 id="journey-title" class="sr-only">The DeepSprout journey: understand yourself, build better habits, and grow together.</h2>
+ <div class="journey-stage">
+  <header class="journey-chrome"><a class="journey-wordmark" href="#product-journey" aria-label="DeepSprout product journey"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 27V17M16 19C5 20 4 10 4 5c9 0 13 6 12 14ZM16 19C16 9 23 5 29 5c0 9-4 14-13 14Z"/></svg>DeepSprout<span>/ A little progress goes a long way</span></a><a class="journey-motion" href="#journey-finish">Skip to the invitation <span aria-hidden="true">↗</span></a></header>
+  <div class="journey-copy">
+   <article class="journey-scene" id="journey-assessment" data-scene="assessment">
+    <p class="journey-kicker">01 / Understand yourself</p>
+    <h3>It starts with <br> understanding <em>you.</em></h3>
+    <p class="journey-support">A short assessment to discover your habits, challenges, and goals.</p>
+    <p class="journey-detail">A clearer starting point. <br> A gentler way forward.</p>
+    <p class="sr-only">Illustrative assessment: three sample questions about scrolling, challenges and goals. Answers connect to your personalized plan.</p>
+    <div class="journey-panel assessment-panel" aria-hidden="true">
+     <div class="panel-heading"><span class="mini-brand">YOUR STARTING POINT</span><span class="question-count">01 / 03</span></div>
+     <div class="assessment-meter"><i></i></div>
+     <div class="question-window">
+      <div class="question-page" data-question="0"><span class="question-category">Your everyday habits</span><h4>How often do you lose track of time while scrolling?</h4><div class="answer-choice"><i></i>Every now and then</div><div class="answer-choice selected-answer"><i><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7" pathLength="1"/></svg></i>More often than I’d like</div><div class="answer-choice"><i></i>Most days</div></div>
+      <div class="question-page" data-question="1"><span class="question-category">What gets in the way</span><h4>When is it hardest to put your phone down?</h4><div class="answer-choice"><i></i>Between tasks</div><div class="answer-choice selected-answer"><i><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7" pathLength="1"/></svg></i>When I need to focus</div><div class="answer-choice"><i></i>Before sleep</div></div>
+      <div class="question-page" data-question="2"><span class="question-category">Make room for what matters</span><h4>What would you like a little more time for?</h4><div class="answer-choice"><i></i>Being present</div><div class="answer-choice selected-answer"><i><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7" pathLength="1"/></svg></i>Doing meaningful work</div><div class="answer-choice"><i></i>Rest and balance</div></div>
+     </div>
+     <div class="panel-footer"><span>Small questions. Useful insight.</span><span class="assessment-next">Continue <span>→</span></span></div>
+    </div>
+   </article>
+   <article class="journey-scene" id="journey-plan" data-scene="plan">
+    <p class="journey-kicker">02 / Find your direction</p><h3>A plan made <br> for <em>your mind.</em></h3><p class="journey-support">Small steps, designed around your habits and goals.</p><p class="journey-detail">You don’t have to change everything. <br> Just take the next step.</p>
+    <p class="sr-only">A personalized roadmap connects Build Awareness, Practice Focus, Create Balance, and Long-term Growth. Week 1 leads to your activities.</p>
+    <div class="journey-panel plan-panel" aria-hidden="true">
+     <div class="plan-top"><span class="mini-brand">YOUR PERSONAL ROADMAP</span><span class="plan-tag">One step at a time</span></div>
+     <svg class="roadmap-lines" viewBox="0 0 600 440"><path class="roadmap-track" pathLength="1" d="M70 118C145 196 256 267 333 198S180 227 90 308S260 367 358 373"/><path class="roadmap-light" pathLength="1" d="M70 118C145 196 256 267 333 198S180 227 90 308S260 367 358 373"/></svg>
+     <div class="milestone milestone-0"><i><span>01</span></i><div><small>WEEK 01</small><h4>Build Awareness</h4><p>Notice your patterns.</p></div></div>
+     <div class="milestone milestone-1"><i><span>02</span></i><div><small>WEEK 02</small><h4>Practice Focus</h4><p>Find a little more space.</p></div></div>
+     <div class="milestone milestone-2"><i><span>03</span></i><div><small>WEEK 03</small><h4>Create Balance</h4><p>Make time for life offline.</p></div></div>
+     <div class="milestone milestone-3"><i><span>04</span></i><div><small>AND BEYOND</small><h4>Long-term Growth</h4><p>Keep what works for you.</p></div></div>
+    </div>
+   </article>
+   <article class="journey-scene" id="journey-activities" data-scene="activities">
+    <p class="journey-kicker">03 / Build your rhythm</p><h3>Every week, <br> a new chance <br> to <em>grow.</em></h3><p class="journey-support">Small, engaging activities designed to help you build better habits.</p><p class="journey-detail">Less pressure. More practice. <br> A little progress, every week.</p>
+    <p class="sr-only">Week 1 includes a 15-minute focus session, a mindful scrolling break, journaling, a screen-free evening and a short lesson. Completed activities illuminate the shared network. New activities follow in Week 2.</p>
+    <div class="journey-panel activities-panel" aria-hidden="true">
+     <div class="week-next"><span class="mini-brand">WEEK 02</span><h4>Keep your momentum.</h4><p>A fresh set of small steps.</p><div><i></i><span>Practice a new focus routine</span></div><div><i></i><span>Make room for something offline</span></div></div>
+     <div class="week-current"><div class="panel-heading"><div><span class="mini-brand">WEEK 01</span><h4>A little better, every day.</h4></div><span class="week-progress">2 / 5</span></div><div class="activity-timeline"><span></span></div>
+      <div class="activity-row" data-activity="0"><i class="activity-check" style="--done:1"><svg viewBox="0 0 20 20"><path d="m4 10 4 4 8-9" pathLength="1"/></svg></i><div><strong>15-minute focus session</strong><small>A moment for one thing.</small></div><svg class="activity-ring" viewBox="0 0 44 44"><circle cx="22" cy="22" r="17"/><circle class="activity-ring-progress" cx="22" cy="22" r="17" pathLength="1"/></svg></div>
+      <div class="activity-row" data-activity="1"><i class="activity-check" style="--done:1"><svg viewBox="0 0 20 20"><path d="m4 10 4 4 8-9" pathLength="1"/></svg></i><div><strong>Take a mindful scrolling break</strong><small>Pause. Notice. Choose.</small></div><span class="activity-time">5 min</span></div>
+      <div class="activity-row"><i class="activity-check"></i><div><strong>Journal how you feel</strong><small>A short check-in with yourself.</small></div><span class="activity-time">3 min</span></div>
+      <div class="activity-row"><i class="activity-check"></i><div><strong>Try a screen-free evening</strong><small>Make room for life offline.</small></div><span class="activity-time">Tonight</span></div>
+      <div class="activity-row"><i class="activity-check"></i><div><strong>Read a short lesson</strong><small>Understand the habit loop.</small></div><span class="activity-time">4 min</span></div>
+      <div class="week-footer"><span>Week progress</span><div><i></i></div><strong>40%</strong></div>
+     </div>
+    </div>
+   </article>
+   <article class="journey-scene" id="journey-focus" data-scene="focus">
+    <p class="journey-kicker">04 / See your progress</p><h3>Progress you <br> can actually <br> <em>see.</em></h3><p class="journey-support">Track your focus sessions, understand your patterns, and watch your progress.</p><p class="journey-detail">One session becomes a pattern. <br> A pattern becomes progress.</p>
+    <p class="sr-only">Illustrative focus timer: 25 minutes. The completed timer ring becomes a chart showing five sample sessions: 15, 25, 30, 20, and 35 minutes, totaling 2 hours and 5 minutes. This is sample product data, not measured attention or real user results.</p>
+    <div class="journey-panel focus-panel" aria-hidden="true">
+     <div class="analytics-frame"><div class="panel-heading"><span class="mini-brand">YOUR FOCUS, OVER TIME</span><span class="sample-tag">Sample week</span></div><div class="focus-metrics"><div><strong>2h 05m</strong><small>Total focus time</small></div><div><strong>5</strong><small>Sessions completed</small></div><div><strong>5 / 5</strong><small>Days practiced</small></div></div><div class="chart-grid"><span>Minutes</span><i>40</i><i>20</i><i>0</i></div><div class="chart-days"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span></div><div class="session-history"><span>SESSION HISTORY</span><p><i></i>Most recent <strong>35 min · Completed</strong></p></div></div>
+     <svg class="focus-stroke" viewBox="0 0 600 480"><path class="timer-track" d="M300 80A135 135 0 1 1 299.99 80"/><path class="focus-morph" pathLength="1" d="M60 268.5C100 256 138 237 180 231.5S260 205 300 213S380 260 420 250S500 199 540 194.5"/><circle class="chart-final-point" r="5"/><g class="chart-points"></g></svg>
+     <div class="timer-face"><span class="mini-brand">A MOMENT FOR ONE THING</span><strong>25:00</strong><span class="timer-status">Focus session</span><span class="timer-control"><svg viewBox="0 0 20 20"><path d="M7 5v10M13 5v10"/></svg></span></div>
+     <span class="timer-caption">A 25-minute session, shown in a few scrolls.</span>
+    </div>
+   </article>
+   <article class="journey-scene" id="journey-garden" data-scene="garden">
+    <p class="journey-kicker">05 / Make growth tangible</p><h3>Your progress <br> deserves to <br> <em>grow.</em></h3><p class="journey-support">Complete activities, stay consistent, and watch your garden come to life.</p><p class="journey-detail">A small space that grows <br> with the habits you build.</p>
+    <p class="sr-only">A seed becomes a sprout, then a flower, a little tree, and a complete illustrated garden. Each stage corresponds to a simulated achievement. Garden growth is a visual reward, not a measurement of neurological change.</p>
+    <div class="journey-panel garden-panel" aria-hidden="true"><div class="garden-heading"><span class="mini-brand">YOUR LITTLE GARDEN</span><span class="garden-achievement">Small steps. A garden of your own.</span></div><div class="garden-art"><img src="assets/journey/garden.svg" alt="" width="600" height="480" loading="lazy"></div><div class="garden-details"><div><strong class="garden-streak">3 days</strong><span>Growth streak</span></div><div><strong class="garden-unlocked">4 / 4</strong><span>Plants unlocked</span></div><div><strong class="garden-week">80%</strong><span>Week progress</span></div></div><p class="garden-reward">Next reward <span>A little more room to grow →</span></p></div>
+   </article>
+   <article class="journey-scene" id="journey-community" data-scene="community">
+    <p class="journey-kicker">06 / Grow together</p><h3>You don’t have <br> to grow <em>alone.</em></h3><p class="journey-support">Join a community of people building better habits together.</p><p class="journey-detail">Different journeys. <br> A little encouragement along the way.</p>
+    <p class="sr-only">The camera pulls back from your garden to reveal dozens of illustrated gardens connected by the same network. Sample community interactions include shared challenges, encouragement and member milestones. No real identities or user counts are depicted.</p>
+    <div class="community-notes" aria-hidden="true"><span><i>↗</i>Shared challenges</span><span><i>✧</i>Small milestones</span><span><i>♡</i>A little encouragement</span></div>
+   </article>
+   <article class="journey-scene journey-finish" id="journey-finish" data-scene="finish">
+    <p class="journey-kicker">Your next chapter</p><h3>A little progress. <br> A whole <br> <em>new world.</em></h3><p class="journey-support">Your journey starts with one small step.</p><a class="journey-cta" href="https://tally.so/r/QKgA0G" target="_blank" rel="noopener noreferrer">Join the Waitlist <span aria-hidden="true">↗</span></a><p class="journey-invitation">Make room for what matters.</p>
+   </article>
+  </div>
+  <div class="journey-viewport" aria-hidden="true"><div class="journey-camera"><svg class="journey-network"></svg><div class="journey-sets"></div><div class="journey-community-gardens"></div><div class="journey-object"><span></span></div><svg class="journey-seed" viewBox="0 0 32 42"><path class="seed-body" d="M16 2C4 5 2 16 5 28c3 10 11 13 18 7 8-7 8-23-7-33Z"/><path class="seed-seam" d="M17 7Q10 24 18 34"/></svg></div></div>
+  <nav class="journey-chapters" aria-label="Product journey chapters"><a href="#journey-assessment" data-chapter="0"><span>01</span>Understand</a><a href="#journey-plan" data-chapter="1"><span>02</span>Plan</a><a href="#journey-activities" data-chapter="2"><span>03</span>Practice</a><a href="#journey-focus" data-chapter="3"><span>04</span>Track</a><a href="#journey-garden" data-chapter="4"><span>05</span>Grow</a><a href="#journey-community" data-chapter="5"><span>06</span>Together</a></nav>
+  <div class="journey-bottom"><p>Illustrative product demo <span>· Connections are a visual metaphor.</span></p><a class="journey-static-control" href="#product-journey">View without motion</a><span class="journey-scroll" aria-hidden="true">Continue the journey <i>↓</i></span></div>
+ </div>
+</section>
 <dialog id="focus-dialog" aria-labelledby="check-title">
 <form method="dialog">
 <button class="dialog-close" aria-label="Close focus check">×</button>
