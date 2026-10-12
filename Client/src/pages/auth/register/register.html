@@ -1,29 +1,26 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/png" href="../../../assets/logo/Image.png">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f5fff7">
+  <meta name="theme-color" content="#fffefa">
   <meta name="description" content="Create your DeepSprout account and start building deeper focus and healthier digital habits.">
   <title>Create an account — DeepSprout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="register.css">
-  <link rel="stylesheet" href="../../../../src/styles/theme.css">
-  <link rel="stylesheet" href="../../../../src/layouts/site-layout/site-layout.css">
-  <script src="../../../../src/layouts/site-layout/site-layout.js" defer></script>
+  <link rel="stylesheet" href="../../../../src/layouts/auth-footer/auth-footer.css">
+  <script src="../../../../src/layouts/auth-footer/auth-footer.js" defer></script>
   <script src="register.js" defer></script>
 </head>
 <body data-page="register" data-root="../../../../">
   <main class="auth-scene register-scene" id="main">
-    <div class="auth-glow" aria-hidden="true"></div>
-    <span class="floating-leaf leaf-one" aria-hidden="true"></span>
-    <span class="floating-leaf leaf-two" aria-hidden="true"></span>
     <section class="login-card register-card" aria-labelledby="register-title">
-      <a class="login-brand register-brand" href="../../../../index.html" aria-label="DeepSprout home"><img src="../../../../assets/auth/deepsprout-floral-mark.png" alt="" width="64" height="64"></a>
+      <a class="login-brand register-brand" href="../../../../index.html" aria-label="DeepSprout home"><img src="../../../../assets/brand/floral-mark.png" alt="" width="70" height="70"><span>DeepSprout</span></a>
       <h1 id="register-title">Create your account</h1>
-      <p class="register-intro">Start your journey toward deeper focus and better digital habits.</p>
+      <p class="login-subtitle register-intro">Start your journey toward deeper focus and better digital habits.</p>
       <form id="register-form" novalidate>
         <div class="form-field">
           <label for="full-name">Full Name</label>
@@ -58,8 +55,8 @@
       <p class="signup-line">Already have an account? <a href="../../../../login.html">Log in</a></p>
     </section>
   </main>
-  <div data-site-footer></div>
+  <div data-auth-footer></div>
   <div class="auth-toast" id="auth-toast" role="status" aria-live="polite" hidden></div>
-  <dialog class="auth-dialog" id="auth-dialog" aria-labelledby="dialog-title"><button class="dialog-close" type="button" aria-label="Close dialog">×</button><img src="../../../../assets/auth/deepsprout-floral-mark.png" alt="" width="56" height="56"><h2 id="dialog-title"></h2><p id="dialog-message"></p><button class="dialog-done" type="button">Got it</button></dialog>
+  <dialog class="auth-dialog" id="auth-dialog" aria-labelledby="dialog-title"><button class="dialog-close" type="button" aria-label="Close dialog">×</button><img src="../../../../assets/brand/floral-mark.png" alt="" width="56" height="56"><h2 id="dialog-title"></h2><p id="dialog-message"></p><button class="dialog-done" type="button">Got it</button></dialog>
 </body>
 </html>

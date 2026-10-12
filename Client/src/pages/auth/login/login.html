@@ -1,31 +1,29 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/png" href="../../../assets/logo/Image.png">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f5fff7">
+  <meta name="theme-color" content="#fffefa">
   <meta name="description" content="Log in to your DeepSprout account and continue growing at your own pace.">
   <title>Log in — DeepSprout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="login.css">
-  <link rel="stylesheet" href="../../../../src/styles/theme.css">
-  <link rel="stylesheet" href="../../../../src/layouts/site-layout/site-layout.css">
-  <script src="../../../../src/layouts/site-layout/site-layout.js" defer></script>
+  <link rel="stylesheet" href="../../../../src/layouts/auth-footer/auth-footer.css">
+  <script src="../../../../src/layouts/auth-footer/auth-footer.js" defer></script>
   <script src="login.js" defer></script>
 </head>
 <body data-page="login" data-root="../../../../">
   <main class="auth-scene" id="main">
-    <div class="auth-glow" aria-hidden="true"></div>
-    <span class="floating-leaf leaf-one" aria-hidden="true"></span>
-    <span class="floating-leaf leaf-two" aria-hidden="true"></span>
     <section class="login-card" aria-labelledby="login-title">
       <a class="login-brand" href="../../../../index.html" aria-label="DeepSprout home">
-        <img src="../../../../assets/auth/deepsprout-floral-mark.png" alt="" width="70" height="70">
+        <img src="../../../../assets/brand/floral-mark.png" alt="" width="70" height="70">
         <span>DeepSprout</span>
       </a>
       <h1 id="login-title">Welcome back!</h1>
+      <p class="login-subtitle">Log in to continue growing with DeepSprout.</p>
       <form id="login-form" novalidate>
         <div class="form-field">
           <label for="email">Email</label>
@@ -49,6 +47,7 @@
         <button class="forgot-link" type="button" data-auth-action="forgot">Forgot password?</button>
         <button class="login-submit" type="submit">Log in <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-7-6 7 6-7 6"/></svg></button>
       </form>
+      <div class="admin-demo-entry"><span>ADMIN PREVIEW</span><button type="button" id="admin-demo-button">Continue as Admin (Demo) <span aria-hidden="true">→</span></button><small>Opens a local demo workspace. No credentials required.</small></div>
       <div class="login-divider"><span>or continue with</span></div>
       <div class="social-options" aria-label="Other sign-in options">
         <button type="button" data-auth-action="Google"><span class="google-g" aria-hidden="true">G</span>Google</button>
@@ -58,11 +57,11 @@
       <p class="signup-line">Don't have an account? <a href="../../../../register.html">Sign up</a></p>
     </section>
   </main>
-  <div data-site-footer></div>
+  <div data-auth-footer></div>
   <div class="auth-toast" id="auth-toast" role="status" aria-live="polite" hidden></div>
   <dialog class="auth-dialog" id="auth-dialog" aria-labelledby="dialog-title">
     <button class="dialog-close" type="button" aria-label="Close dialog">×</button>
-    <img src="../../../../assets/auth/deepsprout-floral-mark.png" alt="" width="56" height="56">
+    <img src="../../../../assets/brand/floral-mark.png" alt="" width="56" height="56">
     <h2 id="dialog-title"></h2>
     <p id="dialog-message"></p>
     <button class="dialog-done" type="button">Got it</button>

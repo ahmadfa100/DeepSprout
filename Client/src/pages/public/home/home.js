@@ -1,124 +1,49 @@
-document.documentElement.classList.add('js');
-
-const revealItems = document.querySelectorAll('.reveal');
-if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add('is-visible');
-      observer.unobserve(entry.target);
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -35px 0px' });
-  revealItems.forEach(item => observer.observe(item));
-} else {
-  revealItems.forEach(item => item.classList.add('is-visible'));
-}
-
-const tabs = [...document.querySelectorAll('[data-tab]')];
-const selectTab = tab => {
-  tabs.forEach(item => {
-    const selected = item === tab;
-    item.setAttribute('aria-selected', String(selected));
-    item.tabIndex = selected ? 0 : -1;
-    document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
-  });
-};
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => selectTab(tab));
-  tab.addEventListener('keydown', event => {
-    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+(() => {
+  const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
+  const save = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} };
+  const toast = document.getElementById('home-toast');
+  let toastTimer;
+  const announce = message => { toast.textContent = message; toast.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.hidden = true; }, 4000); };
+  const goalDialog = document.getElementById('goal-dialog');
+  const goalInput = document.getElementById('goal-input');
+  const reasonInput = document.getElementById('reason-input');
+  const renderGoal = () => {
+    const goal = read('deepsprout-home-goal', read('deepsprout-dashboard-goal', { title: 'Spend less time scrolling', reason: 'I want to feel more present, focused, and in control of my time.' }));
+    document.getElementById('goal-title').textContent = goal.title;
+    document.getElementById('hero-goal').textContent = goal.title;
+    document.getElementById('goal-reason').textContent = goal.reason;
+    goalInput.value = goal.title;
+    reasonInput.value = goal.reason;
+  };
+  document.getElementById('edit-goal').addEventListener('click', () => goalDialog.showModal());
+  document.getElementById('goal-form').addEventListener('submit', event => {
     event.preventDefault();
-    const index = tabs.indexOf(tab);
-    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
-    selectTab(tabs[next]);
-    tabs[next].focus();
+    const title = goalInput.value.trim();
+    const reason = reasonInput.value.trim();
+    if (!title || !reason) return;
+    save('deepsprout-home-goal', { title, reason });
+    renderGoal(); goalDialog.close(); announce('Your goal was saved on this device.');
   });
-});
-selectTab(tabs[0]);
-
-let durationSeconds = 25 * 60;
-let remainingSeconds = durationSeconds;
-let timerId = null;
-let endTime = 0;
-const timerDisplay = document.getElementById('timer-display');
-const timerToggle = document.getElementById('timer-toggle');
-const timerReset = document.getElementById('timer-reset');
-const formatTime = seconds => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-const renderTimer = () => { timerDisplay.textContent = formatTime(remainingSeconds); };
-const stopTimer = () => {
-  window.clearInterval(timerId);
-  timerId = null;
-  timerToggle.innerHTML = 'Start focus <svg><use href="#i-play"/></svg>';
-};
-const tickTimer = () => {
-  remainingSeconds = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
-  renderTimer();
-  if (remainingSeconds === 0) {
-    stopTimer();
-    timerToggle.textContent = 'Session complete ✦';
-  }
-};
-timerToggle.addEventListener('click', () => {
-  if (timerId) {
-    tickTimer();
-    stopTimer();
-    return;
-  }
-  if (remainingSeconds === 0) remainingSeconds = durationSeconds;
-  endTime = Date.now() + remainingSeconds * 1000;
-  timerId = window.setInterval(tickTimer, 250);
-  timerToggle.textContent = 'Pause focus';
-});
-timerReset.addEventListener('click', () => {
-  stopTimer();
-  remainingSeconds = durationSeconds;
-  renderTimer();
-});
-document.querySelectorAll('[data-minutes]').forEach(button => button.addEventListener('click', () => {
-  stopTimer();
-  durationSeconds = Number(button.dataset.minutes) * 60;
-  remainingSeconds = durationSeconds;
-  renderTimer();
-  document.querySelectorAll('[data-minutes]').forEach(item => item.classList.toggle('is-active', item === button));
-}));
-
-const breathToggle = document.getElementById('breath-toggle');
-const breathOrb = document.querySelector('.breath-orb');
-breathToggle.addEventListener('click', () => {
-  const running = breathOrb.classList.toggle('is-running');
-  breathToggle.textContent = running ? 'Pause breathing' : 'Begin breathing';
-});
-
-const quests = [
-  ['Take a five-minute walk', "Leave your phone behind and notice three things you haven't seen today."],
-  ['Find a little patch of green', 'Step outside and notice the shape, texture, or color of one plant.'],
-  ['Share a real conversation', 'Ask someone how their day is going and give them your full attention.'],
-  ['Make something with your hands', 'Draw, cook, tidy, or build something small without checking your screen.']
-];
-let questIndex = 0;
-document.getElementById('quest-next').addEventListener('click', () => {
-  questIndex = (questIndex + 1) % quests.length;
-  document.getElementById('quest-title').textContent = quests[questIndex][0];
-  document.getElementById('quest-description').textContent = quests[questIndex][1];
-});
-
-const habitButtons = [...document.querySelectorAll('[data-habit]')];
-habitButtons.forEach(button => button.addEventListener('click', () => {
-  button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true'));
-  const done = habitButtons.filter(item => item.getAttribute('aria-pressed') === 'true').length;
-  window.DeepSproutGrowth?.setHabitProgress(done, habitButtons.length);
-}));
-
-const focusDialog = document.getElementById('focus-dialog');
-document.querySelectorAll('[data-open-check]').forEach(button => button.addEventListener('click', () => {
-  focusDialog.querySelector('.check-result').textContent = '';
-  focusDialog.querySelectorAll('[data-result]').forEach(option => option.classList.remove('selected'));
-  focusDialog.showModal();
-}));
-focusDialog.querySelectorAll('[data-result]').forEach(button => button.addEventListener('click', () => {
-  focusDialog.querySelector('.check-result').textContent = button.dataset.result;
-  focusDialog.querySelectorAll('[data-result]').forEach(option => option.classList.toggle('selected', option === button));
-}));
-focusDialog.addEventListener('click', event => {
-  if (event.target === focusDialog) focusDialog.close();
-});
+  const missionDialog = document.getElementById('mission-dialog');
+  const timeInput = document.getElementById('screen-free-time');
+  const missionButton = document.getElementById('mission-button');
+  const renderMission = () => {
+    const time = read('deepsprout-screen-free-time', null);
+    if (!time) return;
+    timeInput.value = time;
+    missionButton.firstChild.textContent = 'Edit mission ';
+    document.getElementById('mission-title').textContent = `Your screen-free time is ${new Date(`2000-01-01T${time}:00`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+  };
+  missionButton.addEventListener('click', () => missionDialog.showModal());
+  document.getElementById('mission-form').addEventListener('submit', event => {
+    event.preventDefault();
+    if (!timeInput.value) return;
+    save('deepsprout-screen-free-time', timeInput.value);
+    renderMission(); missionDialog.close(); announce('Your evening rule was saved on this device.');
+  });
+  document.querySelectorAll('.home-dialog [data-close]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+  document.querySelectorAll('.home-dialog').forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); }));
+  const shieldTime = read('deepsprout-shield-time', '19:00');
+  document.getElementById('shield-time').textContent = new Date(`2000-01-01T${shieldTime}:00`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  renderGoal(); renderMission();
+})();

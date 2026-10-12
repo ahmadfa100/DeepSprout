@@ -6,27 +6,29 @@ A static HTML, CSS, and JavaScript implementation of the supplied DeepSprout moc
 python3 -m http.server 8765
 ```
 
-Pages: `index.html` (Home), `recovery-plan.html`, `training.html`, `garden.html`, `insights.html`, `pricing.html`, `login.html`, and `register.html`. Each root file is a small redirect to the page's own folder under `src/pages/public/`, `src/pages/member/`, or `src/pages/auth/`. Every implemented page keeps its HTML, CSS, and JavaScript together in that folder.
+Pages: `index.html` (Home), `landing.html` (the former animated landing page), `recovery-plan.html`, `training.html`, `shield.html`, `garden.html`, `insights.html`, `lab.html`, `community.html`, `pricing.html`, `login.html`, and `register.html`. Home content lives in `index.html` with its CSS and JS under `src/pages/public/home/`. Most other root files redirect to their page folder.
 
 ## Shared structure
 
 - `src/styles/theme.css` owns the common colors, typography, and design tokens. Each page loads this after its own stylesheet so the shared tokens stay consistent.
-- `src/layouts/site-layout/site-layout.js` renders the shared navigation and footer into the page's `data-site-header` and `data-site-footer` mounts. `site-layout.css` styles them. The layout also owns mobile-menu and scrolled-header behavior.
+- `src/layouts/member-layout/member-layout.js` renders the shared Home and member navigation and footer, including the responsive menu and illustrated page-transition loader. `member-layout.css` styles them. The former landing page and Pricing retain the public `site-layout`.
 - `assets/` contains illustration files, with each illustration's prompt notes beside it.
-- Login and Register use their supplied SVGs as decorative landscapes and share the floral mark embedded in those SVGs as a local image. Their forms, footer, buttons, and text are live HTML. The auth footer is a variant of the shared site layout, and `src/styles/auth.css` contains their common styles.
-- The older zero-byte component/layout/style files in `src/` are unused scaffolding. They are not loaded by the implemented pages.
+- Login and Register use `src/assets/backgrounds/image.png`, the same DM Sans typography and card styling, and the reusable footer in `src/layouts/auth-footer/`. Register builds on the Login styles with its own form layout. Both forms and their text remain live HTML.
+- Goal and mission choices on Home, plus Digital Shield preferences, are local browser preview data. The Digital Shield preview does not block apps or provide browser protection.
 
 Garden includes interactive plot details, links to matching Training activities, a daily watering action, progress animation, and locally stored XP. Completing a Training session adds 20 Garden XP and one session; watering adds 10 XP once per local day. The starting values shown in the design are sample values, and browser local storage keeps changes on the same device. Insights also displays illustrative local data, not account analytics. Pricing plan details are interactive; checkout is not connected.
+
+Community reproduces the supplied 1440 × 960 SVG with live cards, filters, search, post composer, likes, comments, bookmarks, challenge toggle, and responsive layouts. New posts, likes, bookmarks, and challenge membership are demo data stored on the same device; there is no community backend.
 
 Login validates email and password, toggles password visibility, and links to Register. Register validates name, email, password length, password confirmation, and acceptance of terms. Both pages show clear messages for actions needing a backend, including social sign-in. Authentication is not connected to a backend, and credentials are never sent or saved.
 
 Animations follow the user's reduced-motion preference. No framework or build step is required.
 
-## Home: Break the Loop
+## Landing: Break the Loop
 
-The homepage is a continuous attention story: garden → distractions → infinity ribbon → stillness → seed → roots → path → garden. Scrolling remains native. Stop in the loop for about 1.3 seconds to let the world settle, or keep scrolling to continue through the fallback.
+The former landing page at `landing.html` is a continuous attention story: garden → distractions → infinity ribbon → stillness → seed → roots → path → garden. Scrolling remains native. Stop in the loop for about 1.3 seconds to let the world settle, or keep scrolling to continue through the fallback.
 
-- `src/pages/public/home/animations/scroll-story.js` owns the state, filtered velocity, stillness, camera/seed handoff, and root/journey reveals.
+- `src/pages/public/landing/animations/scroll-story.js` owns the state, filtered velocity, stillness, camera/seed handoff, and root/journey reveals.
 - `animations/loop-scene.js` projects a shaded SVG ribbon and HTML feed fragments, then unfolds the same geometry into a path. No Three.js/WebGL dependency is needed.
 - `animations/story.css` contains scene styling and separate mobile/reduced-motion layouts.
 - `animations/growth-system.js` ties the sample garden's growth to intentional habit controls.

@@ -1,2 +1,35 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=src/pages/public/home/home.html"><title>DeepSprout</title></head><body><p><a href="src/pages/public/home/home.html">Open DeepSprout</a></p></body></html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="src/assets/logo/Image.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fcfdf9">
+  <meta name="description" content="Your DeepSprout home: today's mission, goal, digital shield, and garden progress.">
+  <title>Home — DeepSprout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/pages/public/home/home.css">
+  <link rel="stylesheet" href="src/layouts/member-layout/member-layout.css">
+  <script src="src/layouts/member-layout/member-layout.js" defer></script>
+  <script src="src/pages/public/home/home.js" defer></script>
+</head>
+<body data-page="home" data-root="./">
+  <div data-site-header></div>
+  <main class="home-main">
+    <section class="welcome" aria-labelledby="welcome-title"><h1 id="welcome-title">Welcome back, Ahmad! <span aria-hidden="true">🌿</span></h1><p>Here’s where things stand with your plan. You’re making progress!</p></section>
+    <section class="home-hero" aria-label="A new day, a new start"><img class="hero-art" src="assets/home-kit/illustrations/hero-right-art.png" alt="Bimo reading among flowers and trees beside a wooden sign about good habits"><div class="hero-copy"><h2>A new day, a new start.</h2><p>Keep showing up. Small steps add up.</p><div class="hero-pills"><span><img src="assets/home-kit/icons/sprout.svg" alt="">Phase: Reset</span><span><img src="assets/home-kit/icons/target.svg" alt="">Goal: <span id="hero-goal">Spend less time scrolling</span></span></div></div></section>
+    <div class="home-cards">
+      <section class="dash-card mission" aria-labelledby="mission-heading"><div class="card-heading"><img src="assets/home-kit/icons/target.svg" alt=""><h2 id="mission-heading">Today’s Mission</h2><span class="time-pill"><img src="assets/home-kit/icons/clock.svg" alt=""> ~ 10 min</span></div><h3 id="mission-title">Set up your evening screen-free rule</h3><p>Choose a time to turn off distracting apps in the evening. This helps you sleep better and feel calmer tomorrow.</p><button class="home-button primary" id="mission-button" type="button">Start mission <img src="assets/home-kit/icons/arrow-right.svg" alt=""></button><img class="mission-art" src="assets/home-kit/illustrations/mission-phone-foliage-extracted.png" alt="" aria-hidden="true"></section>
+      <section class="dash-card shield" id="digital-shield" aria-labelledby="shield-heading"><div class="card-heading"><span class="shield-icon"><img src="assets/home-kit/icons/shield.svg" alt=""></span><h2 id="shield-heading">Digital Shield</h2><span class="connected-pill"><i></i><span id="shield-status">Preview</span></span></div><h3>Your Digital Shield is ready</h3><p>Browser protection preview <span class="separator">|</span> Next scheduled: <span id="shield-time">7:00 PM</span></p><div class="platforms"><span><img src="assets/home-kit/icons/instagram-color.svg" alt="">Instagram</span><span><img src="assets/home-kit/icons/youtube-color.svg" alt="">YouTube Shorts</span><span><img src="assets/home-kit/icons/tiktok-color.svg" alt="">TikTok</span></div><a class="home-button secondary" href="src/pages/member/shield/shield.html">Manage Shield <img src="assets/home-kit/icons/arrow-right.svg" alt=""></a></section>
+    </div>
+    <section class="dash-card goal" aria-labelledby="goal-heading"><div class="goal-top"><div class="card-heading"><img src="assets/home-kit/icons/target.svg" alt=""><h2 id="goal-heading">Your Goal</h2></div><button class="edit-goal" id="edit-goal" type="button">Edit goal</button></div><h3 id="goal-title">Spend less time scrolling</h3><p id="goal-reason">I want to feel more present, focused, and in control of my time.</p><div class="goal-progress"><div class="progress-track" role="progressbar" aria-label="Goal progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="52"><span></span></div><span class="on-track"><i></i>On track</span></div></section>
+    <section class="home-garden" aria-labelledby="garden-heading"><img class="garden-art" src="assets/home-kit/illustrations/garden-right-art.png" alt="Bimo watering a seedling beside a rabbit and a sign about small steps"><div class="garden-copy"><div class="card-heading"><img src="assets/home-kit/icons/sprout.svg" alt=""><h2 id="garden-heading">Your Garden</h2><span class="level-pill">Level 2 - Growing</span></div><p>Your activities and progress help your garden grow.<br>The calmer you become, the more your garden blossoms.</p><a class="home-button primary" href="src/pages/member/garden/garden.html">Explore Garden <img src="assets/home-kit/icons/arrow-right.svg" alt=""></a></div></section>
+  </main>
+  <div data-site-footer></div>
+  <dialog class="home-dialog" id="mission-dialog" aria-labelledby="mission-dialog-title"><form method="dialog" id="mission-form"><button class="dialog-close" type="button" data-close aria-label="Close mission">×</button><span class="dialog-eyebrow">TODAY’S MISSION</span><h2 id="mission-dialog-title">Set your screen-free time</h2><p>Choose when you’ll put distracting apps away this evening. This preference stays on this device.</p><label for="screen-free-time">Screen-free time</label><input id="screen-free-time" type="time" value="19:00" required><button class="home-button primary" type="submit">Save my rule <img src="assets/home-kit/icons/check.svg" alt=""></button></form></dialog>
+  <dialog class="home-dialog" id="goal-dialog" aria-labelledby="goal-dialog-title"><form method="dialog" id="goal-form"><button class="dialog-close" type="button" data-close aria-label="Close goal editor">×</button><span class="dialog-eyebrow">YOUR GOAL</span><h2 id="goal-dialog-title">Edit your goal</h2><label for="goal-input">What would you like to work on?</label><input id="goal-input" maxlength="65" required value="Spend less time scrolling"><label for="reason-input">Why does this matter to you?</label><textarea id="reason-input" rows="3" maxlength="180" required>I want to feel more present, focused, and in control of my time.</textarea><button class="home-button primary" type="submit">Save goal <img src="assets/home-kit/icons/check.svg" alt=""></button></form></dialog>
+  <div class="home-toast" id="home-toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

@@ -196,3 +196,51 @@ const requestedSession = new URLSearchParams(window.location.search).get('sessio
 if (requestedSession && Object.prototype.hasOwnProperty.call(sessions, requestedSession)) {
   window.addEventListener('load', () => openSession(requestedSession), { once: true });
 }
+
+// Show published Admin demo activities without changing the existing training sessions.
+try {
+  const shared = JSON.parse(localStorage.getItem('deepsprout-admin-demo-v1'));
+  const published = Array.isArray(shared?.activities) ? shared.activities.filter(activity => activity.status === 'published') : [];
+  if (published.length) {
+    const host = document.createElement('section');
+    host.className = 'admin-activity-section';
+    const heading = document.createElement('h2');
+    heading.textContent = 'More activities to explore';
+    const note = document.createElement('p');
+    note.textContent = 'Published activities from the local DeepSprout Admin demo.';
+    const grid = document.createElement('div');
+    grid.className = 'admin-activity-grid';
+    const details = document.createElement('dialog');
+    details.className = 'small-dialog admin-activity-dialog';
+    for (const activity of published) {
+      const card = document.createElement('article');
+      card.className = 'admin-activity-card';
+      const category = document.createElement('small');
+      category.textContent = activity.category;
+      const title = document.createElement('h3');
+      title.textContent = activity.name;
+      const description = document.createElement('p');
+      description.textContent = activity.description;
+      const meta = document.createElement('span');
+      meta.textContent = `${activity.minutes} min · ${activity.mode}`;
+      const action = document.createElement('button');
+      action.type = 'button';
+      action.textContent = 'View activity →';
+      action.addEventListener('click', () => {
+        details.replaceChildren();
+        const close = document.createElement('button');
+        close.type = 'button'; close.className = 'dialog-close'; close.textContent = '×';
+        close.setAttribute('aria-label', 'Close activity'); close.addEventListener('click', () => details.close());
+        const name = document.createElement('h2'); name.textContent = activity.name;
+        const instructions = document.createElement('p'); instructions.textContent = activity.instructions;
+        const info = document.createElement('p'); info.textContent = `${activity.category} · ${activity.evidence} · ${activity.completion}`;
+        const caveat = document.createElement('p'); caveat.textContent = 'This Admin activity is a content preview. Completion tracking for it is not connected yet.';
+        details.append(close,name,instructions,info,caveat); details.showModal();
+      });
+      card.append(category,title,description,meta,action); grid.append(card);
+    }
+    host.append(heading,note,grid);
+    document.querySelector('.training-types')?.after(host);
+    document.body.append(details);
+  }
+} catch { /* Preserve the original Training page if demo storage is unavailable. */ }

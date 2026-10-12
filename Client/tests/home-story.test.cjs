@@ -2,7 +2,7 @@
    NODE_PATH=/path/to/node_modules CHROME_PATH=/path/to/chrome node tests/home-story.test.cjs */
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
-const url = `${process.env.BASE_URL || 'http://127.0.0.1:8765'}/src/pages/public/home/home.html?storyDebug`;
+const url = `${process.env.BASE_URL || 'http://127.0.0.1:8765'}/src/pages/public/landing/home.html?storyDebug`;
 (async () => {
   const browser = await chromium.launch({ headless:true, executablePath:process.env.CHROME_PATH || undefined });
   const errors = [];

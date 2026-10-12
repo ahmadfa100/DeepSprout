@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../../../assets/logo/Image.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fcfbf5">
+  <meta name="description" content="Share progress, find encouragement, and grow together in the DeepSprout community.">
+  <title>Community — DeepSprout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="community.css">
+  <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
+  <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
+  <script src="community.js" defer></script>
+</head>
+<body data-page="community" data-root="../../../../">
+  <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3V10Zm6 10v-7h6v7"/></symbol>
+    <symbol id="icon-leaf" viewBox="0 0 24 24"><path d="M4 20C4 10 9 4 21 3c0 12-5 17-17 17Zm0 0c3-5 8-9 14-12"/></symbol>
+    <symbol id="icon-bars" viewBox="0 0 24 24"><path d="M3 20v-5m6 5V9m6 11V5m6 15V2"/></symbol>
+    <symbol id="icon-sprout" viewBox="0 0 24 24"><path d="M12 21v-9M12 15C6 15 3 11 3 5c6 0 9 3 9 10Zm0-3c0-6 3-9 9-9 0 6-3 9-9 9Z"/></symbol>
+    <symbol id="icon-flask" viewBox="0 0 24 24"><path d="M9 2h6m-5 0v8L4 20h16l-6-10V2M7 16h10"/></symbol>
+    <symbol id="icon-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M2 20v-2c0-3 3-5 7-5s7 2 7 5v2H2Zm14-13a3 3 0 0 1 0 6m2 2c3 .4 4 2 4 4v1h-4"/></symbol>
+    <symbol id="icon-pie" viewBox="0 0 24 24"><path d="M11 2a10 10 0 1 0 11 11H11V2Zm3 0v8h8a10 10 0 0 0-8-8Z"/></symbol>
+    <symbol id="icon-crown" viewBox="0 0 24 24"><path d="m2 7 5 5 5-8 5 8 5-5-2 12H4L2 7Z"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></symbol>
+    <symbol id="icon-heart" viewBox="0 0 24 24"><path d="M12 21 3.8 12.7A5.4 5.4 0 0 1 12 5.6a5.4 5.4 0 0 1 8.2 7.1L12 21Z"/></symbol>
+    <symbol id="icon-comment" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4.2-1L3 21l1.9-5.1A8.5 8.5 0 1 1 21 11.5Z"/></symbol>
+    <symbol id="icon-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4V3Z"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+  </svg>
+
+  <div data-site-header></div>
+
+  <main class="page-shell">
+    <section class="hero" aria-labelledby="community-title">
+      <div class="hero-copy"><span class="hero-diamond" aria-hidden="true"></span><h1 id="community-title">A community<br>that grows with you.</h1><p>Share your journey, get support, and stay motivated<br class="desktop-only"> with people who care about deeper focus, better habits,<br class="desktop-only"> and a calmer, more intentional life.</p></div>
+      <img class="hero-art" src="../../../../assets/community/banner.png" alt="Three friendly sprout characters enjoying a green landscape beside signs for sharing, inspiration, and growing together">
+    </section>
+
+    <section class="community-toolbar" aria-label="Browse community posts">
+      <div class="category-filters" role="group" aria-label="Filter posts by category">
+        <button type="button" class="filter-chip active" data-filter="all" aria-pressed="true"><span class="chip-symbol green">●</span>All Posts</button>
+        <button type="button" class="filter-chip" data-filter="progress" aria-pressed="false"><span class="chip-symbol green">↗</span>Progress</button>
+        <button type="button" class="filter-chip" data-filter="tips" aria-pressed="false"><span class="chip-symbol amber">!</span>Tips &amp; Resources</button>
+        <button type="button" class="filter-chip" data-filter="questions" aria-pressed="false"><span class="chip-symbol blue">?</span>Questions</button>
+        <button type="button" class="filter-chip" data-filter="challenges" aria-pressed="false"><span class="chip-symbol gold">★</span>Challenges</button>
+        <button type="button" class="filter-chip" data-filter="wins" aria-pressed="false"><span class="chip-symbol gold">★</span>Wins</button>
+      </div>
+      <div class="toolbar-actions"><label class="search-box"><svg><use href="#icon-search"/></svg><span class="sr-only">Search posts, topics, or users</span><input id="post-search" type="search" placeholder="Search posts, topics, or users..."></label><button class="new-post-button" id="new-post" type="button"><svg><use href="#icon-plus"/></svg>New Post</button></div>
+    </section>
+
+    <div class="content-grid">
+      <section class="feed" aria-label="Community feed" id="feed">
+        <article class="post-card" data-id="sara-progress" data-category="progress" data-topics="myjourney focustips" data-search="Sara.M completed my first week of the Recovery Plan reading short videos progress">
+          <img class="post-avatar" src="../../../../assets/community/avatar-sara.png" alt=""><div class="post-author"><strong>Sara.M</strong><time>2 hours ago</time></div>
+          <div class="post-body"><span class="post-badge progress">✓ &nbsp; Progress</span><h2>Completed my first week of the Recovery Plan!</h2><p>I managed to finish all my suggested sessions this week. Reading feels easier already and I’m spending less time on short videos. Excited to keep going!</p><div class="post-actions"><button class="like-button" type="button" aria-label="Like Sara's post" aria-pressed="false"><svg><use href="#icon-heart"/></svg><span>24</span></button><button class="comment-button" type="button" aria-label="Show comments on Sara's post"><svg><use href="#icon-comment"/></svg><span>7</span></button><button class="save-button" type="button" aria-label="Save Sara's post" aria-pressed="false"><svg><use href="#icon-bookmark"/></svg></button></div></div>
+          <img class="post-image" src="../../../../assets/community/post-recovery.png" alt="Open journal on a sunlit desk"><button class="post-more" type="button" aria-label="More options for Sara's post">•••</button><div class="post-comments" hidden><strong>Conversation</strong><p>Wonderful work, Sara! One week at a time.</p><form class="comment-form"><input aria-label="Write a comment" placeholder="Add some encouragement..."><button type="submit">Post</button></form></div>
+        </article>
+        <article class="post-card" data-id="omar-reading" data-category="tips" data-topics="reading studyhabits" data-search="Omar_97 simple method helps me start reading ten minute timer distractions page goal tips resources">
+          <img class="post-avatar" src="../../../../assets/community/avatar-omar.png" alt=""><div class="post-author"><strong>Omar_97</strong><time>5 hours ago</time></div>
+          <div class="post-body"><span class="post-badge tips">! &nbsp; Tips &amp; Resources</span><h2>A simple method that helps me start reading</h2><p>I wanted to share a small tip that has been working for me. I set a 10-minute timer, remove distractions, and choose a specific page goal. It’s simple but surprisingly effective!</p><div class="post-actions"><button class="like-button" type="button" aria-label="Like Omar's post" aria-pressed="false"><svg><use href="#icon-heart"/></svg><span>18</span></button><button class="comment-button" type="button" aria-label="Show comments on Omar's post"><svg><use href="#icon-comment"/></svg><span>4</span></button><button class="save-button" type="button" aria-label="Save Omar's post" aria-pressed="false"><svg><use href="#icon-bookmark"/></svg></button></div></div>
+          <img class="post-image" src="../../../../assets/community/post-reading.png" alt="Notebook reading Small Steps Big Progress"><button class="post-more" type="button" aria-label="More options for Omar's post">•••</button><div class="post-comments" hidden><strong>Conversation</strong><p>That 10-minute start makes such a difference.</p><form class="comment-form"><input aria-label="Write a comment" placeholder="Add some encouragement..."><button type="submit">Post</button></form></div>
+        </article>
+        <article class="post-card" data-id="lina-win" data-category="wins" data-topics="myjourney deepwork" data-search="Lina 30 days consistent practice focus garden mood improved win">
+          <img class="post-avatar" src="../../../../assets/community/avatar-lina.png" alt=""><div class="post-author"><strong>Lina</strong><time>1 day ago</time></div>
+          <div class="post-body"><span class="post-badge wins">★ &nbsp; Wins</span><h2>30 days of consistent practice <span class="tiny-diamond" aria-hidden="true"></span></h2><p>Today marks 30 days of using DeepSprout. My focus sessions, garden and mood have all improved. Grateful for this community!</p><div class="post-actions"><button class="like-button" type="button" aria-label="Like Lina's post" aria-pressed="false"><svg><use href="#icon-heart"/></svg><span>56</span></button><button class="comment-button" type="button" aria-label="Show comments on Lina's post"><svg><use href="#icon-comment"/></svg><span>12</span></button><button class="save-button" type="button" aria-label="Save Lina's post" aria-pressed="false"><svg><use href="#icon-bookmark"/></svg></button></div></div>
+          <img class="post-image" src="../../../../assets/community/post-win.png" alt="Happy sprout at sunset"><button class="post-more" type="button" aria-label="More options for Lina's post">•••</button><div class="post-comments" hidden><strong>Conversation</strong><p>Thirty days! That’s such a lovely milestone.</p><form class="comment-form"><input aria-label="Write a comment" placeholder="Add some encouragement..."><button type="submit">Post</button></form></div>
+        </article>
+        <article class="post-card" data-id="yousef-question" data-category="questions" data-topics="offlineactivities myjourney" data-search="Yousef recommendations offline activities screen weekends question">
+          <img class="post-avatar" src="../../../../assets/community/avatar-yousef.png" alt=""><div class="post-author"><strong>Yousef</strong><time>1 day ago</time></div>
+          <div class="post-body"><span class="post-badge questions">? &nbsp; Questions</span><h2>Any recommendations for offline activities?</h2><p>I want to spend more time away from the screen on weekends. What are some activities that helped you the most?</p><div class="post-actions"><button class="like-button" type="button" aria-label="Like Yousef's post" aria-pressed="false"><svg><use href="#icon-heart"/></svg><span>12</span></button><button class="comment-button" type="button" aria-label="Show comments on Yousef's post"><svg><use href="#icon-comment"/></svg><span>15</span></button><button class="save-button" type="button" aria-label="Save Yousef's post" aria-pressed="false"><svg><use href="#icon-bookmark"/></svg></button></div></div>
+          <img class="post-image" src="../../../../assets/community/post-offline.png" alt="Backpack and book on a mountain trail"><button class="post-more" type="button" aria-label="More options for Yousef's post">•••</button><div class="post-comments" hidden><strong>Conversation</strong><p>Weekend hikes and a good paperback are my favorites.</p><form class="comment-form"><input aria-label="Write a comment" placeholder="Add some encouragement..."><button type="submit">Post</button></form></div>
+        </article>
+        <p class="empty-state" id="empty-state" hidden>No posts match your search yet. Try another topic or category.</p>
+      </section>
+
+      <aside class="sidebar" aria-label="Community highlights">
+        <section class="side-panel glance"><div class="panel-heading"><h2>Community at a Glance</h2><button type="button" class="see-all" data-panel="glance">See all <svg><use href="#icon-arrow"/></svg></button></div><div class="stat-grid"><div class="stat"><img src="../../../../assets/community/members.png" alt=""><strong>1.2K</strong><small>Members</small></div><div class="stat"><img src="../../../../assets/community/leaf.png" alt=""><strong>340</strong><small>Posts</small></div><div class="stat"><img src="../../../../assets/community/comments.png" alt=""><strong>1.1K</strong><small>Comments</small></div><div class="stat"><img src="../../../../assets/community/star.png" alt=""><strong>120</strong><small>Weekly Active</small></div></div><p class="panel-detail" hidden>A growing space for sharing progress, questions, tips, and small wins.</p></section>
+        <section class="side-panel challenge"><div class="panel-heading"><h2><span class="heading-icon gold">★</span>This Week’s Challenge</h2><button type="button" class="see-all" data-panel="challenge">See all <svg><use href="#icon-arrow"/></svg></button></div><div class="challenge-row"><img src="../../../../assets/community/challenge-sprout.png" alt="Growing sprout"><div><h3>7-Day Reading Focus</h3><p>Read for at least 15 minutes each day<br>and share your experience.</p></div><button type="button" id="join-challenge">Join Challenge</button></div><p class="panel-detail" hidden>Start with one short reading session today. Your challenge status stays on this device.</p></section>
+        <section class="side-panel topics"><div class="panel-heading"><h2><span class="heading-icon orange">◆</span>Trending Topics</h2><button type="button" class="see-all" data-panel="topics">See all <svg><use href="#icon-arrow"/></svg></button></div><div class="topic-list"><button type="button" data-topic="reading">#Reading</button><button type="button" data-topic="focustips">#FocusTips</button><button type="button" data-topic="offlineactivities">#OfflineActivities</button><button type="button" data-topic="myjourney">#MyJourney</button><button type="button" data-topic="deepwork">#DeepWork</button><button type="button" data-topic="studyhabits">#StudyHabits</button></div><p class="panel-detail" hidden>Select a topic to filter the feed. Select it again to show every post.</p></section>
+        <section class="side-panel contributors"><div class="panel-heading"><h2><span class="heading-icon gold">★</span>Top Contributors</h2><button type="button" class="see-all" data-panel="contributors">See all <svg><use href="#icon-arrow"/></svg></button></div><div class="contributor-list"><div><img src="../../../../assets/community/avatar-lina.png" alt=""><span><strong>Lina</strong><small>1.2K pts</small></span><b>1</b></div><div><img src="../../../../assets/community/avatar-omar.png" alt=""><span><strong>Omar_97</strong><small>980 pts</small></span><b>2</b></div><div><img src="../../../../assets/community/avatar-sara.png" alt=""><span><strong>Sara.M</strong><small>860 pts</small></span><b>3</b></div></div><p class="panel-detail" hidden>Thanks to everyone making this space welcoming and encouraging.</p></section>
+      </aside>
+    </div>
+  </main>
+
+  <div data-site-footer></div>
+
+  <dialog id="compose-dialog" aria-labelledby="compose-title"><form id="compose-form"><button class="dialog-close" type="button" data-close aria-label="Close">×</button><p class="dialog-eyebrow">GROW TOGETHER</p><h2 id="compose-title">Share with the community</h2><label>Category<select name="category" required><option value="progress">Progress</option><option value="tips">Tips &amp; Resources</option><option value="questions">Questions</option><option value="challenges">Challenges</option><option value="wins">Wins</option></select></label><label>Title<input name="title" maxlength="100" required placeholder="What would you like to share?"></label><label>Your post<textarea name="message" maxlength="600" rows="5" required placeholder="Every small step is worth sharing..."></textarea></label><div class="dialog-actions"><button type="button" class="cancel-button" data-close>Cancel</button><button type="submit" class="publish-button">Share post</button></div><p class="dialog-note">This frontend demo saves your post on this device only.</p></form></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
