@@ -6,7 +6,7 @@
     garden: 'garden.html', community: 'community.html', insights: 'insights.html', pricing: 'pricing.html', login: 'login.html'
   };
   const labels = {
-    home: 'Home', recovery: 'Recovery Plan', training: 'Training',
+    home: 'Home', recovery: 'Roadmap', training: 'Activities',
     garden: 'Garden', community: 'Community', insights: 'Insights', pricing: 'Pricing', login: 'Log in'
   };
   const sprout = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 27V14m0 4C8 18 5 14 5 6c8 0 11 4 11 12Zm0-4c0-7 4-11 11-11 0 8-3 12-11 12Z"/></svg>';

@@ -39,6 +39,12 @@ const seed = () => ({
     {id:'p5',userId:'u6',goal:'Less scrolling',status:'paused',start:'2026-09-23',stage:'Reset',progress:18},
     {id:'p6',userId:'u7',goal:'Deeper focus',status:'active',start:'2026-10-02',stage:'Assess',progress:12}
   ],
+  planTemplates: [
+    {id:'pt1',name:'Gentle Scroll Reset',goal:'Less scrolling',dailyLimit:1,reviewDay:'Sunday',ruleVersion:'1.0',status:'active'},
+    {id:'pt2',name:'Depth Practice',goal:'Deeper focus',dailyLimit:2,reviewDay:'Sunday',ruleVersion:'1.0',status:'active'},
+    {id:'pt3',name:'Offline Rhythm',goal:'More offline time',dailyLimit:1,reviewDay:'Saturday',ruleVersion:'1.0',status:'active'},
+    {id:'pt4',name:'Calm Evening',goal:'Calmer routine',dailyLimit:1,reviewDay:'Sunday',ruleVersion:'1.0',status:'active'}
+  ],
   assessments: [
     {id:'as1',name:'Digital Habits',minutes:8,version:'1.2',status:'active',completions:6,instructions:'Reflect on current screen routines.',questions:['When do you reach for your phone most often?','Which apps feel hardest to leave?']},
     {id:'as2',name:'Sustained Attention',minutes:12,version:'1.0',status:'active',completions:5,instructions:'Complete one focused task in a quiet setting.',questions:['Follow the timed focus task.']},
@@ -59,7 +65,7 @@ const seed = () => ({
 });
 
 export function read() {
-  try { const raw = localStorage.getItem(DATA_KEY); if (raw) return JSON.parse(raw); }
+  try { const raw = localStorage.getItem(DATA_KEY); if (raw) { const data=JSON.parse(raw);if(!data.planTemplates){data.planTemplates=seed().planTemplates;write(data);}return data; } }
   catch { /* a private browser may disable storage */ }
   const data = seed(); write(data); return data;
 }
@@ -70,6 +76,6 @@ export function mutate(data, action, resource, summary) {
   write(data);
 }
 export function uid(prefix) { return `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}`; }
-export function isDemo() { try { return sessionStorage.getItem(SESSION_KEY)==='active' || localStorage.getItem(SESSION_KEY)==='active'; } catch { return false; } }
+export function isDemo() { try { if(localStorage.getItem(SESSION_KEY)==='active')return true; } catch {} try { return sessionStorage.getItem(SESSION_KEY)==='active'; } catch { return false; } }
 export function startDemo() { try { localStorage.setItem(SESSION_KEY,'active'); } catch { sessionStorage.setItem(SESSION_KEY,'active'); } }
-export function endDemo() { try { localStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(SESSION_KEY); } catch {} }
+export function endDemo() { try { localStorage.removeItem(SESSION_KEY); } catch {} try { sessionStorage.removeItem(SESSION_KEY); } catch {} }

@@ -5,12 +5,11 @@
   const icon = (path, alt = '') => `<img src="${asset(path)}" alt="${alt}">`;
   const brandLogo = `<img src="${root}src/assets/logo/Image.png" alt="">`;
   const items = [
-    ['recovery', 'Recovery Plan', 'src/pages/member/recovery-plan/recovery-plan.html', 'route.svg'],
+    ['recovery', 'Roadmap', 'src/pages/member/recovery-plan/recovery-plan.html', 'route.svg'],
     ['training', 'Activities', 'src/pages/member/training/training.html', 'activities.svg'],
     ['shield', 'Digital Shield', 'src/pages/member/shield/shield.html', 'shield-plus.svg'],
     ['garden', 'Garden', 'src/pages/member/garden/garden.html', 'sprout.svg'],
     ['insights', 'Insights', 'src/pages/member/insights/insights.html', 'insights.svg'],
-    ['lab', 'Lab', 'src/pages/member/lab/lab.html', 'lab.svg'],
     ['community', 'Community', 'src/pages/member/community/community.html', 'community.svg']
   ];
   const links = items.map(([key, label, path, glyph]) =>
@@ -31,9 +30,9 @@
   const footerMount = document.querySelector('[data-site-footer]');
   if (footerMount) footerMount.outerHTML = `<footer class="member-footer"><div class="member-footer-inner">
     <div class="member-footer-grid"><div class="member-footer-about">${brandLogo}<div><strong>DeepSprout</strong><p>Helping you reduce distraction,<br>build better habits, and grow a calmer,<br>stronger you.</p><div class="member-social" aria-label="Social platforms"><span title="GitHub">${icon('icons/github.svg')}</span><span title="LinkedIn">${icon('icons/linkedin.svg')}</span><span title="YouTube">${icon('icons/youtube.svg')}</span><span title="X">${icon('icons/x-social.svg')}</span></div></div></div>
-    <nav aria-label="Product links"><strong>Product</strong><a href="${root}src/pages/public/landing/home.html#discover">Features</a><a href="${root}src/pages/member/recovery-plan/recovery-plan.html#how">How it works</a><a href="${root}pricing.html">For Individuals</a><a href="${root}pricing.html">For Mentors</a></nav>
+    <nav aria-label="Product links"><strong>Product</strong><a href="${root}src/pages/public/landing/home.html#discover">Features</a><a href="${root}hero-reels-lab.html">How it works</a><a href="${root}pricing.html">For Individuals</a><a href="${root}pricing.html">For Mentors</a></nav>
     <nav aria-label="Resources"><strong>Resources</strong><button type="button" data-member-info="Privacy Policy">Privacy Policy</button><button type="button" data-member-info="Terms of Service">Terms of Service</button><button type="button" data-member-info="Contact">Contact</button><button type="button" data-member-info="Help & Support">Help &amp; Support</button></nav></div>
-    <div class="member-footer-bottom"><span>© ${new Date().getFullYear()} DeepSprout. All rights reserved by <span class="member-founder">Ahmad.</span> ${icon('icons/external-link.svg')}</span><span>${icon('icons/leaf.svg')} Grow together.</span></div>
+    <div class="member-footer-bottom"><span>© ${new Date().getFullYear()} DeepSprout. All rights reserved by <a class="member-founder" href="https://ahmad-personal-website.netlify.app/" target="_blank" rel="noopener noreferrer">Ahmad. ${icon('icons/external-link.svg')}</a></span><span>${icon('icons/leaf.svg')} Grow together.</span></div>
   </div></footer>`;
   const header = document.querySelector('.member-header');
   const toggle = header?.querySelector('.member-menu-toggle');
@@ -46,7 +45,7 @@
     toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
   });
   nav?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNav));
-  const noticeButton = header?.querySelector('.member-icon-button');
+  const noticeButton = header?.querySelector('.member-notifications .member-icon-button');
   const noticePanel = header?.querySelector('#member-notification-panel');
   noticeButton?.addEventListener('click', () => {
     const open = noticePanel.hidden;

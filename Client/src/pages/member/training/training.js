@@ -1,33 +1,10 @@
-document.documentElement.classList.add('js');
-
-const reveals = document.querySelectorAll('.reveal');
-if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: .08, rootMargin: '0px 0px -25px 0px' });
-  reveals.forEach(item => observer.observe(item));
-} else {
-  reveals.forEach(item => item.classList.add('visible'));
-}
-
-const extraCards = [...document.querySelectorAll('.extra-card')];
-const viewAllButton = document.getElementById('view-all');
-viewAllButton.addEventListener('click', () => {
-  const opening = viewAllButton.getAttribute('aria-expanded') !== 'true';
-  viewAllButton.setAttribute('aria-expanded', String(opening));
-  viewAllButton.innerHTML = `${opening ? 'Show less' : 'View all'} <svg><use href="#i-arrow"/></svg>`;
-  extraCards.forEach(card => { card.hidden = !opening; });
-});
-
 const sessions = {
   quick: { title: 'Quick Session', minutes: 5, description: 'Five focused minutes to find your rhythm again.' },
-  today: { title: 'Depth Training', minutes: 12, description: 'Continue building your reading endurance, one page at a time.' },
-  depth: { title: 'Depth Training', minutes: 20, description: 'Settle into a longer reading session and let your attention stretch.' },
+  today: { title: 'Depth Practice', minutes: 12, description: 'Continue building your reading endurance, one page at a time.' },
+  depth: { title: 'Depth Practice', minutes: 20, description: 'Settle into a longer reading session and let your attention stretch.' },
+  listening: { title: 'Listening & Recall', minutes: 12, description: 'Listen to something meaningful, then recall its main ideas without replaying it.' },
+  challenge: { title: 'Practical Micro-Challenge', minutes: 15, description: 'Choose one small task to summarize, organize, or create with full attention.' },
+  protected: { title: 'Protected Work', minutes: 25, description: 'Focus on one task. You can set up optional site protection in Digital Shield.' },
   stillness: { title: 'Stillness Practice', minutes: 8, description: 'Put the screen aside and make room for a calmer mind.' },
   attention: { title: 'Attention Exercises', minutes: 10, description: 'Train your focus with one intentional task at a time.' },
   offline: { title: 'Offline Quest', minutes: 10, description: 'Step away from your screen and notice the world around you.' },
@@ -48,20 +25,24 @@ let completed = Math.min(5, Math.max(3, Number(readStored('deepsprout-training-c
 let savedSessions = readStored('deepsprout-training-saved', []);
 if (!Array.isArray(savedSessions)) savedSessions = [];
 
-const progressCard = document.getElementById('progress');
-const progressArc = document.querySelector('.progress-ring .arc');
-const dayDots = [...document.querySelectorAll('.week-days b')];
-const updateProgress = () => {
-  document.getElementById('progress-number').innerHTML = `${completed}<small>/5</small>`;
-  document.getElementById('progress-message').textContent = completed >= 5 ? 'Goal reached — lovely work!' : 'You’re on track!';
-  document.querySelector('.progress-ring').setAttribute('aria-label', `${completed} of 5 training sessions completed`);
-  progressArc.style.strokeDashoffset = String(314.16 * (1 - completed / 5));
-  dayDots.forEach((dot, index) => {
-    dot.classList.toggle('done', index < completed);
-    dot.textContent = index < completed ? '✓' : '';
-  });
+const plannedActivities = readStored('deepsprout-training-weekly-plan', ['depth', 'listening', 'challenge']);
+const plannedCount = Array.isArray(plannedActivities) ? plannedActivities.length : 3;
+let completedDates = readStored('deepsprout-training-completed-dates', []);
+if (!Array.isArray(completedDates)) completedDates = [];
+const weekStart = () => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() - (date.getDay() + 6) % 7);
+  return date.getTime();
 };
-requestAnimationFrame(updateProgress);
+const updateProgress = () => {
+  const thisWeek = completedDates.filter(value => Number(value) >= weekStart()).length;
+  document.getElementById('weekly-plan-count').textContent = `${plannedCount} ${plannedCount === 1 ? 'activity' : 'activities'} planned`;
+  document.getElementById('progress-message').textContent = thisWeek
+    ? `${thisWeek} completed this week. Keep going!`
+    : 'Keep going. Small steps make a big difference.';
+};
+updateProgress();
 
 const sessionDialog = document.getElementById('session-dialog');
 const sessionTitle = document.getElementById('session-title');
@@ -92,8 +73,10 @@ const completeSession = () => {
   if (completed < 5) {
     completed += 1;
     writeStored('deepsprout-training-completed', completed);
-    updateProgress();
   }
+  completedDates.push(Date.now());
+  writeStored('deepsprout-training-completed-dates', completedDates);
+  updateProgress();
   writeStored('deepsprout-garden-xp', Math.max(0, Number(readStored('deepsprout-garden-xp', 120)) || 0) + 20);
   writeStored('deepsprout-garden-sessions', Math.max(0, Number(readStored('deepsprout-garden-sessions', 12)) || 0) + 1);
   sessionFeedback.textContent = 'Well done. Your little step has been counted!';
@@ -112,7 +95,7 @@ const openSession = key => {
   sessionTitle.textContent = session.title;
   sessionDescription.textContent = session.description;
   sessionFeedback.textContent = '';
-  saveButton.innerHTML = `<svg><use href="#i-bookmark"/></svg> ${savedSessions.includes(key) ? 'Saved session' : 'Save this session'}`;
+  saveButton.innerHTML = `<svg><use href="#i-bookmark"/></svg> ${savedSessions.includes(key) ? 'Saved activity' : 'Save this activity'}`;
   renderTimer();
   sessionDialog.showModal();
 };
@@ -145,8 +128,8 @@ saveButton.addEventListener('click', () => {
     savedSessions.push(currentSession);
     writeStored('deepsprout-training-saved', savedSessions);
   }
-  saveButton.innerHTML = '<svg><use href="#i-bookmark"/></svg> Saved session';
-  sessionFeedback.textContent = 'Saved to your sessions.';
+  saveButton.innerHTML = '<svg><use href="#i-bookmark"/></svg> Saved activity';
+  sessionFeedback.textContent = 'Saved to your activities.';
 });
 sessionDialog.addEventListener('close', stopTimer);
 
@@ -157,20 +140,13 @@ goalDialog.querySelectorAll('[data-goal-session]').forEach(button => button.addE
   openSession(button.dataset.goalSession);
 }));
 
-document.querySelector('[data-stats]').addEventListener('click', () => {
-  progressCard.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
-  progressCard.classList.remove('is-highlighted');
-  void progressCard.offsetWidth;
-  progressCard.classList.add('is-highlighted');
-});
-
 const savedDialog = document.getElementById('saved-dialog');
 const savedList = document.getElementById('saved-list');
 document.querySelector('[data-saved]').addEventListener('click', () => {
   savedList.replaceChildren();
   if (savedSessions.length === 0) {
     const message = document.createElement('p');
-    message.textContent = 'No saved sessions yet. Open a session and tap “Save this session” to keep it here.';
+    message.textContent = 'No saved activities yet. Open an activity and tap “Save this activity” to keep it here.';
     savedList.append(message);
   } else {
     savedSessions.forEach(key => {
@@ -188,7 +164,40 @@ document.querySelector('[data-saved]').addEventListener('click', () => {
   savedDialog.showModal();
 });
 
-[sessionDialog, goalDialog, savedDialog].forEach(dialog => dialog.addEventListener('click', event => {
+const routineDialog = document.getElementById('routine-dialog');
+let routine = readStored('deepsprout-offline-routine', 'Morning Walk');
+if (typeof routine !== 'string' || !routine.trim()) routine = 'Morning Walk';
+let routineDates = readStored('deepsprout-offline-routine-dates', []);
+if (!Array.isArray(routineDates)) routineDates = [];
+const routineDoneButton = document.getElementById('routine-done');
+const updateRoutine = () => {
+  document.getElementById('routine-name').textContent = routine;
+  const count = routineDates.filter(value => Number(value) >= weekStart()).length;
+  document.getElementById('routine-progress').textContent = `${count} ${count === 1 ? 'time' : 'times'} this week`;
+  const today = new Date().setHours(0, 0, 0, 0);
+  const doneToday = routineDates.some(value => Number(value) >= today);
+  routineDoneButton.disabled = doneToday;
+  routineDoneButton.textContent = doneToday ? 'Done today ✓' : 'Mark as done →';
+};
+updateRoutine();
+document.getElementById('manage-routine').addEventListener('click', () => routineDialog.showModal());
+routineDialog.querySelectorAll('[data-routine]').forEach(button => button.addEventListener('click', () => {
+  if (routine !== button.dataset.routine) {
+    routine = button.dataset.routine;
+    routineDates = [];
+    writeStored('deepsprout-offline-routine', routine);
+    writeStored('deepsprout-offline-routine-dates', routineDates);
+  }
+  updateRoutine();
+  routineDialog.close();
+}));
+routineDoneButton.addEventListener('click', () => {
+  routineDates.push(Date.now());
+  writeStored('deepsprout-offline-routine-dates', routineDates);
+  updateRoutine();
+});
+
+[sessionDialog, goalDialog, savedDialog, routineDialog].forEach(dialog => dialog.addEventListener('click', event => {
   if (event.target === dialog) dialog.close();
 }));
 

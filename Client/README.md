@@ -6,7 +6,7 @@ A static HTML, CSS, and JavaScript implementation of the supplied DeepSprout moc
 python3 -m http.server 8765
 ```
 
-Pages: `index.html` (Home), `landing.html` (the former animated landing page), `recovery-plan.html`, `training.html`, `shield.html`, `garden.html`, `insights.html`, `lab.html`, `community.html`, `pricing.html`, `login.html`, and `register.html`. Home content lives in `index.html` with its CSS and JS under `src/pages/public/home/`. Most other root files redirect to their page folder.
+Pages: `index.html` (Home), `landing.html` (the former animated landing page), `recovery-plan.html`, `training.html` (Activities), `shield.html`, `garden.html`, `insights.html`, `community.html`, `pricing.html`, `login.html`, and `register.html`. Home content lives in `index.html` with its CSS and JS under `src/pages/public/home/`. Most other root files redirect to their page folder. The old Lab URLs redirect to Activities.
 
 ## Shared structure
 
@@ -39,3 +39,7 @@ GSAP 3.13.0 and ScrollTrigger remain bundled locally in `assets/vendor/gsap/`; t
 See [the implementation handoff](docs/break-the-loop.md) for scenes, architecture, all changed files, asset requirements, device behavior, and performance limits.
 
 A browser regression suite lives at `tests/home-story.test.cjs`. With this folder served on port 8765 and Playwright available to Node, run `node tests/home-story.test.cjs`. Set `BASE_URL` for another local origin, `CHROME_PATH` for an installed Chromium browser, and `NODE_PATH` if using an external Playwright installation. These are test-only dependencies.
+
+## Admin demo
+
+The Login page includes **Continue as Admin (Demo)**. It opens a separate, responsive Admin workspace at `admin.html#/dashboard` with all management, recovery operations, Content Studio, community moderation, analytics, settings, and audit screens. Admin records persist locally across navigation and refreshes. Published activities appear in Training as previews; published Content Studio regions appear on the public landing page. See [Admin architecture and demo boundaries](docs/admin-cycle.md).

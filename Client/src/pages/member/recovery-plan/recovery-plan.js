@@ -1,153 +1,169 @@
-document.documentElement.classList.add('js');
-
-const reveals = document.querySelectorAll('.reveal');
-if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: .08, rootMargin: '0px 0px -25px 0px' });
-  reveals.forEach(item => observer.observe(item));
-} else {
-  reveals.forEach(item => item.classList.add('visible'));
-}
-
 const readStored = (key, fallback) => {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
   catch { return fallback; }
 };
 const writeStored = (key, value) => {
   try { localStorage.setItem(key, JSON.stringify(value)); }
-  catch { /* The page remains usable when local storage is unavailable. */ }
+  catch { /* The controls still work for this visit. */ }
 };
-
-const focusChoices = {
-  depth: {
-    title: 'Build Your Depth Endurance',
-    description: 'Increase your reading duration while maintaining comprehension.',
-    next: 'Begin with a short Depth Training session. Keep your phone out of reach and read one page at a time.',
-    session: 'depth'
-  },
-  stillness: {
-    title: 'Protect Your Quiet Moments',
-    description: 'Make a little space each day to pause, breathe, and settle your mind.',
-    next: 'Try Stillness Practice for a few minutes. Let the session be a pause, not another thing to perfect.',
-    session: 'stillness'
-  },
-  offline: {
-    title: 'Make Room for Real Life',
-    description: 'Spend intentional time away from your screen and reconnect with your surroundings.',
-    next: 'Choose an Offline Quest. A short walk, a conversation, or noticing something outside is enough to begin.',
-    session: 'offline'
-  }
-};
-let selectedFocus = readStored('deepsprout-recovery-focus', 'depth');
-if (!focusChoices[selectedFocus]) selectedFocus = 'depth';
-const focusTitle = document.getElementById('focus-title');
-const focusDescription = document.getElementById('focus-description');
-const renderFocus = () => {
-  focusTitle.textContent = focusChoices[selectedFocus].title;
-  focusDescription.textContent = focusChoices[selectedFocus].description;
-};
-renderFocus();
 
 const infoDialog = document.getElementById('info-dialog');
-const infoEyebrow = document.getElementById('info-eyebrow');
-const infoTitle = document.getElementById('info-title');
-const infoDescription = document.getElementById('info-description');
 const infoExtra = document.getElementById('info-extra');
-const showInfo = (eyebrow, title, description) => {
-  infoEyebrow.textContent = eyebrow;
-  infoTitle.textContent = title;
-  infoDescription.textContent = description;
+function showInfo(eyebrow, title, description, items = []) {
+  document.getElementById('info-eyebrow').textContent = eyebrow;
+  document.getElementById('info-title').textContent = title;
+  document.getElementById('info-description').textContent = description;
   infoExtra.replaceChildren();
+  if (items.length) {
+    const list = document.createElement('div');
+    list.className = 'rp-dialog-list';
+    items.forEach(item => {
+      const row = document.createElement('span');
+      row.textContent = item;
+      list.append(row);
+    });
+    infoExtra.append(list);
+  }
   infoDialog.showModal();
-};
-const addTrainingLink = key => {
-  const link = document.createElement('a');
-  link.className = 'button primary';
-  link.href = `../training/training.html?session=${encodeURIComponent(key)}`;
-  link.textContent = 'Start this practice →';
-  infoExtra.append(link);
-};
-
+}
 const baselineDialog = document.getElementById('baseline-dialog');
 document.querySelectorAll('[data-open-baseline]').forEach(button => button.addEventListener('click', () => baselineDialog.showModal()));
+document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+[infoDialog, baselineDialog].forEach(dialog => dialog.addEventListener('click', event => {
+  if (event.target === dialog) dialog.close();
+}));
+const focusChoices = {
+  depth: ['Deeper focus and reading', 'Begin with a short Depth Training session. Keep your phone out of reach and read one page at a time.'],
+  stillness: ['Calmer, quieter moments', 'Try Stillness Practice for a few minutes. Give yourself a gentle pause.'],
+  offline: ['More time away from screens', 'Choose an Offline Quest. A short walk or a conversation is enough to begin.']
+};
 document.querySelectorAll('[data-focus]').forEach(button => button.addEventListener('click', () => {
-  selectedFocus = button.dataset.focus;
-  writeStored('deepsprout-recovery-focus', selectedFocus);
-  renderFocus();
+  const key = button.dataset.focus;
+  writeStored('deepsprout-recovery-focus', key);
   baselineDialog.close();
-  const focus = focusChoices[selectedFocus];
-  showInfo('YOUR PLAN IS READY', focus.title, focus.next);
-  addTrainingLink(focus.session);
+  showInfo('FOCUS UPDATED', focusChoices[key][0], focusChoices[key][1]);
 }));
+if (new URLSearchParams(location.search).get('setup') === '1') {
+  window.addEventListener('load', () => baselineDialog.showModal(), { once: true });
+}
 
-const methodDetails = {
-  personal: ['PERSONALIZED PLAN', 'Made around your life', 'Your focus choice shapes the next suggested practice. Return to “Build my plan” whenever your needs change.'],
-  habits: ['BETTER HABITS', 'Small steps add up', 'Try short practices throughout the week, mark the goals you complete, and watch your progress grow.']
-};
-document.querySelectorAll('[data-method]').forEach(button => button.addEventListener('click', () => {
-  const key = button.dataset.method;
-  if (key === 'baseline') { baselineDialog.showModal(); return; }
-  showInfo(...methodDetails[key]);
+const weekDetails = [
+  ['Build Awareness', 'Notice your patterns and make small, conscious choices about screen time.'],
+  ['Build Consistency', 'Repeat the practices that help you feel calmer and more focused.'],
+  ['Strengthen & Adapt', 'Stretch your focus gradually and adjust your routine to fit real life.'],
+  ['Review & Continue', 'Reflect on your progress and choose the habits you want to carry forward.']
+];
+document.querySelectorAll('[data-week]').forEach(button => button.addEventListener('click', () => {
+  const number = Number(button.dataset.week);
+  const [title, description] = weekDetails[number - 1];
+  showInfo(`WEEK ${number} OF 4`, title, description);
 }));
-
-const phases = {
-  assess: ['PHASE 1 OF 5', 'Assess', 'Notice your screen habits and find a clear starting point. Awareness gives every next step a purpose.'],
-  reset: ['PHASE 2 OF 5', 'Reset', 'Reduce a few distractions and create space for the activities you want more of.'],
-  rebuild: ['PHASE 3 OF 5 · CURRENT', 'Rebuild', 'Practice focus consistently. Short, repeatable sessions help your attention grow stronger.'],
-  deepen: ['PHASE 4 OF 5', 'Deepen', 'Gradually stretch your abilities while keeping the routine manageable.'],
-  independence: ['PHASE 5 OF 5', 'Independence', 'Carry your habits forward with confidence and adjust your plan as life changes.']
-};
-document.querySelectorAll('[data-phase]').forEach(button => button.addEventListener('click', () => showInfo(...phases[button.dataset.phase])));
-document.getElementById('focus-details').addEventListener('click', () => {
-  const focus = focusChoices[selectedFocus];
-  showInfo('YOUR CURRENT FOCUS', focus.title, focus.next);
-  addTrainingLink(focus.session);
+document.getElementById('full-plan').addEventListener('click', () => showInfo(
+  'YOUR 28-DAY JOURNEY', 'A gentle path, week by week',
+  'Each week has a focus. Future weeks open as you move through the journey.',
+  weekDetails.map(([title], index) => `Week ${index + 1} · ${title}`)
+));
+document.getElementById('view-goals').addEventListener('click', () => {
+  const count = Object.values(goals).filter(Boolean).length;
+  showInfo('THIS WEEK', `${count} of 4 goals completed`, 'Tap a goal in the checklist to update your progress on this device.');
 });
 
-const goalKeys = ['focus', 'stillness', 'attention', 'shorts', 'review'];
-const defaultGoals = { focus: true, stillness: true, attention: true, shorts: false, review: false };
-const storedGoals = readStored('deepsprout-recovery-goals', defaultGoals);
-const goals = Object.fromEntries(goalKeys.map(key => [key, typeof storedGoals?.[key] === 'boolean' ? storedGoals[key] : defaultGoals[key]]));
-const goalRows = [...document.querySelectorAll('[data-goal]')];
-const goalCount = document.getElementById('goals-count');
-const renderGoals = () => {
-  goalRows.forEach(row => {
-    const done = goals[row.dataset.goal];
-    row.classList.toggle('is-done', done);
-    row.setAttribute('aria-pressed', String(done));
+const tabs = [...document.querySelectorAll('[data-tab]')];
+function activateTab(name) {
+  tabs.forEach(tab => {
+    const active = tab.dataset.tab === name;
+    tab.classList.toggle('is-active', active);
+    if (active) tab.setAttribute('aria-current', 'page');
+    else tab.removeAttribute('aria-current');
   });
-  goalCount.textContent = `${Object.values(goals).filter(Boolean).length}/5`;
-};
+}
+tabs.forEach(tab => tab.addEventListener('click', () => {
+  const name = tab.dataset.tab;
+  activateTab(name);
+  if (name === 'overview') window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name === 'week') document.getElementById('week').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (name === 'adjust') baselineDialog.showModal();
+  if (name === 'history') showInfo('YOUR HISTORY', 'Your journey so far', 'Your completed days and goals are saved on this device.', [
+    `${completedDays.length} completed days recorded`,
+    `${Object.values(goals).filter(Boolean).length} weekly goals completed`
+  ]);
+}));
+
+const goalKeys = ['focus', 'stillness', 'attention', 'shorts'];
+const defaults = { focus: true, stillness: true, attention: false, shorts: false };
+const savedGoals = readStored('deepsprout-recovery-goals', defaults);
+const goals = Object.fromEntries(goalKeys.map(key => [key, typeof savedGoals?.[key] === 'boolean' ? savedGoals[key] : defaults[key]]));
+function renderGoals() {
+  document.querySelectorAll('[data-goal]').forEach(row => row.setAttribute('aria-pressed', String(goals[row.dataset.goal])));
+  document.getElementById('goals-count').textContent = `${Object.values(goals).filter(Boolean).length}/4`;
+}
 renderGoals();
-goalRows.forEach(row => row.addEventListener('click', () => {
+document.querySelectorAll('[data-goal]').forEach(row => row.addEventListener('click', () => {
   goals[row.dataset.goal] = !goals[row.dataset.goal];
   writeStored('deepsprout-recovery-goals', goals);
   renderGoals();
 }));
-document.getElementById('weekly-details').addEventListener('click', () => {
-  const count = Object.values(goals).filter(Boolean).length;
-  showInfo('THIS WEEK', `${count} of 5 goals selected`, 'Your weekly goals keep the journey practical. Tap a goal in the list to mark it as part of your current routine.');
-  const bar = document.createElement('div');
-  bar.className = 'info-progress';
-  const fill = document.createElement('span');
-  fill.style.width = `${count * 20}%`;
-  bar.append(fill);
-  const caption = document.createElement('p');
-  caption.className = 'info-caption';
-  caption.textContent = count === 5 ? 'All five goals are part of your routine.' : `${5 - count} more to explore whenever you feel ready.`;
-  infoExtra.append(bar, caption);
+
+const dayKey = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const today = new Date();
+today.setHours(12, 0, 0, 0);
+const initialCompleted = Array.from({ length: 4 }, (_, offset) => {
+  const date = new Date(today);
+  date.setDate(date.getDate() - offset - 1);
+  return dayKey(date);
 });
-
-[baselineDialog, infoDialog].forEach(dialog => dialog.addEventListener('click', event => {
-  if (event.target === dialog) dialog.close();
-}));
-
-if (new URLSearchParams(window.location.search).get('setup') === '1') {
-  window.addEventListener('load', () => baselineDialog.showModal(), { once: true });
+const savedDays = readStored('deepsprout-recovery-completed-days', initialCompleted);
+const completedDays = Array.isArray(savedDays) ? savedDays.filter(day => /^\d{4}-\d{2}-\d{2}$/.test(day)).slice(0, 28) : initialCompleted;
+const offlineDone = readStored('deepsprout-recovery-offline-done', false) === true;
+const offlineButton = document.getElementById('offline-complete');
+offlineButton.setAttribute('aria-pressed', String(offlineDone));
+offlineButton.textContent = offlineDone ? 'Done ✓' : 'Mark as done';
+offlineButton.addEventListener('click', () => {
+  const done = offlineButton.getAttribute('aria-pressed') !== 'true';
+  offlineButton.setAttribute('aria-pressed', String(done));
+  offlineButton.textContent = done ? 'Done ✓' : 'Mark as done';
+  writeStored('deepsprout-recovery-offline-done', done);
+});
+function renderProgress() {
+  const count = completedDays.length;
+  document.getElementById('progress-count').textContent = `${count} / 28`;
+  document.getElementById('cycle-day').textContent = `Day ${Math.min(28, count + 1)} of 28`;
+  document.querySelector('.rp-progress-ring').style.background = `conic-gradient(#1b8559 0 ${count / 28 * 360}deg,#ebeded ${count / 28 * 360}deg 360deg)`;
 }
+renderProgress();
+let weekOffset = 0;
+let selectedDate = new Date(today);
+const calendar = document.getElementById('calendar');
+const dateLabel = date => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+function renderCalendar() {
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (today.getDay() + 6) % 7 + weekOffset * 7);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  document.getElementById('week-range').textContent = `${dateLabel(monday)} – ${dateLabel(sunday)}`;
+  document.getElementById('selected-date').textContent = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  calendar.replaceChildren();
+  for (let index = 0; index < 7; index++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
+    const key = dayKey(date);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'rp-day';
+    button.setAttribute('aria-label', date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }));
+    if (key === dayKey(selectedDate)) { button.classList.add('is-selected'); button.setAttribute('aria-current', 'date'); }
+    if (completedDays.includes(key)) button.classList.add('is-complete');
+    const weekday = document.createElement('span');
+    weekday.textContent = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const number = document.createElement('span');
+    if (completedDays.includes(key) && key !== dayKey(selectedDate)) {
+      number.innerHTML = '<svg><use href="#rp-check"/></svg>';
+    } else number.textContent = date.getDate();
+    button.append(weekday, number);
+    button.addEventListener('click', () => { selectedDate = date; renderCalendar(); });
+    calendar.append(button);
+  }
+}
+document.getElementById('previous-week').addEventListener('click', () => { weekOffset--; renderCalendar(); });
+document.getElementById('next-week').addEventListener('click', () => { weekOffset++; renderCalendar(); });
+renderCalendar();
