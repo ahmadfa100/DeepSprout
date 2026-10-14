@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "account": {
+    "id": "empty",
+    "label": "New account · empty",
+    "seeded": false,
+    "asOf": null,
+    "asOfNote": "Uses the real date. Nothing has been recorded yet."
+  },
+
+  "user": {
+    "name": "",
+    "registeredOn": null,
+    "goal": null
+  },
+
+  "catalog": {
+    "activityTypes": [
+      { "id": "depth", "title": "Depth Practice", "skill": "Reading", "icon": "book" },
+      { "id": "listening", "title": "Listening Practice", "skill": "Listening", "icon": "headphones" },
+      { "id": "practical", "title": "Practical Micro-Challenge", "skill": "Practical", "icon": "pencil" },
+      { "id": "protected-work", "title": "Protected Work", "skill": "Protected Work", "icon": "shield", "verificationNote": "Time is measured. The quality of the work is not verified." }
+    ],
+    "trainingPolicy": {
+      "version": "TP-1.0",
+      "maxLevel": 4,
+      "validAttemptsToUnlock": 6,
+      "note": "Levels are independent per practice type. Only valid attempts at the current level count."
+    },
+    "assessmentDefinitions": [
+      { "id": "digital-habits", "title": "Digital Habits", "kind": "Self-report questionnaire", "provenance": "self-reported", "minutes": 2, "scale": { "min": 0, "max": 30, "unit": "", "direction": "lower" } },
+      { "id": "sustained-attention", "title": "Sustained Attention", "kind": "Timed response task", "provenance": "measured", "minutes": 3, "scale": { "min": 0, "max": 100, "unit": "%", "direction": "higher" } },
+      { "id": "inhibitory-control", "title": "Inhibitory Control", "kind": "Go / no-go task", "provenance": "measured", "minutes": 3, "scale": { "min": 0, "max": 100, "unit": "%", "direction": "higher" } },
+      { "id": "depth-challenge", "title": "Depth Challenge", "kind": "Reading comprehension", "provenance": "measured", "minutes": 5, "scale": { "min": 0, "max": 10, "unit": "", "direction": "higher" } }
+    ],
+    "checkInPolicy": {
+      "version": "CI-1.0",
+      "windowDays": 3,
+      "always": ["digital-habits"],
+      "rotation": ["sustained-attention", "inhibitory-control", "depth-challenge"],
+      "fullEveryCycles": 3
+    }
+  },
+
+  "plan": null,
+  "scheduledActions": [],
+  "levelEvents": [],
+  "activityAttempts": [],
+  "weeklyReviews": [],
+  "assessmentAttempts": [],
+  "practiceRounds": [],
+  "shield": {
+    "extension": null,
+    "policy": null,
+    "dailyUsage": []
+  },
+  "selfReports": [],
+  "routine": [],
+  "opportunities": [],
+  "registrations": [],
+  "experienceRegistrations": []
+}

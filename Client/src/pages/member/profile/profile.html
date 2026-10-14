@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../../../../assets/brand/logo.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f9fcf5">
+  <meta name="description" content="Your DeepSprout profile, setup answers, privacy and settings.">
+  <title>Profile &amp; Settings — DeepSprout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../../src/styles/style.css">
+  <link rel="stylesheet" href="../../../../src/styles/member-page.css">
+  <link rel="stylesheet" href="profile.css">
+  <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
+  <script src="../../../../src/js/utils/storage.js" defer></script>
+  <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
+  <script src="profile.js" defer></script>
+</head>
+<body data-page="profile" data-root="../../../../">
+  <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 21c0-4 3.5-6 7.5-6s7.5 2 7.5 6"/></symbol>
+    <symbol id="i-target" viewBox="0 0 32 32"><circle cx="15" cy="17" r="11"/><circle cx="15" cy="17" r="6"/><circle cx="15" cy="17" r="1.5"/><path d="m16 16 11-11m-5 0h5v5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 32 32"><path d="M8 22c3-2 3-6 3-9a5 5 0 0 1 10 0c0 3 0 7 3 9H8Zm6 4a2 2 0 0 0 4 0m-2-18V5"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14-4.5L4 9m0-5v5h5"/><path d="M4 13a8 8 0 0 0 14 4.5L20 15m0 5v-5h-5"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2m-9 0 1 14h10l1-14"/><path d="M10 11v6m4-6v6"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M10 3v7L4.5 19A2 2 0 0 0 6.2 22h11.6a2 2 0 0 0 1.7-3L14 10V3M9 3h6M7.5 15h9"/></symbol>
+    <symbol id="i-sprout" viewBox="0 0 32 32"><path d="M16 27V14m0 4C8 18 5 14 5 6c8 0 11 4 11 12Zm0-4c0-7 4-11 11-11 0 8-3 12-11 12Z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11m-4-4 4 4 4-4M5 19h14"/></symbol>
+  </svg>
+
+  <div data-site-header></div>
+
+  <main>
+    <section class="pr-hero">
+      <div class="page-shell pr-hero-inner">
+        <span class="pr-avatar" id="avatar">A</span>
+        <div>
+          <p class="eyebrow"><svg><use href="#i-user"/></svg> Profile &amp; settings</p>
+          <h1 id="profile-name">Your account</h1>
+          <p class="pr-lead" id="profile-state"></p>
+        </div>
+      </div>
+    </section>
+
+    <div class="page-shell pr-body">
+
+      <section class="card" aria-labelledby="account-title">
+        <div class="card-head">
+          <span class="badge-icon"><svg><use href="#i-user"/></svg></span>
+          <div><p class="eyebrow">Account</p><h2 id="account-title">Who you are</h2></div>
+        </div>
+        <div class="pr-form">
+          <div class="field">
+            <label for="name">Display name</label>
+            <input id="name" type="text" placeholder="Your name" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+            <p class="field-hint">Stored on this device only in the preview. No account service is connected.</p>
+          </div>
+        </div>
+        <div class="btn-row pr-form-actions">
+          <button class="btn btn-primary" type="button" id="save-account">Save <svg><use href="#i-check"/></svg></button>
+          <span class="pr-saved" id="account-saved" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="setup-title">
+        <div class="card-head">
+          <span class="badge-icon gold"><svg><use href="#i-target"/></svg></span>
+          <div><p class="eyebrow">Your setup answers</p><h2 id="setup-title">What your plan is built on</h2></div>
+        </div>
+        <p>These are the answers from your first run. Changing them affects what future activities are suggested — it does not rewrite anything already recorded.</p>
+        <dl class="pr-answers" id="setup-answers"></dl>
+        <div class="btn-row">
+          <a class="btn btn-ghost" href="../onboarding/onboarding.html?step=setup">Change my answers <svg><use href="#i-arrow"/></svg></a>
+        </div>
+      </section>
+
+      <div class="pr-split">
+        <section class="card" aria-labelledby="journey-title">
+          <div class="card-head">
+            <span class="badge-icon sky"><svg><use href="#i-compass"/></svg></span>
+            <div><p class="eyebrow">Your journey</p><h2 id="journey-title">Where you are</h2></div>
+          </div>
+          <ul class="pr-journey" id="journey-list"></ul>
+        </section>
+
+        <section class="card" aria-labelledby="privacy-title">
+          <div class="card-head">
+            <span class="badge-icon lilac"><svg><use href="#i-lock"/></svg></span>
+            <div><p class="eyebrow">Privacy</p><h2 id="privacy-title">Who can see what</h2></div>
+          </div>
+          <ul class="pr-privacy">
+            <li><strong>Your assessment results</strong><small>Private. Mentors, institutions and providers never see them.</small></li>
+            <li><strong>Your recovery plan</strong><small>Private. A mentor sees only work you submit to their programme.</small></li>
+            <li><strong>Browsing records</strong><small>Private, and only ever from a supported browser you connected yourself.</small></li>
+            <li><strong>Community posts</strong><small>Visible to other members — only what you choose to post.</small></li>
+          </ul>
+          <p class="card-note">In this preview nothing is transmitted. All of it lives in this browser's local storage.</p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="notify-title">
+        <div class="card-head">
+          <span class="badge-icon coral"><svg><use href="#i-bell"/></svg></span>
+          <div><p class="eyebrow">Preferences</p><h2 id="notify-title">Reminders and intensity</h2></div>
+        </div>
+        <div class="pr-toggles" id="toggles"></div>
+        <p class="card-note">DeepSprout does not notify you for being away. A quiet week is not a failure, and nothing here punishes absence.</p>
+      </section>
+
+      <section class="card pr-danger" aria-labelledby="demo-title">
+        <div class="card-head">
+          <span class="badge-icon"><svg><use href="#i-refresh"/></svg></span>
+          <div><p class="eyebrow">Preview controls</p><h2 id="demo-title">Demo data</h2></div>
+        </div>
+        <p>This build stores everything locally so the whole individual journey can be walked through end to end. These controls exist for that purpose.</p>
+        <div class="pr-demo-grid">
+          <button class="btn btn-ghost" type="button" id="replay-tour"><svg><use href="#i-sprout"/></svg> Replay the product tour</button>
+          <button class="btn btn-ghost" type="button" id="export-data"><svg><use href="#i-download"/></svg> Show my stored data</button>
+          <button class="btn btn-ghost pr-reset" type="button" id="reset-demo"><svg><use href="#i-trash"/></svg> Reset everything</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div data-site-footer></div>
+
+  <dialog class="ds-dialog" id="reset-dialog" aria-labelledby="reset-title">
+    <button class="ds-dialog-close" type="button" data-close-dialog aria-label="Close">&times;</button>
+    <div class="ds-dialog-inner">
+      <p class="eyebrow">Reset demo data</p>
+      <h2 id="reset-title">Clear everything and start over?</h2>
+      <p>This removes your setup answers, all four assessment results, your plan, routine, activity history and registrations from this browser. It cannot be undone.</p>
+      <div class="btn-row" style="margin-top:20px">
+        <button class="btn btn-ghost" type="button" data-close-dialog>Keep my data</button>
+        <button class="btn btn-primary pr-reset-confirm" type="button" id="confirm-reset">Clear it and start over</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="ds-dialog" id="data-dialog" aria-labelledby="data-title">
+    <button class="ds-dialog-close" type="button" data-close-dialog aria-label="Close">&times;</button>
+    <div class="ds-dialog-inner">
+      <p class="eyebrow">Stored locally</p>
+      <h2 id="data-title">Everything DeepSprout holds about you</h2>
+      <p class="card-note">This is the complete record, exactly as it sits in this browser.</p>
+      <pre class="pr-data" id="data-output"></pre>
+    </div>
+  </dialog>
+</body>
+</html>

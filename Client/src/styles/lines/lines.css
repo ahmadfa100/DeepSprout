@@ -1,0 +1,54 @@
+/* Section 3 — "You're not alone". One pinned canvas of lines with a DOM text layer above it.
+   Colours: cream #faf8f3 (lines on dark), ink #292d2a, sage #82ab80, dark scene #0E1713.
+   Type scale: eyebrow 13px · headline clamp(26px,3vw,38px)/500 · body 16–17px, 52ch ·
+   caption 12px at .6 · numerals clamp(44px,6vw,84px), numbers only. */
+.lines{--lines-cream:#faf8f3;--lines-ink:#292d2a;--lines-dark:#0E1713;position:relative;z-index:16;color:var(--lines-cream);background:var(--lines-dark);font-family:Inter,Arial,sans-serif}
+.lines-stage{position:relative;background:var(--lines-dark)}
+.lines-canvas{display:none}
+.lines-copy{padding:96px 24px;display:grid;gap:72px;max-width:52ch;margin-inline:auto}
+
+.lines-headline{font-size:clamp(26px,3vw,38px);font-weight:500;letter-spacing:-.02em;line-height:1.15;margin:0}
+.lines-body{font-size:clamp(16px,1.2vw,17px);font-weight:400;line-height:1.55;max-width:52ch;margin:12px auto 0}
+.lines-caption{font-size:12px;font-weight:400;line-height:1.5;opacity:.6;margin:10px 0 0}
+.lines-eyebrow{font-size:13px;font-weight:500;letter-spacing:.12em;line-height:16px;text-transform:uppercase;margin:0}
+.lines-numeral{font-size:clamp(44px,6vw,84px);font-weight:500;letter-spacing:-.03em;line-height:1;margin:0;font-variant-numeric:tabular-nums}
+.lines-unit{font-size:13px;font-weight:400;letter-spacing:.04em;opacity:.6;margin-left:.35em}
+.lines-year{display:block;font-size:12px;letter-spacing:.12em;opacity:.6;margin-bottom:6px;font-variant-numeric:tabular-nums}
+
+/* Pinned: every scene is a full-stage box and each line of copy sits at a fixed anchor,
+   so no element's position depends on the height of another. */
+.reels-enhanced .lines{height:1000svh}
+.reels-enhanced .lines-stage{position:sticky;top:0;height:100svh;overflow:hidden}
+.reels-enhanced .lines-canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
+.reels-enhanced .lines-copy{position:absolute;inset:0;padding:0;max-width:none;display:block;pointer-events:none}
+.reels-enhanced .lines-scene{position:absolute;inset:0;text-align:center;opacity:0}
+.reels-enhanced .lines-scene>:not(.sr-only){position:absolute;left:50%;width:min(52ch,100% - 48px);transform:translateX(-50%);margin:0}
+.reels-enhanced .lines-scene:not(.lines-turn){text-shadow:0 0 14px var(--lines-dark),0 0 3px var(--lines-dark)}
+
+/* The headline's bottom edge sits 20px above the top of the user's line (the line spans
+   39%–61% of the stage); the body sits 20px below it in a reserved box. Station 6 repeats
+   this anchor exactly. */
+.reels-enhanced .lines-alone>.lines-headline{bottom:calc(61% + 20px);width:max-content;white-space:nowrap}
+.reels-enhanced .lines-alone .lines-body{top:calc(61% + 20px);min-height:3.2em}
+
+.reels-enhanced .lines-scale .lines-numeral{top:17%}
+.reels-enhanced .lines-scale .lines-steps{top:66%;bottom:auto;min-height:6.5em}
+.reels-enhanced .lines-steps>.lines-body{position:absolute;top:0;left:0;width:100%;margin:0}
+.reels-enhanced .lines-scale .lines-caption{bottom:9%}
+
+.reels-enhanced .lines-rot>:nth-child(2){bottom:calc(9% + 28px)}
+.reels-enhanced .lines-rot>:nth-child(3){bottom:9%}
+.reels-enhanced .lines-research>:nth-child(1){bottom:calc(9% + 82px)}
+.reels-enhanced .lines-research>:nth-child(2){bottom:calc(9% + 30px)}
+.reels-enhanced .lines-research>:nth-child(3){bottom:9%}
+
+/* "The way back" sits 28px above the handoff line; section 4 repeats it at the same place. */
+.reels-enhanced .lines-turn .lines-eyebrow{top:calc(50% - 44px);color:var(--lines-ink)}
+
+@media(max-width:700px){
+ .reels-enhanced .lines{height:950svh}
+ .reels-enhanced .lines-scale .lines-steps{top:65%}
+ .reels-enhanced .lines-rot>:nth-child(2){bottom:calc(9% + 40px)}
+ .reels-enhanced .lines-research>:nth-child(1){bottom:calc(9% + 80px)}
+ .reels-enhanced .lines-research>:nth-child(2){bottom:calc(9% + 36px)}
+}

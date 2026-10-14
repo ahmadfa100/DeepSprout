@@ -1,0 +1,6 @@
+[
+  "1440: pause/resume, replay, aggressive scroll retain the same visible canvas and exact stage",
+  "1280: pause/resume, replay, aggressive scroll retain the same visible canvas and exact stage",
+  "Reduced motion uses the identical stage and bitmap",
+  "JavaScript-free first paint uses the same decoded Bimo poster and fixed stage"
+]

@@ -1,0 +1,145 @@
+/* Weekly review: a short decision point at the end of a plan week. */
+
+.wr-stage { animation: reveal-up .45s cubic-bezier(.2,.7,.2,1) both; }
+.wr-stage[hidden] { display: none; }
+.wr-lead { color: #40604f; font-size: 1.03rem; }
+
+.wr-review { padding: 46px 0 80px; }
+.wr-head { max-width: 58ch; }
+.wr-head h1 { margin: 11px 0 12px; font-size: clamp(1.9rem, 4.4vw, 2.7rem); line-height: 1.07; }
+
+.wr-grid {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(290px, .8fr);
+  gap: 22px;
+  align-items: start;
+}
+.wr-main { display: grid; gap: 18px; }
+
+/* ------------------------------------------------------------- the ledger */
+
+.wr-ledger { display: grid; gap: 10px; }
+.wr-ledger li {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 15px;
+  border-radius: 14px;
+  background: #f5f9f3;
+}
+.wr-ledger .wr-mark {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--muted);
+}
+.wr-ledger .wr-mark svg { width: 16px; height: 16px; }
+.wr-ledger li[data-state="done"] .wr-mark { background: var(--leaf); color: #fff; }
+.wr-ledger li[data-state="missed"] .wr-mark { background: #f7e3dc; color: var(--coral); }
+.wr-ledger li[data-state="unknown"] .wr-mark { background: #eceee9; color: #96a39a; }
+.wr-ledger .wr-ledger-body { flex: 1; min-width: 0; }
+.wr-ledger strong { display: block; font-size: .94rem; }
+.wr-ledger small { display: block; margin-top: 2px; color: var(--muted); font-size: .82rem; }
+
+/* ------------------------------------------------------------- the questions */
+
+.wr-answers { margin-top: 16px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.wr-subquestion {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  font-size: 1.1rem;
+}
+
+/* -------------------------------------------------------- recommendation */
+
+.wr-recommendation {
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: #f2f9ef;
+  border: 1px solid #d9e9d4;
+}
+.wr-rec-text { font-size: 1rem; line-height: 1.55; }
+.wr-rec-why { display: grid; gap: 7px; margin-top: 13px; }
+.wr-rec-why li {
+  position: relative;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: .85rem;
+  line-height: 1.5;
+}
+.wr-rec-why li::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: .55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--leaf);
+}
+
+.wr-options { display: grid; gap: 11px; margin-top: 20px; }
+.wr-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  text-align: left;
+  transition: border-color .15s ease, background .15s ease;
+}
+.wr-option:hover { border-color: #c6dcc3; }
+.wr-option[aria-checked="true"] { border-color: var(--leaf); background: #f2faf1; }
+.wr-option .mark {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  display: grid;
+  place-items: center;
+  border: 1.6px solid #c6d3c8;
+  border-radius: 50%;
+  color: transparent;
+}
+.wr-option .mark svg { width: 13px; height: 13px; }
+.wr-option[aria-checked="true"] .mark { border-color: var(--leaf); background: var(--leaf); color: #fff; }
+.wr-option strong { display: block; font-size: .96rem; }
+.wr-option small { display: block; margin-top: 4px; color: var(--muted); font-size: .84rem; line-height: 1.45; }
+
+/* ----------------------------------------------------------------- aside */
+
+.wr-aside { position: sticky; top: 20px; }
+.wr-summary dl { display: grid; grid-template-columns: 1fr auto; gap: 10px 14px; margin: 14px 0 20px; }
+.wr-summary dt { color: var(--muted); font-size: .85rem; }
+.wr-summary dd { margin: 0; font-size: .88rem; font-weight: 600; text-align: right; }
+.wr-save { width: 100%; }
+.wr-save-note { margin-top: 10px; color: var(--muted); font-size: .8rem; text-align: center; }
+.wr-skip { display: block; width: 100%; margin-top: 10px; text-align: center; }
+.wr-skip-note { margin-top: 4px; color: var(--muted); font-size: .76rem; text-align: center; line-height: 1.45; }
+
+/* ------------------------------------------------------- none / saved views */
+
+.wr-none, .wr-saved { padding: 70px 0 90px; text-align: center; }
+.wr-none-mark, .wr-saved-mark { width: 58px; height: 58px; margin: 0 auto 18px; border-radius: 20px; }
+.wr-none-mark svg, .wr-saved-mark svg { width: 28px; height: 28px; }
+.wr-none h1, .wr-saved h1 { margin: 8px 0 14px; font-size: clamp(1.9rem, 4.4vw, 2.6rem); }
+.wr-none .wr-lead, .wr-saved .wr-lead { margin-inline: auto; max-width: 52ch; }
+.wr-none-actions, .wr-saved-actions { justify-content: center; margin-top: 26px; }
+.wr-revision { margin: 28px auto 0; max-width: 440px; text-align: left; }
+.wr-revision dl { display: grid; grid-template-columns: 1fr auto; gap: 10px 14px; margin: 14px 0 0; }
+.wr-revision dt { color: var(--muted); font-size: .86rem; }
+.wr-revision dd { margin: 0; font-size: .89rem; font-weight: 600; text-align: right; }
+
+@media (max-width: 960px) {
+  .wr-grid { grid-template-columns: 1fr; }
+  .wr-aside { position: static; }
+}
+@media (prefers-reduced-motion: reduce) { .wr-stage { animation: none; } }

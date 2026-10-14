@@ -1,0 +1,2142 @@
+<Rive version="1" kind="fragment">
+    <Artboard defaultStateMachineId="0:7" viewModelId="0:40" styleId="0:5" width="700" height="860" name="Bimo V2" id="0:2" viewModelInstanceId="0:41">
+        <LayoutComponentStyle name="Artboard Style" id="0:5" />
+        <Node x="350" y="590" name="Character root" id="0:100">
+            <DataBindContext sourcePathIds="0:40-0:250" propertyKey="13" />
+            <DataBindContext sourcePathIds="0:40-0:251" propertyKey="14" />
+            <Node y="-110" name="Upper body rig" id="0:101">
+                <DataBindContext sourcePathIds="0:40-0:190" propertyKey="13" />
+                <DataBindContext sourcePathIds="0:40-0:191" propertyKey="14" />
+                <DataBindContext sourcePathIds="0:40-0:192" propertyKey="15" />
+                <DataBindContext sourcePathIds="0:40-0:193" propertyKey="16" />
+                <DataBindContext sourcePathIds="0:40-0:194" propertyKey="17" />
+                <Node y="-118" name="Neck pivot" id="0:102">
+                    <DataBindContext sourcePathIds="0:40-0:195" propertyKey="15" />
+                    <Node name="Head attitude pivot" id="0:284">
+                        <DataBindContext sourcePathIds="0:40-0:255" propertyKey="15" />
+                        <Node y="-124" name="Head rig" id="0:20">
+                            <DataBindContext sourcePathIds="0:40-0:46" propertyKey="15" />
+                            <DataBindContext sourcePathIds="0:40-0:64" propertyKey="14" />
+                            <DataBindContext sourcePathIds="0:40-0:65" propertyKey="16" />
+                            <DataBindContext sourcePathIds="0:40-0:66" propertyKey="17" />
+                            <Node y="-120" name="Sprout rig" id="0:21">
+                                <DataBindContext sourcePathIds="0:40-0:47" propertyKey="15" />
+                                <Shape name="Left sprout leaf" id="0:22">
+                                    <PointsPath isClosed="true" name="Leaf path">
+                                        <StraightVertex x="0" y="-17" radius="2" />
+                                        <CubicMirroredVertex x="-28" y="-22" rotation="-2.75" distance="17" />
+                                        <CubicMirroredVertex x="-53" y="-42" rotation="-2.23" distance="17" />
+                                        <StraightVertex x="-62" y="-79" />
+                                        <CubicMirroredVertex x="-34" y="-75" rotation="0.15" distance="15" />
+                                        <CubicMirroredVertex x="-9" y="-54" rotation="0.90" distance="15" />
+                                    </PointsPath>
+                                    <Fill name="Leaf fill">
+                                        <LinearGradient startX="-52" startY="-77" endX="0" endY="-19" name="Olive gradient">
+                                            <GradientStop position="0" colorValue="FFAFBF91" />
+                                            <GradientStop position="1" colorValue="FF72915E" />
+                                        </LinearGradient>
+                                    </Fill>
+                                    <Stroke thickness="2.2" join="round" name="Leaf edge">
+                                        <SolidColor colorValue="FF24332C" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Right sprout leaf" id="0:23">
+                                    <PointsPath isClosed="true" name="Leaf path">
+                                        <StraightVertex x="0" y="-17" radius="2" />
+                                        <CubicMirroredVertex x="8" y="-51" rotation="-1.29" distance="14" />
+                                        <CubicMirroredVertex x="32" y="-69" rotation="-0.42" distance="15" />
+                                        <StraightVertex x="54" y="-72" />
+                                        <CubicMirroredVertex x="48" y="-39" rotation="1.9" distance="13" />
+                                        <CubicMirroredVertex x="21" y="-20" rotation="2.65" distance="15" />
+                                    </PointsPath>
+                                    <Fill name="Leaf fill">
+                                        <LinearGradient startX="47" startY="-68" endX="0" endY="-17" name="Olive gradient">
+                                            <GradientStop position="0" colorValue="FFA8BA87" />
+                                            <GradientStop position="1" colorValue="FF76975F" />
+                                        </LinearGradient>
+                                    </Fill>
+                                    <Stroke thickness="2.2" join="round" name="Leaf edge">
+                                        <SolidColor colorValue="FF24332C" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Sprout stem" id="0:24">
+                                    <PointsPath name="Stem path">
+                                        <StraightVertex x="0" y="3" />
+                                        <StraightVertex x="0" y="-26" />
+                                    </PointsPath>
+                                    <Stroke thickness="5" cap="round" name="Stem stroke">
+                                        <SolidColor colorValue="FF37583C" name="Green" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Node name="Face parallax" id="0:71">
+                                <DataBindContext sourcePathIds="0:40-0:60" propertyKey="13" />
+                                <DataBindContext sourcePathIds="0:40-0:61" propertyKey="14" />
+                                <DataBindContext sourcePathIds="0:40-0:62" propertyKey="16" />
+                                <DataBindContext sourcePathIds="0:40-0:63" propertyKey="15" />
+                                <Shape name="Face soft reflection" x="81" y="-42" rotation=".55">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="88FFFDF0" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="16" height="11" originX="0.5" originY="0.5" name="Oval" />
+                                </Shape>
+                                <Node y="25" name="Eye track" id="0:25">
+                                    <DataBindContext sourcePathIds="0:40-0:43" propertyKey="13" />
+                                    <DataBindContext sourcePathIds="0:40-0:44" propertyKey="14" />
+                                    <DataBindContext sourcePathIds="0:40-0:45" propertyKey="17" />
+                                    <DataBindContext sourcePathIds="0:40-0:223" propertyKey="18" />
+                                    <Shape x="-63" name="Left eye" id="0:26">
+                                        <Ellipse width="25" height="49" originX="0.5" originY="0.5" name="Oval" />
+                                        <Fill name="Eye fill">
+                                            <SolidColor colorValue="FF21492E" name="Deep green" />
+                                        </Fill>
+                                    </Shape>
+                                    <Shape x="63" name="Right eye" id="0:27">
+                                        <Ellipse width="25" height="49" originX="0.5" originY="0.5" name="Oval" />
+                                        <Fill name="Eye fill">
+                                            <SolidColor colorValue="FF21492E" name="Deep green" />
+                                        </Fill>
+                                    </Shape>
+                                </Node>
+                                <Shape x="-63" y="25" opacity="0" name="Left closed eyelid" id="0:226">
+                                    <DataBindContext sourcePathIds="0:40-0:224" propertyKey="18" />
+                                    <PointsPath name="Calm closed curve">
+                                        <StraightVertex x="-19" y="-2" />
+                                        <CubicMirroredVertex x="0" y="7" rotation="0" distance="12" />
+                                        <StraightVertex x="19" y="-2" />
+                                    </PointsPath>
+                                    <Stroke thickness="5.5" cap="round" name="Lid line">
+                                        <SolidColor colorValue="FF21492E" name="Deep green" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape x="63" y="25" opacity="0" name="Right closed eyelid" id="0:227">
+                                    <DataBindContext sourcePathIds="0:40-0:224" propertyKey="18" />
+                                    <PointsPath name="Calm closed curve">
+                                        <StraightVertex x="-19" y="-2" />
+                                        <CubicMirroredVertex x="0" y="7" rotation="0" distance="12" />
+                                        <StraightVertex x="19" y="-2" />
+                                    </PointsPath>
+                                    <Stroke thickness="5.5" cap="round" name="Lid line">
+                                        <SolidColor colorValue="FF21492E" name="Deep green" />
+                                    </Stroke>
+                                </Shape>
+                                <Node opacity="0" name="Overwhelmed brows" id="0:300">
+                                    <Shape x="-63" y="-13" name="Left overloaded brow">
+                                        <PointsPath name="Tense inner arch">
+                                            <StraightVertex x="-19" y="5" />
+                                            <CubicMirroredVertex x="3" y="-2" rotation="-0.48" distance="10" />
+                                            <StraightVertex x="17" y="-18" />
+                                        </PointsPath>
+                                        <Stroke thickness="4.2" cap="round" name="Brow">
+                                            <SolidColor colorValue="FF21492E" name="Deep green" />
+                                        </Stroke>
+                                    </Shape>
+                                    <Shape x="63" y="-13" name="Right overloaded brow">
+                                        <PointsPath name="Tense inner arch">
+                                            <StraightVertex x="-18" y="-15" />
+                                            <CubicMirroredVertex x="0" y="-3" rotation="0.40" distance="10" />
+                                            <StraightVertex x="19" y="1" />
+                                        </PointsPath>
+                                        <Stroke thickness="4.2" cap="round" name="Brow">
+                                            <SolidColor colorValue="FF21492E" name="Deep green" />
+                                        </Stroke>
+                                    </Shape>
+                                </Node>
+                                <Shape y="73" opacity="0" name="Overwhelmed open mouth" id="0:301">
+                                    <PointsPath isClosed="true" name="Restrained concerned opening">
+                                        <CubicMirroredVertex x="-19" y="6" rotation="-1.1" distance="4" />
+                                        <CubicMirroredVertex x="0" y="-10" rotation="0" distance="10" />
+                                        <CubicMirroredVertex x="19" y="6" rotation="1.1" distance="4" />
+                                        <CubicMirroredVertex x="0" y="3" rotation="3.1416" distance="9" />
+                                    </PointsPath>
+                                    <Fill name="Mouth fill">
+                                        <SolidColor colorValue="FF21492E" name="Deep green" />
+                                    </Fill>
+                                    <Stroke thickness="2" cap="round" name="Edge">
+                                        <SolidColor colorValue="FF21492E" name="Deep green" />
+                                    </Stroke>
+                                </Shape>
+                                <Node opacity="0" name="Concerned brows" id="0:240">
+                                    <Shape x="-63" y="-18" name="Left concerned brow" id="0:241">
+                                        <PointsPath name="Raised inner brow">
+                                            <StraightVertex x="-19" y="4" />
+                                            <CubicMirroredVertex x="0" y="-1" rotation="-0.19" distance="11" />
+                                            <StraightVertex x="18" y="-10" />
+                                        </PointsPath>
+                                        <Stroke thickness="4" cap="round" name="Deep green brow">
+                                            <SolidColor colorValue="FF21492E" name="Deep green" />
+                                        </Stroke>
+                                    </Shape>
+                                    <Shape x="63" y="-18" name="Right concerned brow" id="0:242">
+                                        <PointsPath name="Raised inner brow">
+                                            <StraightVertex x="-18" y="-9" />
+                                            <CubicMirroredVertex x="0" y="-2" rotation="0.20" distance="10" />
+                                            <StraightVertex x="18" y="3" />
+                                        </PointsPath>
+                                        <Stroke thickness="3.5" cap="round" name="Deep green brow">
+                                            <SolidColor colorValue="FF21492E" name="Deep green" />
+                                        </Stroke>
+                                    </Shape>
+                                </Node>
+                                <Shape x="0" y="72" name="Mouth" id="0:28">
+                                    <PointsPath name="Small smile">
+                                        <StraightVertex x="-15" y="-2" />
+                                        <CubicMirroredVertex x="0" y="4" rotation="0" distance="8" />
+                                        <StraightVertex x="15" y="-2" />
+                                    </PointsPath>
+                                    <Stroke thickness="2.3" cap="round" name="Mouth line">
+                                        <SolidColor colorValue="FF24402D" name="Deep green" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape x="0" y="73" opacity="0" name="NOTICE mouth" id="0:221">
+                                    <Ellipse width="10" height="12" originX="0.5" originY="0.5" name="Small neutral o" />
+                                    <Stroke thickness="2.5" name="Mouth outline">
+                                        <SolidColor colorValue="FF24402D" name="Deep green" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape x="0" y="75" opacity="0" name="CONCERNED mouth" id="0:243">
+                                    <PointsPath name="Restrained concerned curve">
+                                        <StraightVertex x="-14" y="4" />
+                                        <CubicMirroredVertex x="0" y="-3" rotation="0" distance="8" />
+                                        <StraightVertex x="14" y="4" />
+                                    </PointsPath>
+                                    <Stroke thickness="2.3" cap="round" name="Deep green mouth">
+                                        <SolidColor colorValue="FF24402D" name="Deep green" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape y="19" name="Face panel" id="0:29">
+                                    <PointsPath isClosed="true" name="V2 recessed face">
+                                        <CubicMirroredVertex x="0" y="-82" rotation="0" distance="41" />
+                                        <CubicMirroredVertex x="95" y="-55" rotation="0.73" distance="24" />
+                                        <CubicMirroredVertex x="122" y="4" rotation="1.57" distance="32" />
+                                        <CubicMirroredVertex x="91" y="66" rotation="2.65" distance="24" />
+                                        <CubicMirroredVertex x="0" y="82" rotation="3.1416" distance="41" />
+                                        <CubicMirroredVertex x="-94" y="62" rotation="-2.55" distance="25" />
+                                        <CubicMirroredVertex x="-122" y="5" rotation="-1.57" distance="31" />
+                                        <CubicMirroredVertex x="-95" y="-55" rotation="-0.73" distance="24" />
+                                    </PointsPath>
+                                    <Fill name="Sage fill">
+                                        <LinearGradient startX="-100" startY="-80" endX="100" endY="85" name="Sage gradient">
+                                            <GradientStop position="0" colorValue="FFE1E6D5" />
+                                            <GradientStop position="1" colorValue="FFD0D9C8" />
+                                        </LinearGradient>
+                                    </Fill>
+                                    <Stroke thickness="2.3" name="Face rim">
+                                        <SolidColor colorValue="FFA7B4A1" name="Muted sage" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Shape name="Head ceramic side plane" id="0:410" opacity="0">
+                                <PointsPath isClosed="true" name="Editable contour">
+                                    <CubicMirroredVertex x="-116" y="-82" rotation="0.8" distance="18" />
+                                    <CubicMirroredVertex x="-104" y="-26" rotation="1.55" distance="28" />
+                                    <CubicMirroredVertex x="-97" y="46" rotation="1.2" distance="25" />
+                                    <CubicMirroredVertex x="-47" y="102" rotation="0" distance="22" />
+                                    <CubicMirroredVertex x="-119" y="81" rotation="-2.4" distance="25" />
+                                    <CubicMirroredVertex x="-143" y="0" rotation="-1.57" distance="34" />
+                                </PointsPath>
+                                <Fill name="Fill">
+                                    <SolidColor colorValue="FFD9DDD1" name="Material" />
+                                </Fill>
+                                <DataBindContext sourcePathIds="0:40-0:411" propertyKey="18" />
+                                <DataBindContext sourcePathIds="0:40-0:412" propertyKey="16" />
+                                <ClippingShape sourceId="0:30" name="Shell clip" />
+                            </Shape>
+                            <Shape name="Head shell" id="0:30">
+                                <PointsPath isClosed="true" name="V2 ceramic shell">
+                                    <CubicMirroredVertex x="0" y="-114" rotation="0" distance="53" />
+                                    <CubicMirroredVertex x="108" y="-86" rotation="0.72" distance="30" />
+                                    <CubicMirroredVertex x="150" y="-8" rotation="1.57" distance="43" />
+                                    <CubicMirroredVertex x="121" y="87" rotation="2.6" distance="26" />
+                                    <CubicMirroredVertex x="0" y="111" rotation="3.1416" distance="58" />
+                                    <CubicMirroredVertex x="-119" y="89" rotation="-2.6" distance="27" />
+                                    <CubicMirroredVertex x="-149" y="3" rotation="-1.57" distance="43" />
+                                    <CubicMirroredVertex x="-108" y="-86" rotation="-0.72" distance="30" />
+                                </PointsPath>
+                                <Fill name="Warm ceramic fill">
+                                    <LinearGradient startX="-125" startY="-105" endX="120" endY="115" name="Ceramic gradient">
+                                        <GradientStop position="0" colorValue="FFFFFEF7" />
+                                        <GradientStop position="0.65" colorValue="FFF6F4E9" />
+                                        <GradientStop position="1" colorValue="FFE7E9DF" />
+                                    </LinearGradient>
+                                </Fill>
+                                <Stroke thickness="2.3" name="Shell outline">
+                                    <SolidColor colorValue="FF27332E" name="Dark rim" />
+                                </Stroke>
+                            </Shape>
+                            <Node name="Left shell pod" x="-151" y="19" id="0:413">
+                                <DataBindContext sourcePathIds="0:40-0:67" propertyKey="13" />
+                                <DataBindContext sourcePathIds="0:40-0:68" propertyKey="16" />
+                                <DataBindContext sourcePathIds="0:40-0:415" propertyKey="17" />
+                                <Shape name="Left pod olive inset" x="-10" y="0">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF86A667" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="21" height="49" originX="0.5" originY="0.5" name="Oval" />
+                                    <Stroke thickness="1.8" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Left pod ceramic disc" x="-7" y="0">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FFF3F2E6" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="38" height="78" originX="0.5" originY="0.5" name="Oval" />
+                                    <Stroke thickness="1.7" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Left pod dark housing" x="0" y="0">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF434F47" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="55" height="94" originX="0.5" originY="0.5" name="Oval" />
+                                    <Stroke thickness="2.2" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <DrawRules drawTargetId="0:414" name="Pod shell overlap">
+                                    <DrawTarget drawableId="0:410" placementValue="before" name="In front of shell" id="0:414" />
+                                </DrawRules>
+                            </Node>
+                            <Node name="Right shell pod" x="151" y="19" id="0:416">
+                                <DataBindContext sourcePathIds="0:40-0:69" propertyKey="13" />
+                                <DataBindContext sourcePathIds="0:40-0:70" propertyKey="16" />
+                                <DataBindContext sourcePathIds="0:40-0:418" propertyKey="17" />
+                                <Shape name="Right pod olive inset" x="10" y="0">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF86A667" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="21" height="49" originX="0.5" originY="0.5" name="Oval" />
+                                    <Stroke thickness="1.8" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Right pod ceramic disc" x="7" y="0">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FFF3F2E6" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="38" height="78" originX="0.5" originY="0.5" name="Oval" />
+                                    <Stroke thickness="1.7" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Right pod dark housing" x="0" y="0">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF434F47" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="55" height="94" originX="0.5" originY="0.5" name="Oval" />
+                                    <Stroke thickness="2.2" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <DrawRules drawTargetId="0:417" name="Pod shell overlap">
+                                    <DrawTarget drawableId="0:410" placementValue="before" name="In front of shell" id="0:417" />
+                                </DrawRules>
+                            </Node>
+                        </Node>
+                    </Node>
+                    <Shape name="Neck shaft" id="0:103">
+                        <Rectangle width="56" height="50" originX="0.5" originY="0.5" cornerRadiusTL="11" name="Neck capsule" />
+                        <Fill name="Dark joint">
+                            <LinearGradient startX="-22" startY="-20" endX="24" endY="22" name="Neck gradient">
+                                <GradientStop position="0" colorValue="FF525C52" />
+                                <GradientStop position="1" colorValue="FF303B35" />
+                            </LinearGradient>
+                        </Fill>
+                        <Stroke thickness="2.4" name="Joint rim">
+                            <SolidColor colorValue="FF27332E" name="Ink" />
+                        </Stroke>
+                    </Shape>
+                </Node>
+                <Node x="-83" y="-66" rotation="0.49" name="Left shoulder pivot" id="0:120">
+                    <DataBindContext sourcePathIds="0:40-0:256" propertyKey="13" />
+                    <DataBindContext sourcePathIds="0:40-0:257" propertyKey="14" />
+                    <DataBindContext sourcePathIds="0:40-0:196" propertyKey="15" />
+                    <Shape name="Left shoulder joint" id="0:121">
+                        <Ellipse width="43" height="53" originX="0.5" originY="0.5" name="Joint" />
+                        <Fill name="Fill">
+                            <SolidColor colorValue="FF424E47" name="Charcoal" />
+                        </Fill>
+                        <Stroke thickness="2.2" name="Rim">
+                            <SolidColor colorValue="FF27332E" name="Ink" />
+                        </Stroke>
+                    </Shape>
+                    <Node y="118" rotation="0.40" name="Left elbow pivot" id="0:122">
+                        <DataBindContext sourcePathIds="0:40-0:197" propertyKey="15" />
+                        <Shape name="Left elbow joint" id="0:123">
+                            <Ellipse width="40" height="42" originX="0.5" originY="0.5" name="Joint" />
+                            <Fill name="Fill">
+                                <SolidColor colorValue="FF46514B" name="Charcoal" />
+                            </Fill>
+                            <Stroke thickness="2" name="Rim">
+                                <SolidColor colorValue="FF26332D" name="Ink" />
+                            </Stroke>
+                        </Shape>
+                        <Node y="105" rotation="0.08" name="Left hand" id="0:124">
+                            <DataBindContext sourcePathIds="0:40-0:198" propertyKey="15" />
+                            <Node name="Left Relaxed hand" opacity="1" scaleX="0.85" scaleY="0.85">
+                                <DataBindContext sourcePathIds="0:40-0:430" propertyKey="18" />
+                                <Shape name="Relaxed thumb">
+                                    <PointsPath isClosed="false" name="Relaxed thumb curved contour">
+                                        <CubicMirroredVertex x="-22" y="20" rotation="2.4" distance="7" />
+                                        <CubicMirroredVertex x="-31" y="37" rotation="1.2" distance="7" />
+                                        <CubicMirroredVertex x="-22" y="45" rotation="0" distance="6" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Relaxed digit 1">
+                                    <PointsPath isClosed="false" name="Relaxed digit 1 curved contour">
+                                        <CubicMirroredVertex x="-17" y="37" rotation="1.65" distance="8" />
+                                        <CubicMirroredVertex x="-16" y="57" rotation="1.2" distance="7" />
+                                        <CubicMirroredVertex x="-7" y="64" rotation="0" distance="5" />
+                                        <CubicMirroredVertex x="0" y="52" rotation="-1.3" distance="6" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Relaxed digit 2">
+                                    <PointsPath isClosed="false" name="Relaxed digit 2 curved contour">
+                                        <CubicMirroredVertex x="0" y="42" rotation="1.57" distance="8" />
+                                        <CubicMirroredVertex x="4" y="62" rotation="1.1" distance="7" />
+                                        <CubicMirroredVertex x="13" y="66" rotation="0" distance="5" />
+                                        <CubicMirroredVertex x="19" y="54" rotation="-1.2" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="16" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="13" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Relaxed digit 3">
+                                    <PointsPath isClosed="false" name="Relaxed digit 3 curved contour">
+                                        <CubicMirroredVertex x="15" y="38" rotation="1.4" distance="8" />
+                                        <CubicMirroredVertex x="24" y="54" rotation="1.0" distance="7" />
+                                        <CubicMirroredVertex x="31" y="54" rotation="-0.6" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Node name="Left PalmUp hand" opacity="0" scaleX=".62" scaleY=".95">
+                                <DataBindContext sourcePathIds="0:40-0:431" propertyKey="18" />
+                                <Shape name="PalmUp thumb">
+                                    <PointsPath isClosed="false" name="PalmUp thumb curved contour">
+                                        <CubicMirroredVertex x="-20" y="15" rotation="2.3" distance="7" />
+                                        <CubicMirroredVertex x="-31" y="31" rotation="1.2" distance="7" />
+                                        <CubicMirroredVertex x="-27" y="41" rotation="1" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="PalmUp digit 1">
+                                    <PointsPath isClosed="false" name="PalmUp digit 1 curved contour">
+                                        <CubicMirroredVertex x="-16" y="30" rotation="1.8" distance="8" />
+                                        <CubicMirroredVertex x="-27" y="53" rotation="1.2" distance="7" />
+                                        <CubicMirroredVertex x="-33" y="58" rotation="0.3" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="PalmUp digit 2">
+                                    <PointsPath isClosed="false" name="PalmUp digit 2 curved contour">
+                                        <CubicMirroredVertex x="0" y="32" rotation="1.5" distance="9" />
+                                        <CubicMirroredVertex x="-7" y="55" rotation="1.1" distance="7" />
+                                        <CubicMirroredVertex x="-13" y="58" rotation="0.1" distance="6" />
+                                    </PointsPath>
+                                    <Stroke thickness="16" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="13" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="PalmUp digit 3">
+                                    <PointsPath isClosed="false" name="PalmUp digit 3 curved contour">
+                                        <CubicMirroredVertex x="16" y="28" rotation="1.4" distance="8" />
+                                        <CubicMirroredVertex x="12" y="48" rotation="1.0" distance="6" />
+                                        <CubicMirroredVertex x="6" y="50" rotation="0" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Node name="Left Open hand" opacity="0" scaleX="0.85" scaleY="0.85">
+                                <DataBindContext sourcePathIds="0:40-0:432" propertyKey="18" />
+                                <Shape name="Open thumb">
+                                    <PointsPath isClosed="false" name="Open thumb curved contour">
+                                        <CubicMirroredVertex x="-22" y="18" rotation="2.5" distance="7" />
+                                        <CubicMirroredVertex x="-39" y="28" rotation="2.1" distance="7" />
+                                        <CubicMirroredVertex x="-45" y="39" rotation="1.9" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Open digit 1">
+                                    <PointsPath isClosed="false" name="Open digit 1 curved contour">
+                                        <CubicMirroredVertex x="-18" y="37" rotation="1.9" distance="8" />
+                                        <CubicMirroredVertex x="-28" y="57" rotation="1.8" distance="8" />
+                                        <CubicMirroredVertex x="-30" y="68" rotation="1.6" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Open digit 2">
+                                    <PointsPath isClosed="false" name="Open digit 2 curved contour">
+                                        <CubicMirroredVertex x="0" y="41" rotation="1.57" distance="9" />
+                                        <CubicMirroredVertex x="0" y="65" rotation="1.57" distance="8" />
+                                        <CubicMirroredVertex x="1" y="76" rotation="1.4" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="16" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="13" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Open digit 3">
+                                    <PointsPath isClosed="false" name="Open digit 3 curved contour">
+                                        <CubicMirroredVertex x="17" y="36" rotation="1.25" distance="8" />
+                                        <CubicMirroredVertex x="26" y="56" rotation="1.2" distance="8" />
+                                        <CubicMirroredVertex x="30" y="68" rotation="1.2" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Node name="Left Guarded hand" opacity="0" scaleX="0.85" scaleY="0.85">
+                                <DataBindContext sourcePathIds="0:40-0:433" propertyKey="18" />
+                                <Shape name="Guarded thumb">
+                                    <PointsPath isClosed="false" name="Guarded thumb curved contour">
+                                        <CubicMirroredVertex x="-22" y="17" rotation="2.0" distance="7" />
+                                        <CubicMirroredVertex x="-30" y="34" rotation="1.2" distance="7" />
+                                        <CubicMirroredVertex x="-18" y="44" rotation="0.3" distance="6" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Guarded digit 1">
+                                    <PointsPath isClosed="false" name="Guarded digit 1 curved contour">
+                                        <CubicMirroredVertex x="-16" y="38" rotation="1.7" distance="6" />
+                                        <CubicMirroredVertex x="-14" y="52" rotation="0.8" distance="7" />
+                                        <CubicMirroredVertex x="-3" y="54" rotation="-0.8" distance="6" />
+                                        <CubicMirroredVertex x="1" y="44" rotation="-1.3" distance="4" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Guarded digit 2">
+                                    <PointsPath isClosed="false" name="Guarded digit 2 curved contour">
+                                        <CubicMirroredVertex x="0" y="39" rotation="1.3" distance="7" />
+                                        <CubicMirroredVertex x="5" y="53" rotation="0.6" distance="7" />
+                                        <CubicMirroredVertex x="16" y="50" rotation="-0.8" distance="6" />
+                                        <CubicMirroredVertex x="18" y="40" rotation="-1.4" distance="4" />
+                                    </PointsPath>
+                                    <Stroke thickness="16" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="13" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Guarded digit 3">
+                                    <PointsPath isClosed="false" name="Guarded digit 3 curved contour">
+                                        <CubicMirroredVertex x="16" y="33" rotation="1.1" distance="7" />
+                                        <CubicMirroredVertex x="24" y="44" rotation="0.2" distance="6" />
+                                        <CubicMirroredVertex x="33" y="39" rotation="-1" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Node name="Left Tense hand" opacity="0" scaleX="0.85" scaleY="0.85">
+                                <DataBindContext sourcePathIds="0:40-0:434" propertyKey="18" />
+                                <Shape name="Tense thumb">
+                                    <PointsPath isClosed="false" name="Tense thumb curved contour">
+                                        <CubicMirroredVertex x="-23" y="16" rotation="2.6" distance="7" />
+                                        <CubicMirroredVertex x="-40" y="24" rotation="2.0" distance="7" />
+                                        <CubicMirroredVertex x="-42" y="37" rotation="1.5" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Tense digit 1">
+                                    <PointsPath isClosed="false" name="Tense digit 1 curved contour">
+                                        <CubicMirroredVertex x="-17" y="36" rotation="2.0" distance="7" />
+                                        <CubicMirroredVertex x="-28" y="54" rotation="1.5" distance="7" />
+                                        <CubicMirroredVertex x="-24" y="66" rotation="0.3" distance="6" />
+                                        <CubicMirroredVertex x="-15" y="60" rotation="-1.0" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Tense digit 2">
+                                    <PointsPath isClosed="false" name="Tense digit 2 curved contour">
+                                        <CubicMirroredVertex x="0" y="41" rotation="1.7" distance="8" />
+                                        <CubicMirroredVertex x="-3" y="62" rotation="0.8" distance="8" />
+                                        <CubicMirroredVertex x="7" y="71" rotation="0" distance="6" />
+                                        <CubicMirroredVertex x="14" y="62" rotation="-1.0" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="16" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="13" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Tense digit 3">
+                                    <PointsPath isClosed="false" name="Tense digit 3 curved contour">
+                                        <CubicMirroredVertex x="17" y="36" rotation="1.1" distance="8" />
+                                        <CubicMirroredVertex x="28" y="53" rotation="0.5" distance="8" />
+                                        <CubicMirroredVertex x="39" y="51" rotation="-0.7" distance="6" />
+                                        <CubicMirroredVertex x="40" y="41" rotation="-1.4" distance="4" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Node name="Left shared opaque palm" scaleX=".85" scaleY=".85">
+                                <DataBindContext sourcePathIds="0:40-0:530" propertyKey="16" />
+                                <DataBindContext sourcePathIds="0:40-0:532" propertyKey="17" />
+                                <Shape name="Ceramic palm pad">
+                                    <PointsPath isClosed="true" name="Editable contour">
+                                        <CubicMirroredVertex x="-15" y="12" rotation="2.3" distance="7" />
+                                        <CubicMirroredVertex x="-18" y="27" rotation="1.5" distance="8" />
+                                        <CubicMirroredVertex x="-6" y="40" rotation="0.45" distance="8" />
+                                        <CubicMirroredVertex x="12" y="42" rotation="-0.35" distance="8" />
+                                        <CubicMirroredVertex x="21" y="27" rotation="-1.5" distance="8" />
+                                        <CubicMirroredVertex x="11" y="13" rotation="3.1416" distance="9" />
+                                    </PointsPath>
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FFF2F0E4" name="Material" />
+                                    </Fill>
+                                    <Stroke thickness="1.8" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Dark digit knuckle 1" x="-17" y="38">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF465249" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="18" height="18" originX="0.5" originY="0.5" name="Oval" />
+                                </Shape>
+                                <Shape name="Dark digit knuckle 2" x="0" y="41">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF465249" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="18" height="18" originX="0.5" originY="0.5" name="Oval" />
+                                </Shape>
+                                <Shape name="Dark digit knuckle 3" x="17" y="36">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF465249" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="18" height="18" originX="0.5" originY="0.5" name="Oval" />
+                                </Shape>
+                                <Shape name="Mechanical palm frame" x="0" y="24">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF465249" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="48" height="46" originX="0.5" originY="0.5" name="Oval" />
+                                    <Stroke thickness="2" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Wrist bearing" x="0" y="0">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF465249" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="31" height="26" originX="0.5" originY="0.5" name="Oval" />
+                                    <Stroke thickness="1.8" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                        </Node>
+                        <Shape x="-11" y="69" name="Left forearm accent">
+                            <Ellipse width="22" height="30" originX="0.5" originY="0.5" name="Oval" />
+                            <Fill name="Fill">
+                                <SolidColor colorValue="FF9CB983" name="Olive" />
+                            </Fill>
+                            <Stroke thickness="2" name="Rim">
+                                <SolidColor colorValue="FF3D6041" name="Green" />
+                            </Stroke>
+                        </Shape>
+                        <Shape y="0" name="Left lower arm" id="0:126">
+                            <PointsPath isClosed="true" name="V2 pear forearm">
+                                <CubicMirroredVertex x="0" y="-5" rotation="0" distance="12" />
+                                <CubicMirroredVertex x="20" y="12" rotation="1.1" distance="12" />
+                                <CubicMirroredVertex x="27" y="66" rotation="1.57" distance="18" />
+                                <CubicMirroredVertex x="15" y="104" rotation="2.5" distance="11" />
+                                <CubicMirroredVertex x="0" y="110" rotation="3.1416" distance="11" />
+                                <CubicMirroredVertex x="-19" y="98" rotation="-2.2" distance="12" />
+                                <CubicMirroredVertex x="-25" y="65" rotation="-1.57" distance="17" />
+                                <CubicMirroredVertex x="-19" y="14" rotation="-1.05" distance="12" />
+                            </PointsPath>
+                            <Fill name="Fill">
+                                <LinearGradient startX="-20" startY="-55" endX="22" endY="55" name="Ceramic gradient">
+                                    <GradientStop position="0" colorValue="FFFFFCF3" />
+                                    <GradientStop position="1" colorValue="FFE2E7DB" />
+                                </LinearGradient>
+                            </Fill>
+                            <Stroke thickness="2.3" name="Rim">
+                                <SolidColor colorValue="FF27332E" name="Ink" />
+                            </Stroke>
+                        </Shape>
+                        <DrawRules drawTargetId="0:522" name="Pose forearm depth" id="0:520">
+                            <DrawTarget drawableId="0:111" placementValue="after" name="Far relaxed arm" id="0:521" />
+                            <DrawTarget drawableId="0:103" placementValue="before" name="Gesture in front of upper body" id="0:522" />
+                        </DrawRules>
+                    </Node>
+                    <Shape y="0" name="Left upper arm" id="0:127">
+                        <PointsPath isClosed="true" name="V2 tapered upper arm">
+                            <CubicMirroredVertex x="0" y="-5" rotation="0" distance="9" />
+                            <CubicMirroredVertex x="15" y="10" rotation="1.5" distance="10" />
+                            <CubicMirroredVertex x="15" y="99" rotation="1.6" distance="16" />
+                            <CubicMirroredVertex x="0" y="121" rotation="3.1416" distance="10" />
+                            <CubicMirroredVertex x="-14" y="103" rotation="-1.6" distance="16" />
+                            <CubicMirroredVertex x="-15" y="11" rotation="-1.5" distance="10" />
+                        </PointsPath>
+                        <Fill name="Fill">
+                            <LinearGradient startX="-17" startY="-55" endX="18" endY="60" name="Ceramic gradient">
+                                <GradientStop position="0" colorValue="FFFFFCF3" />
+                                <GradientStop position="1" colorValue="FFE0E5D9" />
+                            </LinearGradient>
+                        </Fill>
+                        <Stroke thickness="2.3" name="Rim">
+                            <SolidColor colorValue="FF27332E" name="Ink" />
+                        </Stroke>
+                    </Shape>
+                    <DataBindContext sourcePathIds="0:40-0:420" propertyKey="16" />
+                    <DataBindContext sourcePathIds="0:40-0:421" propertyKey="17" />
+                </Node>
+                <Node name="Torso visual" id="0:104">
+                    <Node name="Projected chest badge" id="0:425">
+                        <DataBindContext sourcePathIds="0:40-0:426" propertyKey="13" />
+                        <DataBindContext sourcePathIds="0:40-0:427" propertyKey="16" />
+                        <Shape name="Chest emblem left leaf" id="0:105">
+                            <PointsPath isClosed="true" name="Leaf">
+                                <StraightVertex x="0" y="-1" />
+                                <CubicMirroredVertex x="-22" y="-25" rotation="-2.4" distance="10" />
+                                <StraightVertex x="-26" y="-49" />
+                                <CubicMirroredVertex x="-5" y="-39" rotation="0.6" distance="10" />
+                            </PointsPath>
+                            <Fill name="Fill">
+                                <SolidColor colorValue="FF8DAC71" name="Olive" />
+                            </Fill>
+                            <Stroke thickness="2" name="Rim">
+                                <SolidColor colorValue="FF3F6545" name="Green" />
+                            </Stroke>
+                        </Shape>
+                        <Shape name="Chest emblem right leaf" id="0:106">
+                            <PointsPath isClosed="true" name="Leaf">
+                                <StraightVertex x="0" y="-1" />
+                                <CubicMirroredVertex x="10" y="-39" rotation="-1.18" distance="15" />
+                                <StraightVertex x="34" y="-51" />
+                                <CubicMirroredVertex x="27" y="-19" rotation="1.92" distance="14" />
+                            </PointsPath>
+                            <Fill name="Fill">
+                                <SolidColor colorValue="FF8DAC71" name="Olive" />
+                            </Fill>
+                            <Stroke thickness="2" name="Rim">
+                                <SolidColor colorValue="FF3F6545" name="Green" />
+                            </Stroke>
+                        </Shape>
+                        <Shape name="Chest emblem stem" id="0:107">
+                            <PointsPath name="Stem">
+                                <StraightVertex x="-2" y="15" />
+                                <StraightVertex x="1" y="-15" />
+                            </PointsPath>
+                            <Stroke thickness="2.3" cap="round" name="Line">
+                                <SolidColor colorValue="FF4E754C" name="Green" />
+                            </Stroke>
+                        </Shape>
+                        <Shape x="0" y="-27" name="Chest badge" id="0:108">
+                            <Ellipse width="118" height="126" originX="0.5" originY="0.5" name="Inset oval" />
+                            <Fill name="Fill">
+                                <SolidColor colorValue="FFF9F8EF" name="Warm ivory" />
+                            </Fill>
+                        </Shape>
+                    </Node>
+                    <Shape x="-51" y="93" rotation="-0.53" name="Left hip armor" id="0:109">
+                        <Rectangle width="39" height="49" originX="0.5" originY="0.5" cornerRadiusTL="16" name="Plate" />
+                        <Fill name="Fill">
+                            <SolidColor colorValue="FF3E4A43" name="Charcoal" />
+                        </Fill>
+                        <Stroke thickness="2" name="Rim">
+                            <SolidColor colorValue="FF26332D" name="Ink" />
+                        </Stroke>
+                    </Shape>
+                    <Shape x="51" y="93" rotation="0.53" name="Right hip armor" id="0:110">
+                        <Rectangle width="39" height="49" originX="0.5" originY="0.5" cornerRadiusTL="16" name="Plate" />
+                        <Fill name="Fill">
+                            <SolidColor colorValue="FF3E4A43" name="Charcoal" />
+                        </Fill>
+                        <Stroke thickness="2" name="Rim">
+                            <SolidColor colorValue="FF26332D" name="Ink" />
+                        </Stroke>
+                    </Shape>
+                    <Shape name="Torso side plane" opacity="0">
+                        <PointsPath isClosed="true" name="Editable contour">
+                            <CubicMirroredVertex x="-70" y="-88" rotation="1.2" distance="15" />
+                            <CubicMirroredVertex x="-54" y="-18" rotation="1.4" distance="20" />
+                            <CubicMirroredVertex x="-37" y="67" rotation="1.05" distance="20" />
+                            <CubicMirroredVertex x="0" y="108" rotation="0" distance="17" />
+                            <CubicMirroredVertex x="-46" y="97" rotation="-2.1" distance="18" />
+                            <CubicMirroredVertex x="-71" y="25" rotation="-1.7" distance="23" />
+                            <CubicMirroredVertex x="-78" y="-45" rotation="-1.57" distance="21" />
+                        </PointsPath>
+                        <Fill name="Fill">
+                            <SolidColor colorValue="FFB8C7B2" name="Material" />
+                        </Fill>
+                        <DataBindContext sourcePathIds="0:40-0:428" propertyKey="18" />
+                        <DataBindContext sourcePathIds="0:40-0:412" propertyKey="16" />
+                        <ClippingShape sourceId="0:111" name="Torso clip" />
+                    </Shape>
+                    <Shape name="Torso/body" id="0:111">
+                        <PointsPath isClosed="true" name="Tapered body">
+                            <CubicMirroredVertex x="0" y="-108" rotation="0" distance="30" />
+                            <CubicMirroredVertex x="72" y="-91" rotation="0.78" distance="19" />
+                            <CubicMirroredVertex x="79" y="-38" rotation="1.58" distance="22" />
+                            <CubicMirroredVertex x="61" y="66" rotation="1.78" distance="24" />
+                            <CubicMirroredVertex x="40" y="103" rotation="2.35" distance="16" />
+                            <CubicMirroredVertex x="0" y="110" rotation="3.1416" distance="22" />
+                            <CubicMirroredVertex x="-40" y="103" rotation="-2.35" distance="16" />
+                            <CubicMirroredVertex x="-61" y="66" rotation="-1.78" distance="24" />
+                            <CubicMirroredVertex x="-79" y="-38" rotation="-1.58" distance="22" />
+                            <CubicMirroredVertex x="-72" y="-91" rotation="-0.78" distance="19" />
+                        </PointsPath>
+                        <Fill name="Sage ceramic">
+                            <LinearGradient startX="-75" startY="-90" endX="80" endY="105" name="Body gradient">
+                                <GradientStop position="0" colorValue="FFF2F2E6" />
+                                <GradientStop position="0.57" colorValue="FFDCE3D3" />
+                                <GradientStop position="1" colorValue="FFB9CAB6" />
+                            </LinearGradient>
+                        </Fill>
+                        <Stroke thickness="2.3" name="Body outline">
+                            <SolidColor colorValue="FF27332E" name="Ink" />
+                        </Stroke>
+                    </Shape>
+                    <DataBindContext sourcePathIds="0:40-0:424" propertyKey="16" />
+                </Node>
+                <Node x="83" y="-66" rotation="-0.49" name="Right shoulder pivot" id="0:130">
+                    <DataBindContext sourcePathIds="0:40-0:258" propertyKey="13" />
+                    <DataBindContext sourcePathIds="0:40-0:259" propertyKey="14" />
+                    <DataBindContext sourcePathIds="0:40-0:199" propertyKey="15" />
+                    <Shape name="Right shoulder joint" id="0:131">
+                        <Ellipse width="43" height="53" originX="0.5" originY="0.5" name="Joint" />
+                        <Fill name="Fill">
+                            <SolidColor colorValue="FF424E47" name="Charcoal" />
+                        </Fill>
+                        <Stroke thickness="2.2" name="Rim">
+                            <SolidColor colorValue="FF27332E" name="Ink" />
+                        </Stroke>
+                    </Shape>
+                    <Node y="118" rotation="-0.40" name="Right elbow pivot" id="0:132">
+                        <DataBindContext sourcePathIds="0:40-0:200" propertyKey="15" />
+                        <Shape name="Right elbow joint" id="0:133">
+                            <Ellipse width="40" height="42" originX="0.5" originY="0.5" name="Joint" />
+                            <Fill name="Fill">
+                                <SolidColor colorValue="FF46514B" name="Charcoal" />
+                            </Fill>
+                            <Stroke thickness="2" name="Rim">
+                                <SolidColor colorValue="FF26332D" name="Ink" />
+                            </Stroke>
+                        </Shape>
+                        <Node y="105" rotation="-0.08" name="Right hand" id="0:134">
+                            <DataBindContext sourcePathIds="0:40-0:201" propertyKey="15" />
+                            <Node name="Right Relaxed hand" opacity="1" scaleX="-0.85" scaleY="0.85">
+                                <DataBindContext sourcePathIds="0:40-0:440" propertyKey="18" />
+                                <Shape name="Relaxed thumb">
+                                    <PointsPath isClosed="false" name="Relaxed thumb curved contour">
+                                        <CubicMirroredVertex x="-22" y="20" rotation="2.4" distance="7" />
+                                        <CubicMirroredVertex x="-31" y="37" rotation="1.2" distance="7" />
+                                        <CubicMirroredVertex x="-22" y="45" rotation="0" distance="6" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Relaxed digit 1">
+                                    <PointsPath isClosed="false" name="Relaxed digit 1 curved contour">
+                                        <CubicMirroredVertex x="-17" y="37" rotation="1.65" distance="8" />
+                                        <CubicMirroredVertex x="-16" y="57" rotation="1.2" distance="7" />
+                                        <CubicMirroredVertex x="-7" y="64" rotation="0" distance="5" />
+                                        <CubicMirroredVertex x="0" y="52" rotation="-1.3" distance="6" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Relaxed digit 2">
+                                    <PointsPath isClosed="false" name="Relaxed digit 2 curved contour">
+                                        <CubicMirroredVertex x="0" y="42" rotation="1.57" distance="8" />
+                                        <CubicMirroredVertex x="4" y="62" rotation="1.1" distance="7" />
+                                        <CubicMirroredVertex x="13" y="66" rotation="0" distance="5" />
+                                        <CubicMirroredVertex x="19" y="54" rotation="-1.2" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="16" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="13" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Relaxed digit 3">
+                                    <PointsPath isClosed="false" name="Relaxed digit 3 curved contour">
+                                        <CubicMirroredVertex x="15" y="38" rotation="1.4" distance="8" />
+                                        <CubicMirroredVertex x="24" y="54" rotation="1.0" distance="7" />
+                                        <CubicMirroredVertex x="31" y="54" rotation="-0.6" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Node name="Right PalmUp hand" opacity="0" scaleX="-.62" scaleY=".95">
+                                <DataBindContext sourcePathIds="0:40-0:441" propertyKey="18" />
+                                <Shape name="PalmUp thumb">
+                                    <PointsPath isClosed="false" name="PalmUp thumb curved contour">
+                                        <CubicMirroredVertex x="-20" y="15" rotation="2.3" distance="7" />
+                                        <CubicMirroredVertex x="-31" y="31" rotation="1.2" distance="7" />
+                                        <CubicMirroredVertex x="-27" y="41" rotation="1" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="PalmUp digit 1">
+                                    <PointsPath isClosed="false" name="PalmUp digit 1 curved contour">
+                                        <CubicMirroredVertex x="-16" y="30" rotation="1.8" distance="8" />
+                                        <CubicMirroredVertex x="-27" y="53" rotation="1.2" distance="7" />
+                                        <CubicMirroredVertex x="-33" y="58" rotation="0.3" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="PalmUp digit 2">
+                                    <PointsPath isClosed="false" name="PalmUp digit 2 curved contour">
+                                        <CubicMirroredVertex x="0" y="32" rotation="1.5" distance="9" />
+                                        <CubicMirroredVertex x="-7" y="55" rotation="1.1" distance="7" />
+                                        <CubicMirroredVertex x="-13" y="58" rotation="0.1" distance="6" />
+                                    </PointsPath>
+                                    <Stroke thickness="16" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="13" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="PalmUp digit 3">
+                                    <PointsPath isClosed="false" name="PalmUp digit 3 curved contour">
+                                        <CubicMirroredVertex x="16" y="28" rotation="1.4" distance="8" />
+                                        <CubicMirroredVertex x="12" y="48" rotation="1.0" distance="6" />
+                                        <CubicMirroredVertex x="6" y="50" rotation="0" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Node name="Right Open hand" opacity="0" scaleX="-0.85" scaleY="0.85">
+                                <DataBindContext sourcePathIds="0:40-0:442" propertyKey="18" />
+                                <Shape name="Open thumb">
+                                    <PointsPath isClosed="false" name="Open thumb curved contour">
+                                        <CubicMirroredVertex x="-22" y="18" rotation="2.5" distance="7" />
+                                        <CubicMirroredVertex x="-39" y="28" rotation="2.1" distance="7" />
+                                        <CubicMirroredVertex x="-45" y="39" rotation="1.9" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Open digit 1">
+                                    <PointsPath isClosed="false" name="Open digit 1 curved contour">
+                                        <CubicMirroredVertex x="-18" y="37" rotation="1.9" distance="8" />
+                                        <CubicMirroredVertex x="-28" y="57" rotation="1.8" distance="8" />
+                                        <CubicMirroredVertex x="-30" y="68" rotation="1.6" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Open digit 2">
+                                    <PointsPath isClosed="false" name="Open digit 2 curved contour">
+                                        <CubicMirroredVertex x="0" y="41" rotation="1.57" distance="9" />
+                                        <CubicMirroredVertex x="0" y="65" rotation="1.57" distance="8" />
+                                        <CubicMirroredVertex x="1" y="76" rotation="1.4" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="16" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="13" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Open digit 3">
+                                    <PointsPath isClosed="false" name="Open digit 3 curved contour">
+                                        <CubicMirroredVertex x="17" y="36" rotation="1.25" distance="8" />
+                                        <CubicMirroredVertex x="26" y="56" rotation="1.2" distance="8" />
+                                        <CubicMirroredVertex x="30" y="68" rotation="1.2" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Node name="Right Guarded hand" opacity="0" scaleX="-0.85" scaleY="0.85">
+                                <DataBindContext sourcePathIds="0:40-0:443" propertyKey="18" />
+                                <Shape name="Guarded thumb">
+                                    <PointsPath isClosed="false" name="Guarded thumb curved contour">
+                                        <CubicMirroredVertex x="-22" y="17" rotation="2.0" distance="7" />
+                                        <CubicMirroredVertex x="-30" y="34" rotation="1.2" distance="7" />
+                                        <CubicMirroredVertex x="-18" y="44" rotation="0.3" distance="6" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Guarded digit 1">
+                                    <PointsPath isClosed="false" name="Guarded digit 1 curved contour">
+                                        <CubicMirroredVertex x="-16" y="38" rotation="1.7" distance="6" />
+                                        <CubicMirroredVertex x="-14" y="52" rotation="0.8" distance="7" />
+                                        <CubicMirroredVertex x="-3" y="54" rotation="-0.8" distance="6" />
+                                        <CubicMirroredVertex x="1" y="44" rotation="-1.3" distance="4" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Guarded digit 2">
+                                    <PointsPath isClosed="false" name="Guarded digit 2 curved contour">
+                                        <CubicMirroredVertex x="0" y="39" rotation="1.3" distance="7" />
+                                        <CubicMirroredVertex x="5" y="53" rotation="0.6" distance="7" />
+                                        <CubicMirroredVertex x="16" y="50" rotation="-0.8" distance="6" />
+                                        <CubicMirroredVertex x="18" y="40" rotation="-1.4" distance="4" />
+                                    </PointsPath>
+                                    <Stroke thickness="16" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="13" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Guarded digit 3">
+                                    <PointsPath isClosed="false" name="Guarded digit 3 curved contour">
+                                        <CubicMirroredVertex x="16" y="33" rotation="1.1" distance="7" />
+                                        <CubicMirroredVertex x="24" y="44" rotation="0.2" distance="6" />
+                                        <CubicMirroredVertex x="33" y="39" rotation="-1" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Node name="Right Tense hand" opacity="0" scaleX="-0.85" scaleY="0.85">
+                                <DataBindContext sourcePathIds="0:40-0:444" propertyKey="18" />
+                                <Shape name="Tense thumb">
+                                    <PointsPath isClosed="false" name="Tense thumb curved contour">
+                                        <CubicMirroredVertex x="-23" y="16" rotation="2.6" distance="7" />
+                                        <CubicMirroredVertex x="-40" y="24" rotation="2.0" distance="7" />
+                                        <CubicMirroredVertex x="-42" y="37" rotation="1.5" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Tense digit 1">
+                                    <PointsPath isClosed="false" name="Tense digit 1 curved contour">
+                                        <CubicMirroredVertex x="-17" y="36" rotation="2.0" distance="7" />
+                                        <CubicMirroredVertex x="-28" y="54" rotation="1.5" distance="7" />
+                                        <CubicMirroredVertex x="-24" y="66" rotation="0.3" distance="6" />
+                                        <CubicMirroredVertex x="-15" y="60" rotation="-1.0" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Tense digit 2">
+                                    <PointsPath isClosed="false" name="Tense digit 2 curved contour">
+                                        <CubicMirroredVertex x="0" y="41" rotation="1.7" distance="8" />
+                                        <CubicMirroredVertex x="-3" y="62" rotation="0.8" distance="8" />
+                                        <CubicMirroredVertex x="7" y="71" rotation="0" distance="6" />
+                                        <CubicMirroredVertex x="14" y="62" rotation="-1.0" distance="5" />
+                                    </PointsPath>
+                                    <Stroke thickness="16" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="13" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Tense digit 3">
+                                    <PointsPath isClosed="false" name="Tense digit 3 curved contour">
+                                        <CubicMirroredVertex x="17" y="36" rotation="1.1" distance="8" />
+                                        <CubicMirroredVertex x="28" y="53" rotation="0.5" distance="8" />
+                                        <CubicMirroredVertex x="39" y="51" rotation="-0.7" distance="6" />
+                                        <CubicMirroredVertex x="40" y="41" rotation="-1.4" distance="4" />
+                                    </PointsPath>
+                                    <Stroke thickness="15" cap="round" join="round" name="Ink">
+                                        <SolidColor colorValue="FF29372F" name="Material" />
+                                    </Stroke>
+                                    <Stroke thickness="12" cap="round" join="round" name="Ceramic">
+                                        <SolidColor colorValue="FFF5F1E5" name="Material" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Node name="Right shared opaque palm" scaleX="-.85" scaleY=".85">
+                                <DataBindContext sourcePathIds="0:40-0:531" propertyKey="16" />
+                                <DataBindContext sourcePathIds="0:40-0:532" propertyKey="17" />
+                                <Shape name="Ceramic palm pad">
+                                    <PointsPath isClosed="true" name="Editable contour">
+                                        <CubicMirroredVertex x="-15" y="12" rotation="2.3" distance="7" />
+                                        <CubicMirroredVertex x="-18" y="27" rotation="1.5" distance="8" />
+                                        <CubicMirroredVertex x="-6" y="40" rotation="0.45" distance="8" />
+                                        <CubicMirroredVertex x="12" y="42" rotation="-0.35" distance="8" />
+                                        <CubicMirroredVertex x="21" y="27" rotation="-1.5" distance="8" />
+                                        <CubicMirroredVertex x="11" y="13" rotation="3.1416" distance="9" />
+                                    </PointsPath>
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FFF2F0E4" name="Material" />
+                                    </Fill>
+                                    <Stroke thickness="1.8" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Dark digit knuckle 1" x="-17" y="38">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF465249" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="18" height="18" originX="0.5" originY="0.5" name="Oval" />
+                                </Shape>
+                                <Shape name="Dark digit knuckle 2" x="0" y="41">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF465249" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="18" height="18" originX="0.5" originY="0.5" name="Oval" />
+                                </Shape>
+                                <Shape name="Dark digit knuckle 3" x="17" y="36">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF465249" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="18" height="18" originX="0.5" originY="0.5" name="Oval" />
+                                </Shape>
+                                <Shape name="Mechanical palm frame" x="0" y="24">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF465249" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="48" height="46" originX="0.5" originY="0.5" name="Oval" />
+                                    <Stroke thickness="2" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape name="Wrist bearing" x="0" y="0">
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF465249" name="Material" />
+                                    </Fill>
+                                    <Ellipse width="31" height="26" originX="0.5" originY="0.5" name="Oval" />
+                                    <Stroke thickness="1.8" cap="round" join="round" name="Ink edge">
+                                        <SolidColor colorValue="FF29372F" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                        </Node>
+                        <Shape x="11" y="69" name="Right forearm accent">
+                            <Ellipse width="22" height="30" originX="0.5" originY="0.5" name="Oval" />
+                            <Fill name="Fill">
+                                <SolidColor colorValue="FF9CB983" name="Olive" />
+                            </Fill>
+                            <Stroke thickness="2" name="Rim">
+                                <SolidColor colorValue="FF3D6041" name="Green" />
+                            </Stroke>
+                        </Shape>
+                        <Shape y="0" name="Right lower arm" id="0:136">
+                            <PointsPath isClosed="true" name="V2 pear forearm">
+                                <CubicMirroredVertex x="0" y="-5" rotation="0" distance="12" />
+                                <CubicMirroredVertex x="20" y="12" rotation="1.1" distance="12" />
+                                <CubicMirroredVertex x="27" y="66" rotation="1.57" distance="18" />
+                                <CubicMirroredVertex x="15" y="104" rotation="2.5" distance="11" />
+                                <CubicMirroredVertex x="0" y="110" rotation="3.1416" distance="11" />
+                                <CubicMirroredVertex x="-19" y="98" rotation="-2.2" distance="12" />
+                                <CubicMirroredVertex x="-25" y="65" rotation="-1.57" distance="17" />
+                                <CubicMirroredVertex x="-19" y="14" rotation="-1.05" distance="12" />
+                            </PointsPath>
+                            <Fill name="Fill">
+                                <LinearGradient startX="-20" startY="-55" endX="22" endY="55" name="Ceramic gradient">
+                                    <GradientStop position="0" colorValue="FFFFFCF3" />
+                                    <GradientStop position="1" colorValue="FFE2E7DB" />
+                                </LinearGradient>
+                            </Fill>
+                            <Stroke thickness="2.3" name="Rim">
+                                <SolidColor colorValue="FF27332E" name="Ink" />
+                            </Stroke>
+                        </Shape>
+                        <DrawRules drawTargetId="0:525" name="Pose forearm depth" id="0:523">
+                            <DrawTarget drawableId="0:111" placementValue="after" name="Far relaxed arm" id="0:524" />
+                            <DrawTarget drawableId="0:103" placementValue="before" name="Gesture in front of upper body" id="0:525" />
+                        </DrawRules>
+                    </Node>
+                    <Shape y="0" name="Right upper arm" id="0:137">
+                        <PointsPath isClosed="true" name="V2 tapered upper arm">
+                            <CubicMirroredVertex x="0" y="-5" rotation="0" distance="9" />
+                            <CubicMirroredVertex x="15" y="10" rotation="1.5" distance="10" />
+                            <CubicMirroredVertex x="15" y="99" rotation="1.6" distance="16" />
+                            <CubicMirroredVertex x="0" y="121" rotation="3.1416" distance="10" />
+                            <CubicMirroredVertex x="-14" y="103" rotation="-1.6" distance="16" />
+                            <CubicMirroredVertex x="-15" y="11" rotation="-1.5" distance="10" />
+                        </PointsPath>
+                        <Fill name="Fill">
+                            <LinearGradient startX="17" startY="-55" endX="-18" endY="60" name="Ceramic gradient">
+                                <GradientStop position="0" colorValue="FFFFFCF3" />
+                                <GradientStop position="1" colorValue="FFE0E5D9" />
+                            </LinearGradient>
+                        </Fill>
+                        <Stroke thickness="2.3" name="Rim">
+                            <SolidColor colorValue="FF27332E" name="Ink" />
+                        </Stroke>
+                    </Shape>
+                    <DataBindContext sourcePathIds="0:40-0:422" propertyKey="16" />
+                    <DataBindContext sourcePathIds="0:40-0:423" propertyKey="17" />
+                </Node>
+            </Node>
+            <Node name="Lower body rig" id="0:150">
+                <DataBindContext sourcePathIds="0:40-0:252" propertyKey="13" />
+                <DataBindContext sourcePathIds="0:40-0:253" propertyKey="14" />
+                <DataBindContext sourcePathIds="0:40-0:254" propertyKey="15" />
+                <Node x="-56" y="-4" name="Left hip pivot" id="0:151">
+                    <Node name="Left thigh pivot" id="0:280">
+                        <DataBindContext sourcePathIds="0:40-0:260" propertyKey="15" />
+                        <Node y="127" name="Left knee pivot" id="0:281">
+                            <DataBindContext sourcePathIds="0:40-0:261" propertyKey="15" />
+                            <Node x="-7" y="85" name="Left ankle/foot" id="0:152">
+                                <DataBindContext sourcePathIds="0:40-0:262" propertyKey="13" />
+                                <DataBindContext sourcePathIds="0:40-0:263" propertyKey="14" />
+                                <DataBindContext sourcePathIds="0:40-0:264" propertyKey="15" />
+                                <Shape y="41" name="Left sole" id="0:153">
+                                    <Rectangle width="115" height="18" originX="0.5" originY="0.5" cornerRadiusTL="8" name="Sole band" />
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF91A991" name="Sage" />
+                                    </Fill>
+                                    <Stroke thickness="2" name="Rim">
+                                        <SolidColor colorValue="FF27332E" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape y="20" name="Left foot" id="0:154">
+                                    <PointsPath isClosed="true" name="V2 domed ceramic toe">
+                                        <CubicMirroredVertex x="0" y="-31" rotation="0" distance="25" />
+                                        <CubicMirroredVertex x="43" y="-13" rotation="0.75" distance="13" />
+                                        <CubicMirroredVertex x="58" y="17" rotation="1.57" distance="9" />
+                                        <CubicMirroredVertex x="44" y="27" rotation="3.1416" distance="16" />
+                                        <CubicMirroredVertex x="-43" y="27" rotation="3.1416" distance="17" />
+                                        <CubicMirroredVertex x="-58" y="15" rotation="-1.57" distance="10" />
+                                        <CubicMirroredVertex x="-42" y="-14" rotation="-0.8" distance="14" />
+                                    </PointsPath>
+                                    <Fill name="Fill">
+                                        <LinearGradient startX="-35" startY="-22" endX="36" endY="24" name="Ceramic gradient">
+                                            <GradientStop position="0" colorValue="FFFFFDF4" />
+                                            <GradientStop position="1" colorValue="FFE9EBE0" />
+                                        </LinearGradient>
+                                    </Fill>
+                                    <Stroke thickness="2.3" name="Outline">
+                                        <SolidColor colorValue="FF27332E" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Shape x="31" y="69" name="Left ankle accent" id="0:155">
+                                <Ellipse width="17" height="38" originX="0.5" originY="0.5" name="Oval" />
+                                <Fill name="Fill">
+                                    <SolidColor colorValue="FF9AB581" name="Olive" />
+                                </Fill>
+                                <Stroke thickness="2" name="Rim">
+                                    <SolidColor colorValue="FF3B5C40" name="Green" />
+                                </Stroke>
+                            </Shape>
+                            <Shape y="57" name="Left lower leg" id="0:156">
+                                <PointsPath isClosed="true" name="Flared boot">
+                                    <CubicMirroredVertex x="0" y="-60" rotation="0" distance="13" />
+                                    <CubicMirroredVertex x="20" y="-54" rotation="1.1" distance="12" />
+                                    <CubicMirroredVertex x="37" y="42" rotation="1.58" distance="8" />
+                                    <CubicMirroredVertex x="25" y="50" rotation="3.1416" distance="11" />
+                                    <CubicMirroredVertex x="-25" y="50" rotation="3.1416" distance="11" />
+                                    <CubicMirroredVertex x="-37" y="42" rotation="-1.58" distance="8" />
+                                    <CubicMirroredVertex x="-20" y="-54" rotation="-1.1" distance="12" />
+                                </PointsPath>
+                                <Fill name="Fill">
+                                    <LinearGradient startX="-30" startY="-54" endX="31" endY="51" name="Ceramic gradient">
+                                        <GradientStop position="0" colorValue="FFFFFCF3" />
+                                        <GradientStop position="1" colorValue="FFDFE5D8" />
+                                    </LinearGradient>
+                                </Fill>
+                                <Stroke thickness="2.3" name="Outline">
+                                    <SolidColor colorValue="FF27332E" name="Ink" />
+                                </Stroke>
+                            </Shape>
+                            <Shape y="0" name="Left knee joint" id="0:157">
+                                <Ellipse width="48" height="53" originX="0.5" originY="0.5" name="Joint" />
+                                <Fill name="Fill">
+                                    <SolidColor colorValue="FF4B554E" name="Charcoal" />
+                                </Fill>
+                                <Stroke thickness="2.4" name="Rim">
+                                    <SolidColor colorValue="FF27332E" name="Ink" />
+                                </Stroke>
+                            </Shape>
+                        </Node>
+                        <Shape y="60" name="Left upper leg" id="0:158">
+                            <PointsPath isClosed="true" name="V2 thigh contour">
+                                <CubicMirroredVertex x="0" y="-69" rotation="0" distance="12" />
+                                <CubicMirroredVertex x="21" y="-55" rotation="1.2" distance="13" />
+                                <CubicMirroredVertex x="17" y="49" rotation="1.64" distance="13" />
+                                <CubicMirroredVertex x="0" y="70" rotation="3.1416" distance="10" />
+                                <CubicMirroredVertex x="-18" y="52" rotation="-1.64" distance="13" />
+                                <CubicMirroredVertex x="-23" y="-50" rotation="-1.4" distance="14" />
+                            </PointsPath>
+                            <Fill name="Fill">
+                                <LinearGradient startX="-20" startY="-60" endX="23" endY="68" name="Ceramic gradient">
+                                    <GradientStop position="0" colorValue="FFFFFCF3" />
+                                    <GradientStop position="1" colorValue="FFE3E8DC" />
+                                </LinearGradient>
+                            </Fill>
+                            <Stroke thickness="2.3" name="Outline">
+                                <SolidColor colorValue="FF27332E" name="Ink" />
+                            </Stroke>
+                        </Shape>
+                    </Node>
+                    <Shape name="Left hip joint" id="0:159">
+                        <Ellipse width="48" height="46" originX="0.5" originY="0.5" name="Joint" />
+                        <Fill name="Fill">
+                            <SolidColor colorValue="FF46514A" name="Charcoal" />
+                        </Fill>
+                    </Shape>
+                    <DataBindContext sourcePathIds="0:40-0:451" propertyKey="13" />
+                    <DataBindContext sourcePathIds="0:40-0:452" propertyKey="14" />
+                </Node>
+                <Node x="56" y="-4" name="Right hip pivot" id="0:160">
+                    <Node name="Right thigh pivot" id="0:282">
+                        <DataBindContext sourcePathIds="0:40-0:265" propertyKey="15" />
+                        <Node y="127" name="Right knee pivot" id="0:283">
+                            <DataBindContext sourcePathIds="0:40-0:266" propertyKey="15" />
+                            <Node x="7" y="85" name="Right ankle/foot" id="0:161">
+                                <DataBindContext sourcePathIds="0:40-0:267" propertyKey="13" />
+                                <DataBindContext sourcePathIds="0:40-0:268" propertyKey="14" />
+                                <DataBindContext sourcePathIds="0:40-0:269" propertyKey="15" />
+                                <Shape y="41" name="Right sole" id="0:162">
+                                    <Rectangle width="115" height="18" originX="0.5" originY="0.5" cornerRadiusTL="8" name="Sole band" />
+                                    <Fill name="Fill">
+                                        <SolidColor colorValue="FF91A991" name="Sage" />
+                                    </Fill>
+                                    <Stroke thickness="2" name="Rim">
+                                        <SolidColor colorValue="FF27332E" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                                <Shape y="20" name="Right foot" id="0:163">
+                                    <PointsPath isClosed="true" name="V2 domed ceramic toe">
+                                        <CubicMirroredVertex x="0" y="-31" rotation="0" distance="25" />
+                                        <CubicMirroredVertex x="43" y="-13" rotation="0.75" distance="13" />
+                                        <CubicMirroredVertex x="58" y="17" rotation="1.57" distance="9" />
+                                        <CubicMirroredVertex x="44" y="27" rotation="3.1416" distance="16" />
+                                        <CubicMirroredVertex x="-43" y="27" rotation="3.1416" distance="17" />
+                                        <CubicMirroredVertex x="-58" y="15" rotation="-1.57" distance="10" />
+                                        <CubicMirroredVertex x="-42" y="-14" rotation="-0.8" distance="14" />
+                                    </PointsPath>
+                                    <Fill name="Fill">
+                                        <LinearGradient startX="35" startY="-22" endX="-36" endY="24" name="Ceramic gradient">
+                                            <GradientStop position="0" colorValue="FFFFFDF4" />
+                                            <GradientStop position="1" colorValue="FFE9EBE0" />
+                                        </LinearGradient>
+                                    </Fill>
+                                    <Stroke thickness="2.3" name="Outline">
+                                        <SolidColor colorValue="FF27332E" name="Ink" />
+                                    </Stroke>
+                                </Shape>
+                            </Node>
+                            <Shape x="-31" y="69" name="Right ankle accent" id="0:164">
+                                <Ellipse width="17" height="38" originX="0.5" originY="0.5" name="Oval" />
+                                <Fill name="Fill">
+                                    <SolidColor colorValue="FF9AB581" name="Olive" />
+                                </Fill>
+                                <Stroke thickness="2" name="Rim">
+                                    <SolidColor colorValue="FF3B5C40" name="Green" />
+                                </Stroke>
+                            </Shape>
+                            <Shape y="57" name="Right lower leg" id="0:165">
+                                <PointsPath isClosed="true" name="Flared boot">
+                                    <CubicMirroredVertex x="0" y="-60" rotation="0" distance="13" />
+                                    <CubicMirroredVertex x="20" y="-54" rotation="1.1" distance="12" />
+                                    <CubicMirroredVertex x="37" y="42" rotation="1.58" distance="8" />
+                                    <CubicMirroredVertex x="25" y="50" rotation="3.1416" distance="11" />
+                                    <CubicMirroredVertex x="-25" y="50" rotation="3.1416" distance="11" />
+                                    <CubicMirroredVertex x="-37" y="42" rotation="-1.58" distance="8" />
+                                    <CubicMirroredVertex x="-20" y="-54" rotation="-1.1" distance="12" />
+                                </PointsPath>
+                                <Fill name="Fill">
+                                    <LinearGradient startX="30" startY="-54" endX="-31" endY="51" name="Ceramic gradient">
+                                        <GradientStop position="0" colorValue="FFFFFCF3" />
+                                        <GradientStop position="1" colorValue="FFDFE5D8" />
+                                    </LinearGradient>
+                                </Fill>
+                                <Stroke thickness="2.3" name="Outline">
+                                    <SolidColor colorValue="FF27332E" name="Ink" />
+                                </Stroke>
+                            </Shape>
+                            <Shape y="0" name="Right knee joint" id="0:166">
+                                <Ellipse width="48" height="53" originX="0.5" originY="0.5" name="Joint" />
+                                <Fill name="Fill">
+                                    <SolidColor colorValue="FF4B554E" name="Charcoal" />
+                                </Fill>
+                                <Stroke thickness="2.4" name="Rim">
+                                    <SolidColor colorValue="FF27332E" name="Ink" />
+                                </Stroke>
+                            </Shape>
+                        </Node>
+                        <Shape y="60" name="Right upper leg" id="0:167">
+                            <PointsPath isClosed="true" name="V2 thigh contour">
+                                <CubicMirroredVertex x="0" y="-69" rotation="0" distance="12" />
+                                <CubicMirroredVertex x="21" y="-55" rotation="1.2" distance="13" />
+                                <CubicMirroredVertex x="17" y="49" rotation="1.64" distance="13" />
+                                <CubicMirroredVertex x="0" y="70" rotation="3.1416" distance="10" />
+                                <CubicMirroredVertex x="-18" y="52" rotation="-1.64" distance="13" />
+                                <CubicMirroredVertex x="-23" y="-50" rotation="-1.4" distance="14" />
+                            </PointsPath>
+                            <Fill name="Fill">
+                                <LinearGradient startX="20" startY="-60" endX="-23" endY="68" name="Ceramic gradient">
+                                    <GradientStop position="0" colorValue="FFFFFCF3" />
+                                    <GradientStop position="1" colorValue="FFE3E8DC" />
+                                </LinearGradient>
+                            </Fill>
+                            <Stroke thickness="2.3" name="Outline">
+                                <SolidColor colorValue="FF27332E" name="Ink" />
+                            </Stroke>
+                        </Shape>
+                    </Node>
+                    <Shape name="Right hip joint" id="0:168">
+                        <Ellipse width="48" height="46" originX="0.5" originY="0.5" name="Joint" />
+                        <Fill name="Fill">
+                            <SolidColor colorValue="FF46514A" name="Charcoal" />
+                        </Fill>
+                    </Shape>
+                    <DataBindContext sourcePathIds="0:40-0:453" propertyKey="13" />
+                    <DataBindContext sourcePathIds="0:40-0:454" propertyKey="14" />
+                </Node>
+            </Node>
+        </Node>
+        <Shape x="350" y="842" name="Ground shadow" id="0:169">
+            <Ellipse width="280" height="17" originX="0.5" originY="0.5" name="Soft oval" />
+            <Fill name="Fill">
+                <SolidColor colorValue="244D6555" name="Transparent sage" />
+            </Fill>
+        </Shape>
+        <StateMachine name="Bimo V2 narrative states" id="0:7">
+            <StateMachineLayer name="Emotion layer" id="0:8">
+                <AnyState x="180" y="-150" />
+                <ExitState x="510" y="-150" />
+                <EntryState x="0" y="0">
+                    <StateTransition stateToId="0:500" />
+                </EntryState>
+                <AnimationState x="180" y="0" animationId="0:510" id="0:500">
+                    <StateTransition stateToId="0:501" duration="650" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="1" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:502" duration="420" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="2" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:503" duration="550" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="3" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:504" duration="600" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="4" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                </AnimationState>
+                <AnimationState x="510" y="0" animationId="0:511" id="0:501">
+                    <StateTransition stateToId="0:500" duration="500" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="0" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:502" duration="420" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="2" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:503" duration="550" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="3" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:504" duration="600" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="4" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                </AnimationState>
+                <AnimationState x="840" y="0" animationId="0:512" id="0:502">
+                    <StateTransition stateToId="0:500" duration="500" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="0" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:501" duration="650" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="1" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:503" duration="550" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="3" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:504" duration="600" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="4" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                </AnimationState>
+                <AnimationState x="1170" y="0" animationId="0:513" id="0:503">
+                    <StateTransition stateToId="0:500" duration="500" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="0" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:501" duration="650" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="1" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:502" duration="420" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="2" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:504" duration="600" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="4" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                </AnimationState>
+                <AnimationState x="1500" y="0" animationId="0:514" id="0:504">
+                    <StateTransition stateToId="0:500" duration="500" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="0" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:501" duration="650" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="1" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:502" duration="420" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="2" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                    <StateTransition stateToId="0:503" duration="550" enableEarlyExit="true">
+                        <TransitionViewModelCondition opValue="equal">
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyNumber>
+                                    <DataBindContext sourcePathIds="0:40-0:202" propertyKey="636" />
+                                </BindablePropertyNumber>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueNumberComparator value="3" />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                </AnimationState>
+            </StateMachineLayer>
+        </StateMachine>
+        <LinearAnimation duration="60" loopValue="loop" name="INTRO FOCUS hold" id="0:510">
+            <KeyedObject objectId="0:28">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="1" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:221">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:243">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:240">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:300">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:301">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:520">
+                <KeyedProperty propertyKey="121">
+                    <KeyFrameId value="0:522" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:523">
+                <KeyedProperty propertyKey="121">
+                    <KeyFrameId value="0:524" />
+                </KeyedProperty>
+            </KeyedObject>
+        </LinearAnimation>
+        <LinearAnimation duration="60" loopValue="loop" name="DEEP FOCUS hold" id="0:511">
+            <KeyedObject objectId="0:28">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="1" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:221">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:243">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:240">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:300">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:301">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:520">
+                <KeyedProperty propertyKey="121">
+                    <KeyFrameId value="0:522" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:523">
+                <KeyedProperty propertyKey="121">
+                    <KeyFrameId value="0:524" />
+                </KeyedProperty>
+            </KeyedObject>
+        </LinearAnimation>
+        <LinearAnimation duration="60" loopValue="loop" name="NOTICE hold" id="0:512">
+            <KeyedObject objectId="0:28">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:221">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="1" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:243">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:240">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:300">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:301">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:520">
+                <KeyedProperty propertyKey="121">
+                    <KeyFrameId value="0:522" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:523">
+                <KeyedProperty propertyKey="121">
+                    <KeyFrameId value="0:525" />
+                </KeyedProperty>
+            </KeyedObject>
+        </LinearAnimation>
+        <LinearAnimation duration="60" loopValue="loop" name="CONCERNED hold" id="0:513">
+            <KeyedObject objectId="0:28">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:221">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:243">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="1" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:240">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="1" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:300">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:301">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:520">
+                <KeyedProperty propertyKey="121">
+                    <KeyFrameId value="0:522" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:523">
+                <KeyedProperty propertyKey="121">
+                    <KeyFrameId value="0:525" />
+                </KeyedProperty>
+            </KeyedObject>
+        </LinearAnimation>
+        <LinearAnimation duration="60" loopValue="loop" name="OVERWHELMED hold" id="0:514">
+            <KeyedObject objectId="0:28">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:221">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:243">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:240">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="0" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:300">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="1" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:301">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="1" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:520">
+                <KeyedProperty propertyKey="121">
+                    <KeyFrameId value="0:522" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:523">
+                <KeyedProperty propertyKey="121">
+                    <KeyFrameId value="0:525" />
+                </KeyedProperty>
+            </KeyedObject>
+        </LinearAnimation>
+    </Artboard>
+    <ViewModel defaultInstanceId="0:41" name="BimoV2" id="0:40">
+        <ViewModelPropertyNumber name="lookX" id="0:42" />
+        <ViewModelPropertyNumber name="lookY" id="0:48" />
+        <ViewModelPropertyNumber name="emotionStage" id="0:202" />
+        <ViewModelPropertyNumber name="overload" id="0:307" />
+        <ViewModelPropertyBoolean name="pointerLookEnabled" id="0:246" />
+        <ViewModelPropertyBoolean name="useExternalLook" id="0:203" />
+        <ViewModelPropertyString name="debugStateText" id="0:204" />
+        <ViewModelPropertyString name="debugInputText" id="0:205" />
+        <ViewModelPropertyNumber name="eyeX" id="0:43" />
+        <ViewModelPropertyNumber name="eyeY" id="0:44" />
+        <ViewModelPropertyNumber name="blinkScale" id="0:45" />
+        <ViewModelPropertyNumber name="openEyeOpacity" id="0:223" />
+        <ViewModelPropertyNumber name="closedEyeOpacity" id="0:224" />
+        <ViewModelPropertyNumber name="headTilt" id="0:46" />
+        <ViewModelPropertyNumber name="sproutTilt" id="0:47" />
+        <ViewModelPropertyNumber name="faceX" id="0:60" />
+        <ViewModelPropertyNumber name="faceY" id="0:61" />
+        <ViewModelPropertyNumber name="faceScaleX" id="0:62" />
+        <ViewModelPropertyNumber name="faceCounterTilt" id="0:63" />
+        <ViewModelPropertyNumber name="headY" id="0:64" />
+        <ViewModelPropertyNumber name="headScaleX" id="0:65" />
+        <ViewModelPropertyNumber name="headScaleY" id="0:66" />
+        <ViewModelPropertyNumber name="leftPodX" id="0:67" />
+        <ViewModelPropertyNumber name="leftPodScale" id="0:68" />
+        <ViewModelPropertyNumber name="rightPodX" id="0:69" />
+        <ViewModelPropertyNumber name="rightPodScale" id="0:70" />
+        <ViewModelPropertyNumber name="torsoX" id="0:190" />
+        <ViewModelPropertyNumber name="torsoY" id="0:191" />
+        <ViewModelPropertyNumber name="torsoRotation" id="0:192" />
+        <ViewModelPropertyNumber name="torsoScaleX" id="0:193" />
+        <ViewModelPropertyNumber name="torsoScaleY" id="0:194" />
+        <ViewModelPropertyNumber name="neckTilt" id="0:195" />
+        <ViewModelPropertyNumber name="leftShoulderRotation" id="0:196" />
+        <ViewModelPropertyNumber name="leftElbowRotation" id="0:197" />
+        <ViewModelPropertyNumber name="leftHandRotation" id="0:198" />
+        <ViewModelPropertyNumber name="rightShoulderRotation" id="0:199" />
+        <ViewModelPropertyNumber name="rightElbowRotation" id="0:200" />
+        <ViewModelPropertyNumber name="rightHandRotation" id="0:201" />
+        <ViewModelPropertyNumber name="bodyRootX" id="0:250" />
+        <ViewModelPropertyNumber name="bodyRootY" id="0:251" />
+        <ViewModelPropertyNumber name="pelvisX" id="0:252" />
+        <ViewModelPropertyNumber name="pelvisY" id="0:253" />
+        <ViewModelPropertyNumber name="pelvisRotation" id="0:254" />
+        <ViewModelPropertyNumber name="headPoseTilt" id="0:255" />
+        <ViewModelPropertyNumber name="leftShoulderX" id="0:256" />
+        <ViewModelPropertyNumber name="leftShoulderY" id="0:257" />
+        <ViewModelPropertyNumber name="rightShoulderX" id="0:258" />
+        <ViewModelPropertyNumber name="rightShoulderY" id="0:259" />
+        <ViewModelPropertyNumber name="leftThighRotation" id="0:260" />
+        <ViewModelPropertyNumber name="leftKneeRotation" id="0:261" />
+        <ViewModelPropertyNumber name="leftAnkleX" id="0:262" />
+        <ViewModelPropertyNumber name="leftAnkleY" id="0:263" />
+        <ViewModelPropertyNumber name="leftFootRotation" id="0:264" />
+        <ViewModelPropertyNumber name="rightThighRotation" id="0:265" />
+        <ViewModelPropertyNumber name="rightKneeRotation" id="0:266" />
+        <ViewModelPropertyNumber name="rightAnkleX" id="0:267" />
+        <ViewModelPropertyNumber name="rightAnkleY" id="0:268" />
+        <ViewModelPropertyNumber name="rightFootRotation" id="0:269" />
+        <ViewModelPropertyNumber name="headSideOpacity" id="0:411" />
+        <ViewModelPropertyNumber name="sideMirror" id="0:412" />
+        <ViewModelPropertyNumber name="leftPodScaleY" id="0:415" />
+        <ViewModelPropertyNumber name="rightPodScaleY" id="0:418" />
+        <ViewModelPropertyNumber name="leftArmScaleX" id="0:420" />
+        <ViewModelPropertyNumber name="leftArmScaleY" id="0:421" />
+        <ViewModelPropertyNumber name="rightArmScaleX" id="0:422" />
+        <ViewModelPropertyNumber name="rightArmScaleY" id="0:423" />
+        <ViewModelPropertyNumber name="torsoProjection" id="0:424" />
+        <ViewModelPropertyNumber name="badgeX" id="0:426" />
+        <ViewModelPropertyNumber name="badgeScaleX" id="0:427" />
+        <ViewModelPropertyNumber name="bodySideOpacity" id="0:428" />
+        <ViewModelPropertyNumber name="facing" id="0:450" />
+        <ViewModelPropertyNumber name="leftHipX" id="0:451" />
+        <ViewModelPropertyNumber name="leftHipY" id="0:452" />
+        <ViewModelPropertyNumber name="rightHipX" id="0:453" />
+        <ViewModelPropertyNumber name="rightHipY" id="0:454" />
+        <ViewModelPropertyNumber name="leftHandRelaxed" id="0:430" />
+        <ViewModelPropertyNumber name="leftHandPalmUp" id="0:431" />
+        <ViewModelPropertyNumber name="leftHandOpen" id="0:432" />
+        <ViewModelPropertyNumber name="leftHandGuarded" id="0:433" />
+        <ViewModelPropertyNumber name="leftHandTense" id="0:434" />
+        <ViewModelPropertyNumber name="rightHandRelaxed" id="0:440" />
+        <ViewModelPropertyNumber name="rightHandPalmUp" id="0:441" />
+        <ViewModelPropertyNumber name="rightHandOpen" id="0:442" />
+        <ViewModelPropertyNumber name="rightHandGuarded" id="0:443" />
+        <ViewModelPropertyNumber name="rightHandTense" id="0:444" />
+        <ViewModelPropertyNumber name="leftPalmScaleX" id="0:530" />
+        <ViewModelPropertyNumber name="rightPalmScaleX" id="0:531" />
+        <ViewModelPropertyNumber name="palmScaleY" id="0:532" />
+        <ViewModelInstance exports="true" name="INTRO" id="0:41">
+            <ViewModelInstanceNumber viewModelPropertyId="0:42" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:48" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:202" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:307" propertyValue="0.649999976" />
+            <ViewModelInstanceBoolean viewModelPropertyId="0:246" propertyValue="false" />
+            <ViewModelInstanceBoolean viewModelPropertyId="0:203" propertyValue="true" />
+            <ViewModelInstanceString viewModelPropertyId="0:204" propertyValue="INTRO FOCUS" />
+            <ViewModelInstanceString viewModelPropertyId="0:205" propertyValue="MOVE 0  KEY 0  LOCK ON" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:43" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:44" propertyValue="25" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:45" propertyValue="1" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:223" propertyValue="1" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:224" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:46" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:47" propertyValue="-0.000608483795" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:60" propertyValue="5.81398201" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:61" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:62" propertyValue="0.963280141" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:63" propertyValue="-0.0122399619" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:64" propertyValue="-124" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:65" propertyValue="0.996174991" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:66" propertyValue="1" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:67" propertyValue="-141.011002" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:68" propertyValue="1.09485972" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:69" propertyValue="144.988998" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:70" propertyValue="0.905140281" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:190" propertyValue="0.640542328" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:191" propertyValue="-110.439049" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:192" propertyValue="0.00192162697" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:193" propertyValue="1.00043905" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:194" propertyValue="1.00109768" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:195" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:196" propertyValue="0.252847135" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:197" propertyValue="0.0828471333" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:198" propertyValue="0.0528471321" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:199" propertyValue="-0.252847135" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:200" propertyValue="-0.0828471333" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:201" propertyValue="-0.0528471321" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:250" propertyValue="350" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:251" propertyValue="590" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:252" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:253" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:254" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:255" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:256" propertyValue="-76.3880005" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:257" propertyValue="-69.0878067" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:258" propertyValue="73.9400101" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:259" propertyValue="-69.0878067" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:260" propertyValue="0.0250000004" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:261" propertyValue="-0.0499621518" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:262" propertyValue="-7.02881002" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:263" propertyValue="85.3498383" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:264" propertyValue="0.0249621514" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:265" propertyValue="-0.0250000004" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:266" propertyValue="0.0746144354" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:267" propertyValue="6.94564772" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:268" propertyValue="84.3400116" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:269" propertyValue="-0.0496144369" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:411" propertyValue="0.110159658" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:412" propertyValue="1" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:415" propertyValue="1.01147497" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:418" propertyValue="0.988525033" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:420" propertyValue="1.00459003" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:421" propertyValue="1.00305998" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:422" propertyValue="0.978580058" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:423" propertyValue="0.981640041" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:424" propertyValue="0.970930099" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:426" propertyValue="3.36598945" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:427" propertyValue="0.972460091" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:428" propertyValue="0.0994496867" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:450" propertyValue="0.850000024" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:451" propertyValue="-54.9290047" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:452" propertyValue="-4.45899868" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:453" propertyValue="57.0709953" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:454" propertyValue="-3.54100132" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:430" propertyValue="1" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:431" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:432" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:433" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:434" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:440" propertyValue="1" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:441" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:442" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:443" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:444" propertyValue="0" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:530" propertyValue="0.850000024" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:531" propertyValue="-0.850000024" />
+            <ViewModelInstanceNumber viewModelPropertyId="0:532" propertyValue="0.850000024" />
+        </ViewModelInstance>
+    </ViewModel>
+    </Rive>

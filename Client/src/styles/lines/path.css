@@ -1,0 +1,56 @@
+/* Section 4 — the way back. Cream page, ink path, sage for what's done. No new colours.
+   Type: station name 13px uppercase .12em · body 16–17px, 52ch. */
+.path{--path-cream:#faf8f3;--path-ink:#292d2a;--path-sage:#82ab80;--path-sage-dark:#4e7759;--path-y:50%;position:relative;z-index:17;color:var(--path-ink);background:var(--path-cream);font-family:Inter,Arial,sans-serif}
+.path-stage{position:relative;background:var(--path-cream)}
+.path-svg{display:none}
+.path-copy{padding:72px 24px 96px;display:grid;gap:40px;max-width:52ch;margin-inline:auto;text-align:center}
+.path-weeks,.path-handoff{display:none}
+.path-eyebrow,.path-name{font-size:13px;font-weight:500;letter-spacing:.12em;line-height:16px;text-transform:uppercase;margin:0}
+.path-name{color:var(--path-sage-dark)}
+.path-body{font-size:clamp(16px,1.2vw,17px);font-weight:400;line-height:1.55;margin:8px 0 0;text-wrap:balance}
+
+/* Pinned. The section overlaps section 3's last screen, so the stage pins at the exact
+   moment section 3's turn completes; it stays hidden until then. */
+.reels-enhanced .path{height:1860svh;margin-top:-100svh;background:transparent}
+.reels-enhanced .path-stage{position:sticky;top:0;height:100svh;overflow:hidden;visibility:hidden}
+.reels-enhanced .path-svg{display:block;position:absolute;inset:0;width:100%;height:100%}
+.reels-enhanced .path-copy{position:absolute;inset:0;padding:0;max-width:none;display:block;pointer-events:none}
+.reels-enhanced .path-handoff{display:block;position:absolute;left:50%;transform:translateX(-50%);top:calc(var(--path-y) - 44px)}
+.reels-enhanced .path-station{position:absolute;left:50%;width:min(52ch,100% - 48px);transform:translateX(-50%);opacity:0}
+.reels-enhanced .path-station[data-station=assess]{top:calc(var(--path-y) + 108px)}
+.reels-enhanced .path-station[data-station=plan],.reels-enhanced .path-station[data-station=activities]{top:calc(var(--path-y) + 44px)}
+.reels-enhanced .path-station[data-station=protect]{top:calc(var(--path-y) + 128px)}
+.reels-enhanced .path-weeks{display:block}
+.reels-enhanced .path-weeks span{position:absolute;top:calc(var(--path-y) - 34px);transform:translateX(-50%);font-size:12px;letter-spacing:.12em;opacity:0;font-variant-numeric:tabular-nums}
+
+.path-line{fill:none;stroke:var(--path-ink);stroke-opacity:.85;stroke-width:calc(2px*var(--sw,1));stroke-linecap:round;stroke-dasharray:1000}
+.path-future{fill:none;stroke:var(--path-ink);stroke-opacity:.45;stroke-width:2;stroke-dasharray:6 8}
+.path-week-tick{stroke:var(--path-ink);stroke-opacity:.3;stroke-width:1}
+.path-gate line{stroke:var(--path-ink);stroke-opacity:.45;stroke-width:1.5;stroke-linecap:round}
+.path-tick{fill:none;stroke:var(--path-sage-dark);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1}
+.path-bar{fill:var(--path-sage)}
+.path-baseline{stroke:var(--path-ink);stroke-opacity:.2;stroke-width:1}
+.path-node{fill:none;stroke:var(--path-ink);stroke-opacity:.85;stroke-width:1.5}
+.path-node-fill{fill:var(--path-sage)}
+.path-wall-band{fill:var(--path-sage);fill-opacity:.12}
+.path-wall{stroke:var(--path-sage-dark);stroke-width:1.5;stroke-opacity:.8}
+.path-drifter{stroke:var(--path-ink);stroke-opacity:.28;stroke-width:1.2;stroke-linecap:round}
+@media(max-width:700px){.reels-enhanced .path-station[data-station=assess]{top:calc(var(--path-y) + 100px)}}
+
+/* Stations 5–7. --sw keeps strokes at their on-screen weight while the camera is wide. */
+.path-branch{fill:none;stroke:var(--path-ink);stroke-opacity:.85;stroke-width:calc(1.6px*var(--sw,1));stroke-linecap:round;stroke-dasharray:1000}
+.path-field{fill:var(--path-cream);stroke:var(--path-ink);stroke-opacity:.45;stroke-width:calc(1.5px*var(--sw,1))}
+.path-field-touch{fill:var(--path-sage)}
+.path-crowd{fill:none;stroke:var(--path-ink);stroke-width:calc(1.2px*var(--sw,1));stroke-linecap:round}
+.path-thread{fill:none;stroke:var(--path-ink);stroke-opacity:.6;stroke-width:calc(.8px*var(--sw,1))}
+.path-soil{fill:none;stroke:var(--path-ink);stroke-width:calc(1.4px*var(--sw,1));stroke-linecap:round}
+.path-root-tail,.path-root-lets{fill:none;stroke:var(--path-ink);stroke-opacity:.85;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1000}
+.path-root-tail{stroke-width:calc(1.6px*var(--sw,1))}
+.path-root-lets{stroke-width:calc(1.1px*var(--sw,1))}
+.reels-enhanced .path-station[data-station=beyond]{top:calc(var(--path-y) + 56px)}
+
+/* Station 6, the echo: the Scene 2 headline's exact rule — same size, weight, spacing and anchor
+   (bottom 20px above 39% of the stage, sized to its text, centred). Only the colour differs. */
+.path-echo{font-size:clamp(26px,3vw,38px);font-weight:500;letter-spacing:-.02em;line-height:1.15;margin:0}
+.reels-enhanced .path-station.path-together{inset:0;width:auto;transform:none}
+.reels-enhanced .path-echo{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(61% + 20px);width:max-content;white-space:nowrap;text-shadow:0 0 14px var(--path-cream),0 0 3px var(--path-cream)}

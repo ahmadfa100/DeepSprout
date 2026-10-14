@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../../../../assets/brand/logo.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f9fcf5">
+  <meta name="description" content="Take a DeepSprout baseline assessment.">
+  <title>Assessment — DeepSprout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../../src/styles/style.css">
+  <link rel="stylesheet" href="../../../../src/styles/member-page.css">
+  <link rel="stylesheet" href="assessment.css">
+  <script src="../../../../src/js/utils/storage.js" defer></script>
+  <script src="assessment-data.js" defer></script>
+  <script src="assessment.js" defer></script>
+</head>
+<body data-page="lab" data-root="../../../../">
+  <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H5m6-6-6 6 6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M9 11V5a1.5 1.5 0 0 1 3 0v6m0-1V4a1.5 1.5 0 0 1 3 0v7m0-2a1.5 1.5 0 0 1 3 0v6a6 6 0 0 1-6 6h-1a6 6 0 0 1-5.2-3L5 15a1.6 1.6 0 0 1 2.6-1.8L9 15"/></symbol>
+    <symbol id="i-book" viewBox="0 0 32 32"><path d="M16 7c-4-3-9-3-13-2v19c5-1 10 0 13 3 3-3 8-4 13-3V5c-4-1-9-1-13 2Zm0 0v20"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+  </svg>
+
+  <header class="as-bar">
+    <div class="as-bar-inner">
+      <a class="as-exit" href="lab.html"><svg><use href="#i-back"/></svg> <span>Lab</span></a>
+      <div class="as-bar-title">
+        <strong id="bar-title">Assessment</strong>
+        <small id="bar-step"></small>
+      </div>
+      <button class="as-quit" type="button" id="quit-button"><svg><use href="#i-close"/></svg> <span>Stop</span></button>
+    </div>
+    <div class="as-bar-meter"><span id="bar-meter"></span></div>
+  </header>
+
+  <main class="as-main">
+
+    <!-- --------------------------------------------------------- Introduction -->
+    <section class="as-stage" data-stage="intro" aria-labelledby="intro-title">
+      <div class="narrow-shell as-intro">
+        <span class="badge-icon as-intro-mark" id="intro-icon"><svg><use href="#i-clock"/></svg></span>
+        <p class="eyebrow" id="intro-kind"></p>
+        <h1 id="intro-title"></h1>
+        <p class="as-lead" id="intro-body"></p>
+        <ul class="as-points" id="intro-points"></ul>
+        <div class="card as-records">
+          <p class="eyebrow">What gets recorded</p>
+          <p id="intro-records"></p>
+          <p class="card-note" id="intro-caveat"></p>
+        </div>
+        <div class="btn-row as-intro-actions">
+          <button class="btn btn-primary" type="button" id="begin-button">Begin <svg><use href="#i-arrow"/></svg></button>
+          <a class="btn btn-ghost" href="lab.html">Not now</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------- Questionnaire form -->
+    <section class="as-stage" data-stage="survey" hidden aria-labelledby="survey-title">
+      <div class="narrow-shell as-survey">
+        <h1 id="survey-title">In a normal week…</h1>
+        <p class="as-lead">Answer for how things usually are, not how you would like them to be.</p>
+        <form id="survey-form"></form>
+        <div class="as-survey-actions">
+          <p class="as-note" id="survey-progress" aria-live="polite"></p>
+          <button class="btn btn-primary" type="button" id="survey-submit" disabled>Finish <svg><use href="#i-arrow"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------ Timed task -->
+    <section class="as-stage as-task-stage" data-stage="task" hidden aria-labelledby="task-title">
+      <div class="narrow-shell as-task">
+        <h1 id="task-title" class="as-task-title"></h1>
+        <p class="as-lead as-task-instruction" id="task-instruction"></p>
+        <button class="as-arena" type="button" id="arena" aria-live="assertive">
+          <span class="as-arena-shape" id="arena-shape" hidden></span>
+          <span class="as-arena-label" id="arena-label">Get ready…</span>
+        </button>
+        <div class="as-task-meta">
+          <span id="task-progress">Trial 0</span>
+          <span id="task-feedback" aria-live="polite"></span>
+        </div>
+        <p class="as-note">Press the space bar or tap the box. Keep your hand ready between signals.</p>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------------- Passage -->
+    <section class="as-stage" data-stage="passage" hidden aria-labelledby="passage-title">
+      <div class="narrow-shell as-passage">
+        <p class="eyebrow" id="passage-tier"></p>
+        <h1 id="passage-title"></h1>
+        <div class="as-passage-body" id="passage-body"></div>
+        <div class="as-passage-actions">
+          <p class="as-note">Once you continue, the passage is put away.</p>
+          <button class="btn btn-primary" type="button" id="passage-done">I've finished reading <svg><use href="#i-arrow"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------- Questions -->
+    <section class="as-stage" data-stage="quiz" hidden aria-labelledby="quiz-title">
+      <div class="narrow-shell as-quiz">
+        <p class="eyebrow" id="quiz-count"></p>
+        <h1 id="quiz-title">Question</h1>
+        <div class="choice-grid as-quiz-options" id="quiz-options" role="radiogroup" aria-labelledby="quiz-title"></div>
+        <div class="as-quiz-actions">
+          <p class="as-note">Answer from memory. There is no penalty for a wrong answer.</p>
+          <button class="btn btn-primary" type="button" id="quiz-next" disabled>Next <svg><use href="#i-arrow"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------- Result -->
+    <section class="as-stage" data-stage="result" hidden aria-labelledby="result-title">
+      <div class="narrow-shell as-result">
+        <span class="badge-icon as-result-mark"><svg><use href="#i-check"/></svg></span>
+        <p class="eyebrow">Recorded</p>
+        <h1 id="result-title">Done.</h1>
+        <p class="as-lead" id="result-lead"></p>
+        <div class="card as-result-card">
+          <p class="eyebrow">What was recorded</p>
+          <dl id="result-rows"></dl>
+          <p class="card-note" id="result-caveat"></p>
+        </div>
+        <div class="btn-row as-result-actions" id="result-actions"></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="ds-dialog" id="quit-dialog" aria-labelledby="quit-title">
+    <button class="ds-dialog-close" type="button" data-close-dialog aria-label="Close">&times;</button>
+    <div class="ds-dialog-inner">
+      <p class="eyebrow">Stop this assessment</p>
+      <h2 id="quit-title">Leave without finishing?</h2>
+      <p>An unfinished attempt is not recorded. Nothing partial is saved as a result, so you would start this assessment from the beginning next time.</p>
+      <div class="btn-row" style="margin-top:20px">
+        <button class="btn btn-ghost" type="button" data-close-dialog>Keep going</button>
+        <a class="btn btn-primary" href="lab.html">Leave the assessment</a>
+      </div>
+    </div>
+  </dialog>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Training banner illustration
+
+Generated with OpenAI image generation using the attached Training SVG's embedded banner and the current DeepSprout Home illustration as visual references. The output is `hero-v2.png` (2170 × 725), used behind live HTML text in the Training banner.
+
+Prompt: “High-resolution DeepSprout Training page banner artwork for a modern wellness web app. Sprout-headed friendly robot reading a green book in rolling green landscape with a sun, clouds, foliage and small flowers. Match the current DeepSprout home illustration style and mascot identity: crisp, premium 2.5D storybook quality and mint-white-green character. Very wide landscape banner, robot with book centered slightly right, open low-detail ivory-and-mint breathing space across the left 42% for live HTML headline and buttons. Plant-rich foreground along bottom, airy sky and distant hills. Warm ivory, emerald, mint, pale blue, soft gold. Gentle polished lighting and sharp clean detail. No lettering, no words, no signpost, no UI, no logos, no watermark.”

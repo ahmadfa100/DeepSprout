@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf9f3">
+  <meta name="robots" content="noindex">
+  <title>Page not found — DeepSprout</title>
+  <!-- Support both the Client site root and VS Code's /Client/ workspace preview. -->
+  <script>
+    window.notFoundReady = (async () => {
+      let root = /^\/Client(?:\/|$)/.test(location.pathname) ? '/Client/' : '/';
+      if (root === '/') {
+        try {
+          const response = await fetch('/src/pages/public/not-found/not-found.css', { method: 'HEAD' });
+          // Live Server serves the workspace root, including for URLs outside /Client/.
+          if (!response.ok || !response.headers.get('Content-Type')?.includes('text/css')) root = '/Client/';
+        } catch (_) { /* Keep the site-root fallback if the probe is unavailable. */ }
+      }
+      for (const [rel, path] of [['icon', 'assets/brand/logo.png'], ['stylesheet', 'src/pages/public/not-found/not-found.css']]) {
+        const link = document.createElement('link');
+        link.rel = rel;
+        link.href = root + path;
+        document.head.append(link);
+      }
+      return root;
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="error-header">
+    <a class="brand" href="/index.html" aria-label="DeepSprout home"><img data-site-src="assets/brand/logo.png" width="46" height="50" alt=""><span>DeepSprout</span></a>
+    <a class="header-home" href="/index.html">Back to familiar ground <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main id="main">
+    <div class="eyebrow"><span></span> A LITTLE OFF THE BEATEN PATH</div>
+    <div class="illustration">
+      <svg class="garden-scene" viewBox="0 0 900 410" role="img" aria-labelledby="scene-title scene-description">
+        <title id="scene-title">404: a little detour in the garden</title>
+        <desc id="scene-description">Bimo, a friendly sprout-topped robot, waves beside a home sign in a garden of oversized 404 numbers, flowers, and a yellow butterfly.</desc>
+        <defs>
+          <linearGradient id="number-fill" x2="0" y2="1"><stop stop-color="#e5edcf"/><stop offset="1" stop-color="#c5d7ad"/></linearGradient>
+          <linearGradient id="bimo-shell" x2="1" y2="1"><stop stop-color="#fffdf2"/><stop offset="1" stop-color="#dddcc9"/></linearGradient>
+          <pattern id="soil" width="23" height="18" patternUnits="userSpaceOnUse"><circle cx="3" cy="5" r="1" fill="#8b9b6e" opacity=".25"/><path d="m15 13 3-1" stroke="#8b9b6e" opacity=".2" stroke-linecap="round"/></pattern>
+          <g id="flower"><path d="M0 0v28m0-9c-10 0-12-7-12-7 9-1 12 7 12 7" fill="#8baf77" stroke="#52794e" stroke-width="2"/><g fill="#f4cd72"><ellipse cy="-6" rx="4" ry="7"/><ellipse cy="6" rx="4" ry="7"/><ellipse cx="-6" rx="7" ry="4"/><ellipse cx="6" rx="7" ry="4"/></g><circle r="4" fill="#ab773e"/></g>
+          <g id="grass" fill="none" stroke="#78975d" stroke-width="2.5" stroke-linecap="round"><path d="M0 0q-2-15-8-20M0 0q1-22 7-29M0 0q5-10 13-12"/></g>
+        </defs>
+        <ellipse cx="448" cy="213" rx="319" ry="174" fill="#f0f1e4"/>
+        <circle class="sun" cx="658" cy="88" r="32" fill="#f5d889"/>
+        <circle cx="658" cy="88" r="44" fill="none" stroke="#efdba5" stroke-dasharray="2 11" stroke-linecap="round"/>
+        <g class="cloud cloud-one" fill="#fffef8"><path d="M156 103c-20 0-20-22-3-25 1-23 37-28 44-5 25-10 36 30 12 30Z"/></g>
+        <g class="cloud cloud-two" fill="#fffef8"><path d="M713 164c-18 0-19-19-3-23 4-22 30-24 38-6 22-7 29 29 7 29Z"/></g>
+        <g fill="none" stroke="#b4c6a2" stroke-width="2" stroke-linecap="round"><path d="m274 75 5-4 5 4m8-16 6-4 6 4"/><path d="m717 63 5-4 5 4"/></g>
+        <path d="M117 318c72-47 159-28 233-34 117-10 183-39 281-12 71 19 110 22 161 47-148 75-514 80-675-1Z" fill="#e1e8cf"/>
+        <ellipse cx="451" cy="337" rx="345" ry="36" fill="#d5dfbe"/>
+        <ellipse cx="451" cy="337" rx="345" ry="36" fill="url(#soil)"/>
+        <path d="M471 329c-9 16-38 22-22 35 12 10 45 13 71 22" fill="none" stroke="#faf9f3" stroke-width="22"/>
+        <path class="trail" d="M471 329c-9 16-38 22-22 35 12 10 45 13 71 22" fill="none" stroke="#c6bba2" stroke-width="1.5" stroke-dasharray="3 8" stroke-linecap="round"/>
+
+        <!-- The numerals are paths so the illustration never depends on a font loading. -->
+        <g fill="#aec292" opacity=".45" transform="translate(0 8)"><path d="M236 130h47v126h25v39h-25v35h-44v-35h-93v-39Zm3 59-47 67h47Z"/><path fill-rule="evenodd" d="M433 124c63 0 87 44 87 105s-24 105-87 105-87-44-87-105 24-105 87-105Zm0 43c-30 0-40 25-40 62s10 62 40 62 40-25 40-62-10-62-40-62Z"/><path d="M643 130h47v126h25v39h-25v35h-44v-35h-93v-39Zm3 59-47 67h47Z"/></g>
+        <g fill="url(#number-fill)" stroke="#678151" stroke-width="2.5" stroke-linejoin="round"><path d="M236 122h47v126h25v39h-25v35h-44v-35h-93v-39Zm3 59-47 67h47Z"/><path fill-rule="evenodd" d="M433 116c63 0 87 44 87 105s-24 105-87 105-87-44-87-105 24-105 87-105Zm0 43c-30 0-40 25-40 62s10 62 40 62 40-25 40-62-10-62-40-62Z"/><path d="M643 122h47v126h25v39h-25v35h-44v-35h-93v-39Zm3 59-47 67h47Z"/></g>
+        <g class="vine" stroke="#65834e" stroke-width="3" fill="#8fae6e" stroke-linecap="round"><path d="M267 326c-24-27 20-46 6-78-8-20-28-23-22-52" fill="none"/><path d="M273 283c-19 0-27-11-28-21 18 0 27 8 28 21Zm-6-43c18-1 25-11 25-21-17 0-25 9-25 21Zm-16-31c-15-3-20-12-20-21 14 1 21 9 20 21Z"/></g>
+        <g class="sprout" stroke="#52794e" stroke-width="2.5" fill="#9ab980"><path d="M435 118V91" fill="none"/><path d="M435 105c-22 0-29-13-30-25 20-1 31 10 30 25Zm0-9c0-21 12-30 29-29 0 18-12 29-29 29Z"/></g>
+        <g class="signpost" stroke="#766344" stroke-width="2.5" stroke-linejoin="round"><path d="m575 249-3 91" stroke-width="7"/><path d="m537 247 62 3 16 17-18 13-61-3Z" fill="#f5db9d"/><path d="m564 262 24 1m-7-7 7 7-8 6" fill="none" stroke-linecap="round"/><circle cx="573" cy="255" r="1"/></g>
+        <g class="plants"><use href="#grass" x="171" y="339"/><use href="#grass" x="710" y="340"/><use href="#grass" x="335" y="331"/><use href="#grass" x="613" y="350"/>
+          <g class="flower flower-one"><use href="#flower" x="199" y="303"/></g><g class="flower flower-two"><use href="#flower" x="735" y="300"/></g><g class="flower flower-three"><use href="#flower" x="322" y="312" transform="rotate(-12 322 312) scale(1)"/></g>
+        </g>
+
+        <!-- Bimo is drawn in separate pieces for an articulated wave, blink, and leaf sway. -->
+        <ellipse class="bimo-shadow" cx="513" cy="341" rx="44" ry="8" fill="#859b69" opacity=".25"/>
+        <g class="bimo" stroke="#354e42" stroke-width="2.5" stroke-linejoin="round">
+          <g fill="url(#bimo-shell)"><path d="m491 304-6 26q-14 2-14 11h31l4-35Zm30 1 4 35h30q0-11-15-12l-5-27Z"/><path d="M486 260q-9 21 9 50 17 13 35-1 14-23 5-49Z"/></g>
+          <path d="M489 273q-16 5-19 28" fill="none" stroke="#354e42" stroke-width="12" stroke-linecap="round"/><path d="M489 273q-16 5-19 28" fill="none" stroke="#eae9d8" stroke-width="7" stroke-linecap="round"/>
+          <g class="bimo-arm"><path d="M534 274q19-1 22-26" fill="none" stroke="#354e42" stroke-width="12" stroke-linecap="round"/><path d="M534 274q19-1 22-26" fill="none" stroke="#eae9d8" stroke-width="7" stroke-linecap="round"/><path d="M552 250q-10-8-5-12l7 5-2-16q2-7 6-1l3 12 4-9q5-3 5 3l-4 17q-6 10-14 1Z" fill="url(#bimo-shell)"/></g>
+          <path d="M510 290v-16m0 10c-11 0-14-7-14-11 10 0 14 5 14 11Zm0-4c0-11 7-16 14-16 0 10-5 16-14 16Z" fill="#8dac6d" stroke="#6c8d55" stroke-width="2"/>
+          <path d="M502 251v12h21v-12" fill="#526456"/>
+          <g class="bimo-head">
+            <g class="bimo-leaves" fill="#95b674"><path d="M511 185v-20m0 9c-18 0-24-10-25-20 17 0 25 8 25 20Zm0-4c0-17 9-25 22-25 0 15-8 25-22 25Z"/></g>
+            <rect x="460" y="207" width="16" height="31" rx="8" fill="#a6b29a"/><rect x="548" y="207" width="16" height="31" rx="8" fill="#a6b29a"/>
+            <rect x="469" y="182" width="88" height="73" rx="30" fill="url(#bimo-shell)"/>
+            <rect x="479" y="196" width="68" height="47" rx="19" fill="#c9d7b5" stroke="none"/>
+            <g class="bimo-eyes" fill="#354e42" stroke="none"><ellipse cx="497" cy="216" rx="4" ry="7"/><ellipse cx="530" cy="216" rx="4" ry="7"/></g>
+            <path d="M507 229q6 6 12-1" fill="none" stroke-width="2" stroke-linecap="round"/>
+            <path d="m486 204 8-3" stroke="#eef3de" stroke-width="4" stroke-linecap="round"/>
+          </g>
+        </g>
+        <g class="butterfly-flight"><path d="M0 0c-20-22-24 9-2 6-16 17 7 25 6 5 22 12 26-16 7-11 11-22-14-24-11 0Z" fill="#eec268" stroke="#a77f36" stroke-width="1.5" class="butterfly-wings"/><path d="m1 0 5 10m-5-10-1-5m1 5 5-4" fill="none" stroke="#6f6744" stroke-width="2" stroke-linecap="round"/></g>
+        <g class="floating-leaf" fill="#9db780"><path d="M0 0q20-5 22-24Q1-23 0 0Z"/><path d="m0 0 14-16" fill="none" stroke="#6e8f58"/></g>
+        <g fill="#86996c" opacity=".7"><ellipse cx="215" cy="351" rx="5" ry="2"/><ellipse cx="652" cy="337" rx="6" ry="3"/><ellipse cx="379" cy="350" rx="3" ry="2"/></g>
+      </svg>
+      <span class="scene-note" aria-hidden="true">even little detours<br>can lead to growth.<svg viewBox="0 0 65 50"><path d="M4 3q43-5 42 36m-9-8 9 10 9-10"/></svg></span>
+    </div>
+
+    <section class="error-copy" aria-labelledby="error-title">
+      <h1 id="error-title">Oops. This path hasn’t <em>sprouted</em> yet.</h1>
+      <p>The page you’re looking for may have moved or doesn’t exist.<br>Let’s get you back to a little more growth.</p>
+      <div class="error-actions">
+        <a class="home-button" href="/index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8M5 10v11h5v-7h4v7h5V10"/></svg>Back to home<span aria-hidden="true">→</span></a>
+        <a class="explore-link" href="/training.html">Explore activities <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+    <div class="pause-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V10m0 7C4 17 3 11 3 8c6 0 9 3 9 9Zm0-4c0-7 4-11 10-11 0 7-4 11-10 11Z"/></svg>A wrong turn doesn’t undo your progress.</div>
+  </main>
+
+  <footer class="error-footer"><span>Small steps. Real growth.</span><span class="footer-right"><span>Error 404</span><button class="motion-toggle" type="button" aria-pressed="false" hidden><svg class="pause-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10m6-10v10"/></svg><span>Pause animation</span></button></span></footer>
+  <script>
+    window.notFoundReady.then(root => {
+      for (const link of document.querySelectorAll('a[href^="/"]')) {
+        link.setAttribute('href', root + link.getAttribute('href').slice(1));
+      }
+      for (const image of document.querySelectorAll('[data-site-src]')) {
+        image.src = root + image.dataset.siteSrc;
+      }
+      const script = document.createElement('script');
+      script.src = root + 'src/pages/public/not-found/not-found.js';
+      document.body.append(script);
+    });
+  </script>
+</body>
+</html>

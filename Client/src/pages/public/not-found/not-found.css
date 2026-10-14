@@ -1,0 +1,78 @@
+@font-face{font-family:Inter;src:url('../../../../assets/hero-v2/fonts/inter-400.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:Inter;src:url('../../../../assets/hero-v2/fonts/inter-500.ttf') format('truetype');font-style:normal;font-weight:500 700;font-display:swap}
+:root{color-scheme:light;--paper:#faf9f3;--ink:#263f35;--green:#36734f;--muted:#727c6b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100svh;display:flex;flex-direction:column;background:var(--paper);color:var(--ink);font:400 15px/1.6 Inter,'Avenir Next',Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible{outline:3px solid #ad8737;outline-offset:6px;border-radius:4px}
+.skip-link{position:fixed;left:20px;top:-80px;z-index:10;padding:10px 20px;background:var(--ink);color:white}
+.skip-link:focus{top:12px}
+.error-header{width:min(1280px,calc(100% - 96px));margin:0 auto;min-height:100px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:inline-flex;align-items:center;gap:7px;font-size:22px;font-weight:600;letter-spacing:-1px}
+.brand img{object-fit:contain}
+.header-home{font-size:12px;color:#687260;display:flex;align-items:center;gap:16px}
+.header-home span{font-size:21px;color:var(--green);transition:transform .2s}
+.header-home:hover span{transform:translate(2px,-2px)}
+main{flex:1;width:100%;padding:24px 24px 50px;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.eyebrow{display:flex;align-items:center;gap:10px;font-size:10px;font-weight:500;letter-spacing:2.3px;color:#6f7d5b;animation:arrive .7s both}
+.eyebrow span{width:6px;height:6px;background:#8ca86a;border-radius:50%;box-shadow:0 0 0 4px #eaf0de}
+.illustration{position:relative;width:min(860px,100%);margin:0 auto 0;animation:arrive 1s .08s both}
+.garden-scene{display:block;width:100%;height:auto;overflow:visible}
+.scene-note{position:absolute;top:33%;right:0;transform:rotate(7deg);font:italic 18px/1.3 Georgia,serif;color:#8c9177;text-align:left}
+.scene-note svg{display:block;width:58px;height:45px;margin:6px 0 0 5px;fill:none;stroke:#a1a68b;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.error-copy{margin-top:0;animation:arrive .8s .18s both}
+h1{margin:0 0 16px;font-weight:500;font-size:clamp(28px,3.3vw,43px);line-height:1.23;letter-spacing:-1.8px}
+h1 em{font-family:Georgia,'Times New Roman',serif;font-weight:400;color:#64834f}
+.error-copy p{margin:0;color:var(--muted);font-size:14px;line-height:1.9}
+.error-actions{display:flex;align-items:center;justify-content:center;gap:30px;margin-top:27px}
+.home-button{display:inline-flex;align-items:center;justify-content:center;gap:12px;padding:13px 22px;border:1px solid var(--green);border-radius:8px;background:var(--green);box-shadow:0 4px 0 #254e3712;color:#fffdf5;font-size:13px;font-weight:500;transition:background .2s,transform .2s,box-shadow .2s}
+.home-button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.home-button>span{margin-left:12px;font-size:18px;line-height:1}
+.home-button:hover{background:#295d3f;transform:translateY(-3px);box-shadow:0 7px 14px #254e3720}
+.explore-link{font-size:12px;font-weight:500;padding:10px 0;border-bottom:1px solid #b5bea7}
+.explore-link span{margin-left:12px;color:#789266;display:inline-block;transition:transform .2s}
+.explore-link:hover span{transform:translate(2px,-2px)}
+.pause-note{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:37px;font-size:11px;color:#8b907f;animation:arrive .8s .3s both}
+.pause-note svg{width:17px;height:17px;fill:none;stroke:#94a17e;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+.error-footer{width:min(1280px,calc(100% - 96px));margin:auto;min-height:65px;border-top:1px solid #e5e7db;display:flex;align-items:center;justify-content:space-between;gap:20px;font-size:10px;letter-spacing:.3px;color:#929784}
+.footer-right{display:flex;align-items:center;gap:24px}
+.motion-toggle{display:flex;align-items:center;gap:6px;padding:8px 0;background:none;border:0;color:#737d66;cursor:pointer;font:inherit;letter-spacing:inherit}
+.motion-toggle[hidden]{display:none}
+.motion-toggle svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+.motion-toggle:hover{color:var(--green)}
+.cloud-one{animation:cloud-drift 10s ease-in-out infinite alternate}
+.cloud-two{animation:cloud-drift 13s -5s ease-in-out infinite alternate-reverse}
+.sun{animation:sun-glow 5s ease-in-out infinite;transform-origin:658px 88px}
+.sprout{transform-origin:435px 118px;animation:sway 4s ease-in-out infinite}
+.flower{transform-box:fill-box;transform-origin:50% 100%;animation:sway 3.5s ease-in-out infinite}
+.flower-two{animation-delay:-1.2s;animation-duration:4.4s}
+.flower-three{animation-delay:-2s}
+.bimo{animation:bimo-breathe 4s ease-in-out infinite;transform-origin:513px 341px}
+.bimo-arm{transform-origin:534px 274px;animation:wave 6s ease-in-out infinite}
+.bimo-head{transform-origin:513px 250px;animation:head-tilt 6s ease-in-out infinite}
+.bimo-eyes{transform-origin:514px 216px;animation:blink 5.6s infinite}
+.bimo-leaves{transform-origin:511px 185px;animation:sway 3s ease-in-out infinite}
+.butterfly-flight{animation:butterfly-flight 12s ease-in-out infinite}
+.butterfly-wings{transform-box:fill-box;transform-origin:center;animation:flutter .38s ease-in-out infinite alternate}
+.floating-leaf{animation:leaf-drift 9s ease-in-out infinite}
+.signpost{transform-origin:573px 340px;animation:sign-sway 7s ease-in-out infinite}
+.trail{animation:trail-dash 12s linear infinite}
+@keyframes arrive{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cloud-drift{from{transform:translateX(-12px)}to{transform:translateX(18px)}}
+@keyframes sun-glow{50%{transform:scale(1.06);opacity:.8}}
+@keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+@keyframes bimo-breathe{50%{transform:translateY(-3px)}}
+@keyframes wave{0%,40%,100%{transform:rotate(0)}10%,24%{transform:rotate(15deg)}17%,31%{transform:rotate(-9deg)}}
+@keyframes head-tilt{0%,45%,100%{transform:rotate(0)}15%,30%{transform:rotate(-5deg)}}
+@keyframes blink{0%,42%,46%,80%,84%,100%{transform:scaleY(1)}44%,82%{transform:scaleY(.08)}}
+@keyframes butterfly-flight{0%,100%{transform:translate(580px,140px) rotate(-15deg)}25%{transform:translate(537px,98px) rotate(-30deg)}50%{transform:translate(470px,87px) rotate(12deg)}75%{transform:translate(530px,142px) rotate(25deg)}}
+@keyframes flutter{from{transform:scaleX(.5)}to{transform:scaleX(1)}}
+@keyframes leaf-drift{0%,100%{transform:translate(758px,223px) rotate(-15deg)}50%{transform:translate(737px,254px) rotate(35deg)}}
+@keyframes sign-sway{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(2deg)}}
+@keyframes trail-dash{to{stroke-dashoffset:-44}}
+/* Explicit positions also keep the scene composed when animation is disabled. */
+body.motion-paused *{animation-play-state:paused!important}
+@media(min-width:1600px){.illustration{width:960px}main{padding-top:35px;padding-bottom:65px}}
+@media(max-width:700px){.error-header{width:calc(100% - 40px);min-height:80px}.brand{font-size:20px}.brand img{width:38px;height:43px}.header-home{font-size:11px;gap:8px}.scene-note{display:none}main{padding:30px 20px 40px}.illustration{width:calc(100% + 24px);max-width:680px;margin:18px -12px 22px}.eyebrow{font-size:9px;letter-spacing:1.7px}h1{max-width:450px;letter-spacing:-1px;margin-inline:auto}.error-copy p{font-size:13px}.error-footer{width:calc(100% - 40px);min-height:64px}.footer-right{gap:15px}.pause-note{font-size:10px}}
+@media(max-width:400px){.header-home{font-size:0}.header-home span{font-size:21px}.error-actions{gap:20px}.home-button{padding:12px 15px;font-size:12px}.explore-link{font-size:11px}.error-copy p br{display:none}.error-footer{font-size:9px}.footer-right{gap:12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.butterfly-flight{transform:translate(580px,140px) rotate(-15deg)}.floating-leaf{transform:translate(758px,223px) rotate(-15deg)}}

@@ -1,0 +1,70 @@
+/* Lab hub: the four baseline instruments and their recorded attempts. */
+
+.lab-hero {
+  background: linear-gradient(165deg, #f3faef 0%, #eef7ea 60%, #f9fcf5 100%);
+  border-bottom: 1px solid #e4efe0;
+}
+.lab-hero-inner {
+  padding: 50px 0 54px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(290px, .9fr);
+  gap: 40px;
+  align-items: start;
+}
+.lab-hero h1 { margin: 12px 0 16px; font-size: clamp(1.9rem, 4.2vw, 2.8rem); line-height: 1.08; }
+.lab-lead { max-width: 56ch; color: #40604f; font-size: 1.02rem; }
+.lab-hero-actions { margin-top: 24px; }
+
+.lab-status .meter { margin-top: 4px; }
+
+.lab-body { padding: 44px 0 70px; display: grid; gap: 44px; }
+.lab-section-head h2 { font-size: 1.5rem; }
+.lab-section-head p { margin-top: 6px; color: var(--muted); }
+
+.lab-grid {
+  margin-top: 22px;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+}
+.lab-card { display: flex; flex-direction: column; }
+.lab-card .card-head { align-items: flex-start; }
+.lab-card h3 { font-size: 1.16rem; }
+.lab-card .lab-kind { margin-top: 3px; color: var(--muted); font-size: .82rem; }
+.lab-card > p { color: var(--muted); font-size: .9rem; }
+.lab-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 18px; }
+.lab-result {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #f3f8f1;
+}
+.lab-result dl { display: grid; grid-template-columns: 1fr auto; gap: 7px 14px; margin: 0; }
+.lab-result dt { color: var(--muted); font-size: .84rem; }
+.lab-result dd { margin: 0; font-size: .88rem; font-weight: 600; text-align: right; }
+.lab-card-actions { margin-top: auto; padding-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.lab-card-actions .btn { padding: 10px 18px; font-size: .88rem; }
+.lab-locked { color: var(--muted); font-size: .82rem; }
+
+.lab-notes { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+.lab-note-list { display: grid; gap: 13px; }
+.lab-note-list li { color: var(--muted); font-size: .9rem; line-height: 1.5; }
+.lab-note-list strong { color: var(--ink); }
+
+#detail-body dl { display: grid; grid-template-columns: 1fr auto; gap: 9px 16px; margin: 16px 0 0; }
+#detail-body dt { color: var(--muted); font-size: .88rem; }
+#detail-body dd { margin: 0; font-weight: 600; text-align: right; font-size: .9rem; }
+#detail-body .card-note { margin-top: 18px; }
+
+@media (max-width: 900px) {
+  .lab-hero-inner { grid-template-columns: 1fr; gap: 28px; }
+}
+
+/* Shared hero frame (src/styles/page-hero.css); the baseline status sits just below it. */
+.ds-hero .lab-hero-actions { margin-top: 4px; }
+.lab-status-strip { display: grid; grid-template-columns: minmax(220px, 1fr) 2fr; align-items: center; gap: 8px 28px; }
+.lab-status-strip .card-head { margin: 0; grid-row: 1 / 4; }
+@media (max-width: 760px) { .lab-status-strip { grid-template-columns: 1fr; } .lab-status-strip .card-head { grid-row: auto; } }
+.ds-hero .lab-hero-actions { flex-wrap: nowrap; gap: 10px; }
+.ds-hero .lab-hero-actions .btn { padding: 12px 18px; white-space: nowrap; }
+@media (max-width: 860px) { .ds-hero .lab-hero-actions { flex-wrap: wrap; } }

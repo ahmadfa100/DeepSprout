@@ -1,0 +1,18 @@
+/* Superseded by style.css — kept so pages not yet migrated keep their tokens. */
+@import url("style.css");
+
+/* Legacy short names, pointed at the shared tokens. */
+:root {
+  --ink: var(--color-ink);
+  --pine: var(--color-pine);
+  --deep: var(--color-deep);
+  --leaf: var(--color-leaf);
+  --mint: var(--color-mint);
+  --cream: #f9faf4;
+  --paper: #fffdf6;
+  --muted: #637b70;
+  --line: var(--color-line);
+  --gold: var(--color-gold);
+  --ds-radius: 20px;
+  --ds-shadow: 0 12px 32px #123f3414;
+}

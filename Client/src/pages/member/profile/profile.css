@@ -1,0 +1,125 @@
+/* Profile and settings. */
+
+.pr-hero {
+  background: linear-gradient(162deg, #f2f9ee 0%, #edf6e9 58%, #f9fcf5 100%);
+  border-bottom: 1px solid #e4efe0;
+}
+.pr-hero-inner { padding: 44px 0 46px; display: flex; align-items: center; gap: 22px; }
+.pr-avatar {
+  flex: none;
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  border-radius: 26px;
+  background: var(--leaf);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 2rem;
+}
+.pr-hero h1 { margin: 10px 0 8px; font-size: clamp(1.8rem, 4vw, 2.5rem); }
+.pr-lead { color: #40604f; font-size: 1rem; }
+
+.pr-body { padding: 34px 0 80px; display: grid; gap: 18px; }
+.pr-split { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+
+.pr-form { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 4px; }
+.pr-form-actions { margin-top: 18px; }
+.pr-saved { color: var(--leaf); font-size: .85rem; font-weight: 600; }
+
+.pr-answers { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: 11px 20px; margin: 18px 0 20px; }
+.pr-answers dt { color: var(--muted); font-size: .87rem; }
+.pr-answers dd { margin: 0; font-size: .91rem; font-weight: 600; }
+.pr-answers dd.is-empty { color: var(--muted); font-weight: 400; font-style: italic; }
+
+.pr-journey { display: grid; gap: 11px; }
+.pr-journey li { display: flex; align-items: flex-start; gap: 12px; }
+.pr-journey .pr-step-mark {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1.6px solid #ccd9cd;
+  border-radius: 50%;
+  color: transparent;
+}
+.pr-journey .pr-step-mark svg { width: 13px; height: 13px; }
+.pr-journey li.is-done .pr-step-mark { border-color: var(--leaf); background: var(--leaf); color: #fff; }
+.pr-journey strong { display: block; font-size: .94rem; }
+.pr-journey small { display: block; margin-top: 2px; color: var(--muted); font-size: .83rem; }
+.pr-journey li:not(.is-done) strong { color: var(--muted); font-weight: 500; }
+.pr-journey a { color: var(--leaf); font-size: .83rem; font-weight: 600; text-decoration: underline; }
+
+.pr-privacy { display: grid; gap: 12px; margin-top: 4px; }
+.pr-privacy li { padding-left: 14px; border-left: 3px solid #dcebd7; }
+.pr-privacy strong { display: block; font-size: .93rem; }
+.pr-privacy small { display: block; margin-top: 3px; color: var(--muted); font-size: .84rem; line-height: 1.45; }
+
+.pr-toggles { display: grid; gap: 12px; margin-top: 4px; }
+.pr-toggle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: #fff;
+}
+.pr-toggle-body { flex: 1; min-width: 0; }
+.pr-toggle strong { display: block; font-size: .94rem; }
+.pr-toggle small { display: block; margin-top: 3px; color: var(--muted); font-size: .83rem; line-height: 1.45; }
+.pr-switch {
+  flex: none;
+  width: 48px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 40px;
+  background: #d9e0da;
+  position: relative;
+  transition: background .18s ease;
+}
+.pr-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 5px #0b291f2e;
+  transition: transform .18s ease;
+}
+.pr-switch[aria-pressed="true"] { background: var(--leaf); }
+.pr-switch[aria-pressed="true"]::after { transform: translateX(20px); }
+
+.pr-danger { border-color: #e5dcc5; background: #fffdf6; }
+.pr-danger > p { margin-top: 4px; color: var(--muted); font-size: .92rem; }
+.pr-demo-grid { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 18px; }
+.pr-reset { border-color: #e8c9bd; color: var(--coral); }
+.pr-reset:hover { background: #fdf0ec; }
+.pr-reset-confirm { background: var(--coral); box-shadow: 0 10px 22px #d2694f33; }
+.pr-reset-confirm:hover { background: #bb5842; }
+
+.pr-data {
+  max-height: 46vh;
+  margin-top: 16px;
+  padding: 16px;
+  overflow: auto;
+  border-radius: 14px;
+  background: #f4f7f3;
+  color: #2d4a3e;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: .76rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 600px) {
+  .pr-hero-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .pr-demo-grid .btn { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .pr-switch, .pr-switch::after { transition: none; } }

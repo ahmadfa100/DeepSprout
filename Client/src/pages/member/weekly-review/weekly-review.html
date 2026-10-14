@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../../../../assets/brand/logo.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f9fcf5">
+  <meta name="description" content="Your DeepSprout weekly review: what happened, and what next week should look like.">
+  <title>Weekly Review — DeepSprout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../../src/styles/style.css">
+  <link rel="stylesheet" href="../../../../src/styles/member-page.css">
+  <link rel="stylesheet" href="weekly-review.css">
+  <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
+  <script src="../../../../src/js/utils/storage.js" defer></script>
+  <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
+  <script src="weekly-review.js" defer></script>
+</head>
+<body data-page="recovery" data-root="../../../../">
+  <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+    <symbol id="i-question" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2-2.4 3.4m0 2.9v.3"/></symbol>
+    <symbol id="i-walk" viewBox="0 0 32 32"><circle cx="18" cy="5" r="2"/><path d="m13 28 3-9-4-4-4 5m4-5 4-5 5 1 3 5m-8 3 7 3 2 7m-9-10-6 9"/></symbol>
+    <symbol id="i-book" viewBox="0 0 32 32"><path d="M16 7c-4-3-9-3-13-2v19c5-1 10 0 13 3 3-3 8-4 13-3V5c-4-1-9-1-13 2Zm0 0v20"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 20 6v6c0 5-3.4 8.4-8 9.2C7.4 20.4 4 17 4 12V6l8-3.2Z"/><path d="m8.6 12 2.4 2.4 4.4-4.6"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></symbol>
+  </svg>
+
+  <div data-site-header></div>
+
+  <main class="wr">
+
+    <!-- ------------------------------------------------------- no review due -->
+    <section class="wr-stage" data-stage="none" hidden aria-labelledby="none-title">
+      <div class="narrow-shell wr-none">
+        <span class="badge-icon wr-none-mark"><svg><use href="#i-calendar"/></svg></span>
+        <h1 id="none-title">No review is due yet.</h1>
+        <p class="wr-lead" id="none-text"></p>
+        <div class="btn-row wr-none-actions">
+          <a class="btn btn-primary" href="../recovery-plan/recovery-plan.html">Open my plan <svg><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-ghost" href="../../../../index.html">Back to home</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------- the review -->
+    <section class="wr-stage" data-stage="review" hidden aria-labelledby="review-title">
+      <div class="page-shell wr-review">
+        <header class="wr-head">
+          <p class="eyebrow" id="review-eyebrow">Week 1 review</p>
+          <h1 id="review-title">How did this week go?</h1>
+          <p class="wr-lead">This is a short decision point, not a fifth assessment. Two questions, then you choose what next week looks like.</p>
+        </header>
+
+        <div class="wr-grid">
+          <div class="wr-main">
+
+            <section class="card" aria-labelledby="happened-title">
+              <div class="card-head">
+                <span class="badge-icon"><svg><use href="#i-check"/></svg></span>
+                <div><p class="eyebrow">Step 1 · what happened</p><h2 id="happened-title">The week as recorded</h2></div>
+              </div>
+              <ul class="wr-ledger" id="ledger"></ul>
+              <p class="card-note">Completed, missed and unknown are shown separately on purpose. A day with no data is unknown — not a zero and not a relapse.</p>
+            </section>
+
+            <section class="card" aria-labelledby="q1-title">
+              <div class="card-head">
+                <span class="badge-icon gold"><svg><use href="#i-question"/></svg></span>
+                <div><p class="eyebrow">Step 2 · two questions</p><h2 id="q1-title">How manageable did this plan feel?</h2></div>
+              </div>
+              <div class="choice-grid wr-answers" id="q1" role="radiogroup" aria-labelledby="q1-title"></div>
+
+              <h3 class="wr-subquestion" id="q2-title">Did this week's activity choices fit you?</h3>
+              <div class="choice-grid wr-answers" id="q2" role="radiogroup" aria-labelledby="q2-title"></div>
+            </section>
+
+            <section class="card" aria-labelledby="next-title">
+              <div class="card-head">
+                <span class="badge-icon sky"><svg><use href="#i-compass"/></svg></span>
+                <div><p class="eyebrow">Step 3 · next week</p><h2 id="next-title">What we'd suggest</h2></div>
+              </div>
+              <div class="wr-recommendation" id="recommendation">
+                <p class="wr-rec-text" id="rec-text">Answer the two questions above and a suggestion appears here, with the reason behind it.</p>
+                <ul class="wr-rec-why" id="rec-why"></ul>
+              </div>
+              <div class="wr-options" id="outcome-options"></div>
+              <p class="card-note">Nothing increases on its own. Whatever you pick is saved as a plan revision with the reason, and your history is kept either way.</p>
+            </section>
+          </div>
+
+          <aside class="wr-aside">
+            <div class="card wr-summary">
+              <p class="eyebrow">This cycle</p>
+              <dl id="cycle-summary"></dl>
+              <button class="btn btn-primary wr-save" type="button" id="save-review" disabled>Save my review <svg><use href="#i-arrow"/></svg></button>
+              <p class="wr-save-note" id="save-note">Answer both questions to continue.</p>
+              <a class="btn btn-quiet wr-skip" href="../../../../index.html">Skip for now</a>
+              <p class="wr-skip-note">Skipping keeps your current pace. Nothing gets harder, and nothing is marked as failed.</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------- saved -->
+    <section class="wr-stage" data-stage="saved" hidden aria-labelledby="saved-title">
+      <div class="narrow-shell wr-saved">
+        <span class="badge-icon wr-saved-mark"><svg><use href="#i-check"/></svg></span>
+        <p class="eyebrow">Review saved</p>
+        <h1 id="saved-title">Next week is set.</h1>
+        <p class="wr-lead" id="saved-text"></p>
+        <div class="card wr-revision">
+          <p class="eyebrow">Recorded as a plan revision</p>
+          <dl id="revision-summary"></dl>
+          <p class="card-note">This revision applies to future days only. Nothing already recorded was changed.</p>
+        </div>
+        <div class="btn-row wr-saved-actions">
+          <a class="btn btn-primary" href="../recovery-plan/recovery-plan.html">Open my plan <svg><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-ghost" href="../../../../index.html">Back to home</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div data-site-footer></div>
+</body>
+</html>

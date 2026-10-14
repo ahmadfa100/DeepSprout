@@ -1,0 +1,139 @@
+{
+  "cases": [
+    "Geometry: handoff-length start, contiguous weeks, days on week 1 only, deterministic camera, forward-only drawing, one scroll driver.",
+    "1440×900: seamless handoff from section 3, four gates/ticks/bars with no score, week 1 solid with seven days vs weeks 2–4 dashed with none, exactly two unfilled days with an unbroken line, wall rise/stop/dissolve, verbatim copy, exact reversal, no overflow, idle offscreen.",
+    "390×844: seamless handoff from section 3, four gates/ticks/bars with no score, week 1 solid with seven days vs weeks 2–4 dashed with none, exactly two unfilled days with an unbroken line, wall rise/stop/dissolve, verbatim copy, exact reversal, no overflow, idle offscreen.",
+    "Reduced motion: still key frames per station, identical after scrubbing back. No JS: all station copy in normal flow."
+  ],
+  "screenshots": [
+    "1440-seam-before.png",
+    "1440-seam-after.png",
+    "1440-1-assess.png",
+    "1440-2-plan.png",
+    "1440-3-activities.png",
+    "1440-4-protect.png",
+    "1440-4-cleared.png",
+    "1440-5-beyond.png",
+    "1440-6-together.png",
+    "1440-7-growth.png",
+    "390-seam-before.png",
+    "390-seam-after.png",
+    "390-1-assess.png",
+    "390-2-plan.png",
+    "390-3-activities.png",
+    "390-4-protect.png",
+    "390-4-cleared.png",
+    "390-5-beyond.png",
+    "390-6-together.png",
+    "390-7-growth.png",
+    "reduced-motion.png",
+    "no-javascript.png"
+  ],
+  "errors": [],
+  "seam": {
+    "390": {
+      "differing": 0,
+      "worst": 40
+    },
+    "1440": {
+      "differing": 12,
+      "worst": 55
+    },
+    "weeks1440": {
+      "solid": {
+        "changes": 0,
+        "coverage": 1
+      },
+      "dashed": {
+        "changes": 190,
+        "coverage": 0.3866120218579235
+      }
+    },
+    "echo1440": {
+      "echo": {
+        "fontFamily": "Inter, Arial, sans-serif",
+        "fontSize": "38px",
+        "fontWeight": "500",
+        "letterSpacing": "-0.76px",
+        "lineHeight": "43.7px",
+        "x": 573.8359375,
+        "y": 287.3125,
+        "width": 292.328125,
+        "height": 43.6875,
+        "color": "rgb(41, 45, 42)",
+        "opacity": 1
+      },
+      "recorded": {
+        "fontFamily": "Inter, Arial, sans-serif",
+        "fontSize": "38px",
+        "fontWeight": "500",
+        "letterSpacing": "-0.76px",
+        "lineHeight": "43.7px",
+        "x": 573.8359375,
+        "y": 287.3125,
+        "width": 292.328125,
+        "height": 43.6875,
+        "bottom": 331,
+        "stageHeight": 900
+      }
+    },
+    "framesWide1440": {
+      "median": 16.69999999999891,
+      "p95": 16.700000000000728,
+      "samples": 123
+    },
+    "frames1440": {
+      "median": 16.69999999999891,
+      "p95": 16.700000000000728,
+      "samples": 123
+    },
+    "weeks390": {
+      "solid": {
+        "changes": 0,
+        "coverage": 1
+      },
+      "dashed": {
+        "changes": 43,
+        "coverage": 0.445859872611465
+      }
+    },
+    "echo390": {
+      "echo": {
+        "fontFamily": "Inter, Arial, sans-serif",
+        "fontSize": "26px",
+        "fontWeight": "500",
+        "letterSpacing": "-0.52px",
+        "lineHeight": "29.9px",
+        "x": 94.9921875,
+        "y": 279.28125,
+        "width": 200.015625,
+        "height": 29.890625,
+        "color": "rgb(41, 45, 42)",
+        "opacity": 1
+      },
+      "recorded": {
+        "fontFamily": "Inter, Arial, sans-serif",
+        "fontSize": "26px",
+        "fontWeight": "500",
+        "letterSpacing": "-0.52px",
+        "lineHeight": "29.9px",
+        "x": 94.9921875,
+        "y": 279.28125,
+        "width": 200.015625,
+        "height": 29.890625,
+        "bottom": 309.171875,
+        "stageHeight": 844
+      }
+    },
+    "framesWide390": {
+      "median": 16.69999999999891,
+      "p95": 16.700000000000728,
+      "samples": 123
+    },
+    "frames390": {
+      "median": 16.69999999999891,
+      "p95": 16.700000000000728,
+      "samples": 124
+    }
+  }
+}

@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="icon" type="image/png" href="../../../../assets/brand/logo.png">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fafbf7">
+    <meta name="description" content="Your DeepSprout roadmap: a 28-day plan to spend less time scrolling and more time on what you chose.">
+    <title>Roadmap — DeepSprout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../src/styles/style.css">
+    <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
+    <link rel="stylesheet" href="../../../../src/styles/page-hero.css">
+    <link rel="stylesheet" href="recovery-plan.css">
+    <script src="../../../../src/js/data/account.js" defer></script>
+    <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
+    <script src="recovery-plan.js" defer></script>
+  </head>
+  <body data-page="recovery" data-root="../../../../">
+    <svg class="rp-icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="rp-sprout" viewBox="0 0 32 32"><path d="M16 28V14m0 5C8 19 5 14 5 6c8 0 11 4 11 13Zm0-5c0-8 4-12 11-12 0 8-3 12-11 12Z"/></symbol>
+      <symbol id="rp-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+      <symbol id="rp-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+      <symbol id="rp-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+      <symbol id="rp-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></symbol>
+      <symbol id="rp-book" viewBox="0 0 32 32"><path d="M16 7c-4-3-9-3-13-2v19c5-1 10 0 13 3 3-3 8-4 13-3V5c-4-1-9-1-13 2Zm0 0v20M7 10c2-.3 4 0 6 1m6 0c2-1 4-1.3 6-1"/></symbol>
+      <symbol id="rp-headphones" viewBox="0 0 32 32"><path d="M5 18v-3a11 11 0 0 1 22 0v3M5 17h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9Zm22 0h-4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-9Z"/></symbol>
+      <symbol id="rp-pencil" viewBox="0 0 32 32"><path d="m6 25 2-7L23 3l6 6-15 15-8 1Zm12-17 6 6M6 25l7-2"/></symbol>
+      <symbol id="rp-timer" viewBox="0 0 32 32"><circle cx="16" cy="18" r="11"/><path d="M16 7V3m-5 0h10m-5 15 4-5"/></symbol>
+      <symbol id="rp-shoe" viewBox="0 0 32 32"><path d="M4 21c4 0 5-4 6-9l5 2 1 5c3 1 6 2 12 2v5H4v-5Zm12-2 3-3m1 4 3-3"/></symbol>
+      <symbol id="rp-shield" viewBox="0 0 32 32"><path d="M16 3 28 8v8c0 7-5 11-12 14C9 27 4 23 4 16V8L16 3Z"/></symbol>
+      <symbol id="rp-clock" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12"/><path d="M16 9v8l5 3"/></symbol>
+      <symbol id="rp-flag" viewBox="0 0 32 32"><path d="M7 29V4m0 2h17l-4 6 4 6H7"/></symbol>
+      <symbol id="rp-moon" viewBox="0 0 32 32"><path d="M26 19A11 11 0 0 1 13 6a11 11 0 1 0 13 13Z"/></symbol>
+      <symbol id="rp-chart" viewBox="0 0 32 32"><path d="M5 26V16m7 10V9m7 17V13m7 13V5"/></symbol>
+      <symbol id="rp-sliders" viewBox="0 0 32 32"><path d="M4 9h24M4 23h24"/><circle cx="12" cy="9" r="4"/><circle cx="21" cy="23" r="4"/></symbol>
+      <symbol id="rp-history" viewBox="0 0 32 32"><path d="M5 16a11 11 0 1 0 3.2-7.8M5 4v5h5m6 1v7l4 3"/></symbol>
+      <symbol id="rp-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></symbol>
+      <symbol id="rp-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    </svg>
+    <div data-site-header></div>
+
+    <main class="recovery-page">
+      <header class="ds-hero" aria-labelledby="hero-title">
+        <div class="ds-hero-copy">
+          <p class="ds-hero-eyebrow">Your roadmap</p>
+          <h1 id="hero-title">Four weeks.<br><em>One clear direction.</em></h1>
+          <p class="ds-hero-text rp-hero-description">A 28-day plan built around your goal. Each week has one focus, and the next week is written after you review the last.</p>
+          <div class="ds-hero-meta"><span class="ds-hero-chip"><svg><use href="#rp-calendar"/></svg><span id="cycle-day">Not started yet</span></span><span class="ds-hero-chip" id="hero-week-chip" hidden></span></div>
+        </div>
+        <figure class="ds-hero-art" style="--hero-focus: 38% 46%"><img src="../../../../assets/recovery/bimo-roadmap.png" alt="Bimo reading a trail map on a ridge above a valley at sunrise"></figure>
+      </header>
+
+      <div class="rp-shell">
+        <nav class="rp-tabs" role="tablist" aria-label="Roadmap sections">
+          <span class="rp-tab-indicator" aria-hidden="true"></span>
+          <button type="button" role="tab" id="tab-overview" aria-controls="panel-overview" data-tab="overview"><svg><use href="#rp-grid"/></svg>Overview</button>
+          <button type="button" role="tab" id="tab-week" aria-controls="panel-week" data-tab="week"><svg><use href="#rp-calendar"/></svg>This week</button>
+          <button type="button" role="tab" id="tab-adjust" aria-controls="panel-adjust" data-tab="adjust"><svg><use href="#rp-sliders"/></svg>Adjust</button>
+          <button type="button" role="tab" id="tab-history" aria-controls="panel-history" data-tab="history"><svg><use href="#rp-history"/></svg>History</button>
+        </nav>
+
+        <!-- ============================================================ Overview -->
+        <section class="rp-panel" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" data-panel="overview">
+          <div class="rp-empty-plan" id="empty-plan" hidden>
+            <span class="rp-empty-art"><svg><use href="#rp-flag"/></svg></span>
+            <div>
+              <h2>Your roadmap starts after your setup</h2>
+              <p>Answer a few setup questions and take the four short baseline checks. Your four-week plan is built from those answers.</p>
+            </div>
+            <a class="rp-button rp-button-primary" id="empty-plan-link" href="../onboarding/onboarding.html">Start your journey <svg><use href="#rp-arrow"/></svg></a>
+          </div>
+
+          <article class="rp-today" id="today-card" aria-labelledby="today-title">
+            <div class="rp-today-copy">
+              <p class="rp-kicker" id="today-kicker">Today</p>
+              <h2 id="today-title">Pick one practice for today</h2>
+              <p id="today-note">Short, focused sessions. Choose whichever fits your day.</p>
+              <div class="rp-today-actions">
+                <a class="rp-button rp-button-primary" id="today-action" href="../training/training.html#training-types">Open activities <svg><use href="#rp-arrow"/></svg></a>
+                <span class="rp-today-status" id="today-status"></span>
+              </div>
+            </div>
+            <div class="rp-today-ring" aria-hidden="true">
+              <svg viewBox="0 0 120 120"><circle class="rp-ring-track" cx="60" cy="60" r="52"/><circle class="rp-ring-fill" id="cycle-ring" cx="60" cy="60" r="52"/></svg>
+              <span><strong id="ring-day">0</strong><small>of 28 days</small></span>
+            </div>
+          </article>
+
+          <section class="rp-journey" id="journey" aria-labelledby="journey-title">
+            <div class="rp-section-head">
+              <div><h2 id="journey-title">Your four weeks</h2><p>Select a week to see what it is for and what you have recorded in it.</p></div>
+            </div>
+            <div class="rp-week-track" aria-label="The four weeks of your roadmap">
+              <span class="rp-track-line" aria-hidden="true"><span class="rp-track-fill" id="track-fill"></span></span>
+              <button type="button" class="rp-week" data-week="1"><span class="rp-week-icon"><svg><use href="#rp-sprout"/></svg></span><strong>Week 1</strong><span>Notice the pattern</span><small class="rp-week-state"></small></button>
+              <button type="button" class="rp-week" data-week="2"><span class="rp-week-icon"><svg><use href="#rp-lock"/></svg></span><strong>Week 2</strong><span>Add one alternative</span><small class="rp-week-state"></small></button>
+              <button type="button" class="rp-week" data-week="3"><span class="rp-week-icon"><svg><use href="#rp-lock"/></svg></span><strong>Week 3</strong><span>Hold attention longer</span><small class="rp-week-state"></small></button>
+              <button type="button" class="rp-week" data-week="4"><span class="rp-week-icon"><svg><use href="#rp-lock"/></svg></span><strong>Week 4</strong><span>Decide what to keep</span><small class="rp-week-state"></small></button>
+            </div>
+            <div class="rp-week-detail" id="week-detail" aria-live="polite"></div>
+          </section>
+
+          <section class="rp-stats" aria-labelledby="stats-title">
+            <h2 id="stats-title" class="rp-visually-hidden">This week</h2>
+            <a class="rp-stat" href="#week" data-tab-link="week"><span class="rp-stat-icon rp-gold"><svg><use href="#rp-book"/></svg></span><strong id="stat-practices">—</strong><p id="stat-practices-label">due practices this week</p><small class="rp-evidence is-measured" id="stat-practices-source">Measured</small></a>
+            <a class="rp-stat" href="../training/training.html#offline-routine"><span class="rp-stat-icon rp-sage"><svg><use href="#rp-shoe"/></svg></span><strong id="stat-routine">—</strong><p id="stat-routine-label">routine days this week</p><small class="rp-evidence is-self" id="stat-routine-source">Self-reported</small></a>
+            <a class="rp-stat" data-review-link href="../weekly-review/weekly-review.html"><span class="rp-stat-icon rp-sage"><svg><use href="#rp-flag"/></svg></span><strong id="stat-review">—</strong><p id="stat-review-label">weekly review</p><small class="rp-evidence is-plain" id="stat-review-source">Your plan</small></a>
+          </section>
+
+          <div class="rp-overview-grid">
+            <section class="rp-card rp-routine" aria-labelledby="routine-title">
+              <div class="rp-section-head"><div><h2 id="routine-title">Your offline routine</h2><p>The real-world habit you committed to for this cycle.</p></div><a class="rp-link" href="../training/training.html#offline-routine">Manage <svg><use href="#rp-arrow"/></svg></a></div>
+              <div class="rp-walk">
+                <span class="rp-walk-art"><svg><use href="#rp-shoe"/></svg></span>
+                <div><h3>No routine yet</h3><p id="routine-detail">Add one small thing you can do away from a screen.</p></div>
+                <button type="button" class="rp-tick" id="routine-tick" aria-pressed="false" hidden><svg><use href="#rp-check"/></svg><span>Done today</span></button>
+              </div>
+            </section>
+            <section class="rp-card rp-tools" aria-labelledby="tools-title">
+              <div class="rp-section-head"><div><h2 id="tools-title">Support tools</h2><p>For the moments the feed pulls hardest.</p></div></div>
+              <a class="rp-tool" href="../shield/shield.html"><span class="rp-stat-icon rp-violet"><svg><use href="#rp-shield"/></svg></span><span><strong>Digital Shield</strong><small>Plan distraction-free time and pick the apps to keep away.</small></span><svg class="rp-tool-arrow"><use href="#rp-chevron"/></svg></a>
+              <a class="rp-tool" href="#adjust" data-tab-link="adjust"><span class="rp-stat-icon rp-coral"><svg><use href="#rp-clock"/></svg></span><span><strong>Scrolling reminder</strong><small id="reminder-summary">Choose when you would like a nudge.</small></span><svg class="rp-tool-arrow"><use href="#rp-chevron"/></svg></a>
+            </section>
+          </div>
+        </section>
+
+        <!-- =========================================================== This week -->
+        <section class="rp-panel" role="tabpanel" id="panel-week" aria-labelledby="tab-week" data-panel="week" hidden>
+          <div class="rp-section-head rp-week-head">
+            <div><p class="rp-kicker" id="week-kicker">This week</p><h2 id="week-title">Your week, day by day</h2><p id="week-note">Select a day to see what is planned and what you recorded.</p></div>
+            <div class="rp-date-control">
+              <button type="button" id="previous-week" aria-label="Previous week"><svg><use href="#rp-chevron"/></svg></button>
+              <span id="week-range"></span>
+              <button type="button" id="next-week" aria-label="Next week"><svg><use href="#rp-chevron"/></svg></button>
+            </div>
+          </div>
+          <div class="rp-calendar" id="calendar" role="group" aria-label="Days of the week"></div>
+          <article class="rp-day-detail" id="day-detail" aria-live="polite"></article>
+        </section>
+
+        <!-- ============================================================== Adjust -->
+        <section class="rp-panel" role="tabpanel" id="panel-adjust" aria-labelledby="tab-adjust" data-panel="adjust" hidden>
+          <form class="rp-adjust" id="adjust-form">
+            <div class="rp-section-head"><div><p class="rp-kicker">Adjust your plan</p><h2 id="adjust-title">Make the plan fit your real week</h2><p>Your focus choice decides what Activities suggests on days with nothing scheduled. The other settings are saved as preferences on this device and logged in your history; in this preview they do not rewrite your plan.</p></div></div>
+
+            <fieldset class="rp-fieldset">
+              <legend>What do you want more room for?</legend>
+              <div class="rp-choices">
+                <label class="rp-choice"><input type="radio" name="focus" value="depth"><span class="rp-stat-icon rp-gold"><svg><use href="#rp-book"/></svg></span><span><strong>Deeper focus and reading</strong><small>Suggests Depth Practice on open days.</small></span></label>
+                <label class="rp-choice"><input type="radio" name="focus" value="stillness"><span class="rp-stat-icon rp-sage"><svg><use href="#rp-moon"/></svg></span><span><strong>Fewer reflex pickups</strong><small>Suggests Protected Work on open days.</small></span></label>
+                <label class="rp-choice"><input type="radio" name="focus" value="offline"><span class="rp-stat-icon rp-blue"><svg><use href="#rp-shoe"/></svg></span><span><strong>More time away from screens</strong><small>Points you to your offline routine on open days.</small></span></label>
+              </div>
+            </fieldset>
+
+            <div class="rp-adjust-grid">
+              <fieldset class="rp-fieldset">
+                <legend>Practice days per week</legend>
+                <div class="rp-segment" role="radiogroup">
+                  <label><input type="radio" name="days" value="3"><span>3 days</span></label>
+                  <label><input type="radio" name="days" value="5"><span>5 days</span></label>
+                  <label><input type="radio" name="days" value="7"><span>Every day</span></label>
+                </div>
+              </fieldset>
+              <fieldset class="rp-fieldset">
+                <legend>Intensity</legend>
+                <div class="rp-segment" role="radiogroup">
+                  <label><input type="radio" name="intensity" value="gentle"><span>Gentle</span></label>
+                  <label><input type="radio" name="intensity" value="balanced"><span>Balanced</span></label>
+                  <label><input type="radio" name="intensity" value="focused"><span>Focused</span></label>
+                </div>
+              </fieldset>
+              <fieldset class="rp-fieldset" id="reminder">
+                <legend>Scrolling reminder</legend>
+                <div class="rp-segment" role="radiogroup">
+                  <label><input type="radio" name="reminder" value="15"><span>15 min</span></label>
+                  <label><input type="radio" name="reminder" value="30"><span>30 min</span></label>
+                  <label><input type="radio" name="reminder" value="60"><span>60 min</span></label>
+                  <label><input type="radio" name="reminder" value="0"><span>Off</span></label>
+                </div>
+                <small class="rp-field-note">Saved as a preference. Notifications are not connected in this preview.</small>
+              </fieldset>
+            </div>
+            <div class="rp-adjust-actions">
+              <button type="submit" class="rp-button rp-button-primary" id="save-plan">Save changes <svg><use href="#rp-check"/></svg></button>
+              <p class="rp-save-note" id="save-note" role="status" aria-live="polite"></p>
+            </div>
+          </form>
+        </section>
+
+        <!-- ============================================================= History -->
+        <section class="rp-panel" role="tabpanel" id="panel-history" aria-labelledby="tab-history" data-panel="history" hidden>
+          <div class="rp-section-head"><div><p class="rp-kicker">History</p><h2>Everything you have recorded</h2><p>Newest first. Practices are scored by the app; routine ticks are your own reports; check-ins are measurement tasks.</p></div></div>
+          <ol class="rp-timeline" id="history-list"></ol>
+          <p class="rp-history-empty" id="history-empty" hidden>Nothing recorded yet. Your first practice, routine tick or review will appear here.</p>
+        </section>
+      </div>
+    </main>
+    <div data-site-footer></div>
+  </body>
+</html>

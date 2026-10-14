@@ -1,0 +1,48 @@
+import {read,person,workspaces,dispatch,demoEnabled} from './store.js';
+import {labels,defaults,navigation} from './navigation.js';
+import * as ui from './ui.js';
+import {renderAccount,commonAction,renderNotifications} from './shared.js';
+const app=document.getElementById('app');
+export const localUI={};
+let generation=0,drawer=false,currentModule,currentContext;
+const modules={auth:()=>import('./pages/auth.js'),join:()=>import('./pages/auth.js'),mentor:()=>import('./pages/mentor.js'),student:()=>import('./pages/student.js'),organization:()=>import('./pages/organization.js'),provider:()=>import('./pages/provider.js'),supervisor:()=>import('./pages/supervisor.js'),admin:()=>import('./pages/admin.js'),participant:()=>import('./pages/participant.js')};
+export function route(){const [pathname,search='']=location.hash.replace(/^#\/?/,'').split('?'),parts=pathname.split('/').filter(Boolean);return {area:parts[0]||'auth',page:parts[1]||(parts[0]?'': 'register'),id:parts[2],tail:parts[3],query:new URLSearchParams(search),path:pathname};}
+function go(path){drawer=false;location.hash=ui.href(path);}
+function run(action,p={},message='Saved in the local demo.'){const result=dispatch(action,p);ui.toast(message);return result;}
+function demoPanel(s){if(!demoEnabled)return '';return `<details class="demo-panel"><summary>Development demo · identity, scenarios & reset</summary><div class="demo-panel-content"><p>All people and operational records are fictional. Identity selection is a local development helper. Reset affects only these partner workspaces.</p><div class="form-grid">${ui.select('demo-identity','Provisioned demo identity',s.people.map(p=>[p.id,`${p.name} · ${p.workspaces.map(w=>labels[w]).join(' + ')||'Applicant'}`]),s.session.personId)}${ui.select('demo-scenario','Load scenario',[['connected','Connected ecosystem'],['empty-mentor','Mentor with no groups'],['empty-organization','Institution with no initiatives'],['empty-provider','Provider with no experiences'],['unassigned-supervisor','Supervisor with no assignments'],['revision','Student needing revision'],['pending','Applicant pending verification'],['offer','Provider with active seat offer']])}</div><div class="actions">${ui.button('Switch identity','demo-identity',{},'button quiet')}${ui.button('Load scenario','demo-scenario',{},'button quiet')}${ui.button('Reset partner demo data','demo-reset',{},'button quiet')}${ui.link('Partner entry','auth/register','text-link')}</div>${ui.note('Local state simulates permissions, verification, QR check-in and capacity. It cannot enforce production authentication or cross-device concurrency.')}</div></details>`;}
+export async function render(){
+ currentModule?.unmount?.();
+ const version=++generation,r=route(),s=read(),p=person(s),publicArea=['auth','join'].includes(r.area);
+ if(!modules[r.area]){app.innerHTML=`<main id="main" class="main">${ui.missing()}</main>`;return;}
+ if(!publicArea&&!p){go('auth/login');return;}
+ if(!publicArea&&!workspaces(s).includes(r.area)&&!(r.area==='supervisor'&&p.workspaces.includes('supervisor'))){app.innerHTML=`<main id="main" class="auth-wrap">${ui.header('WORKSPACE ACCESS','This workspace is unavailable.','The current demo identity has no active membership or approved application for this workspace.')}${ui.link('Choose an available workspace','auth/workspaces')}${demoPanel(s)}</main>`;return;}
+ const module=await modules[r.area]();if(version!==generation)return;
+ const ctx={s,person:p,route:r,go,run,render,ui,localUI};currentModule=module;currentContext=ctx;
+ let content;
+ if(!publicArea&&(r.page==='account'||(['profile','settings'].includes(r.page)&&!['organization','provider','admin'].includes(r.area))))content=renderAccount(ctx);
+ else if(r.page==='notifications')content=renderNotifications(ctx);
+ else content=module.render(ctx);
+ content=content??ui.missing();
+ if(publicArea){app.innerHTML=`<div class="auth-scene" aria-hidden="true"></div><main id="main" data-route="${ui.esc(r.path)}" class="auth-wrap"><div class="auth-top"><a class="brand" href="index.html"><img src="assets/brand/floral-mark.png" alt=""><span>DeepSprout</span></a><div class="actions"><span class="demo-dot">Frontend demonstration</span>${ui.link('Demo sign in','auth/login','button quiet')}</div></div>${content}${demoPanel(s)}<p class="auth-foot">Fictional local demonstration · no emails, uploads, payments or real verification<br>© 2026 DeepSprout · ${ui.link('Help & privacy','auth/help','text-link')} · <a class="text-link" href="index.html">Home</a></p></main>`;}
+ else{const available=workspaces(s);app.innerHTML=`<div class="shell ${ui.esc(r.area)} ${drawer?'drawer-open':''}"><button class="mobile-shade" data-action="drawer-close" aria-label="Close navigation"></button><aside class="sidebar" ${matchMedia('(max-width:900px)').matches&&!drawer?'inert':''} aria-label="${labels[r.area]} navigation"><a class="brand" href="${ui.href(`${r.area}/${defaults[r.area]}`)}"><img src="assets/brand/floral-mark.png" alt=""><span>DeepSprout<small>GROW, TOGETHER</small></span></a><p class="eyebrow workspace-label">${labels[r.area]} WORKSPACE</p><nav>${navigation[r.area].map(([key,icon,label])=>`<a href="${ui.href(`${r.area}/${key}`)}" ${r.page===key?'aria-current="page"':''}>${ui.icon(icon)}<span>${label}</span></a>`).join('')}</nav><div class="sidebar-bottom">${ui.link('Explore partner opportunities','participant/discover','text-link')}<p>Fictional records · local demo</p></div></aside><div class="shell-content"><header class="topbar"><button type="button" class="icon-button mobile-menu" data-action="drawer-open" aria-label="Open navigation" aria-expanded="${drawer}">${ui.icon('menu')}</button><span class="context">${ui.esc(labels[r.area])} / ${ui.esc(navigation[r.area].find(x=>x[0]===r.page)?.[2]||'Details')}</span><div class="actions"><span class="demo-dot">Demo mode</span><label class="sr-only" for="workspace-switch">Current workspace</label><select id="workspace-switch" class="workspace-select">${available.map(w=>`<option value="${w}" ${w===r.area?'selected':''}>${labels[w]} workspace</option>`).join('')}</select><a href="${ui.href(`${r.area}/account`)}" class="person-line" aria-label="Account for ${ui.esc(p.name)}">${ui.avatar(p.name)}<strong>${ui.esc(p.name.split(' ')[0])}</strong></a>${ui.button('Sign out','logout',{},'button quiet small')}</div></header><main id="main" data-route="${ui.esc(r.path)}" class="main" tabindex="-1">${content}${demoPanel(s)}</main></div></div>`;}
+ document.title=`${document.querySelector('h1')?.textContent||labels[r.area]} — DeepSprout`;
+ module.mount?.(ctx);ui.applyFilters(app);
+}
+ui.bindDialog();
+app.addEventListener('click',async e=>{const target=e.target.closest('[data-action]');if(!target)return;const a=target.dataset.action;try{
+ if(a==='drawer-open'||a==='drawer-close'){drawer=a==='drawer-open';await render();if(drawer)app.querySelector('.sidebar nav a')?.focus();else app.querySelector('.mobile-menu')?.focus();return;}
+ if(a==='logout'){run('auth.logout',{},'Signed out of the local demo.');go('auth/login');return;}
+ if(a==='demo-identity'){run('demo.signin',{personId:document.querySelector('[name="demo-identity"]').value},'Demo identity changed.');go('auth/workspaces');await render();return;}
+ if(a==='demo-reset'||a==='demo-scenario'){ui.confirm(a==='demo-reset'?'Reset partner demo data?':'Load a different demo scenario?','This replaces local partner-workspace progress. Individual and existing Admin data stay intact.',()=>{run(a==='demo-reset'?'demo.reset':'demo.scenario',a==='demo-reset'?{}:{name:document.querySelector('[name="demo-scenario"]').value});for(const key of Object.keys(localUI))delete localUI[key];go('auth/workspaces');render();});return;}
+ if(commonAction(a,target,currentContext))return;
+ await currentModule?.action?.(a,target,currentContext);
+ }catch(error){ui.toast(error.message,true);}});
+app.addEventListener('submit',async e=>{e.preventDefault();if(!e.target.reportValidity())return;try{await currentModule?.submit?.(e.target,currentContext);}catch(error){const errorNode=e.target.querySelector('.form-error');if(errorNode){errorNode.textContent=error.message;errorNode.id||=`workspace-form-error-${generation}`;errorNode.tabIndex=-1;e.target.setAttribute('aria-describedby',errorNode.id);errorNode.focus();}else ui.toast(error.message,true);}});
+app.addEventListener('change',e=>{if(e.target.id==='workspace-switch'){go(`${e.target.value}/${defaults[e.target.value]}`);return;}if(e.target.matches('[data-filter]'))ui.applyFilters(app);currentModule?.change?.(e.target,currentContext);});
+app.addEventListener('input',e=>{if(e.target.matches('[data-filter]'))ui.applyFilters(app);currentModule?.input?.(e.target,currentContext);});
+window.addEventListener('hashchange',()=>{render().then(()=>{if(!document.getElementById('workspace-dialog').open)document.getElementById('main')?.focus({preventScroll:true});window.scrollTo(0,0);});});
+window.addEventListener('resize',()=>{const sidebar=app.querySelector('.sidebar');if(sidebar)sidebar.inert=matchMedia('(max-width:900px)').matches&&!drawer;});
+window.addEventListener('keydown',event=>{if(event.key==='Escape'&&drawer&&!document.getElementById('workspace-dialog').open){drawer=false;render().then(()=>app.querySelector('.mobile-menu')?.focus());}});
+window.addEventListener('storage',e=>{if(e.key==='deepsprout-ecosystem-demo-v1')render();});
+let offerSignature='';setInterval(()=>{const signature=read().offers.map(o=>o.id+o.status).join('|');if(signature!==offerSignature){offerSignature=signature;if(currentContext?.route.page==='waitlist'||currentContext?.route.page==='bookings')render();}},10000);
+render();

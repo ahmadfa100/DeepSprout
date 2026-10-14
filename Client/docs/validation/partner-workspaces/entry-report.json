@@ -1,0 +1,12 @@
+{
+  "verified": [
+    "mentor: personal account, invalid/correct simulated OTP, application review/submission, all seven status scenarios and approved empty workspace.",
+    "organization: personal account, invalid/correct simulated OTP, application review/submission, all seven status scenarios and approved empty workspace.",
+    "provider: personal account, invalid/correct simulated OTP, application review/submission, all seven status scenarios and approved empty workspace.",
+    "Existing-account option reuses the person record; passwords are absent from persisted state.",
+    "Demo reset preserves Individual and existing Admin storage keys.",
+    "Rendered form controls have unique IDs."
+  ],
+  "errors": [],
+  "completed": true
+}

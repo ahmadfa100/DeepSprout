@@ -1,0 +1,112 @@
+{
+  "cases": [
+    "Byte-identical garden.js, choreography.js, camera.js, garden.svg and garden/invitation markup; garden.css verbatim from HEAD with no dead rules; one scroll driver.",
+    "1440: pixel seam from section 4's root into the garden; seed at the root's tip; 9 frames pixel-identical to HEAD; invitation and link focus; reversible; same garden element; no overflow; frame pacing.",
+    "390: pixel seam from section 4's root into the garden; seed at the root's tip; 9 frames pixel-identical to HEAD; invitation and link focus; reversible; same garden element; no overflow; frame pacing.",
+    "Reduced motion and no-JS: garden panel in its article, garden and invitation readable, link visible."
+  ],
+  "screenshots": [
+    "1440-seam-root.png",
+    "1440-seam-garden.png",
+    "1440-invitation.png",
+    "390-seam-root.png",
+    "390-seam-garden.png",
+    "390-invitation.png",
+    "reduced-motion.png",
+    "no-javascript.png"
+  ],
+  "errors": [],
+  "frames": {
+    "390": {
+      "t6.620.png": 0,
+      "t6.845.png": 0,
+      "t7.020.png": 0,
+      "t7.220.png": 0,
+      "t7.420.png": 0,
+      "t7.620.png": 0,
+      "t7.820.png": 0,
+      "t7.970.png": 0,
+      "t8.145.png": 0
+    },
+    "1440": {
+      "t6.620.png": 0,
+      "t6.845.png": 0,
+      "t7.020.png": 0,
+      "t7.220.png": 0,
+      "t7.420.png": 0,
+      "t7.620.png": 0,
+      "t7.820.png": 0,
+      "t7.970.png": 0,
+      "t8.145.png": 0
+    },
+    "copiedRules": 105,
+    "timing1440": {
+      "median": 16.700000000000728,
+      "p95": 16.700000000000728,
+      "samples": 124
+    },
+    "timing390": {
+      "median": 16.69999999999709,
+      "p95": 16.700000000000728,
+      "samples": 124
+    }
+  },
+  "seam": {
+    "390": {
+      "soft": {
+        "n": 464,
+        "x0": 214,
+        "x1": 389,
+        "y1": 484
+      },
+      "strong": {
+        "n": 3,
+        "x0": 316,
+        "x1": 333,
+        "y1": 432
+      },
+      "entry": {
+        "x": 334.3993592262268,
+        "y": 483.7198263516028
+      }
+    },
+    "1440": {
+      "soft": {
+        "n": 474,
+        "x0": 1209,
+        "x1": 1229,
+        "y1": 419
+      },
+      "strong": {
+        "n": 2,
+        "x0": 1209,
+        "x1": 1219,
+        "y1": 338
+      },
+      "entry": {
+        "x": 1227.2109619426456,
+        "y": 419.25719245612186
+      }
+    },
+    "seedTip1440": {
+      "seed": [
+        1157.6019287109375,
+        420.11351013183594
+      ],
+      "tip": [
+        1157.601259953885,
+        420.11334758010116
+      ]
+    },
+    "seedTip390": {
+      "seed": [
+        295.09381103515625,
+        487.5724182128906
+      ],
+      "tip": [
+        295.09446144104004,
+        487.5686521821335
+      ]
+    }
+  }
+}

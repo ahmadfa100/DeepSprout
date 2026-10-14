@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../../../../assets/brand/logo.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf8f3">
+  <meta name="description" content="Your DeepSprout progress: plan adherence, measured browser usage, training levels and check-in results, each with its source.">
+  <title>Insights — DeepSprout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../../src/styles/style.css">
+  <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
+  <link rel="stylesheet" href="insights.css">
+  <script src="../../../../src/js/data/account.js" defer></script>
+  <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
+  <script src="insights.js" defer></script>
+</head>
+<body data-page="insights" data-root="../../../../">
+  <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3Z"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 16a8 8 0 1 1 16 0"/><path d="m12 16 4-5"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="m4 20 1-4L16 5l3 3L8 19l-4 1Zm10-13 3 3"/></symbol>
+    <symbol id="i-badge" viewBox="0 0 24 24"><path d="m12 3 2.2 1.6 2.7-.1.9 2.6 2.2 1.6-.8 2.6.8 2.6-2.2 1.6-.9 2.6-2.7-.1L12 20.4l-2.2-1.6-2.7.1-.9-2.6L4 14.7l.8-2.6L4 9.5l2.2-1.6.9-2.6 2.7.1L12 3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.5C9.5 4.7 6.5 4.5 3.5 5v13c3-.5 6-.3 8.5 1.5 2.5-1.8 5.5-2 8.5-1.5V5c-3-.5-6-.3-8.5 1.5Zm0 0v13"/></symbol>
+    <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3.5" y="14" width="4" height="6" rx="1.5"/><rect x="16.5" y="14" width="4" height="6" rx="1.5"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.3 2.9 8 7 9.5 4.1-1.5 7-5.2 7-9.5V6l-7-3Z"/></symbol>
+    <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8"/><path d="m10 21 2.5-6.5L15 17v4m-2.5-6.5L13 9l-3.5 1.5L8 14m5-5 2 3 3 1"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4m0 1h11l-2 4 2 4H5"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8.5v.5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></symbol>
+  </svg>
+
+  <div data-site-header></div>
+
+  <main class="ins" id="insights" aria-busy="true">
+
+    <!-- 1 · Hero ---------------------------------------------------------->
+    <header class="ins-hero" aria-labelledby="ins-title">
+      <div class="ins-hero-copy">
+        <p class="ins-eyebrow">Insights</p>
+        <h1 id="ins-title">Understand your progress</h1>
+        <div class="ins-hero-controls">
+          <div class="ins-period" role="group" aria-label="Period for browser data">
+            <span class="ins-period-thumb" aria-hidden="true"></span>
+            <button type="button" data-period="7" aria-pressed="false">7 days</button>
+            <button type="button" data-period="14" aria-pressed="true">14 days</button>
+            <button type="button" data-period="28" aria-pressed="false">28 days</button>
+          </div>
+          <p class="ins-coverage" id="ins-coverage" aria-live="polite"><span class="ins-skeleton">Loading your data…</span></p>
+        </div>
+      </div>
+      <figure class="ins-hero-bimo" aria-hidden="true"><img src="../../../../assets/insights/bimo-insights.png" alt=""></figure>
+    </header>
+
+    <p class="ins-error" id="ins-error" role="alert" hidden></p>
+
+    <!-- 2 · At a glance --------------------------------------------------->
+    <section class="ins-section ins-glance reveal" id="glance" aria-labelledby="glance-title">
+      <h2 class="ins-visually-hidden" id="glance-title">At a glance</h2>
+      <div class="ins-glance-grid" id="glance-grid"></div>
+    </section>
+
+    <!-- 3 · Plan adherence ------------------------------------------------>
+    <section class="ins-section reveal" id="adherence" aria-labelledby="adherence-title">
+      <div class="ins-section-head">
+        <div>
+          <p class="ins-eyebrow">Plan adherence</p>
+          <h2 id="adherence-title">This week, day by day</h2>
+        </div>
+        <span class="ins-head-meta" id="adherence-meta"></span>
+      </div>
+      <div id="adherence-body"></div>
+    </section>
+
+    <!-- 4 · Digital usage ------------------------------------------------->
+    <section class="ins-section reveal" id="usage" aria-labelledby="usage-title">
+      <div class="ins-section-head">
+        <div>
+          <p class="ins-eyebrow">Digital usage</p>
+          <h2 id="usage-title">Time on the sites you chose</h2>
+        </div>
+        <span class="ins-head-meta" id="usage-meta"></span>
+      </div>
+      <div id="usage-body"></div>
+      <aside class="ins-phone" id="phone-box" aria-label="Phone screen time" hidden></aside>
+    </section>
+
+    <!-- 5 · Training ------------------------------------------------------>
+    <section class="ins-section reveal" id="training" aria-labelledby="training-title">
+      <div class="ins-section-head">
+        <div>
+          <p class="ins-eyebrow">Training</p>
+          <h2 id="training-title">Levels, one per practice type</h2>
+        </div>
+        <span class="ins-head-meta" id="training-meta"></span>
+      </div>
+      <div class="ins-training-grid" id="training-body"></div>
+      <p class="ins-footnote" id="training-note"></p>
+    </section>
+
+    <!-- 6 · Check-in results ---------------------------------------------->
+    <section class="ins-section reveal" id="checkins" aria-labelledby="checkins-title">
+      <div class="ins-section-head">
+        <div>
+          <p class="ins-eyebrow" id="checkins-eyebrow"></p>
+          <h2 id="checkins-title"></h2>
+        </div>
+        <span class="ins-head-meta" id="checkins-meta"></span>
+      </div>
+      <div id="checkins-window"></div>
+      <div class="ins-ranges" id="checkins-body"></div>
+      <p class="ins-caveat"><svg aria-hidden="true"><use href="#i-info"/></svg><span>These are measurement tasks, not a diagnosis. Repeating a test can raise the score through practice alone.</span></p>
+    </section>
+
+    <!-- 7 · Beyond the screen --------------------------------------------->
+    <section class="ins-section reveal" id="beyond" aria-labelledby="beyond-title">
+      <div class="ins-section-head">
+        <div>
+          <p class="ins-eyebrow">Beyond the screen</p>
+          <h2 id="beyond-title">Life away from the feed</h2>
+        </div>
+      </div>
+      <div class="ins-beyond-grid" id="beyond-body"></div>
+    </section>
+
+    <!-- 8 · Next steps ---------------------------------------------------->
+    <section class="ins-section reveal" id="next" aria-labelledby="next-title">
+      <div class="ins-section-head">
+        <div>
+          <p class="ins-eyebrow">Next steps</p>
+          <h2 id="next-title">What your data points to</h2>
+        </div>
+      </div>
+      <ol class="ins-steps" id="next-body"></ol>
+    </section>
+
+    <div class="ins-tooltip" id="ins-tooltip" role="tooltip" hidden></div>
+  </main>
+
+  <div data-site-footer></div>
+</body>
+</html>

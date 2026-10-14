@@ -1,0 +1,5 @@
+# Insights banner illustration
+
+Generated with the built-in image generator in `illustration-story` mode using the supplied Insights SVG banner and the current DeepSprout Training banner as visual references. The selected 2172 × 724 output is `hero-v1.png`. Signboard labels are live HTML over the blank boards.
+
+Prompt: “High-resolution Insights dashboard banner art for DeepSprout. Friendly white sprout-headed robot holding a tablet in a lush green landscape with a winding river and blue mountains, a tree canopy at top right, and three stacked wooden signboards at the far right. Match the premium crisp 2.5D storybook quality and mascot identity of the DeepSprout Training illustration. Very wide landscape illustration with the mascot centered slightly left and wooden signboards right. Keep the signboards completely blank because labels will be live HTML. No text, letters, numbers, UI, logos, or watermarks. Warm ivory, emerald, mint, soft sky blue, polished soft lighting, clean sharp details.”

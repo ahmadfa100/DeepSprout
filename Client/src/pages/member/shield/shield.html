@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8fcf9">
+  <meta name="description" content="Plan focused, distraction-free time with DeepSprout Digital Shield.">
+  <title>Digital Shield — DeepSprout</title>
+  <link rel="icon" type="image/svg+xml" href="../../../../assets/home-kit/icons/brand-sprout-logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../../src/styles/style.css">
+  <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
+  <link rel="stylesheet" href="../../../../src/styles/page-hero.css?v=20261014-1">
+  <link rel="stylesheet" href="shield.css?v=20261014-1">
+  <script src="../../../../src/js/utils/storage.js" defer></script>
+  <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
+  <script src="shield.js?v=20261014-1" defer></script>
+</head>
+<body data-page="shield" data-root="../../../../">
+  <div data-site-header></div>
+  <main class="shield-page">
+    <header class="ds-hero" aria-labelledby="shield-title">
+      <div class="ds-hero-copy">
+        <p class="ds-hero-eyebrow">Digital Shield</p>
+        <h1 id="shield-title">Keep the feeds<br><em>out of your focus time.</em></h1>
+        <p class="ds-hero-text">Plan when to step away, choose the apps that pull you in, and start a focus timer when it is time.</p>
+      </div>
+      <figure class="ds-hero-art" style="--hero-focus: 62% 50%"><img src="../../../../assets/shield/hero-bimo.png" alt="Bimo relaxing on a grassy hill with sunglasses"></figure>
+    </header>
+    <aside class="shield-note" role="note">
+      <span class="note-icon" aria-hidden="true"><img src="../../../../assets/shield/lightbulb.svg" alt=""></span>
+      <div><strong>Client preview</strong><p>These settings are saved in this browser. App blocking, browser protection, and reminders are not connected in this preview.</p></div>
+    </aside>
+    <div class="shield-layout">
+      <form class="plan-panel" id="shield-form">
+        <div class="plan-heading">
+          <div><h2>Your evening plan</h2><p>Choose a time and the apps you want to be more mindful of.</p></div>
+          <div class="moon-note" aria-hidden="true"><span>☾</span><p>Disconnect to<br>reconnect with what<br>matters most.</p></div>
+        </div>
+        <div class="plan-content">
+          <section class="focus-card" aria-labelledby="focus-title">
+            <div class="focus-card-top"><h3 id="focus-title">Focus time</h3><p>Set when to step away<br>from distracting apps.</p></div>
+            <div class="focus-ring">
+              <div class="ring-inner">
+                <span class="ring-moon" aria-hidden="true">☾</span>
+                <span class="ring-label">Focus timer</span>
+                <strong id="focus-time-display" role="timer">25:00</strong>
+                <span class="timer-caption" id="timer-caption" aria-live="polite">Ready when you are</span>
+              </div>
+            </div>
+            <div class="timer-controls"><button type="button" id="timer-start">Start focus</button><button type="button" id="timer-reset">Reset</button></div>
+            <label class="schedule-row" for="shield-time"><span><strong>Evening start</strong><small id="focus-time-label">Today, 7:00 PM</small></span><input id="shield-time" type="time" value="19:00" required aria-label="Evening start time"></label>
+            <label class="reminder-control"><span class="reminder-bell" aria-hidden="true"><img src="../../../../assets/home-kit/icons/bell.svg" alt=""></span><span>Remind me before it starts</span><input id="shield-reminder" type="checkbox" checked><span class="toggle-track" aria-hidden="true"></span></label>
+          </section>
+          <section class="apps-section" aria-labelledby="apps-title">
+            <div class="apps-heading"><div><h3 id="apps-title">Apps to keep in mind</h3><p>Select apps or drag them to the basket on the right.</p></div><span class="drag-hint" aria-hidden="true">⠿ &nbsp; Drag &amp; drop&nbsp; →</span></div>
+            <div class="app-grid" id="app-grid"></div>
+            <div class="custom-app"><h3>Add a custom app or website</h3><p>Paste a link to add it to your list.</p><div class="custom-app-row"><label class="custom-input"><span aria-hidden="true">↗</span><input id="custom-app-input" type="text" inputmode="url" placeholder="Paste app or website link (e.g. example.com)" aria-label="Custom app or website link"></label><button id="add-custom-app" type="button"><span aria-hidden="true">＋</span> Add</button></div><p class="input-message" id="input-message" role="status" aria-live="polite"></p></div>
+          </section>
+        </div>
+      </form>
+      <aside class="basket-panel" aria-labelledby="basket-title" id="focus-basket">
+        <div class="basket-heading"><div><h2 id="basket-title">Your focus basket</h2><p>Apps you've selected will be added here. You can also drag and drop them.</p></div><span class="basket-count"><span aria-hidden="true">♧</span><span id="basket-count">3 apps<br>in basket</span></span></div>
+        <div class="basket-art" aria-hidden="true"><img src="../../../../assets/shield/focus-basket.png" alt=""><img class="floating-logo instagram-logo" src="../../../../assets/home-kit/icons/instagram-color.svg" alt=""><img class="floating-logo youtube-logo" src="../../../../assets/home-kit/icons/youtube-color.svg" alt=""><img class="floating-logo tiktok-logo" src="../../../../assets/home-kit/icons/tiktok-color.svg" alt=""></div>
+        <div class="basket-list" id="basket-list" aria-live="polite"></div>
+        <button class="save-button" type="submit" form="shield-form">Save preferences <span aria-hidden="true">→</span></button>
+        <p class="save-message" id="save-message" role="status" aria-live="polite"></p>
+      </aside>
+    </div>
+  </main>
+  <div data-site-footer></div>
+</body>
+</html>

@@ -1,0 +1,512 @@
+{
+  "cases": [
+    "Natural intro → fast wheel: seven stages visited; progress capped; persistent 700×860 canvas; ≤5 decoders; scripted gaze",
+    "Backward scroll restores calm, same stones, stopped videos; repeated direction changes preserve character",
+    "Controlled scroll through burst; adaptive 3–5 live sources at peak",
+    "Pause/resume and viewport resize preserve Bimo; pause stops media",
+    "Seven captured states at both 1440×900 and 1280×800; actual painted Bimo pixels in all states",
+    "Delayed reel + failed reel: poster fallback, dense cards retained, remaining sources play",
+    "Reduced motion: static representative scenes, no ambient clock or video requests",
+    "390×844 fallback composition: no horizontal overflow"
+  ],
+  "errors": [],
+  "screenshots": [
+    "1440x900-00-post-hero-calm.png",
+    "1440x900-01-tiny-distraction.png",
+    "1440x900-02-temptation-orbit.png",
+    "1440x900-03-first-collapse.png",
+    "1440x900-04-swarm-spiral.png",
+    "1440x900-05-black-hole-burst.png",
+    "1440x900-06-the-trap.png",
+    "1280x800-00-post-hero-calm.png",
+    "1280x800-01-tiny-distraction.png",
+    "1280x800-02-temptation-orbit.png",
+    "1280x800-03-first-collapse.png",
+    "1280x800-04-swarm-spiral.png",
+    "1280x800-05-black-hole-burst.png",
+    "1280x800-06-the-trap.png"
+  ],
+  "metrics": {
+    "fastSwipe": [
+      {
+        "p": 0,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.015000000000000003,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.029993999999999982,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.04499399999999999,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.059994000000000006,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.07499400000000002,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.08999400000000003,
+        "stage": "POST HERO CALM",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.10498800000000003,
+        "stage": "TINY DISTRACTION",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.11999400000000006,
+        "stage": "TINY DISTRACTION",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.13498800000000005,
+        "stage": "TINY DISTRACTION",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.14998800000000007,
+        "stage": "TINY DISTRACTION",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.16498800000000002,
+        "stage": "TINY DISTRACTION",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.179988,
+        "stage": "TINY DISTRACTION",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.19499399999999995,
+        "stage": "TINY DISTRACTION",
+        "cards": 0,
+        "active": 0,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.2099879999999999,
+        "stage": "TINY DISTRACTION",
+        "cards": 0,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.22498799999999983,
+        "stage": "TINY DISTRACTION",
+        "cards": 0,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.23998799999999978,
+        "stage": "TEMPTATION ORBIT",
+        "cards": 0,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.2549953648179105,
+        "stage": "TEMPTATION ORBIT",
+        "cards": 1,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.27057969079561384,
+        "stage": "TEMPTATION ORBIT",
+        "cards": 1,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.2882569266067071,
+        "stage": "TEMPTATION ORBIT",
+        "cards": 2,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.3098277596566418,
+        "stage": "TEMPTATION ORBIT",
+        "cards": 3,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.33715790383495636,
+        "stage": "TEMPTATION ORBIT",
+        "cards": 3,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.3707214406935259,
+        "stage": "TEMPTATION ORBIT",
+        "cards": 3,
+        "active": 1,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.4069333314520634,
+        "stage": "FIRST COLLAPSE",
+        "cards": 5,
+        "active": 2,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.44318333145206357,
+        "stage": "FIRST COLLAPSE",
+        "cards": 7,
+        "active": 2,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.4794333314520636,
+        "stage": "FIRST COLLAPSE",
+        "cards": 7,
+        "active": 2,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.5156833314520637,
+        "stage": "FIRST COLLAPSE",
+        "cards": 7,
+        "active": 2,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.5519188314520636,
+        "stage": "SWARM / SPIRAL",
+        "cards": 10,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.5881833314520635,
+        "stage": "SWARM / SPIRAL",
+        "cards": 12,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.6244188314520633,
+        "stage": "SWARM / SPIRAL",
+        "cards": 14,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.6606688314520632,
+        "stage": "SWARM / SPIRAL",
+        "cards": 16,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.6969188314520632,
+        "stage": "SWARM / SPIRAL",
+        "cards": 16,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.7331688314520632,
+        "stage": "BLACK-HOLE BURST",
+        "cards": 22,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.7694188314520631,
+        "stage": "BLACK-HOLE BURST",
+        "cards": 28,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.8056688314520632,
+        "stage": "BLACK-HOLE BURST",
+        "cards": 32,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.8419188314520631,
+        "stage": "BLACK-HOLE BURST",
+        "cards": 32,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.878168831452063,
+        "stage": "BLACK-HOLE BURST",
+        "cards": 34,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.9144188314520629,
+        "stage": "THE TRAP",
+        "cards": 40,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.9506688314520628,
+        "stage": "THE TRAP",
+        "cards": 46,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.9832602466747584,
+        "stage": "THE TRAP",
+        "cards": 46,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      },
+      {
+        "p": 0.9952015817646467,
+        "stage": "THE TRAP",
+        "cards": 46,
+        "active": 5,
+        "same": true,
+        "canvas": [
+          700,
+          860
+        ]
+      }
+    ],
+    "peakRAF": {
+      "median": 16.69999999999709,
+      "p95": 16.700000000000728,
+      "samples": 96
+    },
+    "peakVideos": 5
+  }
+}
