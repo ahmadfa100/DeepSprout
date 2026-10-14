@@ -6,15 +6,15 @@
   <meta name="theme-color" content="#f7f8f2">
   <meta name="description" content="Focused practices and your offline routine — the activities that replace mindless scrolling.">
   <title>Activities — DeepSprout</title>
-  <link rel="icon" type="image/png" href="../../../assets/logo/Image.png">
+  <link rel="icon" type="image/png" href="../../../../assets/brand/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../../src/styles/theme.css">
+  <link rel="stylesheet" href="../../../../src/styles/style.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
   <link rel="stylesheet" href="../../../../src/styles/page-hero.css">
   <link rel="stylesheet" href="training.css">
-  <script src="../../../../src/js/utils/storage.js" defer></script>
+  <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
   <script src="training.js" defer></script>
   <script src="offline-routine.js" defer></script>
@@ -56,7 +56,7 @@
           <span class="ds-hero-chip" id="progress-message" hidden></span>
         </div>
       </div>
-      <figure class="ds-hero-art is-cutout"><img src="../../../assets/Bimo-Activites-page.png" alt="Bimo in a green headband, crouched at the start line"></figure>
+      <figure class="ds-hero-art is-cutout"><img src="../../../../assets/training/bimo-activities.png" alt="Bimo in a green headband, crouched at the start line"></figure>
       <p class="ds-hero-note" aria-hidden="true">Ready?<br>Let's go!</p>
     </header>
 
@@ -148,9 +148,9 @@
       <!-- -------------------------------------------------------------- shield -->
       <a class="shield-band" id="digital-shield" href="../shield/shield.html" aria-labelledby="shield-title">
         <span class="shield-band-art" aria-hidden="true">
-          <img class="float-app a1" src="../../../../assets/home-kit/icons/instagram-color.svg" alt="">
-          <img class="float-app a2" src="../../../../assets/home-kit/icons/tiktok-color.svg" alt="">
-          <img class="float-app a3" src="../../../../assets/home-kit/icons/youtube-color.svg" alt="">
+          <span class="float-app a1"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="m10.5 9 4 3-4 3Z"/></svg></span>
+          <span class="float-app a2"><svg viewBox="0 0 24 24"><path d="M12 20 4.6 12.6a4.4 4.4 0 0 1 6.2-6.2L12 7.6l1.2-1.2a4.4 4.4 0 0 1 6.2 6.2Z"/></svg></span>
+          <span class="float-app a3"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="m10 9.5 5 2.5-5 2.5Z"/></svg></span>
           <span class="shield-band-shield"><svg><use href="#i-shield"/></svg></span>
         </span>
         <span class="shield-band-copy"><small>Digital Shield</small><strong id="shield-title">Keep the feeds out of your practice time</strong><span>Choose the apps that pull you in and plan when to put them away.</span></span>
@@ -162,6 +162,17 @@
     </div>
   </main>
   <div data-site-footer></div>
+
+  <!-- Delete a routine item: always confirmed, never one click. -->
+  <dialog id="routine-delete-dialog" class="routine-dialog" aria-labelledby="routine-delete-title" aria-describedby="routine-delete-body">
+    <span class="routine-dialog-icon" aria-hidden="true"><svg><use href="#i-trash"/></svg></span>
+    <h2 id="routine-delete-title">Delete this item?</h2>
+    <p id="routine-delete-body"></p>
+    <div class="routine-dialog-actions">
+      <button type="button" class="routine-secondary" id="routine-delete-cancel" autofocus>Cancel</button>
+      <button type="button" class="routine-danger" id="routine-delete-confirm">Delete item</button>
+    </div>
+  </dialog>
 
   <!-- Focus mode: a full-screen timer, opened from a practice. -->
   <dialog id="session-dialog" class="focus-mode" aria-labelledby="session-title">
@@ -177,7 +188,7 @@
       <div class="focus-actions">
         <button type="button" class="focus-primary" id="timer-toggle"><svg><use href="#i-play"/></svg><span>Start</span></button>
         <button type="button" class="focus-secondary" id="timer-reset">Reset</button>
-        <button type="button" class="focus-secondary" id="complete-session"><svg><use href="#i-check"/></svg> I finished</button>
+        <button type="button" class="focus-secondary" id="complete-session"><svg><use href="#i-check"/></svg> End session</button>
       </div>
       <p class="session-feedback" id="session-feedback" aria-live="polite"></p>
     </div>

@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
-const base=process.argv[2]||process.env.HERO_URL||'http://127.0.0.1:8792',label=process.argv[3]||'after',out=path.resolve(__dirname,'../references/hero-v2-bimo-continuity',label);
+const base=process.argv[2]||process.env.HERO_URL||'http://127.0.0.1:8792',label=process.argv[3]||'after',out=path.resolve(__dirname,'../docs/validation/hero-v2-bimo-continuity',label);
 fs.mkdirSync(out,{recursive:true});
 const keys=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../assets/hero-v2/motion-clips.json'))).keys;
 (async()=>{

@@ -43,8 +43,8 @@ The journey test needs `jsdom`; without it the test reports that it was skipped 
 
 - `src/styles/theme.css` owns the common colors, typography, and design tokens. Each page loads this after its own stylesheet so the shared tokens stay consistent.
 - `src/layouts/member-layout/member-layout.js` renders the shared Home and member navigation and footer, including the responsive menu and illustrated page-transition loader. `member-layout.css` styles them. The former landing page and Pricing retain the public `site-layout`.
-- `assets/` contains illustration files, with each illustration's prompt notes beside it.
-- Login and Register use `src/assets/backgrounds/image.png`, the same DM Sans typography and card styling, and the reusable footer in `src/layouts/auth-footer/`. Register builds on the Login styles with its own form layout. Both forms and their text remain live HTML.
+- `assets/` contains runtime media. Illustration prompt notes live in `docs/design/image-prompts/`; original design references live in `references/`, and test captures live in `docs/validation/`.
+- Login and Register use `assets/auth/background.png`, the same DM Sans typography and card styling, and the reusable footer in `src/layouts/auth-footer/`. Register builds on the Login styles with its own form layout. Both forms and their text remain live HTML.
 - `src/styles/page-hero.css` is the shared hero for Roadmap, Activities, Digital Shield, Insights and Community: one fixed-height frame with copy on the left and art on the right.
 - Digital Shield preferences are local browser preview data. The Digital Shield preview does not block apps or provide browser protection.
 
@@ -68,10 +68,14 @@ The former landing page at `landing.html` is a continuous attention story: garde
 
 GSAP 3.13.0 and ScrollTrigger remain bundled locally in `assets/vendor/gsap/`; their license headers are retained. There is no framework, package installation, or build step for the site. Reduced motion and failed/missing animation libraries produce a readable static page. Existing artwork is flat, so mascot movement remains a whole-image treatment.
 
-See [the implementation handoff](docs/break-the-loop.md) for scenes, architecture, all changed files, asset requirements, device behavior, and performance limits.
+See [the implementation handoff](docs/experience/break-the-loop.md) for scenes, architecture, all changed files, asset requirements, device behavior, and performance limits.
 
 A browser regression suite lives at `tests/home-story.test.cjs`. With this folder served on port 8765 and Playwright available to Node, run `node tests/home-story.test.cjs`. Set `BASE_URL` for another local origin, `CHROME_PATH` for an installed Chromium browser, and `NODE_PATH` if using an external Playwright installation. These are test-only dependencies.
 
 ## Admin demo
 
-The Login page includes **Continue as Admin (Demo)**. It opens a separate, responsive Admin workspace at `admin.html#/dashboard` with all management, recovery operations, Content Studio, community moderation, analytics, settings, and audit screens. Admin records persist locally across navigation and refreshes. Published activities appear in Training as previews; published Content Studio regions appear on the public landing page. See [Admin architecture and demo boundaries](docs/admin-cycle.md).
+The Login page includes **Continue as Admin (Demo)**. It opens a separate, responsive Admin workspace at `admin.html#/dashboard` with all management, recovery operations, Content Studio, community moderation, analytics, settings, and audit screens. Admin records persist locally across navigation and refreshes. Published activities appear in Training as previews; published Content Studio regions appear on the public landing page. See [Admin architecture and demo boundaries](docs/architecture/admin-cycle.md).
+
+## File organization
+
+See the [documentation index](docs/README.md), [asset guide](assets/README.md), and [reference guide](references/README.md). Runtime artwork is consolidated under `assets/`; `src/` contains application source and local demo data. Root HTML files remain stable public entry URLs and animation labs.

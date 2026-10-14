@@ -22,7 +22,9 @@ const pages = [
   ['src/pages/member/weekly-review/weekly-review.html'],
   ['src/pages/member/training/training.html'],
   ['src/pages/member/insights/insights.html'],
-  ['src/pages/member/community/community.html']
+  ['src/pages/member/community/community.html'],
+  ['src/pages/member/recovery-plan/recovery-plan.html'],
+  ['index.html']
 ];
 
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
@@ -65,7 +67,7 @@ for (const [page] of pages) {
     const code = fs.readFileSync(file, 'utf8');
 
     // Only check pages' own scripts — shared modules are used by many pages.
-    if (!file.includes(path.resolve(root, dir))) continue;
+    if (!file.includes(path.resolve(root, dir)) || /[\\/]src[\\/](layouts|js)[\\/]/.test(file)) continue;
 
     for (const lookup of matchAll(code, /getElementById\('([^']+)'\)/g)) {
       if (!ids.has(lookup)) problems.push(`${page}: ${script} looks up #${lookup}, not in the markup`);

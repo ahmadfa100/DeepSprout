@@ -3,122 +3,166 @@
  * scroll-driven "how it works" journey that Bimo walks along.
  */
 (() => {
-  const DS = window.DeepSprout;
+  const Account = window.DeepSproutAccount;
   const Art = window.GardenArt;
   const $ = id => document.getElementById(id);
   const reducedMotion = typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const readStored = (key, fallback) => {
-    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-    catch { return fallback; }
-  };
   const STAGES = [['Seed', 0], ['Sprout', 1], ['Sapling', 2], ['Tree', 4], ['Blossom', 6]];
   const stageFor = count => STAGES.reduce((stage, [, from], index) => (count >= from ? index : stage), 0);
   const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+  const STATE_LABELS = { completed: 'Completed', missed: 'Missed', rest: 'Planned rest day', 'not-due': 'Not due yet', none: 'Nothing scheduled' };
 
   /* ---------------------------------------------------------- the spaces */
 
-  function renderSpaces(stats) {
-    if (stats.hasPlan) {
-      $('space-roadmap-title').textContent = `Week ${stats.week} · ${stats.weekTitle}`;
-      $('space-roadmap-note').textContent = `Day ${stats.day} of ${stats.cycleLength}. ${stats.daysToReview === 0
-        ? 'Your weekly review is due today.'
-        : `Next review in ${plural(stats.daysToReview, 'day')}.`}`;
+  function renderSpaces(account) {
+    const fmt = Account.format;
+    const plan = account.plan();
+    const reviews = account.reviews();
+    if (plan) {
+      const week = plan.direction[plan.week - 1];
+      $('space-roadmap-title').textContent = `Week ${plan.week} · ${week.title}`;
+      const toReview = reviews.nextDue ? Account.daysBetween(account.today, reviews.nextDue) : null;
+      $('space-roadmap-note').textContent = `Day ${plan.day} of ${plan.lengthDays}.${toReview === null ? '' : ` Weekly review ${fmt.relativeDays(toReview)}.`}`;
       document.querySelectorAll('.mini-node').forEach(node => {
         const index = Number(node.dataset.node);
-        node.classList.toggle('is-done', index < stats.week - 1);
-        node.classList.toggle('is-current', index === stats.week - 1);
+        node.classList.toggle('is-done', index < plan.week - 1);
+        node.classList.toggle('is-current', index === plan.week - 1);
       });
     } else {
-      document.querySelector('.mini-node[data-node="0"]').classList.add('is-current');
+      document.querySelector('.mini-node[data-node="0"]')?.classList.add('is-current');
     }
 
-    const next = DS.nextAction('');
+    const step = account.nextSteps('')[0];
     const today = $('space-today');
-    today.href = next.href;
-    $('space-today-title').textContent = next.label;
-    $('space-today-note').textContent = next.why;
-    today.classList.toggle('is-done', /done|by design/.test(next.why));
-
-    const apps = readStored('deepsprout-shield-apps', null);
-    const time = readStored('deepsprout-shield-time', null);
-    if (Array.isArray(apps) && apps.length) {
-      $('space-shield-title').textContent = `${plural(apps.length, 'app')} in your focus basket`;
-      $('space-shield-note').textContent = typeof time === 'string'
-        ? `Focus time planned from ${new Date(`2000-01-01T${time}:00`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.`
-        : 'Plan when to put them away.';
+    if (step) {
+      today.href = step.href;
+      $('space-today-title').textContent = step.action;
+      $('space-today-note').textContent = step.title;
     }
 
-    const count = stats.hasPlan ? stats.perWeek[stats.week - 1].practices + stats.perWeek[stats.week - 1].routine
-      : stats.totalPractices + stats.totalRoutineDays;
-    const stage = stageFor(count);
-    $('space-garden-title').textContent = count ? `${STAGES[stage][0]} · ${plural(count, 'thing')} logged` : 'A seed, ready to grow';
+    const usage = account.usage(7);
+    if (usage.connected) {
+      $('space-shield-title').textContent = `${plural(usage.sites.length, 'site')} · ${usage.limit}-minute limit`;
+      $('space-shield-note').textContent = usage.overLimitDays
+        ? `Passed it on ${plural(usage.overLimitDays, 'day')} in the last 7. Measured by the extension.`
+        : 'Within your limit every measured day in the last 7.';
+    } else {
+      $('space-shield-title').textContent = 'Not connected yet';
+      $('space-shield-note').textContent = 'Connect the Chrome extension to measure the sites you choose.';
+    }
+
+    // What this week has grown: valid practices plus routine days, both real records.
+    const week = plan ? account.adherence().completed + (account.routine().week?.done || 0) : 0;
+    const stage = stageFor(week);
+    $('space-garden-title').textContent = week ? `${STAGES[stage][0]} · ${plural(week, 'thing')} this week` : 'A seed, ready to grow';
     $('space-garden-note').textContent = stage < 4
-      ? `${STAGES[stage + 1][1] - count} more to reach ${STAGES[stage + 1][0].toLowerCase()}.`
+      ? `${STAGES[stage + 1][1] - week} more to reach ${STAGES[stage + 1][0].toLowerCase()}.`
       : 'In full blossom this week.';
     if (Art) $('mini-garden').innerHTML = `${Art.defs}${Art.tile(250, 250, 2)}<g class="mini-plant" style="transform-origin:250px 254px">${Art.plant(stage, 250, 254, 2)}</g>`;
   }
 
   /* ------------------------------------------------------------ your week */
 
-  function renderWeek(stats) {
-    const state = DS.get();
-    $('week-grid').hidden = !stats.hasPlan;
-    $('week-empty').hidden = stats.hasPlan;
-    if (!stats.hasPlan) {
-      const steps = {
-        setup: state.onboarding.setupDone,
-        lab: DS.assessmentsComplete(),
-        plan: state.onboarding.planActivated
+  const check = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
+
+  function renderWeek(account) {
+    const fmt = Account.format;
+    const plan = account.plan();
+    const section = document.querySelector('.week-section');
+    section.setAttribute('aria-busy', 'false');
+    $('week-active').hidden = !plan;
+    $('week-empty').hidden = Boolean(plan);
+
+    if (!plan) {
+      // The genuine empty state: three steps, each showing its real status.
+      const profile = account.profile();
+      const done = {
+        setup: Boolean(profile.goal),
+        checkin: account.checkInWindow().baselineDone,
+        plan: false
       };
-      document.querySelectorAll('.start-steps [data-step]').forEach(item => item.classList.toggle('is-done', steps[item.dataset.step]));
-      $('start-lab-note').textContent = stats.baselinesDone
-        ? `${stats.baselinesDone} of ${stats.baselinesTotal} done — attention, response control, reading depth, habits.`
-        : 'Attention, response control, reading depth, habits.';
-      const next = DS.nextAction('');
-      $('start-cta').href = next.href;
-      $('start-cta').innerHTML = `${next.label} <span aria-hidden="true">→</span>`;
-      $('week-sub').textContent = 'Three steps before your plan begins. Your numbers appear here once it does.';
+      const steps = [
+        ['setup', 'Answer a few setup questions', 'Your goal, your hardest times, the days you have.', 'src/pages/member/onboarding/onboarding.html'],
+        ['checkin', `Take your starting ${Account.NAMES.checkIn.toLowerCase()}`, 'Four short tasks: habits, attention, response control, reading depth.', 'src/pages/member/lab/lab.html'],
+        ['plan', 'Activate your four-week plan', 'Built from your answers and your starting point.', 'src/pages/member/onboarding/starting-point.html']
+      ];
+      const current = steps.find(([id]) => !done[id]);
+      $('start-steps').innerHTML = steps.map(([id, title, note], index) => {
+        const state = done[id] ? 'is-done' : id === current?.[0] ? 'is-current' : '';
+        const tag = done[id] ? 'Done' : state ? 'Start here' : 'Then';
+        return `<li class="${state}"><span>${done[id] ? check : index + 1}</span><strong>${esc(title)}</strong><small>${esc(note)}</small><em>${tag}</em></li>`;
+      }).join('');
+      const cta = $('start-cta');
+      if (current) {
+        cta.href = current[3];
+        cta.innerHTML = `${current[0] === 'setup' ? 'Start your journey' : esc(current[1])} <span aria-hidden="true">→</span>`;
+      }
+      $('week-eyebrow').textContent = 'Getting started';
+      $('week-heading').textContent = 'Three steps before your plan begins';
+      $('week-sub').textContent = 'Your week appears here once your plan is active. Nothing is estimated before then.';
+      $('goal-chip').hidden = true;
       return;
     }
+
+    const goal = account.profile().goal;
+    const days = account.schedule();
+    const adherence = account.adherence();
+    const routine = account.routine();
+    const reviews = account.reviews();
+    const week = plan.direction[plan.week - 1];
+    $('week-eyebrow').textContent = `Week ${plan.week} of ${plan.weeks} · day ${plan.day}`;
+    $('week-heading').textContent = 'Your week so far';
+    $('week-sub').textContent = `${week.title} · ${fmt.date(days[0].date)} – ${fmt.date(days[6].date)}`;
     const chip = $('goal-chip');
-    chip.textContent = `Goal · ${stats.goalLabel}`;
+    chip.textContent = goal.label;
     chip.hidden = false;
-    $('ws-day').textContent = `Day ${stats.day}`;
-    $('ws-day-note').textContent = `of ${stats.cycleLength} · week ${stats.week}`;
-    const ring = $('ws-day-ring');
-    const length = 2 * Math.PI * 18;
-    ring.style.strokeDasharray = `${length}`;
-    ring.style.strokeDashoffset = `${length * (1 - stats.day / stats.cycleLength)}`;
-    $('ws-practices').textContent = stats.practicesThisWeek;
-    $('ws-practices-note').textContent = stats.scheduledThisWeek !== null
-      ? `of ${stats.scheduledThisWeek} planned practices this week`
-      : 'practices logged this week';
-    $('ws-routine').textContent = stats.routineThisWeek;
-    const due = DS.reviewDue() || stats.daysToReview === 0;
-    $('ws-review').textContent = due ? 'Today' : plural(stats.daysToReview, 'day');
-    $('ws-review-note').textContent = due ? 'your weekly review is due' : 'until your weekly review';
+
+    // One primary thing: the next action, with its reason.
+    const step = account.nextSteps('')[0];
+    const today = days.find(day => day.isToday);
+    const todayLine = today?.action?.kind === 'practice'
+      ? `<p class="week-today">${today.state === 'completed' ? `<i>${check}</i>` : ''}<span>Today · <b>${esc(today.action.type?.title)}</b> — ${today.state === 'completed' ? 'done' : 'not done yet'}</span></p>`
+      : today ? `<p class="week-today"><span>Today · <b>${esc(STATE_LABELS[today.state])}</b></span></p>` : '';
+    $('week-next').innerHTML = step
+      ? `<p class="week-next-kicker">Next for you</p><h3 id="week-next-title">${esc(step.title)}</h3><p>${esc(step.reason)}</p><a class="week-cta" href="${step.href}">${esc(step.action)} <span aria-hidden="true">→</span></a>${todayLine}`
+      : `<p class="week-next-kicker">Next for you</p><h3 id="week-next-title">You’re up to date</h3><p>Nothing needs your attention right now.</p>${todayLine}`;
+
+    $('week-days').innerHTML = days.map((day, index) => {
+      const what = !day.action ? 'Nothing scheduled' : day.action.kind === 'rest' ? 'Rest day' : day.action.kind === 'review' ? 'Review' : day.action.type?.skill || 'Practice';
+      return `<li class="week-day${day.isToday ? ' is-today' : ''}"><span class="week-day-mark" data-state="${day.state}" style="--i:${index}" role="img" aria-label="${esc(`${fmt.date(day.date, { weekday: true })} · ${what} · ${STATE_LABELS[day.state]}${day.isToday ? ' · today' : ''}`)}"></span><b>${fmt.weekday(day.date)} ${day.date.getDate()}</b><small>${esc(what)}</small></li>`;
+    }).join('');
+
+    const reviewFact = reviews.nextDue
+      ? { value: fmt.relativeDays(Account.daysBetween(account.today, reviews.nextDue)).replace(/^./, c => c.toUpperCase()), label: `weekly review · ${fmt.date(reviews.nextDue, { weekday: true })}` }
+      : { value: `${reviews.completed} of ${reviews.expected}`, label: 'weekly reviews done' };
+    $('week-facts').innerHTML = `
+      <li><a class="week-fact" href="src/pages/member/recovery-plan/recovery-plan.html#week"><strong>${adherence.completed} of ${adherence.due}</strong><span>due practices done</span><em>${adherence.provenance.label}</em></a></li>
+      <li><a class="week-fact" href="src/pages/member/training/training.html#offline-routine"><strong>${routine.week ? `${routine.week.done} of ${routine.week.scheduled}` : '—'}</strong><span>${routine.primary ? `days · ${esc(routine.primary.title)}` : routine.week?.done ? 'days · no routine scheduled now' : 'no routine yet'}</span><em class="is-self">${routine.provenance.label}</em></a></li>
+      <li><a class="week-fact" href="src/pages/member/weekly-review/weekly-review.html"><strong>${esc(reviewFact.value)}</strong><span>${esc(reviewFact.label)}</span></a></li>`;
   }
 
   /* -------------------------------------------------------------- closing */
 
-  function renderClosing() {
+  function renderClosing(account) {
     const cta = $('closing-cta');
-    if (!cta) return;
-    const next = DS.nextAction('');
-    cta.href = next.href;
-    cta.innerHTML = `${next.label} <span aria-hidden="true">→</span>`;
+    const step = account.nextSteps('')[0];
+    if (!cta || !step) return;
+    cta.href = step.href;
+    cta.innerHTML = `${esc(step.action)} <span aria-hidden="true">→</span>`;
   }
 
-  const render = () => {
-    if (!DS) return;
-    const stats = DS.stats();
-    renderSpaces(stats);
-    renderWeek(stats);
-    renderClosing();
-  };
-  render();
-  window.addEventListener('storage', render);
+  if (Account) {
+    Account.load().then(account => {
+      const render = () => { renderSpaces(account); renderWeek(account); renderClosing(account); };
+      render();
+      window.addEventListener('deepsprout:account', render);
+    }).catch(() => {
+      document.querySelector('.week-section')?.setAttribute('aria-busy', 'false');
+      $('week-sub').textContent = 'Your week couldn’t be loaded, so nothing is shown rather than zeros.';
+    });
+  }
 
   /* --------------------------------------------------- reveal on scroll */
 

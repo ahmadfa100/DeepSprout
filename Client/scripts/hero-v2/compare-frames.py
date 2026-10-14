@@ -4,8 +4,8 @@ from pathlib import Path
 from PIL import Image,ImageDraw,ImageFont
 import argparse
 client=Path(__file__).resolve().parents[2]
-a=argparse.ArgumentParser();a.add_argument('--gold',type=Path,default=client/'references/hero-gold');a.add_argument('--size',default='1440x900');args=a.parse_args()
-out=client/'references/hero-v2-validation';frames=['00-arrival','01-lift','02-vertical-alignment','03-perfect-balance','04-grow','05-living-idle']
+a=argparse.ArgumentParser();a.add_argument('--gold',type=Path,default=client/'references/storyboards/hero');a.add_argument('--size',default='1440x900');args=a.parse_args()
+out=client/'docs/validation/hero-v2';frames=['00-arrival','01-lift','02-vertical-alignment','03-perfect-balance','04-grow','05-living-idle']
 w,h,label=768,480,34
 sheet=Image.new('RGB',(w*2,(h+label)*6),'#f7f8f2');draw=ImageDraw.Draw(sheet)
 font=ImageFont.truetype('/System/Library/Fonts/Helvetica.ttc',19)

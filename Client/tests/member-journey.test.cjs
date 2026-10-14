@@ -91,7 +91,7 @@ function controlClock(window) {
   };
 }
 
-function load(page, { search = '', clock = false } = {}) {
+function load(page, { search = '', clock = false, patchAccount = null } = {}) {
   const dir = path.dirname(page);
   const html = read(page);
   const dom = new JSDOM(html, {
@@ -105,7 +105,20 @@ function load(page, { search = '', clock = false } = {}) {
 
   Object.defineProperty(window, 'localStorage', { value: fakeStorage, configurable: true });
   window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
-  window.HTMLDialogElement.prototype.close = function () { this.open = false; };
+  window.HTMLDialogElement.prototype.close = function (value) {
+    this.open = false;
+    if (value !== undefined) this.returnValue = value;
+    this.dispatchEvent(new window.Event('close'));
+  };
+  // The account data is fetched; serve it from disk, optionally patched.
+  window.fetch = async url => {
+    const target = new URL(url, window.location.href);
+    const file = path.join(root, decodeURIComponent(target.pathname));
+    if (!fs.existsSync(file)) return { ok: false, status: 404, json: async () => ({}) };
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (patchAccount && /account\.json$/.test(file)) patchAccount(data);
+    return { ok: true, status: 200, json: async () => data };
+  };
   window.scrollTo = () => {};
   window.HTMLElement.prototype.scrollIntoView = () => {};
 
@@ -332,81 +345,99 @@ check('the plan preview requires an offline commitment before activating', () =>
   });
 });
 
-check('the offline routine ticks off as a self-report', () => {
-  const window = load('src/pages/member/training/training.html');
+/** Wait for a page's account data to load and its first render to finish. */
+const settled = async window => {
+  await window.DeepSproutAccount.load();
+  await new Promise(resolve => setTimeout(resolve, 0));
+};
+const clearAccountChanges = () => [...store.keys()]
+  .filter(key => key.startsWith('deepsprout-account-changes'))
+  .forEach(key => store.delete(key));
+
+check('the offline routine edits and deletes without rewriting history', async () => {
+  clearAccountChanges();
+  const window = load('src/pages/member/training/training.html', { search: '?account=demo' });
+  await settled(window);
   const document = window.document;
+  const account = await window.DeepSproutAccount.load();
 
-  assert.equal(document.querySelectorAll('.routine-item').length, 1,
-    'the activation commitment should appear on the checklist');
+  assert.equal(document.querySelectorAll('.routine-item').length, 1, 'the seeded routine item should be listed');
+  const monthDays = account.routine().monthDays;
+  const routineEvents = account.history().filter(event => event.kind === 'routine').length;
 
-  const before = window.DeepSprout.get().routine[0];
-  assert.equal(window.DeepSprout.routineDoneToday(before), false);
+  // Edit: rename, add a day, change recurrence.
+  document.querySelector('[data-edit]').click();
+  const form = document.querySelector('.routine-editor');
+  form.elements.namedItem('title').value = 'Walk outside';
+  form.querySelector('[data-day="6"]').click();
+  form.elements.namedItem('recurrence').value = 'biweekly';
+  form.dispatchEvent(new window.Event('submit', { cancelable: true }));
+  assert.equal(document.querySelector('.routine-body strong').textContent, 'Walk outside');
+  assert.equal(account.routine().items[0].recurrence, 'biweekly');
+  const week1 = account.weekDates(1);
+  assert.equal(account.routineScheduledDays(week1[0], week1[6]).length, 5, 'an edit must not change past weeks');
 
-  document.querySelector('.routine-tick').click();
-  const after = window.DeepSprout.get().routine[0];
-  assert.equal(window.DeepSprout.routineDoneToday(after), true, 'ticking should log the day');
+  // Delete is never one click: the first click only opens the dialog.
+  document.querySelector('.routine-icon-button.is-danger').click();
+  const dialog = document.getElementById('routine-delete-dialog');
+  assert.equal(dialog.open, true, 'delete must ask first');
+  assert.equal(document.querySelectorAll('.routine-item').length, 1, 'nothing is deleted before confirming');
+  assert.match(document.getElementById('routine-delete-body').textContent, /stay in your history/);
+  document.getElementById('routine-delete-cancel').click();
+  assert.equal(document.querySelectorAll('.routine-item').length, 1, 'cancel keeps the item');
 
-  // Adding another item should not grant anything on its own.
-  const activityCount = window.DeepSprout.get().activityLog.length;
-  window.DeepSprout.addRoutine({ title: 'Test item', hint: '' });
-  assert.equal(window.DeepSprout.get().activityLog.length, activityCount,
-    'creating a routine item must not record an activity');
+  document.querySelector('.routine-icon-button.is-danger').click();
+  document.getElementById('routine-delete-confirm').click();
+  assert.equal(document.querySelectorAll('.routine-item').length, 0, 'confirming removes it from the list');
+  assert.equal(account.routine().monthDays, monthDays, 'past routine days must still count');
+  assert.equal(account.history().filter(event => event.kind === 'routine').length, routineEvents, 'past check-ins stay in history');
+  assert.equal(account.history().some(event => event.kind === 'removed'), true, 'the removal itself is recorded');
+  clearAccountChanges();
 });
 
-check('the recovery plan reflects the activated plan, not its sample one', () => {
-  const window = load('src/pages/member/recovery-plan/recovery-plan.html');
+check('the roadmap shows the current week from the account, not cumulative counts', async () => {
+  clearAccountChanges();
+  const window = load('src/pages/member/recovery-plan/recovery-plan.html', { search: '?account=demo' });
+  await settled(window);
   const document = window.document;
-  const plan = window.DeepSprout.get().plan;
+  const seed = JSON.parse(read('src/data/demo-account.json'));
 
-  assert.equal(document.getElementById('cycle-day').textContent, 'Day 1 of 28',
-    'the day counter should follow the real cycle, not the seeded sample');
-  assert.match(document.querySelector('.rp-hero-description').textContent,
-    new RegExp(plan.goalLabel.toLowerCase().slice(0, 20)),
-    'the hero should name the goal the user actually chose');
-
-  // Joined rather than deep-compared: arrays from the jsdom realm and this one
-  // have different prototypes, which deepStrictEqual rejects.
-  const weekTitles = [...document.querySelectorAll('[data-week] span:not(.rp-week-icon)')]
-    .map(node => node.textContent);
-  assert.equal(weekTitles.join(' | '), plan.direction.map(entry => entry.title).join(' | '),
-    'the four week cards should carry the activated direction');
-  assert.equal(weekTitles.includes('Build Awareness'), false,
-    'the hardcoded sample week titles should be gone');
-
-  const routine = window.DeepSprout.get().routine[0];
-  assert.equal(document.querySelector('.rp-walk h3').textContent, routine.title,
-    'the routine card should show the chosen commitment');
-  assert.equal(document.querySelector('.rp-walk h3').textContent === 'Morning Walk', false,
-    'the hardcoded Morning Walk should be gone');
-
-  const reviewLink = document.querySelector('[data-review-link]');
-  assert.ok(reviewLink, 'the weekly review must be reachable by clicking');
-  assert.match(reviewLink.getAttribute('href'), /weekly-review\.html$/);
+  assert.equal(document.getElementById('cycle-day').textContent, 'Day 13 of 28');
+  assert.equal(document.getElementById('stat-practices').textContent, '4 of 5');
+  assert.equal(document.getElementById('stat-practices-source').textContent, 'Measured', 'in-app practices are measured, never self-reported');
+  assert.equal(document.getElementById('stat-routine').textContent, '3 of 5');
+  assert.equal(document.getElementById('stat-routine-source').textContent, 'Self-reported');
+  assert.match(document.getElementById('stat-review').textContent, /Sunday/);
+  assert.equal(document.getElementById('stat-baseline'), null, 'baseline checks belong on the check-in page, not the plan');
+  assert.equal(document.querySelectorAll('.rp-stat').length, 3, 'exactly three current-week cards');
+  const weekTitles = [...document.querySelectorAll('[data-week] span:not(.rp-week-icon)')].map(node => node.textContent);
+  assert.equal(weekTitles.join(' | '), seed.plan.direction.map(entry => entry.title).join(' | '));
+  assert.match(document.querySelector('[data-week="1"]').className, /is-done/);
+  assert.match(document.querySelector('[data-week="2"]').className, /is-current/);
+  assert.match(document.querySelector('.ds-hero-art img').getAttribute('src'), /Bimo_Roadmap-Page\.png$/);
 });
 
-check('home does not claim a practice is due on a rest day', () => {
-  const window = load('index.html');
-  const DS = window.DeepSprout;
-  const plan = DS.get().plan;
+check('home shows the real week when active and the three steps only when empty', async () => {
+  clearAccountChanges();
+  let window = load('index.html', { search: '?account=demo' });
+  await settled(window);
+  assert.equal(window.document.getElementById('week-active').hidden, false);
+  assert.equal(window.document.getElementById('week-empty').hidden, true, 'onboarding steps must not show for an active account');
+  assert.match(window.document.getElementById('week-facts').textContent, /4 of 5/);
 
-  // Day 1 schedules a practice, so Home should point at it.
-  assert.match(DS.nextAction('').label, /Continue today's activity/);
+  // On a planned rest day, Home must not claim a practice is due.
+  window = load('index.html', { search: '?account=demo', patchAccount: data => { data.account.asOf = '2026-01-14'; } });
+  await settled(window);
+  const next = window.document.getElementById('week-next').textContent;
+  assert.match(next, /Planned rest day/);
+  assert.equal(/not done yet/.test(next), false, 'a rest day is not an outstanding obligation');
 
-  // Move the cycle start back so "today" lands on a day with nothing scheduled.
-  const restOffset = plan.weekOne.findIndex(entry => entry.kind === 'rest');
-  assert.ok(restOffset > 0, 'week one should contain at least one rest day');
-  try {
-    DS.update(state => {
-      state.plan.startDate = DS.dayKey(DS.addDays(new Date(), -restOffset));
-    });
-    const action = DS.nextAction('');
-    assert.equal(/Continue today's activity/.test(action.label), false,
-      'a rest day must not be presented as an outstanding obligation');
-    assert.equal(/practice is scheduled|is scheduled$/.test(action.why), false,
-      'the reason given must not assert a scheduled practice');
-  } finally {
-    DS.update(state => { state.plan.startDate = DS.dayKey(); });
-  }
+  window = load('index.html', { search: '?account=empty' });
+  await settled(window);
+  assert.equal(window.document.getElementById('week-active').hidden, true);
+  assert.equal(window.document.getElementById('week-empty').hidden, false);
+  assert.equal(window.document.querySelectorAll('#start-steps li').length, 3);
+  assert.match(window.document.querySelector('#start-steps li').className, /is-current/);
 });
 
 check('the weekly review shows unknown data as unknown', () => {

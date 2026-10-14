@@ -20,7 +20,7 @@ export function createVortex(root){
  let backRenderer,frontRenderer,failed=false;
  try{backRenderer=new THREE.WebGLRenderer({canvas:backCanvas,alpha:true,antialias:false,powerPreference:'high-performance'});frontRenderer=new THREE.WebGLRenderer({canvas:frontCanvas,alpha:true,antialias:false,powerPreference:'high-performance'})}catch{root.dataset.webgl='unavailable';failed=true}
  const fallback=document.createElement('div');fallback.className='vortex-fallback';fallback.setAttribute('aria-hidden','true');
- ['2026-10-09_09-38-43.png','2026-10-09_09-40-26.png','2026-10-09_09-38-29.png','image.png'].forEach((name,i)=>{const image=new Image();image.src=new URL('../../../reels/posters/'+name,import.meta.url).href;image.style.setProperty('--i',i);fallback.append(image)});root.querySelector('.world').append(fallback);
+ ['poster-01.png','poster-02.png','poster-03.png','poster-04.png'].forEach((name,i)=>{const image=new Image();image.src=new URL('../../../assets/reels/posters/'+name,import.meta.url).href;image.style.setProperty('--i',i);fallback.append(image)});root.querySelector('.world').append(fallback);
  let width=1440,height=900,quality=innerWidth<700?1:Math.min(devicePixelRatio,1.5),slow=0,verySlow=0,frames=0,disposed=false;
  if(!failed){for(const r of [backRenderer,frontRenderer]){r.setClearColor(0,0);r.outputColorSpace=THREE.SRGBColorSpace}root.dataset.webgl='ready'}
  const uniforms={uProgress:{value:0},uTime:{value:0},uExit:{value:0},uAspect:{value:1.6},uCenter:{value:new THREE.Vector2(.625,.58)}};

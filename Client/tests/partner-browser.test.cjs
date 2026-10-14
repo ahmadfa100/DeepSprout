@@ -3,7 +3,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const base=process.env.BASE_URL||'http://127.0.0.1:8786';
-const output=path.resolve(__dirname,'../references/partner-workspaces-validation');
+const output=path.resolve(__dirname,'../docs/validation/partner-workspaces');
 const report={routes:[],walkthroughs:[],errors:[],screenshots:[],checks:[]};
 let browser;
 (async()=>{

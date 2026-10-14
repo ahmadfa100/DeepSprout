@@ -21,7 +21,9 @@
   // Loaded once per page: the member layout injects this file when a page
   // does not, so a second copy must not replace the first one's state.
   if (window.DeepSproutAccount) return;
-  const SCRIPT_URL = document.currentScript?.src || location.href;
+  const SCRIPT_URL = document.currentScript?.src
+    || document.querySelector('script[src*="js/data/account.js"]')?.src
+    || location.href;
   const STORE_KEY = 'deepsprout-account-choice';
   const ACCOUNTS = {
     demo: 'demo-account.json',
@@ -98,7 +100,81 @@
 
   /* -------------------------------------------------------- account model */
 
-  const createAccount = (data, choice) => {
+  /* ------------------------------------------------------------- changes */
+
+  /**
+   * The JSON is the seeded record; anything the user does on top of it
+   * (ticking a routine day, editing or deleting an item, finishing a practice)
+   * is stored as an event list per account and replayed at load. Resetting
+   * the changes returns the account to exactly its seeded story.
+   */
+  const changesKey = choice => `deepsprout-account-changes-v1:${choice}`;
+  const readChanges = choice => {
+    try { const list = JSON.parse(localStorage.getItem(changesKey(choice))); return Array.isArray(list) ? list : []; }
+    catch { return []; }
+  };
+  const writeChanges = (choice, list) => {
+    try { localStorage.setItem(changesKey(choice), JSON.stringify(list)); } catch { /* kept for this visit */ }
+  };
+
+  /** A routine item's schedule as dated versions, so an edit never rewrites the past. */
+  const scheduleOf = item => (item.schedule?.length
+    ? item.schedule
+    : [{ from: item.createdOn, days: item.days || [], recurrence: item.recurrence || 'weekly', paused: Boolean(item.paused) }]);
+
+  const applyChange = (data, event) => {
+    const item = event.id ? data.routine.find(entry => entry.id === event.id) : null;
+    switch (event.type) {
+      case 'routine.add':
+        data.routine.push({
+          id: event.id, title: event.title, hint: event.hint || '', createdOn: event.on, removedOn: null, checkIns: [],
+          days: event.days, recurrence: event.recurrence || 'weekly', paused: false,
+          schedule: [{ from: event.on, days: event.days, recurrence: event.recurrence || 'weekly', paused: false }]
+        });
+        break;
+      case 'routine.update': {
+        if (!item) break;
+        if (event.title) item.title = event.title;
+        const versions = scheduleOf(item).slice();
+        const latest = versions[versions.length - 1];
+        const next = {
+          from: event.on,
+          days: event.days || latest.days,
+          recurrence: event.recurrence || latest.recurrence,
+          paused: typeof event.paused === 'boolean' ? event.paused : latest.paused
+        };
+        if (latest.from === event.on) versions[versions.length - 1] = next;
+        else versions.push(next);
+        item.schedule = versions;
+        Object.assign(item, { days: next.days, recurrence: next.recurrence, paused: next.paused });
+        break;
+      }
+      case 'routine.remove':
+        // The item stops being scheduled. Its check-ins stay as history.
+        if (item && !item.removedOn) item.removedOn = event.on;
+        break;
+      case 'routine.log': {
+        if (!item) break;
+        item.checkIns = item.checkIns.filter(entry => entry.date !== event.date);
+        if (event.status) item.checkIns.push({ date: event.date, status: event.status });
+        item.checkIns.sort((a, b) => a.date.localeCompare(b.date));
+        break;
+      }
+      case 'attempt.add':
+        data.activityAttempts.push(event.attempt);
+        break;
+      case 'plan.adjust':
+        (data.planAdjustments ||= []).push({ on: event.on, label: event.label, detail: event.detail });
+        break;
+      default: break;
+    }
+  };
+
+  const createAccount = (seed, choice) => {
+    const data = JSON.parse(JSON.stringify(seed));
+    data.planAdjustments ||= [];
+    const changes = readChanges(choice);
+    changes.forEach(event => applyChange(data, event));
     const today = data.account.asOf ? parse(data.account.asOf) : parse(keyOf(new Date()));
     const todayKey = keyOf(today);
     // An account with no recorded registration date was created today.
@@ -204,7 +280,8 @@
       const expected = current ? current.week : 0;
       const nextAction = data.scheduledActions.find(entry =>
         entry.kind === 'review' && entry.date >= todayKey && !data.weeklyReviews.some(review => review.week === entry.week));
-      const adjustments = data.weeklyReviews.filter(review => review.adjustment).map(review => review.adjustment);
+      const adjustments = [...data.weeklyReviews.filter(review => review.adjustment).map(review => review.adjustment), ...data.planAdjustments]
+        .sort((a, b) => a.on.localeCompare(b.on));
       return {
         completed,
         expected,
@@ -220,7 +297,21 @@
 
     const activeRoutine = () => data.routine.filter(item => !item.removedOn);
 
-    /** Distinct days with at least one routine item ticked done, in [from, to]. */
+    /** Is this routine item scheduled on this date — by the schedule version in force that day? */
+    const routineScheduledOn = (item, date) => {
+      const key = keyOf(date);
+      if (key < item.createdOn) return false;
+      if (item.removedOn && key >= item.removedOn) return false;
+      const version = scheduleOf(item).filter(entry => entry.from <= key).pop();
+      if (!version || version.paused || !version.days.includes(date.getDay())) return false;
+      if (version.recurrence === 'biweekly') return Math.floor(daysBetween(parse(item.createdOn), date) / 7) % 2 === 0;
+      return true;
+    };
+
+    /** 'done' · 'skipped' · null — the user's own report for that day. */
+    const routineStatusOn = (item, date) => item.checkIns.find(entry => entry.date === keyOf(date))?.status || null;
+
+    /** Distinct days with at least one routine item ticked done, in [from, to]. Removed items still count: history is kept. */
     const routineDays = (from, to) => {
       const fromKey = keyOf(from);
       const toKey = keyOf(to);
@@ -231,25 +322,27 @@
       return [...done].sort();
     };
 
+    /** Days in [from, to] on which at least one routine item was scheduled. */
+    const routineScheduledDays = (from, to) => range(from, daysBetween(from, to) + 1)
+      .filter(date => data.routine.some(item => routineScheduledOn(item, date)));
+
     const routine = () => {
-      const items = activeRoutine();
+      const items = activeRoutine().map(item => ({ ...item, ...scheduleOf(item).slice(-1)[0], from: undefined }));
       const current = plan();
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1, 12);
       const thisWeek = current ? weekDates(current.week) : [];
-      const scheduledThisWeek = thisWeek.filter(date =>
-        items.some(item => !item.paused && item.days.includes(date.getDay()) && keyOf(date) >= item.createdOn)).length;
       return {
         provenance: PROVENANCE['self-reported'],
         items,
-        primary: items[0] || null,
+        primary: items.find(item => !item.paused) || items[0] || null,
         monthDays: routineDays(monthStart, today).length,
         week: current
-          ? { done: routineDays(thisWeek[0], thisWeek[6]).length, scheduled: scheduledThisWeek }
+          ? { done: routineDays(thisWeek[0], thisWeek[6]).length, scheduled: routineScheduledDays(thisWeek[0], thisWeek[6]).length }
           : null
       };
     };
 
-    /* ---- digital usage (measured by the extension) */
+        /* ---- digital usage (measured by the extension) */
 
     const shield = data.shield;
     const usageByDay = new Map((shield.dailyUsage || []).map(entry => [entry.date, entry]));
@@ -496,9 +589,18 @@
       const review = reviews();
       const shieldUsage = usage(7);
 
-      if (due.state === 'baseline-needed') {
+      if (!data.user.goal) {
+        steps.push({
+          id: 'setup',
+          title: 'Answer a few setup questions',
+          reason: 'Your goal, your hardest times and the days you have decide what your plan asks of you.',
+          action: 'Start your journey',
+          href: href('src/pages/member/onboarding/onboarding.html')
+        });
+      } else if (due.state === 'baseline-needed') {
         steps.push({
           id: 'baseline',
+          title: `Your starting ${NAMES.checkIn.toLowerCase()}`,
           reason: `You have not taken your starting ${NAMES.checkIn.toLowerCase()} yet. Your plan is built from it.`,
           action: `Start your ${NAMES.checkIn.toLowerCase()}`,
           href: href('src/pages/member/lab/lab.html')
@@ -506,6 +608,7 @@
       } else if (due.state === 'open' || due.state === 'late') {
         steps.push({
           id: 'check-in',
+          title: due.state === 'late' ? `Your ${NAMES.checkIn.toLowerCase()} — late` : `Your ${NAMES.checkIn.toLowerCase()} window is open`,
           reason: due.state === 'late'
             ? `Your end-of-cycle ${NAMES.checkIn.toLowerCase()} window closed on ${format.date(due.closes)}. You can still take it; the result will be marked late.`
             : `Your ${NAMES.checkIn.toLowerCase()} window is open until ${format.date(due.closes)}: ${due.tasks.map(task => task.title).join(' and ')}, about ${due.minutes} minutes.`,
@@ -519,6 +622,7 @@
         if (days <= 1) {
           steps.push({
             id: 'review',
+            title: `Week ${current.week} review · due ${format.relativeDays(days)}`,
             reason: `Your week ${current.week} review is due ${format.relativeDays(days)}, ${format.date(review.nextDue, { weekday: true })}. Its answers set next week's load.`,
             action: 'Open weekly review',
             href: href('src/pages/member/weekly-review/weekly-review.html')
@@ -534,6 +638,7 @@
         const type = ready[0];
         steps.push({
           id: `level-${type.id}`,
+          title: `${type.title}: level ${type.level + 1} is open`,
           reason: `Your valid ${type.title} attempts at level ${type.level} meet the requirement for level ${type.level + 1}.`,
           action: `Try level ${type.level + 1}`,
           href: href('src/pages/member/training/training.html#training-types')
@@ -542,6 +647,7 @@
         const left = closest.required - closest.validAtLevel;
         steps.push({
           id: `level-${closest.id}`,
+          title: `${closest.title}: ${closest.validAtLevel} of ${closest.required} toward level ${closest.level + 1}`,
           reason: `${left} more valid ${closest.title} ${left === 1 ? 'attempt' : 'attempts'} at level ${closest.level} will meet the requirement for level ${closest.level + 1}. You have ${closest.validAtLevel} of ${closest.required}.`,
           action: `Start ${closest.title}`,
           href: href('src/pages/member/training/training.html#training-types')
@@ -551,6 +657,7 @@
       if (!shieldUsage.connected) {
         steps.push({
           id: 'extension',
+          title: 'No browser data yet',
           reason: 'There is no browser data yet because the Chrome extension is not connected. Nothing about screen time is shown until it is.',
           action: 'Connect the extension',
           href: href('src/pages/member/shield/shield.html')
@@ -560,6 +667,7 @@
         if (overThisWeek.length >= 2) {
           steps.push({
             id: 'limit',
+            title: `Over your limit on ${overThisWeek.length} days this week`,
             reason: `You passed your ${limit}-minute limit on ${overThisWeek.length} days this week (${overThisWeek.map(day => format.date(day.date, { weekday: true })).join(', ')}).`,
             action: 'Review limit and sites',
             href: href('src/pages/member/shield/shield.html')
@@ -570,6 +678,7 @@
       if (!activeRoutine().length) {
         steps.push({
           id: 'routine',
+          title: 'Start an offline routine',
           reason: 'You have no offline routine yet. One small item you can tick off is enough to start.',
           action: 'Add a routine item',
           href: href('src/pages/member/training/training.html#offline-routine')
@@ -579,8 +688,73 @@
       return steps.slice(0, 3);
     };
 
+    /* ---- history: everything recorded, newest first, each with its source */
+
+    const history = () => {
+      const events = [];
+      const typeTitle = id => activityType(id)?.title || 'Practice';
+      if (data.plan) events.push({ on: data.plan.activatedOn, kind: 'plan', title: 'Plan started', note: data.user.goal?.label || '' });
+      data.weeklyReviews.forEach(review => {
+        events.push({ on: review.completedOn, kind: 'review', title: `Week ${review.week} reviewed`, note: 'Your answers' });
+        if (review.adjustment) events.push({ on: review.adjustment.on, kind: 'adjust', title: `Plan adjusted — ${review.adjustment.label.toLowerCase()}`, note: review.adjustment.detail });
+      });
+      data.planAdjustments.forEach(entry => events.push({ on: entry.on, kind: 'adjust', title: `Plan adjusted — ${entry.label.toLowerCase()}`, note: entry.detail || '' }));
+      data.activityAttempts.forEach(attempt => events.push({
+        on: attempt.on, kind: attempt.valid ? 'practice' : 'invalid', title: attempt.title || typeTitle(attempt.activityType),
+        note: attempt.valid ? `${attempt.outcome} · measured` : `Not counted: ${attempt.invalidReason || attempt.outcome}`
+      }));
+      data.routine.forEach(item => {
+        item.checkIns.forEach(entry => events.push({
+          on: entry.date, kind: entry.status === 'done' ? 'routine' : 'skipped', title: item.title,
+          note: entry.status === 'done' ? 'Offline routine · self-reported' : 'Routine skipped · self-reported'
+        }));
+        if (item.removedOn) events.push({ on: item.removedOn, kind: 'removed', title: item.title, note: 'Removed from your routine. Past check-ins are kept.' });
+      });
+      data.assessmentAttempts.filter(attempt => attempt.official).forEach(attempt => events.push({
+        on: attempt.on, kind: 'baseline', title: `${definition(attempt.definitionId)?.title} check`,
+        note: `${attempt.cycle === 1 ? 'Starting point' : `Cycle ${attempt.cycle}`} · measured${attempt.late ? ' · late' : ''}`
+      }));
+      return events.sort((a, b) => b.on.localeCompare(a.on));
+    };
+
+    /**
+     * Record something the user did. Dates are the account's "today", so the
+     * seeded demo stays coherent with its own clock.
+     */
+    const mutate = event => {
+      const full = { ...event, on: event.on || todayKey, at: new Date().toISOString() };
+      if (full.type === 'routine.add') {
+        full.id = `r-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+      }
+      if (full.type === 'routine.log') full.date ||= todayKey;
+      if (full.type === 'attempt.add') {
+        const type = activityType(full.attempt.activityType);
+        const level = type ? (training().find(entry => entry.id === type.id)?.level || null) : null;
+        const due = full.attempt.valid
+          ? data.scheduledActions.find(action => action.date === todayKey && action.kind === 'practice'
+            && action.activityType === full.attempt.activityType && !validAttemptFor(action.id))
+          : null;
+        full.attempt = { id: `a-${Date.now().toString(36)}`, scheduledActionId: due?.id || null, level, on: todayKey, ...full.attempt };
+      }
+      applyChange(data, full);
+      changes.push(full);
+      writeChanges(choice, changes);
+      window.dispatchEvent(new CustomEvent('deepsprout:account', { detail: full }));
+      return full;
+    };
+
     return {
       id: choice,
+      changeCount: () => changes.length,
+      history,
+      mutate,
+      /** Practice attempts recorded on one date, valid or not. */
+      attemptsOn: date => data.activityAttempts.filter(attempt => attempt.on === keyOf(date))
+        .map(attempt => ({ ...attempt, type: activityType(attempt.activityType) })),
+      routineScheduledOn,
+      routineStatusOn,
+      routineScheduledDays,
+      weekDates,
       label: data.account.label,
       seeded: data.account.seeded,
       asOf: data.account.asOf ? parse(data.account.asOf) : null,
@@ -675,6 +849,8 @@
     load,
     choose,
     choice: readChoice,
+    /** Forget every change made on top of the seeded record, for this account. */
+    resetChanges: () => { try { localStorage.removeItem(changesKey(readChoice())); } catch { /* ignore */ } },
     devMode
   };
 })();

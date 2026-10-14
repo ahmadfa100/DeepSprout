@@ -119,8 +119,8 @@ joint springs add settling. Feet aim at fixed artboard anchors (287,798) and
 ## Reference fidelity and V1 comparison
 
 The actual supplied `Client/references/rive-v2/` directory contained two sheets:
-`Bimo V2 Plant-Robot Reference Pack.png` and
-`Eco Robot Character Turnaround.png`. Both were inspected, including turnaround,
+`bimo-v2-plant-robot-reference-pack.png` and
+`eco-robot-character-turnaround.png`. Both were inspected, including turnaround,
 3/4 parts, hands, head attitudes, expressions, and emotional poses. The five
 separately named high-resolution images in the brief were not present.
 

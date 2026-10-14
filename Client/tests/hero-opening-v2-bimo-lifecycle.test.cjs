@@ -1,4 +1,4 @@
-const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const out=path.resolve(__dirname,'../references/hero-v2-bimo-continuity');fs.mkdirSync(out,{recursive:true});const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const out=path.resolve(__dirname,'../docs/validation/hero-v2-bimo-continuity');fs.mkdirSync(out,{recursive:true});const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const base=process.argv[2]||process.env.HERO_URL||'http://127.0.0.1:8792';
 (async()=>{const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});const results=[];try{
 for(const width of [1440,1280]){

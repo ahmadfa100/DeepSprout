@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/png" href="src/assets/logo/Image.png">
+  <link rel="icon" type="image/png" href="assets/brand/logo.png">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#faf9f3">
@@ -10,9 +10,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/styles/style.css">
   <link rel="stylesheet" href="src/layouts/member-layout/member-layout.css">
   <link rel="stylesheet" href="src/pages/public/home/home.css">
-  <script src="src/js/utils/storage.js" defer></script>
+  <script src="src/js/data/account.js" defer></script>
   <script src="src/layouts/member-layout/member-layout.js" defer></script>
   <script src="src/pages/member/garden/garden-art.js" defer></script>
   <script src="src/pages/public/home/home.js" defer></script>
@@ -36,7 +37,7 @@
       </div>
       <div class="hero-visual" aria-label="Bimo overlooking an illustrated golden landscape">
         <div class="hero-halo" aria-hidden="true"></div><div class="hero-photo" aria-hidden="true"></div>
-        <div class="hero-feed" aria-hidden="true"><span class="feed-chip f1"><img src="assets/home-kit/icons/tiktok-color.svg" alt=""></span><span class="feed-chip f2"><img src="assets/home-kit/icons/instagram-color.svg" alt=""></span><span class="feed-chip f3"><img src="assets/home-kit/icons/youtube-color.svg" alt=""></span><span class="feed-leaf l1"></span><span class="feed-leaf l2"></span><span class="feed-leaf l3"></span></div>
+        <div class="hero-feed" aria-hidden="true"><span class="feed-chip f1" style="--dx:-150px;--dy:-70px;--r:-16deg;--d:0.5s"><span class="feed-tone"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="m10.5 9 4 3-4 3Z"/></svg></span><span class="feed-grey"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="m10.5 9 4 3-4 3Z"/></svg></span></span><span class="feed-chip f2" style="--dx:160px;--dy:-90px;--r:14deg;--d:0.7s"><span class="feed-tone"><svg viewBox="0 0 24 24"><path d="M12 20 4.6 12.6a4.4 4.4 0 0 1 6.2-6.2L12 7.6l1.2-1.2a4.4 4.4 0 0 1 6.2 6.2Z"/></svg></span><span class="feed-grey"><svg viewBox="0 0 24 24"><path d="M12 20 4.6 12.6a4.4 4.4 0 0 1 6.2-6.2L12 7.6l1.2-1.2a4.4 4.4 0 0 1 6.2 6.2Z"/></svg></span></span><span class="feed-chip f3" style="--dx:-30px;--dy:-160px;--r:-8deg;--d:0.9s"><span class="feed-tone"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z"/><path d="M10 20.5h4"/><circle class="dot" cx="18" cy="6" r="3"/></svg></span><span class="feed-grey"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z"/><path d="M10 20.5h4"/><circle class="dot" cx="18" cy="6" r="3"/></svg></span></span><span class="feed-chip f4" style="--dx:180px;--dy:20px;--r:18deg;--d:1.1s"><span class="feed-tone"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span><span class="feed-grey"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span></span><span class="feed-chip f5" style="--dx:-170px;--dy:30px;--r:-20deg;--d:1.3s"><span class="feed-tone"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="m10 9.5 5 2.5-5 2.5Z"/></svg></span><span class="feed-grey"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="m10 9.5 5 2.5-5 2.5Z"/></svg></span></span><span class="feed-leaf l1"></span><span class="feed-leaf l2"></span><span class="feed-leaf l3"></span></div>
         <p class="hero-handwriting" aria-hidden="true">Small steps<br>grow big<br>change.</p>
         <img class="hero-bimo" src="assets/home-redesign/bimo-laptop.png" alt="Bimo, the DeepSprout mascot, sitting outdoors with a laptop">
         <div class="hero-benefits-card" aria-label="Benefits of spending less time scrolling">
@@ -68,7 +69,7 @@
           <span class="space-go" aria-hidden="true">→</span>
         </a>
         <a class="space-card sc-shield" href="src/pages/member/shield/shield.html">
-          <span class="space-visual" aria-hidden="true"><span class="shield-drop d1"><img src="assets/home-kit/icons/instagram-color.svg" alt=""></span><span class="shield-drop d2"><img src="assets/home-kit/icons/tiktok-color.svg" alt=""></span><span class="shield-drop d3"><img src="assets/home-kit/icons/youtube-color.svg" alt=""></span><span class="shield-basket"><img src="assets/shield/shield-leaf.svg" alt=""></span></span>
+          <span class="space-visual" aria-hidden="true"><span class="shield-drop d1"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="m10.5 9 4 3-4 3Z"/></svg></span><span class="shield-drop d2"><svg viewBox="0 0 24 24"><path d="M12 20 4.6 12.6a4.4 4.4 0 0 1 6.2-6.2L12 7.6l1.2-1.2a4.4 4.4 0 0 1 6.2 6.2Z"/></svg></span><span class="shield-drop d3"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="m10 9.5 5 2.5-5 2.5Z"/></svg></span><span class="shield-basket"><img src="assets/shield/shield-leaf.svg" alt=""></span></span>
           <span class="space-copy"><small>Digital Shield</small><strong id="space-shield-title">Put the feeds away</strong><span id="space-shield-note">Choose the apps to keep out of focus time.</span></span>
           <span class="space-go" aria-hidden="true">→</span>
         </a>
@@ -80,24 +81,21 @@
       </div>
     </section>
 
-    <section class="week-section shell" aria-labelledby="week-heading">
+    <section class="week-section shell" id="your-week" aria-labelledby="week-heading" aria-busy="true">
       <div class="week-head">
-        <div><h2 id="week-heading">Your week so far</h2><p id="week-sub">Counted from what you logged — nothing estimated.</p></div>
+        <div><p class="week-eyebrow" id="week-eyebrow">Your week</p><h2 id="week-heading">Your week so far</h2><p id="week-sub">Loading your week…</p></div>
         <span class="goal-chip" id="goal-chip" hidden></span>
       </div>
-      <div class="week-empty" id="week-empty" hidden>
-        <ol class="start-steps">
-          <li data-step="setup"><span>1</span><strong>Answer a few setup questions</strong><small>Your goal, your hardest times, the days you have.</small></li>
-          <li data-step="lab"><span>2</span><strong>Take four short baseline checks</strong><small id="start-lab-note">Attention, response control, reading depth, habits.</small></li>
-          <li data-step="plan"><span>3</span><strong>Activate your four-week plan</strong><small>Built from your answers and results.</small></li>
-        </ol>
-        <a class="button button-primary" id="start-cta" href="src/pages/member/onboarding/onboarding.html">Start your journey <span aria-hidden="true">→</span></a>
+      <div class="week-active" id="week-active" hidden>
+        <article class="week-next" id="week-next" aria-labelledby="week-next-title"></article>
+        <div class="week-board">
+          <ol class="week-days" id="week-days" aria-label="This week, day by day"></ol>
+          <ul class="week-facts" id="week-facts"></ul>
+        </div>
       </div>
-      <div class="week-grid" id="week-grid" hidden>
-        <a class="week-stat" href="src/pages/member/recovery-plan/recovery-plan.html#overview"><span class="ws-ring"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18"/><circle class="ws-fill" id="ws-day-ring" cx="22" cy="22" r="18"/></svg></span><strong id="ws-day">Day 1</strong><small id="ws-day-note">of 28 · week 1</small></a>
-        <a class="week-stat" href="src/pages/member/training/training.html#training-types"><span class="ws-icon wi-gold"><svg viewBox="0 0 32 32"><path d="M16 7c-4-3-9-3-13-2v19c5-1 10 0 13 3 3-3 8-4 13-3V5c-4-1-9-1-13 2Zm0 0v20"/></svg></span><strong id="ws-practices">0</strong><small id="ws-practices-note">practices this week</small><em>Self-reported</em></a>
-        <a class="week-stat" href="src/pages/member/training/training.html#offline-routine"><span class="ws-icon wi-leaf"><svg viewBox="0 0 32 32"><circle cx="18" cy="5" r="2"/><path d="m13 28 3-9-4-4-4 5m4-5 4-5 5 1 3 5m-8 3 7 3 2 7"/></svg></span><strong id="ws-routine">0</strong><small>offline routine days this week</small><em>Self-reported</em></a>
-        <a class="week-stat" href="src/pages/member/weekly-review/weekly-review.html"><span class="ws-icon wi-blue"><svg viewBox="0 0 32 32"><path d="M7 29V4m0 2h17l-4 6 4 6H7"/></svg></span><strong id="ws-review">—</strong><small id="ws-review-note">until your weekly review</small></a>
+      <div class="week-empty" id="week-empty" hidden>
+        <ol class="start-steps" id="start-steps"></ol>
+        <a class="week-cta" id="start-cta" href="src/pages/member/onboarding/onboarding.html">Start your journey <span aria-hidden="true">→</span></a>
       </div>
     </section>
 

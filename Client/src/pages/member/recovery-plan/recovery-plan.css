@@ -1,21 +1,21 @@
 /* Roadmap — in-page tabs over the shared journey state. */
 :root {
-  --rp-ink: #173c33;
-  --rp-pine: #123f34;
-  --rp-leaf: #168557;
+  --rp-ink: var(--color-ink);
+  --rp-pine: var(--color-pine);
+  --rp-leaf: var(--color-leaf);
   --rp-leaf-2: #1f9a66;
   --rp-mint: #e6f3e1;
-  --rp-muted: #5d7469;
-  --rp-line: #e2e9de;
-  --rp-paper: #fffefa;
-  --rp-bg: #f7f8f2;
+  --rp-muted: var(--color-muted);
+  --rp-line: var(--color-line);
+  --rp-paper: var(--color-surface);
+  --rp-bg: var(--color-bg);
   --rp-gold: #f6e7c2;
   --rp-shadow: 0 14px 34px #123f3410;
   --rp-ease: cubic-bezier(.2, .7, .2, 1);
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; background: var(--rp-bg); color: var(--rp-ink); font-family: 'DM Sans', 'Avenir Next', system-ui, sans-serif; }
+body { margin: 0; min-width: 320px; background: var(--rp-bg); color: var(--rp-ink); font-family: var(--font-sans); }
 button, input, a { font: inherit; color: inherit; }
 button { cursor: pointer; }
 a { text-decoration: none; }
@@ -172,7 +172,10 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 
 /* ----------------------------------------------------------------- stats */
 
-.rp-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px; }
+.rp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px; }
+a.rp-stat { color: inherit; text-decoration: none; transition: transform var(--dur-fast) var(--ease-standard); }
+a.rp-stat:hover { transform: translateY(-3px); }
+a.rp-stat:focus-visible { outline: 3px solid var(--color-mint); outline-offset: 3px; }
 .rp-stat {
   position: relative; display: flex; flex-direction: column; gap: 4px;
   padding: 24px; border: 1px solid var(--rp-line); border-radius: 22px; background: var(--rp-paper); box-shadow: var(--rp-shadow);
@@ -189,8 +192,11 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 .rp-violet { background: #ece7f8; color: #5d4b98; }
 .rp-coral { background: #fbe6df; color: #b04d33; }
 .rp-evidence { display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 10px; color: #7b8d83; font-size: .8rem; font-weight: 600; }
-.rp-evidence::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #e9b956; }
-.rp-evidence.is-measured::before { background: var(--rp-leaf); }
+.rp-evidence::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--color-gold); }
+.rp-evidence.is-measured::before { background: var(--color-leaf); }
+/* Self-reported is outlined, never filled; plan facts carry no evidence dot. */
+.rp-evidence.is-self::before { background: none; border: 1.5px solid var(--color-leaf); box-sizing: border-box; }
+.rp-evidence.is-plain::before { display: none; }
 .rp-stat-link { display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 10px; color: var(--rp-leaf); font-size: .92rem; font-weight: 700; }
 .rp-stat-link.is-due { color: #b0661a; }
 .rp-stat-link svg { transition: transform .2s ease; }
@@ -254,9 +260,13 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 .rp-day strong { font-size: 1.5rem; font-weight: 800; letter-spacing: -.03em; }
 .rp-day-mark { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #eef2ec; font-style: normal; }
 .rp-day-mark svg { width: 13px; height: 13px; stroke-width: 2.6; }
-.rp-day[data-kind="practice"] .rp-day-mark { background: #fdf0d3; }
-.rp-day[data-kind="review"] .rp-day-mark { background: #e1eef8; }
-.rp-day.is-complete .rp-day-mark { background: var(--rp-leaf); color: #fff; }
+/* One state per day, the same five shapes as Home and Insights. */
+.rp-day .rp-day-mark { background: none; border: 1px dashed var(--color-line); }
+.rp-day[data-state="not-due"] .rp-day-mark { border: 1.5px solid var(--color-muted); }
+.rp-day[data-state="missed"] .rp-day-mark { border: 1.5px solid var(--color-alert); }
+.rp-day[data-state="rest"] .rp-day-mark { border: 0; }
+.rp-day[data-state="rest"] .rp-day-mark::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--color-muted); opacity: .5; }
+.rp-day.is-complete .rp-day-mark { border: 0; background: var(--color-leaf); color: var(--color-white); }
 .rp-day.is-today small { color: var(--rp-leaf); }
 .rp-day.is-today::after { content: 'Today'; position: absolute; top: -9px; padding: 1px 8px; border-radius: 10px; background: var(--rp-leaf); color: #fff; font-size: .68rem; font-weight: 700; }
 .rp-day.is-selected { border-color: var(--rp-leaf); background: #f0f8ec; box-shadow: 0 10px 22px #16855720; }
@@ -326,7 +336,7 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 /* ------------------------------------------------------------ responsive */
 
 @media (max-width: 1000px) {
-  .rp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rp-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .rp-overview-grid, .rp-adjust-grid { grid-template-columns: 1fr; }
   .rp-choices { grid-template-columns: 1fr; }
 }
@@ -360,7 +370,7 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
   .rp-tick { grid-column: 1 / -1; justify-content: center; }
 }
 @media (max-width: 480px) {
-  .rp-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .rp-stats { grid-template-columns: 1fr; gap: 10px; }
   .rp-stat { padding: 16px; }
   .rp-stat strong { font-size: 1.8rem; }
   .rp-stat p { font-size: .88rem; }

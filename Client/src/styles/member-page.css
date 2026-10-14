@@ -3,15 +3,15 @@
  * weekly review, profile). Page-specific stylesheets layer on top of this.
  */
 :root {
-  --ink: #173c33;
-  --pine: #123f34;
-  --leaf: #168557;
+  --ink: var(--color-ink);
+  --pine: var(--color-pine);
+  --leaf: var(--color-leaf);
   --leaf-soft: #e8f3e2;
   --muted: #637b70;
-  --line: #e2e9de;
+  --line: var(--color-line);
   --paper: #fffdf6;
   --cream: #f9fcf5;
-  --gold: #e9b956;
+  --gold: var(--color-gold);
   --coral: #d2694f;
   --sky: #4d7fa8;
   --lilac: #8a7bb8;
@@ -24,7 +24,7 @@
 body {
   margin: 0;
   min-width: 320px;
-  font-family: 'DM Sans', 'Avenir Next', system-ui, sans-serif;
+  font-family: var(--font-sans);
   color: var(--ink);
   background: var(--cream);
 }
@@ -33,7 +33,7 @@ button, a, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 h1, h2, h3, h4, p { margin: 0; }
-h1, h2, h3 { letter-spacing: -.035em; font-family: 'Fraunces', Georgia, serif; font-weight: 600; }
+h1, h2, h3 { letter-spacing: -.035em; font-family: var(--font-display); font-weight: 600; } /* Fraunces: approved for Explore; other member-page users pending a decision. */
 p { line-height: 1.5; }
 ul { margin: 0; padding: 0; list-style: none; }
 

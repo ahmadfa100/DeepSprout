@@ -19,5 +19,5 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
   await encoder.waitForTimeout(Math.max(10,Math.min(200,((frames[i+1]?.t||frames[i].t+.066)-frames[i].t)*1000)));
  }
  const data=await encoder.evaluate(()=>new Promise(resolve=>{recorder.onstop=()=>{const r=new FileReader();r.onload=()=>resolve(r.result.split(',')[1]);r.readAsDataURL(new Blob(parts,{type:'video/webm'}))};recorder.stop()}));
- const file=path.resolve(__dirname,'../../references/reels-validation/scroll-sequence.webm');fs.writeFileSync(file,Buffer.from(data,'base64'));console.log(JSON.stringify({file,frames:frames.length,bytes:fs.statSync(file).size}));await browser.close();
+ const file=path.resolve(__dirname,'../../docs/validation/reels/scroll-sequence.webm');fs.writeFileSync(file,Buffer.from(data,'base64'));console.log(JSON.stringify({file,frames:frames.length,bytes:fs.statSync(file).size}));await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
-const base=process.env.HERO_URL||'http://127.0.0.1:8793',out=path.resolve(__dirname,'../references/hero-v2-patch-validation');fs.mkdirSync(out,{recursive:true});
+const base=process.env.HERO_URL||'http://127.0.0.1:8793',out=path.resolve(__dirname,'../docs/validation/hero-v2-patch');fs.mkdirSync(out,{recursive:true});
 let browser;const report={cases:[],errors:[],sequences:{}};
 (async()=>{browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  async function create(options={}){

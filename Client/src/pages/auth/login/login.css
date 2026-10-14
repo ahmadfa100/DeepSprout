@@ -1,5 +1,5 @@
 :root{font-family:'DM Sans','Avenir Next',Arial,sans-serif;color:#0d2856;background:#fffefa}*{box-sizing:border-box}body{min-width:320px;margin:0}button,input{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #95c981;outline-offset:3px}
-.auth-scene{display:flex;justify-content:center;align-items:flex-start;min-height:max(806px,calc(100svh - 280px));background:#f8fbf2 url('../../../assets/backgrounds/image.png') center center/cover no-repeat}
+.auth-scene{display:flex;justify-content:center;align-items:flex-start;min-height:max(806px,calc(100svh - 280px));background:#f8fbf2 url('../../../../assets/auth/background.png') center center/cover no-repeat}
 .login-card{width:510px;min-height:702px;flex:none;margin:71px 20px 33px;padding:21px 32px 22px;border:1px solid #e4eae0;border-radius:20px;background:#ffffffed;box-shadow:0 11px 30px #3b63473b;text-align:left}
 .login-brand{width:max-content;display:flex;flex-direction:column;align-items:center;margin-inline:auto;color:#0d2856;text-decoration:none}
 .login-brand img{width:68px;height:68px;object-fit:contain}

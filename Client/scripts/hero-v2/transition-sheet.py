@@ -4,7 +4,7 @@ from PIL import Image,ImageDraw,ImageFont
 import json, argparse
 client=Path(__file__).resolve().parents[2]
 a=argparse.ArgumentParser();a.add_argument('--sequence',default='normal-transition');args=a.parse_args()
-base=client/'references/hero-v2-patch-validation';folder=base/args.sequence
+base=client/'docs/validation/hero-v2-patch';folder=base/args.sequence
 j=json.loads((folder/'metrics.json').read_text());frames=j['frames'];w,h,head=210,258,36
 sheet=Image.new('RGB',(w*5,(h+head)*5),'#f5f5eb');draw=ImageDraw.Draw(sheet)
 font=ImageFont.truetype('/System/Library/Fonts/Helvetica.ttc',14)

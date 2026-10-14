@@ -10,4 +10,4 @@ The approved experiment itself is unchanged.
 records awake and deep-focus motion, and creates the script-free `.riv` used by
 this hero. The browser plays those channels through `native-motion.js`.
 No Rive account upload or script-signing service is required for this export.
-See `Client/docs/hero-opening-v2.md` for the deliberate runtime limitation.
+See `Client/docs/experience/hero-opening-v2.md` for the deliberate runtime limitation.

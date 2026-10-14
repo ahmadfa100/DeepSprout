@@ -1,0 +1,126 @@
+/**
+ * DeepSprout — the one source of truth for the visual theme.
+ *
+ * Every value below was MEASURED from the existing pages with getComputedStyle
+ * (see docs/design/theme-audit.md), not invented. Where pages disagreed, the chosen
+ * variant is the one recorded in the audit's decisions.
+ *
+ * Names are namespaced (--color-*, --text-*, …) on purpose: several page files
+ * still define their own short names (--ink, --muted, --line) with differing
+ * values, and these tokens must never silently override them. Page files point
+ * their local names at these tokens wherever the values are identical.
+ *
+ * Load this FIRST, before any page stylesheet.
+ */
+:root {
+  /* ---------------------------------------------------------------- colour */
+  --color-ink: #173c33;          /* headings and primary text */
+  --color-pine: #123f34;         /* deep green: emphasis, hover on primary */
+  --color-deep: #0b2f28;
+  --color-leaf: #168557;         /* primary action; a MEASURED value in data views */
+  --color-muted: #5d7469;        /* secondary text; context, axes, thresholds */
+  --color-bg: #f7f8f2;           /* page background */
+  --color-surface: #fffefa;      /* cards and sections */
+  --color-white: #ffffff;
+  --color-line: #e2e9de;         /* borders and dividers */
+  --color-mint: #dff2df;         /* light leaf tint */
+  --color-gold: #e9b956;         /* the user's own limit exceeded — and nothing else in data views */
+  --color-alert: #ff3439;        /* the app's alert red (notification dot); a missed practice border */
+
+  /* Leaf intensity steps for data grids, derived from the tokens above. */
+  --color-leaf-1: var(--color-mint);
+  --color-leaf-2: color-mix(in srgb, var(--color-leaf) 42%, var(--color-surface));
+  --color-leaf-3: var(--color-leaf);
+  --color-leaf-4: var(--color-pine);
+
+  /* No data is a PATTERN, never a colour and never a zero. */
+  --pattern-no-data: repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-muted) 55%, transparent) 0 1.5px, transparent 1.5px 6px);
+
+  /* ------------------------------------------------------------ typography */
+  --font-sans: 'DM Sans', 'Avenir Next', system-ui, sans-serif;
+  /* Explore headings ONLY — a deliberate display face for the most alive page.
+     Banned everywhere else, and banned for numerals anywhere. */
+  --font-display: 'Fraunces', Georgia, serif;
+
+  --text-display: clamp(2rem, 3.3vw, 2.85rem);   /* page H1 — 45.6px at desktop */
+  --text-h2: 1.9rem;                             /* section heading — 30.4px */
+  --text-h2-panel: 1.5rem;                       /* panel heading — 24px */
+  --text-h3: 1.28rem;                            /* card heading — 20.48px */
+  --text-numeral: 2.3rem;                        /* bare numerals — 36.8px */
+  --text-lead: 1.02rem;                          /* hero intro — 16.32px */
+  --text-body: 1rem;                             /* 16px */
+  --text-eyebrow: 0.8125rem;                     /* 13px */
+  --text-caption: 0.75rem;                       /* 12px */
+  /* Nothing between caption (12) and body (16) except the eyebrow (13). */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-heavy: 800;                           /* headings and numerals */
+
+  --tracking-display: -0.045em;
+  --tracking-h2: -0.035em;
+  --tracking-h3: -0.03em;
+  --tracking-eyebrow: 0.16em;
+
+  --leading-display: 1.04;
+  --leading-heading: 1.12;
+  --leading-body: 1.5;
+
+  /* ----------------------------------------------------------------- shape */
+  --radius-hero: 28px;
+  --radius-section: 26px;
+  --radius-card: 22px;
+  --radius-tile: 14px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 14px 34px rgb(18 63 52 / 0.063);
+  --shadow-hero: 0 18px 44px rgb(18 63 52 / 0.07);
+  --shadow-button: 0 10px 22px rgb(22 133 87 / 0.2);
+
+  /* ---------------------------------------------------------------- layout */
+  --container: 1180px;
+  --gutter: 72px;            /* total side space: width: min(100% - var(--gutter), var(--container)) */
+  --gutter-narrow: 32px;     /* at max-width 760px */
+  --section-pad: 32px;
+  --section-pad-narrow: 22px 18px;
+  --section-gap: 26px;
+
+  /* Spacing — exactly the values the pages use, so nothing moves. */
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-20: 20px;
+  --space-22: 22px;
+  --space-24: 24px;
+  --space-26: 26px;
+  --space-30: 30px;
+  --space-32: 32px;
+  --space-34: 34px;
+
+  /* Breakpoints (media queries cannot read custom properties; use these values):
+     1180px · 930px · 760px · 650px · 480px */
+
+  /* ---------------------------------------------------------------- motion */
+  --ease-standard: cubic-bezier(.2, .7, .2, 1);
+  --ease-spring: cubic-bezier(.3, 1.4, .5, 1);
+  --dur-fast: .2s;
+  --dur-base: .3s;
+  --dur-slow: .7s;
+  /* New and redesigned work animates transform and opacity only. */
+
+  /* ------------------------------------------------------------------ base */
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { scroll-behavior: auto; }
+}

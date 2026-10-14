@@ -111,11 +111,12 @@
     }
 
     const routine = account.routine();
-    if (routine.primary) {
+    // Past check-ins are history: they stay visible even after an item is deleted.
+    if (routine.primary || routine.monthDays) {
       cards.push(`<article class="ins-glance-card">
         <div class="ins-glance-top"><span class="ins-glance-label">Your routine</span>${badge(routine.provenance)}</div>
         <div class="ins-glance-figure">${num(routine.monthDays)}<span>${plural(routine.monthDays, 'day')} this month</span></div>
-        <p class="ins-glance-sub">${esc(routine.primary.title)}</p>
+        <p class="ins-glance-sub">${routine.primary ? esc(routine.primary.title) : 'From items you have since removed'}</p>
       </article>`);
     } else {
       cards.push(`<article class="ins-glance-card"><div class="ins-glance-top"><span class="ins-glance-label">Your routine</span></div>
@@ -522,7 +523,7 @@
     const routine = account.routine();
     const cards = [];
 
-    if (routine.primary) {
+    if (routine.primary || routine.monthDays) {
       const today = account.today;
       const first = new Date(today.getFullYear(), today.getMonth(), 1, 12);
       const last = new Date(today.getFullYear(), today.getMonth() + 1, 0, 12);
@@ -537,7 +538,7 @@
       }
       cards.push(`<article class="ins-beyond-card">
         <header><h3>Offline routine</h3>${badge(routine.provenance)}</header>
-        <div class="ins-glance-figure">${num(routine.monthDays)}<span>${plural(routine.monthDays, 'day')} in ${today.toLocaleDateString('en-GB', { month: 'long' })} · ${esc(routine.primary.title)}</span></div>
+        <div class="ins-glance-figure">${num(routine.monthDays)}<span>${plural(routine.monthDays, 'day')} in ${today.toLocaleDateString('en-GB', { month: 'long' })}${routine.primary ? ` · ${esc(routine.primary.title)}` : ''}</span></div>
         <div class="ins-month" role="img" aria-label="${esc(`Routine ticked on ${routine.monthDays} ${plural(routine.monthDays, 'day')} this month`)}">${dots.join('')}</div>
         <p>Each tick is your own report. It is never graded.</p>
       </article>`);

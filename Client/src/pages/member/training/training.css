@@ -1,18 +1,18 @@
 /* Activities — focused practices and the offline routine. */
 :root {
-  --ink: #173c33;
-  --pine: #123f34;
-  --leaf: #168557;
+  --ink: var(--color-ink);
+  --pine: var(--color-pine);
+  --leaf: var(--color-leaf);
   --leaf-2: #1f9a66;
-  --muted: #5d7469;
-  --line: #e2e9de;
-  --paper: #fffefa;
-  --bg: #f7f8f2;
+  --muted: var(--color-muted);
+  --line: var(--color-line);
+  --paper: var(--color-surface);
+  --bg: var(--color-bg);
   --shadow: 0 14px 34px #123f3410;
   --ease: cubic-bezier(.2, .7, .2, 1);
 }
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; background: var(--bg); color: var(--ink); font-family: 'DM Sans', 'Avenir Next', system-ui, sans-serif; }
+body { margin: 0; min-width: 320px; background: var(--bg); color: var(--ink); font-family: var(--font-sans); }
 button, input, a { font: inherit; color: inherit; }
 button { cursor: pointer; }
 a { text-decoration: none; }
@@ -163,7 +163,7 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 
 .routine-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .routine-item {
-  position: relative; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 16px;
+  position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 16px;
   padding: 14px 16px; border: 1px solid var(--line); border-radius: 20px; background: #fff;
   transition: border-color .25s ease, background .25s ease, box-shadow .25s ease;
 }
@@ -227,7 +227,8 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 .shield-band-art { position: relative; width: 120px; height: 86px; }
 .shield-band-shield { position: absolute; left: 34px; top: 16px; display: grid; place-items: center; width: 56px; height: 62px; border-radius: 18px; background: #5a4796; color: #fff; box-shadow: 0 10px 20px #5a479640; }
 .shield-band-shield svg { width: 30px; height: 30px; }
-.float-app { position: absolute; width: 28px; height: 28px; border-radius: 8px; animation: tuck 3.6s ease-in-out infinite; }
+.float-app { position: absolute; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--color-white); box-shadow: var(--shadow-card); animation: tuck 3.6s ease-in-out infinite; }
+.float-app svg { width: 18px; height: 18px; fill: none; stroke: var(--color-muted); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .float-app.a1 { left: 0; top: 4px; animation-delay: 0s; }
 .float-app.a2 { left: 98px; top: 0; animation-delay: 1.2s; }
 .float-app.a3 { left: 10px; top: 56px; animation-delay: 2.4s; }
@@ -318,3 +319,57 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
   .js-reveal { opacity: 1; transform: none; }
   .routine-tick[aria-pressed="true"] svg { stroke-dashoffset: 0; }
 }
+
+
+/* Offline routine — row actions, inline editor, delete dialog ------------- */
+.routine-row-actions { display: flex; gap: var(--space-4); }
+.routine-icon-button { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid transparent; border-radius: 50%; background: none; color: var(--color-muted); cursor: pointer; transition: transform var(--dur-fast) var(--ease-standard); }
+.routine-icon-button svg { width: 18px; height: 18px; }
+.routine-icon-button:hover { border-color: var(--color-line); background: var(--color-bg); color: var(--color-ink); transform: translateY(-1px); }
+.routine-icon-button[aria-expanded="true"] { border-color: var(--color-leaf); color: var(--color-leaf); }
+.routine-icon-button.is-danger:hover { color: var(--color-alert); }
+.routine-icon-button:focus-visible, .routine-secondary:focus-visible, .routine-primary:focus-visible, .routine-danger:focus-visible, .routine-delete:focus-visible { outline: 3px solid var(--color-mint); outline-offset: 2px; }
+
+.routine-editor { grid-column: 1 / -1; display: grid; gap: var(--space-14); margin-top: var(--space-10); padding-top: var(--space-16); border-top: 1px dashed var(--color-line); animation: rise .35s var(--ease-standard) both; }
+.routine-field { display: grid; gap: var(--space-6); margin: 0; padding: 0; border: 0; }
+.routine-field > span, .routine-field legend { padding: 0; color: var(--color-muted); font-size: var(--text-caption); font-weight: var(--weight-bold); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; }
+.routine-field input, .routine-field select { min-height: 44px; padding: 0 var(--space-14); border: 1.5px solid var(--color-line); border-radius: var(--radius-tile); background: var(--color-white); color: var(--color-ink); font: var(--weight-bold) var(--text-body) var(--font-sans); }
+.routine-field input:focus, .routine-field select:focus { outline: none; border-color: var(--color-leaf); box-shadow: 0 0 0 3px var(--color-mint); }
+.routine-editor-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-16) var(--space-24); }
+.routine-switch { display: inline-flex; align-items: center; gap: var(--space-10); min-height: 44px; cursor: pointer; font-weight: var(--weight-bold); color: var(--color-ink); }
+.routine-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.routine-switch-track { position: relative; width: 44px; height: 26px; border-radius: var(--radius-pill); background: var(--color-line); }
+.routine-switch-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--color-white); box-shadow: 0 2px 6px color-mix(in srgb, var(--color-pine) 20%, transparent); transition: transform var(--dur-fast) var(--ease-standard); }
+.routine-switch input:checked + .routine-switch-track { background: var(--color-muted); }
+.routine-switch input:checked + .routine-switch-track::after { transform: translateX(18px); }
+.routine-switch input:focus-visible + .routine-switch-track { outline: 3px solid var(--color-mint); outline-offset: 2px; }
+.routine-editor-note { margin: 0; color: var(--color-muted); font-size: var(--text-caption); }
+.routine-editor-error { margin: 0; color: var(--color-alert); font-size: var(--text-caption); font-weight: var(--weight-bold); }
+.routine-editor-actions { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-10); }
+.routine-editor-actions > span { display: flex; gap: var(--space-8); }
+.routine-primary, .routine-secondary, .routine-danger, .routine-delete { display: inline-flex; align-items: center; gap: var(--space-6); min-height: 42px; padding: 0 var(--space-18); border-radius: var(--radius-pill); font: var(--weight-bold) var(--text-body) var(--font-sans); cursor: pointer; transition: transform var(--dur-fast) var(--ease-standard); }
+.routine-primary { border: 0; background: var(--color-leaf); color: var(--color-white); box-shadow: var(--shadow-button); }
+.routine-primary:hover { transform: translateY(-2px); background: var(--color-pine); }
+.routine-secondary { border: 1px solid var(--color-line); background: var(--color-white); color: var(--color-ink); }
+.routine-secondary:hover { border-color: var(--color-leaf); }
+.routine-delete { border: 0; padding-inline: var(--space-8); background: none; color: var(--color-alert); }
+.routine-delete svg { width: 16px; height: 16px; }
+.routine-danger { border: 0; background: var(--color-alert); color: var(--color-white); }
+.routine-danger:hover { transform: translateY(-2px); }
+
+.routine-dialog { width: min(440px, calc(100% - 32px)); padding: var(--space-26); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); color: var(--color-ink); box-shadow: var(--shadow-hero); font-family: var(--font-sans); }
+.routine-dialog[open] { animation: dialog-in .3s var(--ease-standard) both; }
+.routine-dialog::backdrop { background: color-mix(in srgb, var(--color-ink) 40%, transparent); }
+.routine-dialog-icon { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: var(--space-14); border-radius: 50%; background: color-mix(in srgb, var(--color-alert) 12%, transparent); color: var(--color-alert); }
+.routine-dialog-icon svg { width: 22px; height: 22px; }
+.routine-dialog h2 { margin: 0 0 var(--space-8); font-size: var(--text-h2-panel); font-weight: var(--weight-heavy); letter-spacing: var(--tracking-h3); line-height: var(--leading-heading); }
+.routine-dialog p { margin: 0; color: var(--color-muted); font-size: var(--text-body); line-height: var(--leading-body); }
+.routine-dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-10); margin-top: var(--space-22); }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(10px) scale(.97); } }
+@media (max-width: 520px) {
+  .routine-item { grid-template-columns: auto 1fr; }
+  .routine-row-actions { grid-column: 1 / -1; justify-content: flex-end; }
+  .routine-dialog-actions { flex-direction: column-reverse; }
+  .routine-dialog-actions button { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .routine-editor, .routine-dialog[open] { animation: none; } }

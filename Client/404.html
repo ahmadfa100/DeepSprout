@@ -17,7 +17,7 @@
           if (!response.ok || !response.headers.get('Content-Type')?.includes('text/css')) root = '/Client/';
         } catch (_) { /* Keep the site-root fallback if the probe is unavailable. */ }
       }
-      for (const [rel, path] of [['icon', 'src/assets/logo/Image.png'], ['stylesheet', 'src/pages/public/not-found/not-found.css']]) {
+      for (const [rel, path] of [['icon', 'assets/brand/logo.png'], ['stylesheet', 'src/pages/public/not-found/not-found.css']]) {
         const link = document.createElement('link');
         link.rel = rel;
         link.href = root + path;
@@ -30,7 +30,7 @@
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="error-header">
-    <a class="brand" href="/index.html" aria-label="DeepSprout home"><img data-site-src="src/assets/logo/Image.png" width="46" height="50" alt=""><span>DeepSprout</span></a>
+    <a class="brand" href="/index.html" aria-label="DeepSprout home"><img data-site-src="assets/brand/logo.png" width="46" height="50" alt=""><span>DeepSprout</span></a>
     <a class="header-home" href="/index.html">Back to familiar ground <span aria-hidden="true">↗</span></a>
   </header>
 

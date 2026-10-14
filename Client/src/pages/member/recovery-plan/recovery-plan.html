@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <link rel="icon" type="image/png" href="../../../assets/logo/Image.png">
+    <link rel="icon" type="image/png" href="../../../../assets/brand/logo.png">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#fafbf7">
@@ -10,11 +10,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../../src/styles/theme.css">
+    <link rel="stylesheet" href="../../../../src/styles/style.css">
     <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
     <link rel="stylesheet" href="../../../../src/styles/page-hero.css">
     <link rel="stylesheet" href="recovery-plan.css">
-    <script src="../../../../src/js/utils/storage.js" defer></script>
+    <script src="../../../../src/js/data/account.js" defer></script>
     <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
     <script src="recovery-plan.js" defer></script>
   </head>
@@ -50,7 +50,7 @@
           <p class="ds-hero-text rp-hero-description">A 28-day plan built around your goal. Each week has one focus, and the next week is written after you review the last.</p>
           <div class="ds-hero-meta"><span class="ds-hero-chip"><svg><use href="#rp-calendar"/></svg><span id="cycle-day">Not started yet</span></span><span class="ds-hero-chip" id="hero-week-chip" hidden></span></div>
         </div>
-        <figure class="ds-hero-art" style="--hero-focus: 64% 46%"><img src="../../../../src/assets/Bimo-CommunityPage.png" alt="Bimo and friends looking out over a valley at sunrise"></figure>
+        <figure class="ds-hero-art" style="--hero-focus: 38% 46%"><img src="../../../../assets/recovery/bimo-roadmap.png" alt="Bimo reading a trail map on a ridge above a valley at sunrise"></figure>
       </header>
 
       <div class="rp-shell">
@@ -104,11 +104,10 @@
           </section>
 
           <section class="rp-stats" aria-labelledby="stats-title">
-            <h2 id="stats-title" class="rp-visually-hidden">This week in numbers</h2>
-            <article class="rp-stat"><span class="rp-stat-icon rp-gold"><svg><use href="#rp-book"/></svg></span><strong id="stat-practices">0</strong><p id="stat-practices-label">practices logged this week</p><small class="rp-evidence">Self-reported</small></article>
-            <article class="rp-stat"><span class="rp-stat-icon rp-sage"><svg><use href="#rp-shoe"/></svg></span><strong id="stat-routine">0</strong><p>offline routine days this week</p><small class="rp-evidence">Self-reported</small></article>
-            <article class="rp-stat"><span class="rp-stat-icon rp-blue"><svg><use href="#rp-flag"/></svg></span><strong id="stat-review">—</strong><p id="stat-review-label">until your weekly review</p><a class="rp-stat-link" data-review-link href="../weekly-review/weekly-review.html">Weekly review <svg><use href="#rp-arrow"/></svg></a></article>
-            <article class="rp-stat"><span class="rp-stat-icon rp-violet"><svg><use href="#rp-chart"/></svg></span><strong id="stat-baseline">0/4</strong><p id="stat-baseline-label">baseline checks done</p><small class="rp-evidence is-measured">Measured in the Lab</small></article>
+            <h2 id="stats-title" class="rp-visually-hidden">This week</h2>
+            <a class="rp-stat" href="#week" data-tab-link="week"><span class="rp-stat-icon rp-gold"><svg><use href="#rp-book"/></svg></span><strong id="stat-practices">—</strong><p id="stat-practices-label">due practices this week</p><small class="rp-evidence is-measured" id="stat-practices-source">Measured</small></a>
+            <a class="rp-stat" href="../training/training.html#offline-routine"><span class="rp-stat-icon rp-sage"><svg><use href="#rp-shoe"/></svg></span><strong id="stat-routine">—</strong><p id="stat-routine-label">routine days this week</p><small class="rp-evidence is-self" id="stat-routine-source">Self-reported</small></a>
+            <a class="rp-stat" data-review-link href="../weekly-review/weekly-review.html"><span class="rp-stat-icon rp-sage"><svg><use href="#rp-flag"/></svg></span><strong id="stat-review">—</strong><p id="stat-review-label">weekly review</p><small class="rp-evidence is-plain" id="stat-review-source">Your plan</small></a>
           </section>
 
           <div class="rp-overview-grid">
@@ -193,7 +192,7 @@
 
         <!-- ============================================================= History -->
         <section class="rp-panel" role="tabpanel" id="panel-history" aria-labelledby="tab-history" data-panel="history" hidden>
-          <div class="rp-section-head"><div><p class="rp-kicker">History</p><h2>Everything you have recorded</h2><p>Newest first. Practices and routine ticks are your own reports; baseline checks were measured in the Lab.</p></div></div>
+          <div class="rp-section-head"><div><p class="rp-kicker">History</p><h2>Everything you have recorded</h2><p>Newest first. Practices are scored by the app; routine ticks are your own reports; check-ins are measurement tasks.</p></div></div>
           <ol class="rp-timeline" id="history-list"></ol>
           <p class="rp-history-empty" id="history-empty" hidden>Nothing recorded yet. Your first practice, routine tick or review will appear here.</p>
         </section>

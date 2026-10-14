@@ -3,7 +3,7 @@
   const page = document.body.dataset.page || 'home';
   const asset = path => `${root}assets/home-kit/${path}`;
   const icon = (path, alt = '') => `<img src="${asset(path)}" alt="${alt}">`;
-  const brandLogo = `<img src="${root}src/assets/logo/Image.png" alt="">`;
+  const brandLogo = `<img src="${root}assets/brand/logo.png" alt="">`;
   const items = [
     ['recovery', 'Roadmap', 'src/pages/member/recovery-plan/recovery-plan.html', 'route.svg'],
     ['training', 'Activities', 'src/pages/member/training/training.html', 'activities.svg'],
@@ -39,13 +39,41 @@
       </div>
     </div>
   </header>`;
+  // Footer: working links only, grouped by what they are for. One brand
+  // element — a single growth line ending in a leaf.
+  const footerLink = (path, label) => `<a href="${root}${path}">${label}</a>`;
   const footerMount = document.querySelector('[data-site-footer]');
-  if (footerMount) footerMount.outerHTML = `<footer class="member-footer"><div class="member-footer-inner">
-    <div class="member-footer-grid"><div class="member-footer-about">${brandLogo}<div><strong>DeepSprout</strong><p>Helping you reduce distraction,<br>build better habits, and make room for<br>what you care about.</p><div class="member-social" aria-label="Social platforms"><span title="GitHub">${icon('icons/github.svg')}</span><span title="LinkedIn">${icon('icons/linkedin.svg')}</span><span title="YouTube">${icon('icons/youtube.svg')}</span><span title="X">${icon('icons/x-social.svg')}</span></div></div></div>
-    <nav aria-label="Product links"><strong>Product</strong><a href="${root}src/pages/public/landing/home.html#discover">Features</a><a href="${root}hero-reels-lab.html">How it works</a><a href="${root}pricing.html">For Individuals</a><a href="${root}pricing.html">For Mentors</a></nav>
-    <nav aria-label="Resources"><strong>Resources</strong><button type="button" data-member-info="Privacy Policy">Privacy Policy</button><button type="button" data-member-info="Terms of Service">Terms of Service</button><button type="button" data-member-info="Contact">Contact</button><button type="button" data-member-info="Help & Support">Help &amp; Support</button></nav></div>
-    <div class="member-footer-bottom"><span>© ${new Date().getFullYear()} DeepSprout. All rights reserved by <a class="member-founder" href="https://ahmad-personal-website.netlify.app/" target="_blank" rel="noopener noreferrer">Ahmad. ${icon('icons/external-link.svg')}</a></span><span>${icon('icons/leaf.svg')} Grow together.</span></div>
-  </div></footer>`;
+  if (footerMount) footerMount.outerHTML = `<footer class="member-footer">
+    <div class="member-footer-inner">
+      <svg class="member-footer-vine" viewBox="0 0 1180 40" preserveAspectRatio="none" aria-hidden="true">
+        <path class="vine-line" d="M0 32 H1080 C1110 32 1124 26 1134 16"/>
+        <path class="vine-leaf" d="M1134 16 C1138 4 1152 0 1166 2 C1166 16 1154 24 1134 16 Z"/>
+      </svg>
+      <div class="member-footer-grid">
+        <div class="member-footer-brand">
+          <a class="member-footer-logo" href="${root}index.html">${brandLogo}<strong>DeepSprout</strong></a>
+          <p>Helping you reduce distraction, build better habits, and make room for what you care about.</p>
+        </div>
+        <nav aria-label="Your plan"><h2>Your plan</h2>${footerLink('src/pages/member/recovery-plan/recovery-plan.html', 'Roadmap')}${footerLink('src/pages/member/training/training.html', 'Activities')}${footerLink('src/pages/member/shield/shield.html', 'Digital Shield')}${footerLink('src/pages/member/insights/insights.html', 'Insights')}</nav>
+        <nav aria-label="Beyond the screen"><h2>Beyond the screen</h2>${footerLink('src/pages/member/garden/garden.html', 'Garden')}${footerLink('src/pages/member/explore/explore.html', 'Explore')}${footerLink('src/pages/member/community/community.html', 'Community')}${footerLink('src/pages/member/weekly-review/weekly-review.html', 'Weekly review')}</nav>
+        <nav aria-label="DeepSprout"><h2>DeepSprout</h2>${footerLink('src/pages/public/landing/home.html#discover', 'Features')}${footerLink('hero-reels-lab.html', 'How it works')}${footerLink('pricing.html', 'Plans &amp; pricing')}${footerLink('src/pages/member/profile/profile.html', 'Profile &amp; settings')}</nav>
+      </div>
+      <div class="member-footer-bottom">
+        <span>© 2026 DeepSprout. Created by <a class="member-founder" href="https://ahmad-personal-website.netlify.app/" target="_blank" rel="noopener noreferrer">Ahmad<span class="visually-hidden"> (opens in a new tab)</span> ${icon('icons/external-link.svg')}</a></span>
+        <span class="member-footer-sign">Grow together.</span>
+      </div>
+    </div>
+  </footer>`;
+  const vine = document.querySelector('.member-footer-vine');
+  if (vine && 'IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    vine.classList.add('is-waiting');
+    const watch = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting)) return;
+      vine.classList.remove('is-waiting');
+      watch.disconnect();
+    }, { threshold: 0.4 });
+    watch.observe(vine);
+  }
   const header = document.querySelector('.member-header');
   const toggle = header?.querySelector('.member-menu-toggle');
   const nav = header?.querySelector('.member-nav');
@@ -74,16 +102,6 @@
   document.addEventListener('click', event => {
     if (!event.target.closest('.member-notifications') && noticePanel) { noticePanel.hidden = true; noticeButton?.setAttribute('aria-expanded', 'false'); }
   });
-  const infoDialog = document.createElement('dialog');
-  infoDialog.className = 'member-info-dialog';
-  infoDialog.innerHTML = '<button type="button" aria-label="Close">×</button><h2></h2><p>This information is not available in the client preview yet.</p>';
-  document.body.append(infoDialog);
-  infoDialog.querySelector('button').addEventListener('click', () => infoDialog.close());
-  document.querySelectorAll('[data-member-info]').forEach(button => button.addEventListener('click', () => {
-    infoDialog.querySelector('h2').textContent = button.dataset.memberInfo;
-    infoDialog.showModal();
-  }));
-
   // Dev-only switch between the seeded demo account and an empty one. It
   // appears on a local server or with ?dev=1, and shows the demo clock so an
   // audience is never misled about which date the figures are "as of".
@@ -106,6 +124,7 @@
           </fieldset>
           <p class="dev-switch-clock"><span>Clock</span>${clock}</p>
           <p class="dev-switch-note">${account.asOfNote}</p>
+          <button type="button" class="dev-switch-reset" hidden>Reset demo changes</button>
         </div>`;
       document.body.append(shell);
       const pill = shell.querySelector('.dev-switch-pill');
@@ -121,6 +140,15 @@
         // Let the thumb finish its slide before the page reloads.
         setTimeout(() => Account.choose(input.value), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260);
       }));
+      const reset = shell.querySelector('.dev-switch-reset');
+      const showReset = () => {
+        const count = account.changeCount();
+        reset.hidden = !count;
+        reset.textContent = `Reset demo changes (${count})`;
+      };
+      showReset();
+      window.addEventListener('deepsprout:account', showReset);
+      reset.addEventListener('click', () => { Account.resetChanges(); location.reload(); });
       document.addEventListener('keydown', event => { if (event.key === 'Escape' && !panel.hidden) { setOpen(false); pill.focus(); } });
       document.addEventListener('click', event => { if (!shell.contains(event.target)) setOpen(false); });
     }).catch(() => { /* The switch is a dev convenience; a page without data still renders. */ });

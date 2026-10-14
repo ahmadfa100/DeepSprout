@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
-const base=process.env.REELS_URL||'http://127.0.0.1:8794',out=path.resolve(__dirname,'../references/reels-validation');
+const base=process.env.REELS_URL||'http://127.0.0.1:8794',out=path.resolve(__dirname,'../docs/validation/reels');
 fs.mkdirSync(out,{recursive:true});
 const results={cases:[],errors:[],screenshots:[],metrics:{}};let browser;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));

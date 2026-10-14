@@ -5,7 +5,7 @@ const {pathToFileURL}=require('node:url');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const {PNG}=require('pngjs');
 const base=process.env.REELS_URL||'http://127.0.0.1:8792',client=path.resolve(__dirname,'..');
-const out=path.resolve(__dirname,'../references/product-journey-validation'),refs=path.resolve(__dirname,'../references/garden-handoff');
+const out=path.resolve(__dirname,'../docs/validation/product-journey'),refs=path.resolve(__dirname,'../docs/validation/garden-handoff');
 const decode=buffer=>PNG.sync.read(buffer);
 const head=file=>execFileSync('git',['-C',client,'show',`HEAD:Client/${file}`],{maxBuffer:1<<26});
 const report={cases:[],screenshots:[],errors:[],frames:{},seam:{}};let browser;

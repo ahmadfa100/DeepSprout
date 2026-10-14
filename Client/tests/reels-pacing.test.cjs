@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {pathToFileURL}=require('node:url');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const root=process.env.REELS_CLIENT||path.resolve(__dirname,'..');
-const out=path.join(root,'references/reels-pacing-validation');
+const out=path.join(root,'docs/validation/reels-pacing');
 const result={cases:[],runs:{},errors:[]};let browser;
 (async()=>{
  fs.mkdirSync(out,{recursive:true});

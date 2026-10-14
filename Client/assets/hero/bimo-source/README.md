@@ -3,4 +3,4 @@ Character shapes, pose library and controller are preserved. The derivative remo
 
 Run `rive . --verify` and `rive inspect . --summary` after edits. Browser delivery needs the signed `rive . --publish=local` output, never an unsigned screenshot/once build. Signing transfers scripts to Rive and requires an authenticated account. The current approved signed build carries Rive's export watermark because no account-file push binding exists.
 
-See ../../../docs/hero-opening.md for integration and validation details.
+See ../../../docs/experience/hero-opening.md for integration and validation details.

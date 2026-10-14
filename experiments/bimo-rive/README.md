@@ -3,11 +3,11 @@
 This isolated Rive CLI 1.5.1 experiment builds an editable, full-body Bimo in
 interactive FOCUS, DEEP FOCUS, NOTICE, CONCERNED, and OVERWHELMED. DEEP FOCUS is a pose within FOCUS,
 not a new emotional stage. Its proportions and colors follow the canonical artwork in
-`../../Client/references/bimo-original.png`, with parts guided by
-`../../Client/references/bimo-rig-sheet.png` and the FOCUS pose in
-`../../Client/references/bimo-focus.png`. The CONCERNED pose follows
-`../../Client/references/bimo-concerned.png`. OVERWHELMED uses
-`../../Client/references/bimo-overwhelmed.png` for its guarded full-body gesture.
+`../../Client/references/bimo/bimo-original.png`, with parts guided by
+`../../Client/references/bimo/bimo-rig-sheet.png` and the FOCUS pose in
+`../../Client/assets/onboarding/bimo-calm.png`. The CONCERNED pose follows
+`../../Client/references/bimo/bimo-concerned.png`. OVERWHELMED uses
+`../../Client/references/bimo/bimo-overwhelmed.png` for its guarded full-body gesture.
 
 ## Source and generated files
 

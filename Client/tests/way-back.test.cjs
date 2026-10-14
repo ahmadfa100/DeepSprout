@@ -4,7 +4,7 @@ const {pathToFileURL}=require('node:url');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const {PNG}=require('pngjs');
 const base=process.env.REELS_URL||'http://127.0.0.1:8792';
-const out=path.resolve(__dirname,'../references/way-back-validation');
+const out=path.resolve(__dirname,'../docs/validation/way-back');
 const decode=buffer=>PNG.sync.read(buffer);
 const at=(png,x,y)=>{const i=(Math.round(y)*png.width+Math.round(x))*4;return[png.data[i],png.data[i+1],png.data[i+2]]};
 const lum=([r,g,b])=>(r+g+b)/3;
@@ -21,7 +21,7 @@ const report={cases:[],screenshots:[],errors:[],seam:{}};let browser;
  fs.mkdirSync(out,{recursive:true});
  const P=await import(pathToFileURL(path.resolve(__dirname,'../src/js/lines/path.js')));
  const {handoffLength,LINES,lineCount}=await import(pathToFileURL(path.resolve(__dirname,'../src/js/lines/field.js')));
- const recorded=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../references/vortex-clarity-validation/validation.json'),'utf8')).headline;
+ const recorded=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../docs/validation/vortex-clarity/validation.json'),'utf8')).headline;
  // Pure geometry: the four weeks are contiguous (the line is never broken), week 1 alone has days.
  for(const [width,mobile]of [[1440,false],[390,true]]){
   const g=P.layout(width,mobile);

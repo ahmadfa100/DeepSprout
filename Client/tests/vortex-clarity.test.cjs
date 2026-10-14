@@ -4,7 +4,7 @@ const {pathToFileURL}=require('node:url');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const {PNG}=require('pngjs');
 const base=process.env.REELS_URL||'http://127.0.0.1:8792';
-const out=path.resolve(__dirname,'../references/vortex-clarity-validation');
+const out=path.resolve(__dirname,'../docs/validation/vortex-clarity');
 const decode=buffer=>PNG.sync.read(buffer);
 const e2num=text=>/^\d+$/.test(text);
 function pixel(buffer,x,y){const png=decode(buffer),i=(Math.floor(y)*png.width+Math.floor(x))*4;return[...png.data.slice(i,i+3)]}

@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');const path=require('node:path');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const base=process.env.HERO_URL||'http://127.0.0.1:8792';
-const out=path.resolve(__dirname,'../references/hero-v2-validation');fs.mkdirSync(out,{recursive:true});
+const out=path.resolve(__dirname,'../docs/validation/hero-v2');fs.mkdirSync(out,{recursive:true});
 const phases=['ARRIVAL','LIFT','VERTICAL_ALIGNMENT','PERFECT_BALANCE','GROW','LIVING_IDLE'];
 const frames=[['00-arrival',.8],['01-lift',3.72],['02-vertical-alignment',5.35],['03-perfect-balance',6.399],['04-grow',7.7],['05-living-idle',9.5]];
 const results={cases:[],errors:[],measurements:{},screenshots:[]};let ownedBrowser;

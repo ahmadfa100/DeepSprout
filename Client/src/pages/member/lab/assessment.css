@@ -2,7 +2,7 @@
 
 body { background: #fbfdf8; }
 
-.as-bar { position: sticky; top: 0; z-index: 20; background: #fffefa; border-bottom: 1px solid var(--line); }
+.as-bar { position: sticky; top: 0; z-index: 20; background: var(--color-surface); border-bottom: 1px solid var(--line); }
 .as-bar-inner {
   width: min(100% - 48px, 1100px);
   margin-inline: auto;

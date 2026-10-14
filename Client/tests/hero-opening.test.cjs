@@ -3,7 +3,7 @@ const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const output=process.env.HERO_OUTPUT||path.resolve(__dirname,'../docs/hero-validation');
+const output=process.env.HERO_OUTPUT||path.resolve(__dirname,'../docs/validation/hero-opening');
 fs.mkdirSync(output,{recursive:true});
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||undefined});

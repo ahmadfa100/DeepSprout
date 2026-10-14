@@ -24,7 +24,11 @@ const SESSION_BY_TITLE = {
 };
 const ICON_BY_SESSION = { depth: 'i-book', listening: 'i-headphones', challenge: 'i-pencil', protected: 'i-timer' };
 
-const DS = window.DeepSprout;
+const Account = window.DeepSproutAccount;
+let account = null;
+/** Session key → the practice type it is scored as. Other sessions are not a training type. */
+const TYPE_BY_SESSION = { today: 'depth', depth: 'depth', listening: 'listening', challenge: 'practical', protected: 'protected-work' };
+const SESSION_BY_TYPE = { depth: 'depth', listening: 'listening', practical: 'challenge', 'protected-work': 'protected' };
 const readStored = (key, fallback) => {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
   catch { return fallback; }
@@ -37,16 +41,18 @@ const writeStored = (key, value) => {
 /* --------------------------------------------------------------- progress */
 
 const updateProgress = () => {
-  if (!DS) return;
-  const stats = DS.stats();
-  const count = stats.hasPlan ? stats.practicesThisWeek : stats.totalPractices;
-  const scope = stats.hasPlan ? 'this week' : 'so far';
-  document.getElementById('weekly-plan-count').textContent =
-    stats.scheduledThisWeek !== null
-      ? `${count} of ${stats.scheduledThisWeek} planned practices ${scope}`
-      : `${count} practice${count === 1 ? '' : 's'} logged ${scope}`;
+  if (!account) return;
+  const plan = account.plan();
+  const label = document.getElementById('weekly-plan-count');
   const message = document.getElementById('progress-message');
-  const today = DS.activityOn(new Date()).length;
+  if (!plan) {
+    label.textContent = 'No plan yet — practise freely';
+    message.hidden = true;
+    return;
+  }
+  const adherence = account.adherence();
+  label.textContent = `This week: ${adherence.completed} of ${adherence.due} due practices · measured`;
+  const today = account.attemptsOn(account.today).filter(attempt => attempt.valid).length;
   message.hidden = !today;
   message.textContent = today ? `${today} done today` : '';
 };
@@ -54,22 +60,21 @@ const updateProgress = () => {
 /* Up next: the practice the roadmap schedules for today, if there is one. */
 const renderUpNext = () => {
   const card = document.getElementById('up-next');
-  const plan = DS?.get().plan;
-  if (!plan || plan.status !== 'active') { card.hidden = true; return; }
-  const stats = DS.stats();
-  const entry = stats.week === 1 ? plan.weekOne?.[stats.day - 1] : null;
-  if (entry?.kind === 'review') { card.hidden = true; return; }
-  const done = DS.activityOn(new Date()).length > 0;
+  const plan = account?.plan();
+  if (!plan) { card.hidden = true; return; }
+  const today = account.schedule().find(day => day.isToday);
+  if (today?.action?.kind === 'review') { card.hidden = true; return; }
   const kicker = document.getElementById('up-next-kicker');
   const icon = card.querySelector('.up-next-icon use');
-  card.classList.toggle('is-done', done);
   card.hidden = false;
 
-  if (entry?.kind === 'practice') {
-    const key = SESSION_BY_TITLE[entry.title] || 'quick';
-    kicker.textContent = done ? 'Done today — nicely handled' : `Today on your roadmap · Day ${stats.day}`;
-    document.getElementById('up-next-title').textContent = entry.title;
-    document.getElementById('up-next-note').textContent = entry.note;
+  if (today?.action?.kind === 'practice') {
+    const key = SESSION_BY_TYPE[today.action.activityType] || 'quick';
+    const done = today.state === 'completed';
+    card.classList.toggle('is-done', done);
+    kicker.textContent = done ? `Done today · ${today.attempt.outcome}` : `Today on your roadmap · Day ${plan.day}`;
+    document.getElementById('up-next-title').textContent = today.action.type?.title || sessions[key].title;
+    document.getElementById('up-next-note').textContent = `${today.action.minutes} minutes · level ${today.action.level}`;
     icon.setAttribute('href', `#${ICON_BY_SESSION[key] || 'i-bolt'}`);
     card.href = `?session=${key}`;
     card.onclick = event => { event.preventDefault(); openSession(key); };
@@ -77,8 +82,9 @@ const renderUpNext = () => {
   }
 
   // Nothing scheduled today: suggest from the focus chosen on the Roadmap's Adjust tab.
+  card.classList.remove('is-done');
   const focus = readStored('deepsprout-recovery-focus', 'depth');
-  kicker.textContent = done ? 'Done today — nicely handled' : 'Open day · suggested by your focus';
+  kicker.textContent = today?.action?.kind === 'rest' ? 'Planned rest day · optional' : 'Open day · suggested by your focus';
   if (focus === 'offline') {
     document.getElementById('up-next-title').textContent = 'Your offline routine';
     document.getElementById('up-next-note').textContent = 'Nothing is scheduled today. Tick off something real instead.';
@@ -129,7 +135,8 @@ const sessionFeedback = document.getElementById('session-feedback');
 const ring = document.getElementById('session-ring');
 const RING = 2 * Math.PI * 96;
 let currentSession = 'today';
-let remainingSeconds = sessions.today.minutes * 60;
+let sessionMinutes = sessions.today.minutes;
+let remainingSeconds = sessionMinutes * 60;
 let timerInterval = null;
 let endTime = 0;
 let sessionCompleted = false;
@@ -137,12 +144,12 @@ let sessionCompleted = false;
 const formatTime = seconds => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 const renderTimer = () => {
   timerDisplay.textContent = formatTime(remainingSeconds);
-  const total = sessions[currentSession].minutes * 60;
+  const total = sessionMinutes * 60;
   ring.style.strokeDasharray = `${RING}`;
   ring.style.strokeDashoffset = `${RING * (1 - remainingSeconds / total)}`;
 };
 const setToggle = running => {
-  timerToggle.innerHTML = `<svg><use href="#${running ? 'i-pause' : 'i-play'}"/></svg><span>${running ? 'Pause' : remainingSeconds < sessions[currentSession].minutes * 60 && remainingSeconds > 0 ? 'Resume' : 'Start'}</span>`;
+  timerToggle.innerHTML = `<svg><use href="#${running ? 'i-pause' : 'i-play'}"/></svg><span>${running ? 'Pause' : remainingSeconds < sessionMinutes * 60 && remainingSeconds > 0 ? 'Resume' : 'Start'}</span>`;
   sessionDialog.classList.toggle('is-running', running);
 };
 const stopTimer = () => {
@@ -150,33 +157,51 @@ const stopTimer = () => {
   timerInterval = null;
   setToggle(false);
 };
-const completeSession = () => {
+const completeSession = ({ timerFinished = false } = {}) => {
   if (sessionCompleted) return;
   sessionCompleted = true;
   stopTimer();
+  const total = sessionMinutes * 60;
+  const elapsedMinutes = Math.max(1, Math.round((total - remainingSeconds) / 60));
   remainingSeconds = 0;
   renderTimer();
-  // One shared record — Roadmap, Garden, Home and the weekly review count it.
-  DS?.logActivity({
-    type: currentSession,
-    title: sessions[currentSession]?.title || 'Practice',
-    evidence: 'self-reported'
+  // In-app practices are scored by the app, not self-reported: a session only
+  // counts when its timer actually ran to the end.
+  const type = TYPE_BY_SESSION[currentSession];
+  account?.mutate({
+    type: 'attempt.add',
+    attempt: {
+      activityType: type || 'other',
+      title: sessions[currentSession]?.title || 'Practice',
+      valid: Boolean(type) && timerFinished,
+      outcome: timerFinished ? `Timed session finished · ${sessionMinutes} min` : `Ended after ${elapsedMinutes} min`,
+      invalidReason: !type ? 'Not a scored practice type' : timerFinished ? '' : 'Ended before the timer finished',
+      minutes: timerFinished ? sessionMinutes : elapsedMinutes
+    }
   });
   sessionDialog.classList.add('is-complete');
-  sessionFeedback.textContent = 'Logged. That practice now counts on your roadmap and in your garden.';
+  sessionFeedback.textContent = !type
+    ? 'Recorded in your history. This session is not a scored practice type, so it does not change a level.'
+    : timerFinished
+      ? 'Recorded and counted. It now shows on your roadmap and in Insights.'
+      : 'Recorded, but not counted: the timer hadn’t finished. Run the full session for it to count.';
   updateProgress();
   renderUpNext();
 };
 const tickTimer = () => {
   remainingSeconds = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
   renderTimer();
-  if (remainingSeconds === 0) completeSession();
+  if (remainingSeconds === 0) completeSession({ timerFinished: true });
 };
 function openSession(key) {
   const session = sessions[key] || sessions.today;
   stopTimer();
   currentSession = sessions[key] ? key : 'today';
-  remainingSeconds = session.minutes * 60;
+  // Started for today's scheduled practice? Run the length the plan set for it.
+  const due = account?.schedule().find(day => day.isToday && day.action?.kind === 'practice'
+    && day.action.activityType === TYPE_BY_SESSION[currentSession] && day.state !== 'completed');
+  sessionMinutes = due ? due.action.minutes : session.minutes;
+  remainingSeconds = sessionMinutes * 60;
   sessionCompleted = false;
   sessionDialog.classList.remove('is-complete');
   document.getElementById('session-title').textContent = session.title;
@@ -192,7 +217,7 @@ document.querySelectorAll('[data-session]').forEach(button => button.addEventLis
 timerToggle.addEventListener('click', () => {
   if (timerInterval) { tickTimer(); stopTimer(); return; }
   if (remainingSeconds === 0) {
-    remainingSeconds = sessions[currentSession].minutes * 60;
+    remainingSeconds = sessionMinutes * 60;
     sessionCompleted = false;
     sessionDialog.classList.remove('is-complete');
     renderTimer();
@@ -203,27 +228,33 @@ timerToggle.addEventListener('click', () => {
 });
 document.getElementById('timer-reset').addEventListener('click', () => {
   stopTimer();
-  remainingSeconds = sessions[currentSession].minutes * 60;
+  remainingSeconds = sessionMinutes * 60;
   sessionCompleted = false;
   sessionDialog.classList.remove('is-complete');
   renderTimer();
   setToggle(false);
 });
-document.getElementById('complete-session').addEventListener('click', completeSession);
+document.getElementById('complete-session').addEventListener('click', () => completeSession({ timerFinished: remainingSeconds === 0 }));
 document.getElementById('session-close').addEventListener('click', () => sessionDialog.close());
 sessionDialog.addEventListener('close', stopTimer);
 
 /* ----------------------------------------------------------------- startup */
 
-updateProgress();
-renderUpNext();
 renderSaved();
-window.addEventListener('deepsprout:routine', updateProgress);
-
 const requestedSession = new URLSearchParams(window.location.search).get('session');
-if (requestedSession && Object.prototype.hasOwnProperty.call(sessions, requestedSession)) {
-  window.addEventListener('load', () => openSession(requestedSession), { once: true });
-}
+const openRequested = () => {
+  if (requestedSession && Object.prototype.hasOwnProperty.call(sessions, requestedSession)) openSession(requestedSession);
+};
+Account?.load().then(loaded => {
+  account = loaded;
+  updateProgress();
+  renderUpNext();
+  openRequested();
+  window.addEventListener('deepsprout:account', () => { updateProgress(); renderUpNext(); });
+}).catch(() => {
+  document.getElementById('weekly-plan-count').textContent = 'Your progress couldn’t be loaded';
+  openRequested();
+});
 
 // Show published Admin demo activities without changing the built-in practices.
 try {

@@ -6,9 +6,9 @@
  * so consistency comes from the frame, never from the image itself.
  */
 .ds-hero {
-  --hero-ink: #173c33;
-  --hero-leaf: #168557;
-  --hero-muted: #5d7469;
+  --hero-ink: var(--color-ink);
+  --hero-leaf: var(--color-leaf);
+  --hero-muted: var(--color-muted);
   position: relative;
   width: min(100% - 72px, 1180px);
   height: 320px;
@@ -19,7 +19,7 @@
   border-radius: 28px;
   background: linear-gradient(105deg, #fffdf6 0 38%, #f1f7ec 70%, #e7f2e3);
   box-shadow: 0 18px 44px #123f3412;
-  font-family: 'DM Sans', 'Avenir Next', system-ui, sans-serif;
+  font-family: var(--font-sans);
   color: var(--hero-ink);
 }
 
