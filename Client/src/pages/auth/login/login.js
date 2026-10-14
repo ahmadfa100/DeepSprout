@@ -35,7 +35,11 @@ const validate = () => {
 form.addEventListener('submit', event => {
   event.preventDefault();
   if (!validate()) return;
-  showToast('This login preview is not connected to an account service. Your credentials were not sent or saved.');
+  // Not connected to an account service: credentials are discarded. The
+  // preview continues wherever this device's journey was last left.
+  showToast('This login preview is not connected to an account service. Your credentials were not sent or saved — continuing where you left off.');
+  const resume = window.DeepSprout?.onboardingResume('../../../../') || '../../../../index.html';
+  setTimeout(() => { location.href = resume; }, 1600);
 });
 passwordToggle.addEventListener('click', () => {
   const showing = password.type === 'password';

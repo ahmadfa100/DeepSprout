@@ -10,7 +10,7 @@
           <a class="auth-footer-mark" href="${root}index.html" aria-label="DeepSprout home"><img src="${root}assets/brand/floral-mark.png" alt=""></a>
           <div class="auth-footer-about-copy">
             <a class="auth-footer-name" href="${root}index.html">DeepSprout</a>
-            <p>Helping you reduce distraction,<br>build better habits, and grow a calmer,<br>stronger you.</p>
+            <p>Helping you reduce distraction,<br>build better habits, and make room for<br>what you care about.</p>
             <div class="auth-footer-social" aria-label="Social links">
               <button type="button" data-auth-info="GitHub" aria-label="DeepSprout on GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.21.68-.48v-1.7c-2.78.6-3.37-1.18-3.37-1.18-.45-1.15-1.11-1.46-1.11-1.46-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.64-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.56 9.56 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.58 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.32.68.94.68 1.9v2.81c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg></button>
               <button type="button" data-auth-info="LinkedIn" aria-label="DeepSprout on LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 2H3.6C2.72 2 2 2.72 2 3.6v16.8c0 .88.72 1.6 1.6 1.6h16.8c.88 0 1.6-.72 1.6-1.6V3.6c0-.88-.72-1.6-1.6-1.6ZM8 18.6H5V9h3v9.6ZM6.5 7.7a1.75 1.75 0 1 1 0-3.5 1.75 1.75 0 0 1 0 3.5Zm12.1 10.9h-3v-4.67c0-1.11-.02-2.54-1.55-2.54-1.55 0-1.79 1.21-1.79 2.46v4.75h-3V9h2.88v1.31h.04c.4-.76 1.38-1.55 2.84-1.55 3.04 0 3.6 2 3.6 4.6v5.24Z"/></svg></button>

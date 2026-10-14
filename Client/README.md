@@ -6,7 +6,33 @@ A static HTML, CSS, and JavaScript implementation of the supplied DeepSprout moc
 python3 -m http.server 8765
 ```
 
-Pages: `index.html` (Home), `landing.html` (the former animated landing page), `recovery-plan.html`, `training.html` (Activities), `shield.html`, `garden.html`, `insights.html`, `community.html`, `pricing.html`, `login.html`, and `register.html`. Home content lives in `index.html` with its CSS and JS under `src/pages/public/home/`. Most other root files redirect to their page folder. The old Lab URLs redirect to Activities.
+Pages: `index.html` (Home), `landing.html` (the former animated landing page), `onboarding.html`, `lab.html`, `recovery-plan.html`, `weekly-review.html`, `training.html` (Activities), `shield.html`, `garden.html`, `insights.html`, `explore.html`, `community.html`, `profile.html`, `pricing.html`, `login.html`, and `register.html`. Home content lives in `index.html` with its CSS and JS under `src/pages/public/home/`. Most other root files redirect to their page folder.
+
+## The individual cycle
+
+The whole journey for a regular user runs end to end, in this order:
+
+1. **Register** → `src/pages/member/onboarding/onboarding.html` — Meet Bimo, Before We Begin, then eight quick setup questions.
+2. **Lab** → `src/pages/member/lab/` — the four baseline instruments. All four genuinely run: a questionnaire, a sustained-attention task, a go/no-go task, and a passage with comprehension questions. `assessment.html?test=<id>` runs one; `lab.html` is the hub with status and retest eligibility.
+3. **Your Starting Point** → `src/pages/member/onboarding/starting-point.html` — four separate results, a short plan-building transition, a plan preview, and **Activate My Plan**.
+4. **The running plan** — Recovery Plan, Activities (including the offline-routine checklist), Digital Shield, Garden, Insights.
+5. **Weekly Review** → `src/pages/member/weekly-review/weekly-review.html` — what was recorded, two questions, and a choice for next week.
+6. **Explore** and **Profile & settings** are reachable from the navbar and account menu.
+
+`src/js/utils/storage.js` holds the shared journey state (`deepsprout-user-v1`): setup answers, assessment attempts, the active plan, the offline routine, activity log and registrations. Every page reads and writes that one record, which is what keeps the cycle joined up. It is browser-local only — there is no backend, no AI and no account service in this build.
+
+Profile & settings has a **Reset everything** control so the full cycle can be demonstrated more than once on the same machine.
+
+## Tests
+
+```sh
+node tests/page-wiring.test.cjs      # element ids, icon symbols and asset paths resolve
+node tests/member-journey.test.cjs   # the whole individual cycle, in jsdom
+```
+
+The journey test needs `jsdom`; without it the test reports that it was skipped and exits cleanly. To run it against a jsdom installed elsewhere: `NODE_PATH=/path/to/node_modules node tests/member-journey.test.cjs`.
+
+`tests/seed-demo.html` is a demo helper: opening it writes a mid-journey state (setup answers, four assessment results, an active day-7 plan, a routine and some history) and redirects, so the later screens can be shown without walking the whole first run. `tests/seed-demo.html?go=/weekly-review.html` jumps to a specific page.
 
 ## Shared structure
 
@@ -14,9 +40,10 @@ Pages: `index.html` (Home), `landing.html` (the former animated landing page), `
 - `src/layouts/member-layout/member-layout.js` renders the shared Home and member navigation and footer, including the responsive menu and illustrated page-transition loader. `member-layout.css` styles them. The former landing page and Pricing retain the public `site-layout`.
 - `assets/` contains illustration files, with each illustration's prompt notes beside it.
 - Login and Register use `src/assets/backgrounds/image.png`, the same DM Sans typography and card styling, and the reusable footer in `src/layouts/auth-footer/`. Register builds on the Login styles with its own form layout. Both forms and their text remain live HTML.
-- Goal and mission choices on Home, plus Digital Shield preferences, are local browser preview data. The Digital Shield preview does not block apps or provide browser protection.
+- `src/styles/page-hero.css` is the shared hero for Roadmap, Activities, Digital Shield, Insights and Community: one fixed-height frame with copy on the left and art on the right.
+- Digital Shield preferences are local browser preview data. The Digital Shield preview does not block apps or provide browser protection.
 
-Garden includes interactive plot details, links to matching Training activities, a daily watering action, progress animation, and locally stored XP. Completing a Training session adds 20 Garden XP and one session; watering adds 10 XP once per local day. The starting values shown in the design are sample values, and browser local storage keeps changes on the same device. Insights also displays illustrative local data, not account analytics. Pricing plan details are interactive; checkout is not connected.
+Garden draws one isometric plot per week of the active plan (one plot before a plan exists). Each practice or offline-routine day logged that week grows its plot through five stages: seed, sprout, sapling, tree, blossom. Four rewards unlock on visible rules: New Flower (3 practices), Special Bloom (first weekly review), Garden Decor (5 routine days) and Visual Effect (something recorded on 5 different days). There is no XP. Home, Roadmap, Activities and Garden all read their numbers from `DeepSprout.stats()` in `src/js/utils/storage.js`, which counts only what was recorded on this device; nothing in this build measures screen time, so no screen-time figure is shown. Insights still displays illustrative sample data.
 
 Community reproduces the supplied 1440 × 960 SVG with live cards, filters, search, post composer, likes, comments, bookmarks, challenge toggle, and responsive layouts. New posts, likes, bookmarks, and challenge membership are demo data stored on the same device; there is no community backend.
 

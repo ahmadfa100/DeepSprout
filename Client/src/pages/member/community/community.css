@@ -27,3 +27,6 @@ dialog{width:min(92vw,520px);max-height:90vh;padding:26px;border:1px solid #dfe7
 .post-actions button{height:16px}
 @media(max-width:700px){.post-card{padding:12px}}
 .site-footer:before{left:0}.site-footer:after{right:0}
+
+/* Shared hero frame (src/styles/page-hero.css) spans the community column. */
+main.page-shell > .ds-hero { width: 100%; margin-bottom: 18px; }

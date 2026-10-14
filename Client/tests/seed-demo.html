@@ -1,0 +1,62 @@
+<!doctype html><meta charset="utf-8"><title>seed</title>
+<p>Seeding demo state…</p>
+<!--
+  Demo helper. Opening this page writes a mid-journey state (setup answers,
+  all four assessment results, an active day-7 plan, an offline routine and
+  some activity history) and then redirects.
+
+    tests/seed-demo.html                                  → home
+    tests/seed-demo.html?go=/weekly-review.html           → any page
+
+  Useful for presenting without walking the whole first run. To start clean
+  again, use "Reset everything" in Profile & settings.
+-->
+<script>
+// Seeds a mid-journey state so the preview screenshots show real content.
+const today = new Date();
+const key = d => [d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'), String(d.getDate()).padStart(2,'0')].join('-');
+const start = new Date(today); start.setDate(start.getDate() - 6);
+localStorage.setItem('deepsprout-user-v1', JSON.stringify({
+  version: 1,
+  createdAt: new Date().toISOString(),
+  profile: { name: 'Ahmad', email: 'ahmad@example.com', goal: 'reduce-scrolling',
+    distracting: ['instagram','youtube'], peakTime: 'late-night', baselineMinutes: '120-180',
+    devices: ['chrome-desktop','phone'], offlineInterests: ['walking','reading'],
+    availableDays: '3', protection: 'balanced' },
+  onboarding: { bimoSeen:true, introSeen:true, setupDone:true, resultsSeen:true, planActivated:true, tourSeen:true },
+  assessments: {
+    'digital-habits': { id:'digital-habits', version:'DH-1.0', evidence:'self-reported', completedAt:new Date().toISOString(), attemptNumber:1, valid:true,
+      summary:[{label:'Items answered',value:'8 of 8'},{label:'Rated "often" or more',value:'5 of 8'},{label:'Strongest self-report',value:'find it hard to stop once I have started scrolling'}] },
+    'sustained-attention': { id:'sustained-attention', version:'SA-1.0', evidence:'verified', completedAt:new Date().toISOString(), attemptNumber:1, valid:true,
+      summary:[{label:'Targets detected',value:'21 of 24'},{label:'Missed targets',value:'3'},{label:'Early responses',value:'2'},{label:'Average reaction time',value:'412 ms'},{label:'Steadiness (spread)',value:'±94 ms'}] },
+    'inhibitory-control': { id:'inhibitory-control', version:'IC-1.0', evidence:'verified', completedAt:new Date().toISOString(), attemptNumber:1, valid:true,
+      summary:[{label:'Correct responses',value:'28 of 29'},{label:'Missed go signals',value:'1'},{label:'Responded on a hold signal',value:'4 of 11'},{label:'Average reaction time',value:'389 ms'}] },
+    'depth-challenge': { id:'depth-challenge', version:'DC-1.0-a', evidence:'verified', completedAt:new Date().toISOString(), attemptNumber:1, valid:true,
+      summary:[{label:'Questions correct',value:'4 of 5'},{label:'Reading time',value:'2m 11s'},{label:'Passage',value:'Tier 1 · 348 words'}] }
+  },
+  plan: { cycleNumber:1, cycleLength:28, startDate:key(start), status:'active',
+    activatedAt:new Date().toISOString(), revisions:[], goal:'reduce-scrolling',
+    goalLabel:'Spend less time on short-video feeds', availableDays:3,
+    direction:[{title:'Notice the pattern',note:'Build a picture of when feeds pull you in, without changing much yet.'},
+      {title:'Add one alternative',note:'Put something in the gap the scrolling currently fills.'},
+      {title:'Hold attention longer',note:'Stretch practices slightly as they start to feel manageable.'},
+      {title:'Decide what to keep',note:'Review what actually worked and choose what carries on.'}],
+    weekOne:[{label:'Today',title:'Depth Practice',note:'Read a short passage, then answer questions about it.',kind:'practice',icon:'i-book'},
+      {label:'Mon',title:'Nothing scheduled',note:'A day off is part of the plan, not a gap in it.',kind:'rest'},
+      {label:'Tue',title:'Practical Micro-Challenge',note:'One small concrete task with a clear outcome.',kind:'practice',icon:'i-pencil'},
+      {label:'Wed',title:'Nothing scheduled',note:'A day off is part of the plan, not a gap in it.',kind:'rest'},
+      {label:'Thu',title:'Depth Practice',note:'Read a short passage, then answer questions about it.',kind:'practice',icon:'i-book'},
+      {label:'Fri',title:'Nothing scheduled',note:'A day off is part of the plan, not a gap in it.',kind:'rest'},
+      {label:'Sat',title:'Weekly review',note:'A few short questions, then next week is written.',kind:'review'}],
+    commitment:'A five-minute walk' },
+  routine: [{ id:'routine-seed', title:'A five-minute walk', hint:'Outside if you can, around the room if not.',
+    days:[0,1,2,3,4,5,6], paused:false, createdAt:new Date().toISOString(),
+    log:{ [key(new Date(start.getTime()+86400000))]:'done', [key(new Date(start.getTime()+2*86400000))]:'done', [key(new Date(start.getTime()+4*86400000))]:'skipped' } }],
+  activityLog: [
+    { id:'a1', at:new Date(start.getTime()+0).toISOString(), evidence:'self-reported', type:'depth', title:'Depth Practice' },
+    { id:'a2', at:new Date(start.getTime()+2*86400000).toISOString(), evidence:'self-reported', type:'challenge', title:'Practical Micro-Challenge' }
+  ],
+  registrations: [], reviews: []
+}));
+location.href = new URLSearchParams(location.search).get('go') || '../index.html';
+</script>

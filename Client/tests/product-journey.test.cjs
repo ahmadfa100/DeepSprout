@@ -1,55 +1,109 @@
-const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+// The garden beat (the kept part of the original product journey): unchanged sources, the seam from
+// section 4's root, frame-for-frame identity with HEAD, the invitation, and the static fallbacks.
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{execFileSync}=require('node:child_process');
 const {pathToFileURL}=require('node:url');
-const {chromium}=require('playwright');
-const base=process.env.REELS_URL||'http://127.0.0.1:8792',out=path.resolve(__dirname,'../references/product-journey-validation');
-const report={cases:[],errors:[],screenshots:[]};let browser;
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const {PNG}=require('pngjs');
+const base=process.env.REELS_URL||'http://127.0.0.1:8792',client=path.resolve(__dirname,'..');
+const out=path.resolve(__dirname,'../references/product-journey-validation'),refs=path.resolve(__dirname,'../references/garden-handoff');
+const decode=buffer=>PNG.sync.read(buffer);
+const head=file=>execFileSync('git',['-C',client,'show',`HEAD:Client/${file}`],{maxBuffer:1<<26});
+const report={cases:[],screenshots:[],errors:[],frames:{},seam:{}};let browser;
 (async()=>{
  fs.mkdirSync(out,{recursive:true});
- const math=await import(pathToFileURL(path.resolve(__dirname,'../src/js/journey/choreography.js')));
- for(const mobile of [false,true])for(let t=0;t<=10.5;t+=.007){const a=math.cameraAt(t,mobile),b=math.cameraAt(t+.0001,mobile);assert.deepEqual(a,math.cameraAt(t,mobile));for(const key of Object.keys(a)){assert.ok(Number.isFinite(a[key]));assert.ok(Math.abs(a[key]-b[key])<2,'Camera path continuity')}}
- assert.equal(math.chartValues.reduce((a,b)=>a+b),125);assert.equal(math.communityLayout().length,34);assert.equal(math.focusStroke(0).match(/L/g).length,96);assert.equal(math.focusStroke(1).match(/L/g).length,96);assert.deepEqual(math.chartSample(1),math.chartPoints.at(-1));
- const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
- for(let u=.01;u<1;u+=.02){const pts=[...math.focusStroke(u).matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)].map(m=>[+m[1],+m[2]]);for(let i=0;i<pts.length-1;i++)for(let j=i+2;j<pts.length-1;j++)assert.ok(!(cross(pts[i],pts[i+1],pts[j])*cross(pts[i],pts[i+1],pts[j+1])<0&&cross(pts[j],pts[j+1],pts[i])*cross(pts[j],pts[j+1],pts[i+1])<0),'Unwrapping stroke must not cross itself')}
- report.cases.push('Pure camera/pose evaluation, continuous piecewise camera path, equal-point ring-to-chart morph, coherent sample data, fixed community lattice.');
- browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+ // 1. Unchanged sources: the garden module, its choreography and camera, the art, and the garden/invitation markup.
+ for(const file of ['src/js/journey/garden.js','src/js/journey/choreography.js','src/js/journey/camera.js','assets/journey/garden.svg'])assert.ok(head(file).equals(fs.readFileSync(path.join(client,file))),`${file} is byte-identical to HEAD`);
+ const article=(html,id)=>html.match(new RegExp(`<article class="journey-scene[^"]*" id="${id}"[\\s\\S]*?</article>`))[0];
+ const before=String(head('hero-reels-lab.html')),now=fs.readFileSync(path.join(client,'hero-reels-lab.html'),'utf8');
+ for(const id of ['journey-garden','journey-finish'])assert.equal(article(now,id),article(before,id),`#${id} markup is byte-identical to HEAD`);
+ // 2. garden.css is the original rules, verbatim, in their original order and @media context; no chapter 1–4 rules survive.
+ const parse=css=>{const rules=[];let media=null,i=0;css=css.replace(/\/\*[\s\S]*?\*\//g,'');
+  while(i<css.length){if(/\s/.test(css[i])){i++;continue}
+   if(css.startsWith('@media',i)){const o=css.indexOf('{',i);media=css.slice(i,o);i=o+1;continue}
+   if(css[i]==='}'){media=null;i++;continue}
+   const o=css.indexOf('{',i),c=css.indexOf('}',o);rules.push({media,rule:css.slice(i,c+1)});i=c+1}return rules};
+ const original=parse(String(head('src/styles/journey/journey.css'))),copied=parse(fs.readFileSync(path.join(client,'src/styles/journey/garden.css'),'utf8'));
+ let cursor=0;for(const r of copied){const at=original.findIndex((o,j)=>j>=cursor&&o.media===r.media&&o.rule===r.rule);assert.ok(at>=0,`Verbatim, in order: ${r.media||''} ${r.rule.slice(0,60)}`);cursor=at+1}
+ report.frames.copiedRules=copied.length;
+ assert.equal(fs.existsSync(path.join(client,'src/styles/journey/journey.css')),false);
+ const allCss=['src/styles/journey/garden.css','src/styles/lines/garden-stage.css','src/styles/lines/path.css','src/styles/lines/lines.css'].map(f=>fs.readFileSync(path.join(client,f),'utf8')).join('\n');
+ assert.ok(!/assessment|roadmap|milestone|activity-|timer-|analytics|focus-panel|chart-|network-|journey-chapters|journey-chrome|community-|research-thread/.test(allCss),'No dead chapter 1–4 rules');
+ // 3. One scroll driver: only experience.js listens to scroll; no ScrollTrigger or CSS scroll timelines; the old driver is gone.
+ for(const file of ['src/js/journey/journey.js','src/js/journey/network.js'])assert.equal(fs.existsSync(path.join(client,file)),false,`${file} removed`);
+ const scripts=['src/js/reels','src/js/lines','src/js/journey'].flatMap(d=>fs.readdirSync(path.join(client,d)).map(f=>path.join(d,f)));
+ for(const file of scripts){const text=fs.readFileSync(path.join(client,file),'utf8');if(!file.endsWith('experience.js'))assert.ok(!/addEventListener\(['"]scroll/.test(text),`${file} has no scroll listener`);assert.ok(!/ScrollTrigger|scroll-timeline|animation-timeline/.test(text),file)}
+ assert.ok(!now.includes('journey.js'),'The old journey driver is not loaded');
+ report.cases.push('Byte-identical garden.js, choreography.js, camera.js, garden.svg and garden/invitation markup; garden.css verbatim from HEAD with no dead rules; one scroll driver.');
+
+ browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+ async function open(options={}){const context=await browser.newContext({viewport:{width:1440,height:900},...options}),page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));await page.goto(base+'/hero-reels-lab.html?reelsDebug');if(options.javaScriptEnabled!==false)await page.waitForFunction(()=>window.gardenLab&&document.querySelector('#hero-v2').dataset.ready==='true');return page}
+ async function capture(page,name){const buffer=await page.screenshot({path:path.join(out,name+'.png')});report.screenshots.push(name+'.png');return buffer}
+ const differing=(a,b)=>{let n=0;for(let i=0;i<a.data.length;i+=4)if(Math.max(Math.abs(a.data[i]-b.data[i]),Math.abs(a.data[i+1]-b.data[i+1]),Math.abs(a.data[i+2]-b.data[i+2]))>24)n++;return n};
  for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
-  const context=await browser.newContext({viewport}),page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));
-  await page.goto(base+'/hero-reels-lab.html?reelsDebug&journeyDebug');await page.waitForFunction(()=>window.productJourney&&document.querySelector('#product-journey').dataset.ready==='true');await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(200);
-  await page.evaluate(()=>{window.originalJourney={bimo:document.querySelector('.bimo canvas'),network:document.querySelector('.journey-network'),stroke:document.querySelector('.focus-morph'),garden:document.querySelector('.garden-art svg'),panels:[...document.querySelectorAll('.journey-panel')]}});
-  for(const [name,t]of [['arrival',.15],['assessment',.85],['assessment-2',1.27],['assessment-3',1.70],['answers-to-plan',2.02],['plan',2.75],['week-portal',3.47],['activities',4.40],['timer-portal',4.93],['timer',5.38],['stroke-morph',5.95],['analytics',6.22],['seed',6.73],['sprout',7.22],['garden',8.13],['pullback',8.82],['community',9.48],['invitation',10.20]]){
-   await page.evaluate(t=>productJourney.seek(t),t);await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${name}: horizontal overflow`);
-   const file=`${viewport.width}-${name}.png`;await page.screenshot({path:path.join(out,file)});report.screenshots.push(file);
-   const state=await page.evaluate(()=>productJourney.state);assert.ok(Math.abs(state.time-t)<.012,`${name}: actual progress ${state.time}`);
-  }
-  report.cases.push(`${viewport.width}×${viewport.height}: all scene holds and connecting transformations rendered without horizontal overflow.`);
-  let previous=0;for(const t of [.1,.9,1.5,2.6,4.4,6.2,7.7,9.5]){await page.evaluate(t=>productJourney.seek(t),t);const n=await page.evaluate(()=>productJourney.state.network.activated);assert.ok(n>=previous);previous=n}
-  for(const t of [1.10,4.31,6.82,7.17,8.63]){await page.evaluate(t=>productJourney.seek(t),t);const distances=await page.evaluate(()=>{const ids=productJourney.state.network.pulses;return [...document.querySelectorAll('.network-pulse[visibility="visible"]')].map((dot,i)=>{const actual=new DOMPoint(+dot.getAttribute('cx'),+dot.getAttribute('cy')).matrixTransform(dot.getScreenCTM()),line=document.querySelector(`[data-link="${ids[i]}"]`),matrix=line.getScreenCTM(),length=line.getTotalLength();let best=Infinity;for(let j=0;j<=600;j++){const local=line.getPointAtLength(length*j/600),p=new DOMPoint(local.x,local.y).matrixTransform(matrix);best=Math.min(best,Math.hypot(p.x-actual.x,p.y-actual.y))}return best})});assert.ok(distances.length>0);distances.forEach(d=>assert.ok(d<2,'Pulse follows its actual connecting path'))}
-  // Revisit the same native scroll offset after reversing through every later scene.
-  async function pose(){return page.evaluate(()=>({time:productJourney.state.time,camera:document.querySelector('.journey-camera').style.transform,stroke:document.querySelector('.focus-morph').getAttribute('d'),checks:[...document.querySelectorAll('[data-activity] .activity-check')].map(e=>e.style.cssText),growth:document.querySelector('.garden-panel').dataset.growth,network:productJourney.state.network}))}
-  await page.evaluate(()=>productJourney.seek(4.32));const before=await pose();for(const t of [8.1,2.7,9.6,6.2,0,10.2,4.32]){await page.evaluate(t=>{const s=productJourney.state;scrollTo(0,s.start+t/10.5*s.travel)},t);await page.waitForTimeout(70)}assert.deepEqual(await pose(),before,'Reversing restores the exact pose and network');
-  assert.equal(await page.evaluate(()=>originalJourney.bimo===document.querySelector('.bimo canvas')&&originalJourney.network===document.querySelector('.journey-network')&&originalJourney.stroke===document.querySelector('.focus-morph')&&originalJourney.garden===document.querySelector('.garden-art svg')&&originalJourney.panels.every(e=>e.isConnected)),true,'Persistent objects survive every transition');
-  await page.evaluate(()=>productJourney.seek(7.2));let count=await page.evaluate(()=>productJourney.state.renderCount);await page.waitForTimeout(350);assert.equal(await page.evaluate(()=>productJourney.state.renderCount),count,'No perpetual RAF or clock-based idle motion');
-  await page.evaluate(()=>scrollTo(0,0));await page.waitForTimeout(100);count=await page.evaluate(()=>productJourney.state.renderCount);await page.waitForTimeout(350);assert.equal(await page.evaluate(()=>productJourney.state.renderCount),count);assert.equal(await page.evaluate(()=>productJourney.state.pendingFrame),false);
-  await page.evaluate(()=>productJourney.seek(.85));await page.locator('[data-chapter="1"]').click();await page.waitForTimeout(1000);assert.equal(await page.evaluate(()=>productJourney.state.scene),'plan','Chapter navigation uses native scrolling');
-  await page.locator('.journey-motion').click();await page.waitForTimeout(1500);assert.equal(await page.evaluate(()=>productJourney.state.scene),'finish');const cta=page.locator('.journey-cta');assert.equal(await cta.getAttribute('href'),'https://tally.so/r/QKgA0G');assert.equal(await cta.evaluate(e=>e.tabIndex),0);
-  await page.locator('.journey-static-control').click();await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>productJourney.state.enhanced),false);assert.equal(await page.locator('.journey-scene>.journey-panel').count(),5);assert.equal(await page.locator('.garden-details').evaluate(e=>getComputedStyle(e).opacity),'1');assert.equal(await cta.evaluate(e=>e.tabIndex),0);
-  await page.locator('.journey-static-control').click();await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>productJourney.state.enhanced),true);await page.evaluate(()=>productJourney.seek(10.2));
-  report.cases.push(`${viewport.width}: persistent Bimo/network/stroke/garden identity, accumulated connection memory, exact reverse/rapid scroll, zero idle/offscreen frames, chapter links, skip, CTA, static-view toggle and restoration.`);
-  report[viewport.width]=await page.evaluate(()=>productJourney.state);
-  await context.close();
+  const p=await open({viewport}),prefix=String(viewport.width),w=viewport.width;
+  await p.evaluate(()=>{window.originalGarden=document.querySelector('.garden-art svg')});
+  // The seam: section 4's last frame (the root) and the garden's first frame are one picture.
+  const start=await p.evaluate(()=>gardenLab.state.start);
+  await p.evaluate(s=>scrollTo(0,Math.floor(s)-3),start);await p.waitForTimeout(900);
+  assert.equal(await p.locator('#product-journey .journey-stage').evaluate(e=>getComputedStyle(e).visibility),'hidden','The garden stays hidden until it pins');
+  const a=decode(await capture(p,prefix+'-seam-root'));
+  await p.evaluate(s=>scrollTo(0,Math.ceil(s)),start);await p.waitForTimeout(900);
+  assert.equal(await p.locator('#product-journey .journey-stage').evaluate(e=>getComputedStyle(e).visibility),'visible');
+  // The garden's first frame (t0 exactly). Past it the camera is already moving, as it was on HEAD.
+  await p.evaluate(t=>gardenLab.renderAt(t),6.22);await p.waitForTimeout(200);
+  const b=decode(await capture(p,prefix+'-seam-garden'));
+  // Only anti-aliasing may differ: the root's geometry matches on both sides to within 0.004px, but the garden draws it
+  // under the camera's rotated 3D transform, which Chrome rasterises differently from section 4's flat SVG matrix.
+  // Strong differences are near zero, and every difference lies on the root drawing.
+  const diffs=(thr)=>{let n=0,x0=Infinity,x1=-Infinity,y1=-Infinity;for(let y=0;y<a.height;y++)for(let x=0;x<a.width;x++){const i=(y*a.width+x)*4;if(Math.max(Math.abs(a.data[i]-b.data[i]),Math.abs(a.data[i+1]-b.data[i+1]),Math.abs(a.data[i+2]-b.data[i+2]))>thr){n++;x0=Math.min(x0,x);x1=Math.max(x1,x);y1=Math.max(y1,y)}}return{n,x0,x1,y1}};
+  const soft=diffs(24),strong=diffs(60),tipAt=await p.evaluate(()=>gardenLab.state.entry);report.seam[prefix]={soft,strong,entry:tipAt};
+  const onRoot=d=>d.n===0||(d.x0>=tipAt.x-130&&d.x1<=tipAt.x+130&&d.y1<=tipAt.y+20);
+  assert.ok(strong.n<=40,`Seam: ${strong.n} pixels differ strongly`);
+  assert.ok(onRoot(soft)&&onRoot(strong),`Seam differences stay on the root (soil line ±120px, trunk, tail): ${JSON.stringify({soft,strong})}`);
+  const entry=await p.evaluate(()=>[gardenLab.state.entry,pathLab.state.entry]);assert.deepEqual(entry[0],entry[1],'Section 4 aims the root at the garden’s own entry point');
+  // The seed arrives from the root: it appears at the root's tip.
+  await p.evaluate(()=>gardenLab.seek(6.3));await p.waitForTimeout(250);await p.evaluate(()=>gardenLab.renderAt(6.3));
+  const seed=await p.locator('.journey-seed').boundingBox(),tip=await p.evaluate(()=>{const e=document.querySelector('.garden-root-tail'),q=e.getPointAtLength(e.getTotalLength()),m=e.getScreenCTM();return{x:q.x*m.a+q.y*m.c+m.e,y:q.x*m.b+q.y*m.d+m.f}});
+  report.seam['seedTip'+prefix]={seed:[seed.x+seed.width/2,seed.y+seed.height/2],tip:[tip.x,tip.y]};
+  assert.ok(Math.hypot(seed.x+seed.width/2-tip.x,seed.y+seed.height/2-tip.y)<3,'The seed appears at the root’s tip');
+  // Frame-for-frame with HEAD. The references are HEAD's own frames at the exact t HEAD drew. Chrome reuses the
+  // garden panel's raster between scales, so the beat is walked in order on a fresh page, as the references were.
+  const index=JSON.parse(fs.readFileSync(path.join(refs,`head-${w}`,'index.json'),'utf8')).frames,targets=Object.entries(index);report.frames[prefix]={};
+  {const fresh=await open({viewport});await fresh.waitForFunction(()=>gardenLab.state.enhanced);await fresh.waitForTimeout(400);
+   for(let step=0;step<=77;step++){const nominal=+(6.22+step*.025).toFixed(3),hit=targets.find(([f])=>Math.abs(parseFloat(f.slice(1))-nominal)<1e-6),t=hit?hit[1]:nominal;
+    await fresh.evaluate(t=>gardenLab.seek(t),t);await fresh.waitForTimeout(150);await fresh.evaluate(t=>gardenLab.renderAt(t),t);await fresh.waitForTimeout(120);
+    if(!hit)continue;const n=differing(decode(fs.readFileSync(path.join(refs,`head-${w}`,hit[0]))),decode(await fresh.screenshot()));report.frames[prefix][hit[0]]=n;
+    assert.equal(n,0,`${w}px ${hit[0]}: ${n} pixels differ from HEAD`)}
+   await fresh.context().close()}
+  // The invitation follows the garden directly; its link is reachable only when it is on screen.
+  await p.evaluate(()=>gardenLab.seek(10.3));await p.waitForTimeout(500);await capture(p,prefix+'-invitation');
+  const finish=await p.locator('#journey-finish').evaluate(e=>({opacity:Number(getComputedStyle(e).opacity),inert:e.inert}));assert.equal(finish.opacity,1);assert.equal(finish.inert,false);
+  assert.equal(await p.locator('.journey-cta').evaluate(e=>e.tabIndex),0);assert.equal(await p.locator('.journey-cta').getAttribute('href'),'https://tally.so/r/QKgA0G');
+  await p.evaluate(()=>gardenLab.seek(7.5));await p.waitForTimeout(300);assert.equal(await p.locator('.journey-cta').evaluate(e=>e.tabIndex),-1);
+  // Reversible, and the garden illustration is the same element throughout.
+  await p.evaluate(()=>gardenLab.seek(7.6));await p.waitForTimeout(300);const ref=await p.evaluate(()=>({camera:document.querySelector('.journey-camera').style.transform,growth:gardenLab.state.growth}));
+  for(const t of [9.9,6.3,8.6,6.9,10.4])await p.evaluate(t=>gardenLab.seek(t),t);
+  await p.evaluate(()=>gardenLab.seek(7.6));await p.waitForTimeout(300);assert.deepEqual(await p.evaluate(()=>({camera:document.querySelector('.journey-camera').style.transform,growth:gardenLab.state.growth})),ref);
+  assert.equal(await p.evaluate(()=>originalGarden===document.querySelector('.garden-art svg')),true);
+  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  // Frame pacing scrolling natively through the root's descent into the garden.
+  const timing=await p.evaluate(async()=>{const s=pathLab.state,el=document.querySelector('#way-back'),from=el.offsetTop+(el.offsetHeight-innerHeight)*(15.8/17.6),to=gardenLab.state.start+gardenLab.state.travel*.6,deltas=[];let last=0,run=true;
+   const tick=t=>{if(last)deltas.push(t-last);last=t;if(run)requestAnimationFrame(tick)};requestAnimationFrame(tick);
+   for(let i=0;i<=60;i++){scrollTo(0,from+(to-from)*i/60);await new Promise(r=>setTimeout(r,33))}run=false;deltas.sort((a,b)=>a-b);
+   return{median:deltas[Math.floor(deltas.length/2)],p95:deltas[Math.floor(deltas.length*.95)],samples:deltas.length}});
+  report.frames['timing'+prefix]=timing;assert.ok(timing.median<25,`Garden frame median ${timing.median}ms`);
+  report.cases.push(`${w}: pixel seam from section 4's root into the garden; seed at the root's tip; ${Object.keys(index).length} frames pixel-identical to HEAD; invitation and link focus; reversible; same garden element; no overflow; frame pacing.`);
+  await p.context().close();
  }
- for(const viewport of [{width:1024,height:768},{width:360,height:640},{width:844,height:390},{width:662,height:501}]){
-  const page=await browser.newPage({viewport});page.on('pageerror',e=>report.errors.push(e.message));await page.goto(base+'/hero-reels-lab.html?journeyDebug');await page.waitForFunction(()=>window.productJourney);await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(100);
-  assert.equal(await page.evaluate(()=>productJourney.state.enhanced),viewport.height>=600,'Short viewports use the readable document-flow layout');
-  for(const [name,t,index]of [['assessment',.85,0],['activities',4.4,2],['garden',8.13,4],['community',9.48,5]]){await page.evaluate(([t,i])=>{if(productJourney.state.enhanced)productJourney.seek(t);else productJourney.chapter(i)},[t,index]);await page.waitForTimeout(80);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:path.join(out,`${viewport.width}x${viewport.height}-${name}.png`)})}
-  await page.close();
- }
+ // Static fallbacks: reduced motion and no JavaScript keep the garden and the invitation readable in normal flow.
  for(const options of [{reducedMotion:'reduce'},{javaScriptEnabled:false}]){
-  const page=await browser.newPage({viewport:{width:390,height:844},...options});page.on('pageerror',e=>report.errors.push(e.message));await page.goto(base+'/hero-reels-lab.html?journeyDebug');
-  if(options.reducedMotion)await page.waitForFunction(()=>window.productJourney);
-  assert.equal(await page.locator('#product-journey').evaluate(e=>e.classList.contains('is-cinematic')),false);assert.equal(await page.locator('.journey-scene>.journey-panel').count(),5);assert.equal(await page.locator('.journey-scene').count(),7);
-  await page.locator('#journey-garden').scrollIntoViewIfNeeded();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:path.join(out,options.reducedMotion?'reduced-motion.png':'no-javascript.png')});await page.locator('.journey-cta').scrollIntoViewIfNeeded();assert.equal(await page.locator('.journey-cta').evaluate(e=>getComputedStyle(e).display),'inline-flex');await page.close();
+  const p=await open({viewport:{width:390,height:844},...options});
+  if(options.reducedMotion)assert.equal(await p.locator('#product-journey').evaluate(e=>e.classList.contains('is-static')),true);
+  assert.equal(await p.locator('#journey-garden .garden-panel').count(),1,'The garden panel is in its article');
+  for(const id of ['#journey-garden','#journey-finish'])assert.equal(await p.locator(id).evaluate(e=>getComputedStyle(e).opacity),'1');
+  await p.locator('.journey-cta').scrollIntoViewIfNeeded();assert.equal(await p.locator('.journey-cta').evaluate(e=>getComputedStyle(e).display),'inline-flex');
+  await capture(p,options.reducedMotion?'reduced-motion':'no-javascript');await p.context().close();
  }
- report.cases.push('Tablet, narrow/short phone, landscape; readable seven-part normal-flow fallback for reduced motion and disabled JS, with the invitation accessible.');
- assert.deepEqual(report.errors,[]);fs.writeFileSync(path.join(out,'validation.json'),JSON.stringify(report,null,2));await browser.close();console.log(JSON.stringify({cases:report.cases,errors:report.errors},null,2));
+ report.cases.push('Reduced motion and no-JS: garden panel in its article, garden and invitation readable, link visible.');
+ assert.deepEqual(report.errors,[]);fs.writeFileSync(path.join(out,'validation.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));await browser.close();
 })().catch(async error=>{report.failure=error.stack;fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'validation.json'),JSON.stringify(report,null,2));console.error(error);await browser?.close();process.exit(1)});

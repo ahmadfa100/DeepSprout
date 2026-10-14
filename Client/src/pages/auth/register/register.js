@@ -30,10 +30,19 @@ terms.addEventListener('change', () => setError(terms, ''));
 form.addEventListener('submit', event => {
   event.preventDefault();
   if (!validate()) return;
-  toast.textContent = 'Account creation is not connected to a service yet. Your details were not sent or saved.';
+  // No account service is connected. The name and email are kept on this
+  // device so the first run can greet the person by name; the password is not.
+  window.DeepSprout?.update(state => {
+    state.profile.name = nameInput.value.trim();
+    state.profile.email = email.value.trim();
+  });
+  toast.textContent = 'No account service is connected yet — your password was not sent or stored. Taking you to the first run…';
+  toast.hidden = true;
   toast.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { toast.hidden = true; }, 6500);
+  toastTimer = setTimeout(() => {
+    location.href = '../../member/onboarding/onboarding.html';
+  }, 1400);
 });
 document.querySelectorAll('.password-toggle').forEach(button => button.addEventListener('click', () => {
   const input = document.getElementById(button.getAttribute('aria-controls'));

@@ -1,11 +1,11 @@
 {
   "cases": [
-    "Curved inward paths have decreasing radius/depth/scale; pure scroll evaluation is deterministic and reversible.",
-    "1440×900: collapse phases, pixel-tested dark hold, circular light without rectangular ingress, forward/reverse/rapid native scroll, continuous heading handoff, editorial content, zero overflow, same Bimo/stones, offscreen pause.",
-    "390×844: collapse phases, pixel-tested dark hold, circular light without rectangular ingress, forward/reverse/rapid native scroll, continuous heading handoff, editorial content, zero overflow, same Bimo/stones, offscreen pause.",
-    "End/Home native jumps; reduced motion retains final figures with no live media; no-JS readable content/source links; WebGL failure still completes the CSS portal."
+    "Curved inward paths have decreasing radius/depth/scale; pure scroll evaluation is deterministic and reversible; the exit ends on the full void.",
+    "Line-field scenes tile 0–1; the Pew row is exactly 100 lines; lit count 0→20, then 24→40 with 2015→2025, monotonic in scroll.",
+    "1440×900: collapse phases, pixel-tested void, exit capped at the void under forward/reverse/rapid native scroll, same-dark seam into section 3, all eight line-field scenes, verbatim copy and sources, 100-line row, negative-space \"brain rot\", horizontal handoff line on cream, reversible state, one canvas, zero overflow, same Bimo/stones, offscreen pause.",
+    "390×844: collapse phases, pixel-tested void, exit capped at the void under forward/reverse/rapid native scroll, same-dark seam into section 3, all eight line-field scenes, verbatim copy and sources, 100-line row, negative-space \"brain rot\", horizontal handoff line on cream, reversible state, one canvas, zero overflow, same Bimo/stones, offscreen pause.",
+    "End/Home native jumps; reduced motion shows still key frames per scene with identical frames after scrubbing back and no live media; no-JS readable copy and sources; WebGL failure still reaches the void and the field."
   ],
-  "errors": [],
   "screenshots": [
     "1440-trap.png",
     "1440-gravity.png",
@@ -13,30 +13,88 @@
     "1440-bimo.png",
     "1440-consumption.png",
     "1440-void.png",
-    "1440-spark.png",
-    "1440-light.png",
-    "1440-heading.png",
-    "1440-clarity.png",
-    "1440-stats.png",
-    "1440.brain-rot.png",
-    "1440.clarity-research.png",
+    "1440-seam.png",
+    "1440-lines-void.png",
+    "1440-lines-line.png",
+    "1440-lines-alone.png",
+    "1440-lines-scale.png",
+    "1440-lines-trend.png",
+    "1440-lines-rot.png",
+    "1440-lines-research.png",
+    "1440-lines-turn.png",
     "390-trap.png",
     "390-gravity.png",
     "390-collapse.png",
     "390-bimo.png",
     "390-consumption.png",
     "390-void.png",
-    "390-spark.png",
-    "390-light.png",
-    "390-heading.png",
-    "390-clarity.png",
-    "390-stats.png",
-    "390-stats-lower.png",
-    "390.brain-rot.png",
-    "390.clarity-research.png",
+    "390-seam.png",
+    "390-lines-void.png",
+    "390-lines-line.png",
+    "390-lines-alone.png",
+    "390-lines-scale.png",
+    "390-lines-trend.png",
+    "390-lines-rot.png",
+    "390-lines-research.png",
+    "390-lines-turn.png",
     "reduced-motion.png",
     "no-javascript.png",
     "webgl-fallback-void.png",
-    "webgl-fallback-clarity.png"
-  ]
+    "webgl-fallback-lines.png"
+  ],
+  "errors": [],
+  "headline": {
+    "390": {
+      "fontFamily": "Inter, Arial, sans-serif",
+      "fontSize": "26px",
+      "fontWeight": "500",
+      "letterSpacing": "-0.52px",
+      "lineHeight": "29.9px",
+      "x": 94.9921875,
+      "y": 279.28125,
+      "width": 200.015625,
+      "height": 29.890625,
+      "bottom": 309.171875,
+      "stageHeight": 844
+    },
+    "1440": {
+      "fontFamily": "Inter, Arial, sans-serif",
+      "fontSize": "38px",
+      "fontWeight": "500",
+      "letterSpacing": "-0.76px",
+      "lineHeight": "43.7px",
+      "x": 573.8359375,
+      "y": 287.3125,
+      "width": 292.328125,
+      "height": 43.6875,
+      "bottom": 331,
+      "stageHeight": 900
+    },
+    "brainRot1440": {
+      "inWord": 19.240035746202214,
+      "aroundWord": 78.90158093965691,
+      "samples": [
+        1865,
+        2994
+      ]
+    },
+    "frames1440": {
+      "median": 16.69999999999709,
+      "p95": 16.700000000000728,
+      "samples": 123
+    },
+    "brainRot390": {
+      "inWord": 20.31993817619769,
+      "aroundWord": 89.8907709011943,
+      "samples": [
+        647,
+        1535
+      ]
+    },
+    "frames390": {
+      "median": 16.700000000000728,
+      "p95": 16.700000000000728,
+      "samples": 124
+    }
+  }
 }

@@ -1,0 +1,156 @@
+/* Explore: initiatives, sessions, outdoor experiences, camps, competitions. */
+
+.ex-hero {
+  background: linear-gradient(162deg, #f2f9ee 0%, #edf6e9 58%, #f9fcf5 100%);
+  border-bottom: 1px solid #e4efe0;
+}
+.ex-hero-inner {
+  padding: 48px 0 50px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 32px;
+  align-items: center;
+}
+.ex-hero h1 { margin: 12px 0 14px; font-size: clamp(1.9rem, 4.4vw, 2.8rem); line-height: 1.07; }
+.ex-lead { max-width: 60ch; color: #40604f; font-size: 1.01rem; }
+
+.ex-registrations-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+.ex-registrations-link:hover { border-color: #c6dcc3; }
+.ex-registrations-link small { display: block; color: var(--muted); font-size: .76rem; }
+.ex-registrations-link strong { display: block; margin-top: 3px; font-size: .96rem; }
+
+.ex-body { padding: 34px 0 80px; display: grid; gap: 40px; }
+
+/* ----------------------------------------------------------------- filters */
+
+.ex-controls { display: grid; gap: 14px; }
+.ex-search { position: relative; max-width: 460px; }
+.ex-search svg {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 19px;
+  height: 19px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.ex-search input {
+  width: 100%;
+  padding: 13px 16px 13px 44px;
+  border: 1px solid var(--line);
+  border-radius: 40px;
+  background: #fff;
+}
+.ex-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.ex-chip {
+  padding: 9px 17px;
+  border: 1px solid var(--line);
+  border-radius: 40px;
+  background: #fff;
+  color: #456354;
+  font-size: .85rem;
+  font-weight: 600;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.ex-chip:hover { border-color: #c6dcc3; }
+.ex-chip.is-active { background: var(--pine); border-color: var(--pine); color: #fff; }
+.ex-chip.small { padding: 7px 14px; font-size: .8rem; }
+.ex-chip.small.is-active { background: var(--leaf-soft); border-color: #bdd9b8; color: var(--pine); }
+.ex-toggle { display: inline-flex; align-items: center; gap: 8px; margin-left: 6px; color: var(--muted); font-size: .84rem; }
+.ex-toggle input { width: 16px; height: 16px; accent-color: var(--leaf); }
+
+.ex-demo-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 18px;
+  border: 1px dashed #d8d0b6;
+  border-radius: 14px;
+  background: #fdfaf0;
+  color: #7d6a3a;
+  font-size: .86rem;
+}
+.ex-demo-banner svg { flex: none; width: 18px; height: 18px; }
+
+/* ------------------------------------------------------------------- cards */
+
+.ex-results-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 18px; }
+.ex-results-head h2 { font-size: 1.5rem; }
+.ex-results-head p { color: var(--muted); font-size: .88rem; max-width: 52ch; }
+
+.ex-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.ex-card {
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  text-align: left;
+  transition: transform .18s ease, border-color .18s ease;
+}
+.ex-card:hover { transform: translateY(-3px); border-color: #c6dcc3; }
+.ex-card-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.ex-card h3 { font-size: 1.14rem; line-height: 1.3; }
+.ex-card .ex-organizer { margin-top: 4px; color: var(--muted); font-size: .82rem; }
+.ex-card > p { color: var(--muted); font-size: .9rem; line-height: 1.5; }
+.ex-facts { display: flex; flex-wrap: wrap; gap: 7px 14px; margin: 16px 0 0; color: var(--muted); font-size: .82rem; }
+.ex-facts span { display: inline-flex; align-items: center; gap: 6px; }
+.ex-facts svg { width: 15px; height: 15px; }
+.ex-card-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: auto; padding-top: 18px; }
+
+/* --------------------------------------------------------- registrations */
+
+#registration-list { display: grid; gap: 12px; }
+.ex-reg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+}
+.ex-reg-body { flex: 1; min-width: 200px; }
+.ex-reg strong { display: block; font-size: .98rem; }
+.ex-reg small { display: block; margin-top: 3px; color: var(--muted); font-size: .83rem; }
+.ex-reg .btn { padding: 9px 16px; font-size: .84rem; }
+
+/* -------------------------------------------------------------- detail --- */
+
+.ex-detail { width: min(640px, calc(100% - 32px)); max-height: 86vh; }
+.ex-detail-organizer { margin-top: 2px; color: var(--muted); font-size: .9rem; }
+.ex-detail .ds-dialog-inner > p:not(.eyebrow):not(.ex-detail-organizer) { margin-top: 14px; color: #40604f; }
+.ex-detail-facts { display: grid; grid-template-columns: 1fr auto; gap: 10px 16px; margin: 20px 0 0; }
+.ex-detail-facts dt { color: var(--muted); font-size: .86rem; }
+.ex-detail-facts dd { margin: 0; font-size: .89rem; font-weight: 600; text-align: right; }
+.ex-components { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+.ex-components > p { color: var(--muted); font-size: .82rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.ex-components ul { display: grid; gap: 10px; margin-top: 12px; }
+.ex-components li { padding: 12px 15px; border-radius: 13px; background: #f4f9f2; }
+.ex-components strong { display: block; font-size: .92rem; }
+.ex-components small { display: block; margin-top: 3px; color: var(--muted); font-size: .82rem; }
+.ex-components .ex-component-type { display: inline-block; margin-bottom: 4px; color: var(--leaf); font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.ex-detail-actions { margin-top: 22px; }
+
+@media (max-width: 860px) {
+  .ex-hero-inner { grid-template-columns: 1fr; }
+  .ex-registrations-link { justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) { .ex-card:hover { transform: none; } }
+
+/* Shared hero frame (src/styles/page-hero.css). */
+.ds-hero .ex-registrations-link { padding: 8px 14px 8px 8px; }

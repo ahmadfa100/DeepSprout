@@ -3,7 +3,7 @@
     {
       "state": {
         "phase": "ARRIVAL",
-        "time": 0.749,
+        "time": 0.748,
         "duration": 5.925,
         "character": "live",
         "inputs": {
@@ -15,7 +15,7 @@
         "paused": false,
         "reducedMotion": false
       },
-      "stone": "translate: none; rotate: none; scale: none; transform-origin: 0px 0px; opacity: 0.0148;",
+      "stone": "translate: none; rotate: none; scale: none; transform-origin: 0px 0px; opacity: 0.0146;",
       "root": "1px",
       "scrollY": 0
     },

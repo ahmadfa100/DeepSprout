@@ -3,18 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f8f9f3">
-  <meta name="description" content="Practice focus and build meaningful offline habits with DeepSprout Activities.">
+  <meta name="theme-color" content="#f7f8f2">
+  <meta name="description" content="Focused practices and your offline routine — the activities that replace mindless scrolling.">
   <title>Activities — DeepSprout</title>
   <link rel="icon" type="image/png" href="../../../assets/logo/Image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="training.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../../src/styles/theme.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
+  <link rel="stylesheet" href="../../../../src/styles/page-hero.css">
+  <link rel="stylesheet" href="training.css">
+  <script src="../../../../src/js/utils/storage.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
   <script src="training.js" defer></script>
+  <script src="offline-routine.js" defer></script>
 </head>
 <body data-page="training" data-root="../../../../">
   <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -23,66 +26,161 @@
     <symbol id="i-headphones" viewBox="0 0 32 32"><path d="M5 18v-3a11 11 0 0 1 22 0v3M5 17h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9Zm22 0h-4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-9Z"/></symbol>
     <symbol id="i-pencil" viewBox="0 0 32 32"><path d="m6 25 2-7L23 3l6 6-15 15-8 1Zm12-17 6 6M6 25l7-2"/></symbol>
     <symbol id="i-timer" viewBox="0 0 32 32"><circle cx="16" cy="18" r="11"/><path d="M16 7V3m-5 0h10m-5 15 4-5m7-4 2-2"/></symbol>
-    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m5 5h4"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></symbol>
     <symbol id="i-walk" viewBox="0 0 32 32"><circle cx="18" cy="5" r="2"/><path d="m13 28 3-9-4-4-4 5m4-5 4-5 5 1 3 5m-8 3 7 3 2 7m-9-10-6 9"/></symbol>
-    <symbol id="i-block" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12"/><path d="M7.5 24.5 24.5 7.5"/></symbol>
-    <symbol id="i-bell" viewBox="0 0 32 32"><path d="M8 22c3-2 3-6 3-9a5 5 0 0 1 10 0c0 3 0 7 3 9H8Zm6 4a2 2 0 0 0 4 0m-2-18V5"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 32 32"><path d="M16 3 28 8v8c0 7-5 11-12 14C9 27 4 23 4 16V8L16 3Z"/><path d="m11 16 4 4 7-8"/></symbol>
     <symbol id="i-bolt" viewBox="0 0 32 32"><path d="M18 2 6 18h8l-1 12 13-17h-8l1-11Z"/></symbol>
-    <symbol id="i-target" viewBox="0 0 32 32"><circle cx="15" cy="17" r="11"/><circle cx="15" cy="17" r="6"/><circle cx="15" cy="17" r="1.5"/><path d="m16 16 11-11m-5 0h5v5"/></symbol>
     <symbol id="i-chart" viewBox="0 0 32 32"><path d="M5 26V16m7 10V9m7 17V13m7 13V5"/></symbol>
     <symbol id="i-bookmark" viewBox="0 0 32 32"><path d="M8 4h16v24l-8-6-8 6V4Z"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m14 6 4 4"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14m6-14v14"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5-12-7.5Z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16m-10 4v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-sprout" viewBox="0 0 32 32"><path d="M16 28V14m0 5C8 19 5 14 5 6c8 0 11 4 11 13Zm0-5c0-8 4-12 11-12 0 8-3 12-11 12Z"/></symbol>
   </svg>
   <div data-site-header></div>
-  <main>
-    <section class="activities-hero" aria-labelledby="hero-title">
-      <div class="hero-sky" aria-hidden="true"><span class="hero-mountain one"></span><span class="hero-mountain two"></span><span class="hero-track"></span></div>
-      <div class="page-shell hero-content">
-        <div class="hero-copy">
-          <p class="eyebrow">Your space to practice</p>
-          <h1 id="hero-title">Meaningful<br>Steps Forward.</h1>
-          <p class="hero-description">Build focus, learn, and practice skills that help you spend less time on mindless scrolling and more time on what truly matters.</p>
-          <a class="weekly-summary" id="progress" href="#training-types"><span class="summary-icon"><svg><use href="#i-calendar"/></svg></span><span><small>This week</small><strong id="weekly-plan-count">3 activities planned</strong><small id="progress-message">Keep going. Small steps make a big difference.</small></span><svg class="summary-arrow"><use href="#i-arrow"/></svg></a>
+
+  <main class="activities-page">
+    <header class="ds-hero" aria-labelledby="hero-title">
+      <div class="ds-hero-copy">
+        <p class="ds-hero-eyebrow">Activities</p>
+        <h1 id="hero-title">Swap the scroll<br><em>for something real.</em></h1>
+        <p class="ds-hero-text">Short practices that train focus, and a small offline routine you choose yourself.</p>
+        <div class="ds-hero-meta" id="progress">
+          <span class="ds-hero-chip"><svg><use href="#i-check"/></svg><span id="weekly-plan-count">0 practices logged this week</span></span>
+          <span class="ds-hero-chip" id="progress-message" hidden></span>
         </div>
-        <img class="hero-bimo" src="../../../assets/Bimo-Activites-page.png" alt="Bimo wearing a green headband and preparing to start a race">
-        <span class="hero-handwriting" aria-hidden="true">Ready?<br>Let's do this!</span>
       </div>
-    </section>
+      <figure class="ds-hero-art is-cutout"><img src="../../../assets/Bimo-Activites-page.png" alt="Bimo in a green headband, crouched at the start line"></figure>
+      <p class="ds-hero-note" aria-hidden="true">Ready?<br>Let's go!</p>
+    </header>
 
     <div class="page-shell activities-content">
-      <section class="content-section practice-section" id="training-types" aria-labelledby="practice-title">
-        <div class="section-heading"><p class="eyebrow"><svg><use href="#i-calendar"/></svg> Meaningful practice</p><h2 id="practice-title">Choose what you want to practice.</h2><p>Each activity is designed to train a real skill and help you build a calmer, more focused mind.</p></div>
+      <!-- ---------------------------------------------------------------- next -->
+      <a class="up-next" id="up-next" href="#training-types" hidden>
+        <span class="up-next-pulse" aria-hidden="true"></span>
+        <span class="up-next-icon"><svg><use href="#i-book"/></svg></span>
+        <span class="up-next-copy"><small id="up-next-kicker">Up next on your roadmap</small><strong id="up-next-title">Depth Practice</strong><span id="up-next-note"></span></span>
+        <span class="up-next-go">Start <svg><use href="#i-arrow"/></svg></span>
+      </a>
+
+      <!-- ------------------------------------------------------------ practice -->
+      <section class="block practice-block" id="training-types" aria-labelledby="practice-title">
+        <div class="block-head">
+          <div><p class="kicker">Focused practice</p><h2 id="practice-title">Train one skill at a time</h2><p>Each practice is short, timed, and logged when you finish it. Pick the one that fits the time you have.</p></div>
+          <button type="button" class="quick-start" data-session="quick"><span><svg><use href="#i-bolt"/></svg></span>Only have 5 minutes?</button>
+        </div>
         <div class="practice-grid">
-          <article class="practice-card"><span class="practice-icon amber"><svg><use href="#i-book"/></svg></span><h3>Depth Practice</h3><p>Read. Understand. Think deeper. Train your attention with short and longer reading sessions.</p><button type="button" class="card-action mint" data-session="depth">Start practice <svg><use href="#i-arrow"/></svg></button></article>
-          <article class="practice-card"><span class="practice-icon blue"><svg><use href="#i-headphones"/></svg></span><h3>Listening &amp; Recall</h3><p>Listen to short stories or real-world content, then test your understanding and memory.</p><button type="button" class="card-action sky" data-session="listening">Start practice <svg><use href="#i-arrow"/></svg></button></article>
-          <article class="practice-card"><span class="practice-icon lavender"><svg><use href="#i-pencil"/></svg></span><h3>Practical Micro-Challenge</h3><p>Work on small, meaningful tasks like summarizing, organizing, or creating something new.</p><button type="button" class="card-action lilac" data-session="challenge">Start challenge <svg><use href="#i-arrow"/></svg></button></article>
-          <article class="practice-card"><span class="practice-icon peach"><svg><use href="#i-timer"/></svg></span><h3>Protected Work</h3><p>Spend focused time on your own task with optional site blocking.</p><button type="button" class="card-action cream" data-session="protected">Start focus session <svg><use href="#i-arrow"/></svg></button></article>
+          <article class="practice-card tone-amber" data-card="depth">
+            <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-book"/></svg><span class="orbit"></span></div>
+            <div class="practice-body">
+              <span class="practice-meta"><svg><use href="#i-clock"/></svg>12–20 min · Reading focus</span>
+              <h3>Depth Practice</h3>
+              <p>Read a passage without switching away, then answer a few questions about it.</p>
+            </div>
+            <div class="practice-actions"><button type="button" class="practice-start" data-session="depth">Start <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="depth" aria-pressed="false" aria-label="Save Depth Practice"><svg><use href="#i-bookmark"/></svg></button></div>
+          </article>
+          <article class="practice-card tone-sky" data-card="listening">
+            <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-headphones"/></svg><span class="orbit"></span></div>
+            <div class="practice-body">
+              <span class="practice-meta"><svg><use href="#i-clock"/></svg>12 min · Memory</span>
+              <h3>Listening &amp; Recall</h3>
+              <p>Listen once, no replays, then write down what you remember.</p>
+            </div>
+            <div class="practice-actions"><button type="button" class="practice-start" data-session="listening">Start <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="listening" aria-pressed="false" aria-label="Save Listening and Recall"><svg><use href="#i-bookmark"/></svg></button></div>
+          </article>
+          <article class="practice-card tone-lilac" data-card="challenge">
+            <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-pencil"/></svg><span class="orbit"></span></div>
+            <div class="practice-body">
+              <span class="practice-meta"><svg><use href="#i-clock"/></svg>15 min · Doing</span>
+              <h3>Micro-Challenge</h3>
+              <p>One small, concrete task — summarise, organise or make something — with a clear finish line.</p>
+            </div>
+            <div class="practice-actions"><button type="button" class="practice-start" data-session="challenge">Start <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="challenge" aria-pressed="false" aria-label="Save Micro-Challenge"><svg><use href="#i-bookmark"/></svg></button></div>
+          </article>
+          <article class="practice-card tone-peach" data-card="protected">
+            <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-timer"/></svg><span class="orbit"></span></div>
+            <div class="practice-body">
+              <span class="practice-meta"><svg><use href="#i-clock"/></svg>25 min · Deep work</span>
+              <h3>Protected Work</h3>
+              <p>Your own real task, in one uninterrupted block. Pair it with Digital Shield if you like.</p>
+            </div>
+            <div class="practice-actions"><button type="button" class="practice-start" data-session="protected">Start <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="protected" aria-pressed="false" aria-label="Save Protected Work"><svg><use href="#i-bookmark"/></svg></button></div>
+          </article>
+        </div>
+        <p class="saved-line" id="saved-line" hidden></p>
+      </section>
+
+      <!-- ------------------------------------------------------------- routine -->
+      <section class="block routine-block" id="offline-routine" aria-labelledby="routine-title">
+        <div class="routine-side">
+          <p class="kicker">Offline routine</p>
+          <h2 id="routine-title">Your small, real-world things</h2>
+          <p>A short checklist you write yourself. Tick it off when you have done it — that is your own report, never graded.</p>
+          <div class="today-ring" aria-hidden="true">
+            <svg viewBox="0 0 120 120"><circle class="ring-track" cx="60" cy="60" r="50"/><circle class="ring-fill" id="routine-ring" cx="60" cy="60" r="50"/></svg>
+            <span><strong id="routine-ring-count">0/0</strong><small>today</small></span>
+          </div>
+          <p class="routine-foot" id="routine-foot"></p>
+        </div>
+
+        <div class="routine-main">
+          <form class="routine-add" id="routine-form" autocomplete="off">
+            <label class="visually-hidden" for="routine-input">Add something to your routine</label>
+            <span class="routine-add-icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span>
+            <input id="routine-input" type="text" maxlength="60" placeholder="Add something you'll do away from a screen…">
+            <button type="submit" id="routine-add-custom">Add</button>
+          </form>
+          <div class="routine-ideas" id="routine-ideas" aria-label="Suggestions"></div>
+
+          <div class="routine-week" id="routine-week" aria-label="This week"></div>
+          <ul class="routine-list" id="routine-list"></ul>
+          <p class="routine-empty" id="routine-empty" hidden><svg><use href="#i-sprout"/></svg>Nothing on your list yet. Type one small thing above, or tap a suggestion.</p>
+          <div class="routine-undo" id="routine-undo" role="status" aria-live="polite" hidden><span id="routine-undo-text"></span><button type="button" id="routine-undo-button">Undo</button></div>
         </div>
       </section>
 
-      <section class="content-section routine-section" id="offline-routine" aria-labelledby="routine-title">
-        <div class="routine-copy"><p class="eyebrow"><svg><use href="#i-target"/></svg> My offline routine</p><h2 id="routine-title">Keep your personal habit.</h2><p>Choose at least one offline activity to include in your plan.<br>It’s a simple but important part of your progress.</p><button class="soft-button" type="button" id="manage-routine">Manage my routine <svg><use href="#i-arrow"/></svg></button></div>
-        <div class="routine-card"><span class="routine-icon"><svg><use href="#i-walk"/></svg></span><span class="routine-detail"><small>Your current activity</small><strong id="routine-name">Morning Walk</strong><small><svg><use href="#i-clock"/></svg> <span id="routine-progress">0 times this week</span></small></span><button class="soft-button" type="button" id="routine-done">Mark as done <svg><use href="#i-arrow"/></svg></button></div>
-      </section>
+      <!-- -------------------------------------------------------------- shield -->
+      <a class="shield-band" id="digital-shield" href="../shield/shield.html" aria-labelledby="shield-title">
+        <span class="shield-band-art" aria-hidden="true">
+          <img class="float-app a1" src="../../../../assets/home-kit/icons/instagram-color.svg" alt="">
+          <img class="float-app a2" src="../../../../assets/home-kit/icons/tiktok-color.svg" alt="">
+          <img class="float-app a3" src="../../../../assets/home-kit/icons/youtube-color.svg" alt="">
+          <span class="shield-band-shield"><svg><use href="#i-shield"/></svg></span>
+        </span>
+        <span class="shield-band-copy"><small>Digital Shield</small><strong id="shield-title">Keep the feeds out of your practice time</strong><span>Choose the apps that pull you in and plan when to put them away.</span></span>
+        <span class="shield-band-go">Open Shield <svg><use href="#i-arrow"/></svg></span>
+      </a>
 
-      <section class="content-section shield-section" id="digital-shield" aria-labelledby="shield-title"><div class="section-heading"><p class="eyebrow"><svg><use href="#i-block"/></svg> Digital Shield</p><h2 id="shield-title">Create a healthier digital environment.</h2><p>Two simple tools to help you reduce distractions and take control.</p></div><a class="shield-link" href="../shield/shield.html">Go to Digital Shield <svg><use href="#i-arrow"/></svg></a>
-        <div class="shield-grid"><article class="shield-tool"><span class="tool-icon coral"><svg><use href="#i-block"/></svg></span><div><h3>Manual Website Protection</h3><p>Block distracting websites for a set period using the Chrome extension.</p><a class="soft-button" href="../shield/shield.html">Set up protection <svg><use href="#i-arrow"/></svg></a></div></article><article class="shield-tool"><span class="tool-icon blue"><svg><use href="#i-bell"/></svg></span><div><h3>Scrolling Time Reminder</h3><p>Get a reminder after you spend too much time on selected sites.</p><a class="soft-button" href="../shield/shield.html">Set reminder <svg><use href="#i-arrow"/></svg></a></div></article></div>
-      </section>
-
-      <section class="content-section quick-section" aria-labelledby="quick-title"><div class="section-heading"><p class="eyebrow"><svg><use href="#i-bolt"/></svg> Quick actions</p><h2 id="quick-title">Need a place to start?</h2><p>Jump into a short session or explore more options.</p></div><div class="quick-grid">
-        <button type="button" class="quick-card" data-session="quick"><span class="quick-icon amber"><svg><use href="#i-bolt"/></svg></span><span><strong>Quick session</strong><small>5–10 minutes</small></span><svg class="quick-arrow"><use href="#i-arrow"/></svg></button>
-        <button type="button" class="quick-card" data-goal><span class="quick-icon green"><svg><use href="#i-target"/></svg></span><span><strong>Choose by goal</strong><small>Find the right activity</small></span><svg class="quick-arrow"><use href="#i-arrow"/></svg></button>
-        <a class="quick-card" href="../insights/insights.html"><span class="quick-icon blue"><svg><use href="#i-chart"/></svg></span><span><strong>View your progress</strong><small>See your stats</small></span><svg class="quick-arrow"><use href="#i-arrow"/></svg></a>
-        <button type="button" class="quick-card" data-saved><span class="quick-icon pink"><svg><use href="#i-bookmark"/></svg></span><span><strong>Saved activities</strong><small>Your favorites</small></span><svg class="quick-arrow"><use href="#i-arrow"/></svg></button>
-      </div></section>
+      <!-- ------------------------------------------------------------ insights -->
+      <a class="insights-link" href="../recovery-plan/recovery-plan.html#history"><svg><use href="#i-chart"/></svg> Your logged practices day by day: Roadmap history <svg><use href="#i-arrow"/></svg></a>
     </div>
   </main>
   <div data-site-footer></div>
 
-  <dialog id="session-dialog" class="session-dialog" aria-labelledby="session-title"><form method="dialog"><button class="dialog-close" value="cancel" aria-label="Close session">×</button></form><div class="dialog-inner"><p class="eyebrow">A MOMENT FOR YOURSELF</p><h2 id="session-title">Depth Practice</h2><p id="session-description">A little focused time can change the feel of your day.</p><div class="session-timer" id="session-timer">12:00</div><p class="timer-caption">One step at a time.</p><div class="dialog-actions"><button type="button" class="button primary" id="timer-toggle">Start timer</button><button type="button" class="button subtle" id="timer-reset">Reset</button></div><div class="dialog-secondary"><button type="button" id="save-session"><svg><use href="#i-bookmark"/></svg> Save this activity</button><button type="button" id="complete-session"><svg><use href="#i-check"/></svg> Mark complete</button></div><p class="session-feedback" id="session-feedback" aria-live="polite"></p></div></dialog>
-  <dialog id="goal-dialog" class="small-dialog" aria-labelledby="goal-title"><form method="dialog"><button class="dialog-close" value="cancel" aria-label="Close goals">×</button></form><p class="eyebrow">CHOOSE YOUR DIRECTION</p><h2 id="goal-title">What would help today?</h2><div class="goal-options"><button type="button" data-goal-session="depth"><svg><use href="#i-book"/></svg><span>Read with more focus</span><svg><use href="#i-arrow"/></svg></button><button type="button" data-goal-session="listening"><svg><use href="#i-headphones"/></svg><span>Strengthen your recall</span><svg><use href="#i-arrow"/></svg></button><button type="button" data-goal-session="offline"><svg><use href="#i-walk"/></svg><span>Spend time offline</span><svg><use href="#i-arrow"/></svg></button></div></dialog>
-  <dialog id="saved-dialog" class="small-dialog" aria-labelledby="saved-title"><form method="dialog"><button class="dialog-close" value="cancel" aria-label="Close saved activities">×</button></form><p class="eyebrow">YOUR FAVORITES</p><h2 id="saved-title">Saved activities</h2><div id="saved-list" class="saved-list"></div></dialog>
-  <dialog id="routine-dialog" class="small-dialog" aria-labelledby="routine-dialog-title"><form method="dialog"><button class="dialog-close" value="cancel" aria-label="Close routine">×</button></form><p class="eyebrow">MY OFFLINE ROUTINE</p><h2 id="routine-dialog-title">Choose your habit</h2><p>Pick an activity you can return to throughout the week.</p><div class="goal-options"><button type="button" data-routine="Morning Walk">Morning Walk <svg><use href="#i-arrow"/></svg></button><button type="button" data-routine="Reading Break">Reading Break <svg><use href="#i-arrow"/></svg></button><button type="button" data-routine="Outdoor Time">Outdoor Time <svg><use href="#i-arrow"/></svg></button><button type="button" data-routine="Journaling">Journaling <svg><use href="#i-arrow"/></svg></button></div></dialog>
+  <!-- Focus mode: a full-screen timer, opened from a practice. -->
+  <dialog id="session-dialog" class="focus-mode" aria-labelledby="session-title">
+    <div class="focus-inner">
+      <button type="button" class="focus-close" id="session-close" aria-label="Leave focus mode"><svg><use href="#i-x"/></svg></button>
+      <p class="kicker">Focus mode</p>
+      <h2 id="session-title">Depth Practice</h2>
+      <p id="session-description">A little focused time can change the feel of your day.</p>
+      <div class="focus-ring">
+        <svg viewBox="0 0 220 220" aria-hidden="true"><circle class="ring-track" cx="110" cy="110" r="96"/><circle class="ring-fill" id="session-ring" cx="110" cy="110" r="96"/></svg>
+        <div class="focus-time" id="session-timer" role="timer">12:00</div>
+      </div>
+      <div class="focus-actions">
+        <button type="button" class="focus-primary" id="timer-toggle"><svg><use href="#i-play"/></svg><span>Start</span></button>
+        <button type="button" class="focus-secondary" id="timer-reset">Reset</button>
+        <button type="button" class="focus-secondary" id="complete-session"><svg><use href="#i-check"/></svg> I finished</button>
+      </div>
+      <p class="session-feedback" id="session-feedback" aria-live="polite"></p>
+    </div>
+  </dialog>
 </body>
 </html>

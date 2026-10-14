@@ -1,0 +1,189 @@
+/* First-run experience: Meet Bimo, Before We Begin, Quick Personal Setup. */
+
+body { background: linear-gradient(170deg, #fbfdf7 0%, #f4faf0 46%, #eef7ea 100%); }
+
+.ob { min-height: 100vh; display: flex; flex-direction: column; }
+.ob-screen { flex: 1; display: flex; flex-direction: column; justify-content: center; animation: reveal-up .5s cubic-bezier(.2,.7,.2,1) both; }
+.ob-screen[hidden] { display: none; }
+.ob-lead { font-size: 1.08rem; color: #2f5547; }
+.ob-fineprint { margin-top: 14px; color: var(--muted); font-size: .82rem; }
+.ob-link { padding: 0; border: 0; background: none; color: var(--leaf); font-weight: 600; text-decoration: underline; }
+
+/* ------------------------------------------------------------- Meet Bimo */
+
+.ob-meet { position: relative; overflow: hidden; }
+.ob-meet-inner {
+  position: relative;
+  z-index: 2;
+  width: min(100% - 64px, 940px);
+  margin: 0 auto;
+  padding: 50px 0 86px;
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  align-items: center;
+  gap: 52px;
+}
+/* The mascot art ships on a white plate, so it is framed as a deliberate
+   portrait card rather than relying on a blend mode to hide the corners. */
+.ob-bimo {
+  position: relative;
+  margin: 0;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid #e2efdc;
+  border-radius: 34px;
+  background: radial-gradient(circle at 50% 40%, #fff 0%, #fbfdf8 52%, #eef7e9 100%);
+  box-shadow: 0 22px 54px #1685571f;
+}
+.ob-bimo img {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  max-width: 330px;
+  margin-inline: auto;
+  mix-blend-mode: multiply;
+  animation: bimo-float 5.5s ease-in-out infinite;
+}
+.ob-bimo-glow {
+  position: absolute;
+  inset: 14% 8% 10%;
+  z-index: 1;
+  border-radius: 50%;
+  /* Kept pale: the mascot multiplies over it, so a saturated glow would
+     drain the contrast out of the artwork. */
+  background: radial-gradient(circle, #fff 0%, #f2faec 52%, transparent 72%);
+  filter: blur(14px);
+}
+@keyframes bimo-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+.ob-meet-copy h1 { margin-top: 12px; font-size: clamp(2.5rem, 6vw, 3.9rem); line-height: 1; }
+.ob-meet-copy .ob-lead { margin: 18px 0 28px; max-width: 46ch; font-size: 1.2rem; }
+
+.ob-meadow {
+  position: absolute;
+  z-index: 1;
+  inset: auto 0 0;
+  height: 190px;
+  background:
+    radial-gradient(60% 100% at 20% 100%, #d9eecb 0%, transparent 70%),
+    radial-gradient(55% 100% at 78% 100%, #cfe9c2 0%, transparent 72%),
+    linear-gradient(to top, #e4f2da 0%, transparent 100%);
+}
+
+/* -------------------------------------------------------- Before We Begin */
+
+.ob-intro-inner {
+  padding: 54px 0 70px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, .85fr);
+  gap: 46px;
+  align-items: start;
+}
+.ob-intro-copy h1 { margin: 10px 0 18px; font-size: clamp(2rem, 4.4vw, 2.9rem); line-height: 1.05; }
+.ob-intro-copy > p { margin-bottom: 12px; color: #40604f; max-width: 54ch; }
+
+.ob-assurances { display: grid; gap: 14px; margin: 26px 0 30px; }
+.ob-assurances li, .ob-test-list li { display: flex; align-items: flex-start; gap: 13px; }
+.ob-assurances strong, .ob-test-list strong { display: block; font-size: .96rem; }
+.ob-assurances small, .ob-test-list small { display: block; margin-top: 3px; color: var(--muted); font-size: .84rem; line-height: 1.45; }
+
+.ob-intro-aside {
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 24px;
+}
+.ob-bimo-small {
+  display: block;
+  width: 130px;
+  margin: -70px auto 10px;
+  mix-blend-mode: multiply;
+}
+.ob-test-list { display: grid; gap: 15px; padding-top: 6px; }
+.ob-aside-note {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: .83rem;
+}
+
+/* ----------------------------------------------------- Quick Personal Setup */
+
+.ob-setup-inner { padding: 48px 0 70px; }
+.ob-setup-head .step-rail { margin-bottom: 14px; }
+.ob-step-count { color: var(--leaf); font-size: .74rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.ob-setup-head h1 { margin: 10px 0 10px; font-size: clamp(1.8rem, 4vw, 2.5rem); }
+.ob-setup-head .ob-lead { max-width: 52ch; color: var(--muted); font-size: .98rem; }
+
+.ob-question {
+  margin: 30px 0 0;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  animation: reveal-up .35s cubic-bezier(.2,.7,.2,1) both;
+}
+.ob-question h2 { font-size: 1.32rem; line-height: 1.25; }
+.ob-question .ob-question-hint { margin-top: 8px; color: var(--muted); font-size: .89rem; }
+.ob-question .choice-grid { margin-top: 20px; }
+.ob-question .field { margin-top: 20px; max-width: 320px; }
+
+.ob-why {
+  margin-top: 14px;
+  padding-left: 14px;
+  border-left: 3px solid #d6e7cf;
+  color: var(--muted);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+.ob-setup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 26px;
+}
+.ob-saved { margin-top: 16px; color: var(--leaf); font-size: .82rem; font-weight: 600; min-height: 1.2em; }
+
+/* ---------------------------------------------------------------- Handoff */
+
+.ob-handoff-inner { padding: 70px 0 90px; text-align: center; }
+.ob-handoff-mark { width: 58px; height: 58px; margin: 0 auto 18px; border-radius: 20px; }
+.ob-handoff-mark svg { width: 28px; height: 28px; }
+.ob-handoff-inner h1 { margin: 10px 0 14px; font-size: clamp(2rem, 4.4vw, 2.7rem); }
+.ob-handoff-inner > p { margin-inline: auto; max-width: 54ch; color: #40604f; }
+.ob-handoff-inner .ob-lead { margin-bottom: 14px; }
+.ob-next-card { margin: 30px auto 0; max-width: 460px; text-align: left; }
+.ob-handoff-actions { justify-content: center; margin-top: 26px; }
+.ob-handoff-inner .ob-fineprint { text-align: center; }
+
+/* ------------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .ob-meet-inner { grid-template-columns: 1fr; gap: 24px; padding: 36px 0 70px; text-align: center; width: min(100% - 40px, 560px); }
+  .ob-bimo img { max-width: 230px; }
+  .ob-meet-copy .ob-lead { margin-inline: auto; }
+  .ob-meet-copy .btn-row { justify-content: center; }
+  .ob-intro-inner { grid-template-columns: 1fr; gap: 54px; }
+  .ob-intro-aside { position: static; }
+  .ob-bimo-small { margin-top: -62px; width: 110px; }
+}
+@media (max-width: 560px) {
+  .ob-setup-actions { flex-direction: column-reverse; align-items: stretch; }
+  .ob-setup-actions .btn-row { justify-content: space-between; }
+  .ob-question { padding: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ob-screen, .ob-question { animation: none; }
+  .ob-bimo img { animation: none; }
+}

@@ -5,8 +5,10 @@ import {createIntroGate} from '../hero-v2/intro-gate.js';
 import {createBimo} from './bimo.js';
 import {createVortex} from './vortex.js';
 import {clamp,smooth,follow,stageAt,STAGES,BOUNDS,CAPTURES,stonePose} from './story-math.js';
-import {createCollapse,spiralIn,EXIT_TRAVEL,originalTravel} from './collapse.js';
-import {createClarity} from './clarity.js';
+import {createCollapse,spiralIn,EXIT_TRAVEL,EXIT_END,originalTravel} from './collapse.js';
+import {createField} from '../lines/field.js';
+import {createPath} from '../lines/path.js';
+import {createGardenStage} from '../journey/garden-stage.js';
 const root=document.querySelector('#hero-v2'),track=document.querySelector('.hero-track'),abort=new AbortController(),signal=abort.signal;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)'),world=root.querySelector('.world'),character=root.querySelector('.bimo');
 let paused=false,gate,timeline,unlocked=false,targetProgress=0,visualProgress=0,exitProgress=0,last=0,frame=0,clock=0,debugHold=false,destroyed=false,holdUntil=0,offscreen=false;
@@ -15,9 +17,9 @@ createEffects(root.querySelector('#effects'));
 const stones=createStoneSystem(root);stones.nodes.forEach(({node},i)=>node.id=`stone_${String(i+1).padStart(2,'0')}`);
 const bimo=createBimo({root:character,signal,isStopped:()=>stopped()||reduced.matches||exitProgress>=.58,sceneTime:()=>timeline?.time??0,storyProgress:()=>visualProgress});
 const vortex=createVortex(root);
-const section=document.querySelector('#not-alone');
 document.documentElement.classList.add('reels-enhanced');
-const collapse=createCollapse({root,world,character,track,section}),clarity=createClarity(section);
+// The line field shares this page's single scroll reader and animation frame.
+const collapse=createCollapse({root,world,character}),field=createField(document.querySelector('#not-alone'),reduced),garden=createGardenStage(document.querySelector('#product-journey'),reduced),path=createPath(document.querySelector('#way-back'),reduced,garden.entry);
 timeline=createTimeline({root,stones,bimo,onPhase:phase=>root.dispatchEvent(new CustomEvent('hero:phase',{detail:{phase}})),onComplete:()=>gate?.unlock()});
 gate=createIntroGate({timeline,signal,isStopped:()=>stopped()||reduced.matches,onUnlock:()=>{unlocked=true;holdUntil=performance.now()+500;root.dataset.introComplete='true';root.dataset.storyUnlocked='true'}});
 const motion=root.querySelector('#motion-control'),originalCopy=root.querySelector('.copy'),copy=root.querySelector('.story-copy'),heading=copy.querySelector('h2'),support=copy.querySelector('.story-support'),cue=root.querySelector('.scroll-cue'),bar=root.querySelector('.story-progress span');
@@ -51,7 +53,7 @@ function paint(p,dt=0){
  world.style.transform=mobile?'translateX(-63.3%)':'none';
  character.style.transform=`translate(${-trap*30}%,${-burst*3-trap*12}%) rotate(${-burst*3-trap*9}deg) scale(${1-trap*.12})`;
  character.style.setProperty('--reel-glow',burst.toFixed(2));
- collapse.render(exitProgress,reduced.matches);clarity.render(reduced.matches);
+ collapse.render(exitProgress,reduced.matches);
  const swallowed=exitProgress>=.58;if(swallowed!==bimoSwallowed){bimoSwallowed=swallowed;if(swallowed)bimo.pause();else{bimo.renderPose();bimo.resume()}}
  if(!reduced.matches||lastStaticStage!==stage){vortex.render(p,clock,reduced.matches,stopped()||debugHold,dt,exitProgress);lastStaticStage=stage}
 }
@@ -63,9 +65,10 @@ function sync(){
 function reset(){debugHold=false;paused=false;unlocked=false;targetProgress=visualProgress=exitProgress=0;lastStage=-1;scrollTo({top:0,behavior:'instant'});gate.reset();root.dataset.introComplete='false';root.dataset.storyUnlocked='false';if(reduced.matches){timeline.finish();gate.unlock()}else timeline.play();paint(0);sync()}
 function distances(){const h=root.offsetHeight;return{story:originalTravel(innerWidth<=700)*h,exit:EXIT_TRAVEL*h}}
 function readScroll(){
+ field.scroll();path.scroll();garden.scroll();
  if(debugHold)return;
  const d=distances(),offset=scrollY-track.offsetTop;
- targetProgress=clamp(offset/d.story);exitProgress=reduced.matches?0:clamp((offset-d.story)/d.exit);
+ targetProgress=clamp(offset/d.story);exitProgress=reduced.matches?0:clamp((offset-d.story)/d.exit,0,EXIT_END);
  // A native jump past the trap must land in a coherent exit, not wait behind an offscreen scene.
  if(exitProgress>0){
   if(!unlocked&&timeline){timeline.finish();gate?.unlock();timeline.pause()}
@@ -73,26 +76,28 @@ function readScroll(){
  }
  const hidden=offset>track.offsetHeight||offset<-root.offsetHeight;
  if(hidden!==offscreen){offscreen=hidden;sync()}
- collapse.render(exitProgress,reduced.matches);clarity.render(reduced.matches);
+ collapse.render(exitProgress,reduced.matches);
  if(paused&&!document.hidden)paint(visualProgress);
 }
-window.addEventListener('scroll',readScroll,{passive:true,signal});window.addEventListener('resize',()=>{collapse.resize();clarity.resize();readScroll();paint(visualProgress)},{signal});
+window.addEventListener('scroll',readScroll,{passive:true,signal});window.addEventListener('resize',()=>{collapse.resize();field.resize();garden.resize();path.resize();readScroll();paint(visualProgress)},{signal});
 function tick(now){
  if(destroyed)return;const dt=last?Math.min((now-last)/1000,.05):0;last=now;
+ field.frame(now,dt);path.frame(now,dt);garden.frame(now,dt);
  if(!stopped()&&!debugHold){if(!reduced.matches&&exitProgress<.70)clock+=dt;if(unlocked&&now>=holdUntil)visualProgress=follow(visualProgress,targetProgress,dt,reduced.matches);paint(visualProgress,dt)}
  frame=requestAnimationFrame(tick);
 }
 motion.addEventListener('click',()=>{paused=!paused;sync()},{signal});root.querySelector('#replay').addEventListener('click',reset,{signal});
 document.addEventListener('visibilitychange',sync,{signal});
-reduced.addEventListener('change',()=>{timeline.finish();gate.unlock();sync();paint(visualProgress)},{signal});
+reduced.addEventListener('change',()=>{timeline.finish();gate.unlock();sync();paint(visualProgress);field.resize();garden.resize();path.resize()},{signal});
 const dialog=document.querySelector('#focus-dialog');root.querySelector('#focus-check').addEventListener('click',()=>dialog.showModal(),{signal});
 dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()},{signal});
 for(const choice of dialog.querySelectorAll('[data-result]'))choice.addEventListener('click',()=>{dialog.querySelectorAll('[data-result]').forEach(b=>b.setAttribute('aria-pressed',String(b===choice)));document.querySelector('#check-result').textContent=choice.dataset.result},{signal});
 await Promise.race([Promise.allSettled([...root.querySelectorAll('.stone img,.awake-still')].map(i=>i.decode()).concat(document.fonts.ready)),new Promise(r=>setTimeout(r,1800))]);
-collapse.resize();clarity.resize();
+collapse.resize();field.resize();garden.resize();path.resize();
 root.dataset.layersReady='true';if(reduced.matches){timeline.finish();gate.unlock()}else timeline.play();sync();readScroll();paint(visualProgress);frame=requestAnimationFrame(tick);
 bimo.load().then(()=>{root.dataset.character=bimo.status;sync()}).catch(()=>{root.dataset.character='fallback'});root.dataset.ready='true';
 // Explicit review controls, absent on the public experience unless requested.
+if(new URLSearchParams(location.search).has('reelsDebug')){window.linesLab=field.debug;window.pathLab=path.debug;window.gardenLab=garden.debug}
 if(new URLSearchParams(location.search).has('reelsDebug'))window.reelsLab={
  seek(p){timeline.finish();gate.unlock();timeline.pause();debugHold=true;exitProgress=0;offscreen=false;targetProgress=visualProgress=clamp(p);clock=0;ambientHeld=true;paint(visualProgress);if(!reduced.matches)vortex.prepareMedia(visualProgress);bimo.resume();setTimeout(()=>{bimo.pause();paint(visualProgress)},400)},
  seekExit(q){timeline.finish();gate.unlock();timeline.pause();debugHold=true;offscreen=false;targetProgress=visualProgress=1;exitProgress=clamp(q);clock=0;const d=distances();scrollTo({top:track.offsetTop+d.story+exitProgress*d.exit,behavior:'instant'});paint(1);bimo.renderPose();setTimeout(()=>bimo.pause(),400)},
@@ -100,4 +105,4 @@ if(new URLSearchParams(location.search).has('reelsDebug'))window.reelsLab={
  play(){debugHold=false;readScroll();sync()},replay:reset,
  get state(){return{targetProgress,visualProgress,exitProgress,exitPhase:root.dataset.exitPhase,distances:distances(),core:collapse.geometry,offscreen,stage:STAGES[stageAt(visualProgress)],unlocked,paused,reduced:reduced.matches,hidden:document.hidden,character:bimo.status,inputs:bimo.inputs,renderer:vortex.state,stoneCount:stones.nodes.length,clock}}
 };
-window.addEventListener('pagehide',e=>{timeline.pause();bimo.pause();vortex.render(visualProgress,clock,reduced.matches,true,.016,exitProgress);if(!e.persisted){destroyed=true;cancelAnimationFrame(frame);abort.abort();timeline.destroy();vortex.destroy()}},{signal});window.addEventListener('pageshow',e=>{if(e.persisted){readScroll();sync()}},{signal});
+window.addEventListener('pagehide',e=>{if(!e.persisted){field.destroy();path.destroy();garden.destroy()}timeline.pause();bimo.pause();vortex.render(visualProgress,clock,reduced.matches,true,.016,exitProgress);if(!e.persisted){destroyed=true;cancelAnimationFrame(frame);abort.abort();timeline.destroy();vortex.destroy()}},{signal});window.addEventListener('pageshow',e=>{if(e.persisted){readScroll();sync()}},{signal});

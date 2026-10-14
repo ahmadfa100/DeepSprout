@@ -11,32 +11,32 @@
   "sequences": {
     "normal-transition": {
       "samples": 25,
-      "auditedFrames": 494,
-      "minPaintedPixels": 9756,
-      "surfaceWrites": 2
+      "auditedFrames": 501,
+      "minPaintedPixels": 9730,
+      "surfaceWrites": 0
     },
     "delayed-rive-transition": {
       "samples": 25,
-      "auditedFrames": 505,
+      "auditedFrames": 502,
       "minPaintedPixels": 9756,
-      "surfaceWrites": 2
+      "surfaceWrites": 0
     },
     "delayed-focus-image": {
       "samples": 25,
-      "auditedFrames": 505,
-      "minPaintedPixels": 9756,
-      "surfaceWrites": 2
+      "auditedFrames": 499,
+      "minPaintedPixels": 9730,
+      "surfaceWrites": 0
     },
     "aggressive-transition": {
       "samples": 25,
-      "auditedFrames": 270,
-      "minPaintedPixels": 9756,
-      "surfaceWrites": 2
+      "auditedFrames": 262,
+      "minPaintedPixels": 9730,
+      "surfaceWrites": 0
     }
   },
   "cloudDisplacement6s": [
-    2.670200824737549,
-    -7.184927940368652,
-    6.989253520965576
+    2.6625359058380127,
+    -7.136181354522705,
+    6.887885093688965
   ]
 }

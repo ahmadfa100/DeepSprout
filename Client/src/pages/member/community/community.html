@@ -9,9 +9,11 @@
   <title>Community — DeepSprout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=DM+Sans:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="community.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
+  <link rel="stylesheet" href="../../../../src/styles/page-hero.css">
+  <script src="../../../../src/js/utils/storage.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
   <script src="community.js" defer></script>
 </head>
@@ -36,10 +38,10 @@
   <div data-site-header></div>
 
   <main class="page-shell">
-    <section class="hero" aria-labelledby="community-title">
-      <div class="hero-copy"><span class="hero-diamond" aria-hidden="true"></span><h1 id="community-title">A community<br>that grows with you.</h1><p>Share your journey, get support, and stay motivated<br class="desktop-only"> with people who care about deeper focus, better habits,<br class="desktop-only"> and a calmer, more intentional life.</p></div>
-      <img class="hero-art" src="../../../../assets/community/banner.png" alt="Three friendly sprout characters enjoying a green landscape beside signs for sharing, inspiration, and growing together">
-    </section>
+    <header class="ds-hero" aria-labelledby="community-title">
+      <div class="ds-hero-copy"><p class="ds-hero-eyebrow">Community</p><h1 id="community-title">A community<br><em>that grows with you.</em></h1><p class="ds-hero-text">Share your journey, get support, and stay motivated with people working on the same thing.</p></div>
+      <figure class="ds-hero-art" style="--hero-focus: 60% 50%"><img src="../../../../assets/community/banner.png" alt="Three friendly sprout characters in a green landscape beside signs for sharing, inspiration, and growing together"></figure>
+    </header>
 
     <section class="community-toolbar" aria-label="Browse community posts">
       <div class="category-filters" role="group" aria-label="Filter posts by category">

@@ -1,0 +1,13 @@
+/* The garden beat joins section 4 the way section 4 joins section 3: it overlaps the last screen and
+   stays hidden until it pins, so the root's last frame and the garden's first frame are one picture.
+   These rules sit outside the copied garden.css so that file stays a verbatim copy. */
+.reels-enhanced .product-journey.is-cinematic{margin-top:-100svh;background:transparent}
+.reels-enhanced .product-journey.is-cinematic .journey-stage{visibility:hidden}
+.garden-root-layer{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;z-index:2;pointer-events:none}
+.garden-root-layer[hidden]{display:none}
+.garden-root{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible}
+.garden-root path{fill:none;stroke:#292d2a;stroke-linecap:round;stroke-linejoin:round}
+.garden-root-trunk{stroke-opacity:.85;stroke-width:calc(2px / var(--root-scale,1))}
+.garden-root-tail{stroke-opacity:.85;stroke-width:calc(1.6px / var(--root-scale,1))}
+.garden-root-lets{stroke-opacity:.85;stroke-width:calc(1.1px / var(--root-scale,1))}
+.garden-root-soil{opacity:.32;stroke-width:calc(1.4px / var(--root-scale,1))}

@@ -36,3 +36,15 @@ html{background:#09081a;scrollbar-color:#6d538b #141027}
 .bimo:before{content:'';position:absolute;inset:-5%;background:radial-gradient(ellipse,#d391ff44,transparent 68%);opacity:var(--reel-glow,0);z-index:-1;pointer-events:none}
 
 @media(max-width:700px){.hero:before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,#612d8f,#170b2b 80%);opacity:var(--sky-dim,0);pointer-events:none}}
+
+/* Section 2 exit: the black hole ends on the full dark void; the line field starts from it.
+   Track = story + exit up to the void (3.5 of 5 screens) + one viewport. */
+html{background:#faf8f3}
+html:not(.reels-enhanced) .hero-track{height:100svh}
+.reels-enhanced .hero-track{height:1250svh}
+.bimo-gravity{position:absolute;inset:0;z-index:5;pointer-events:none;will-change:transform}
+.vortex-transition{position:absolute;inset:0;z-index:14;pointer-events:none;overflow:hidden}
+.transition-void{position:absolute;inset:0;clip-path:circle(0);will-change:clip-path;background:#05040a}
+.hero[data-exit-phase=void] .motion-control{visibility:hidden}
+@media(max-width:700px){.reels-enhanced .hero-track{height:1200svh}}
+@media(prefers-reduced-motion:reduce){.reels-enhanced .hero-track{height:900svh}.bimo-gravity{will-change:auto}.vortex-transition{display:none}}

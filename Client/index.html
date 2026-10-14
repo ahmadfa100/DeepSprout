@@ -5,14 +5,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#faf9f3">
-  <meta name="description" content="Your DeepSprout home: a calmer digital life, one small step at a time.">
+  <meta name="description" content="Your DeepSprout home: less scrolling, more focus, one small step at a time.">
   <title>Home — DeepSprout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="src/layouts/member-layout/member-layout.css">
   <link rel="stylesheet" href="src/pages/public/home/home.css">
+  <script src="src/js/utils/storage.js" defer></script>
   <script src="src/layouts/member-layout/member-layout.js" defer></script>
+  <script src="src/pages/member/garden/garden-art.js" defer></script>
   <script src="src/pages/public/home/home.js" defer></script>
 </head>
 <body data-page="home" data-root="./">
@@ -20,19 +22,26 @@
   <main class="home-main">
     <section class="home-hero shell" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow hero-eyebrow">A calmer mind <span aria-hidden="true">•</span> A brighter tomorrow</p>
-        <h1 id="hero-title">Break free from<br>mindless scrolling.<br>Build a <em>brighter you.</em></h1>
+        <h1 id="hero-title"><span class="hero-line">Break free from</span> <span class="hero-line">mindless scrolling.</span> <span class="hero-line">Build a <em>brighter you.<svg class="hero-underline" viewBox="0 0 300 18" preserveAspectRatio="none" aria-hidden="true"><path d="M4 12C70 4 160 3 296 9"/></svg></em></span></h1>
         <p class="hero-description">DeepSprout helps you spend less time scrolling through a personal roadmap, focused activities, and a supportive community—one small step at a time.</p>
-        <div class="hero-actions"><a class="button button-primary" href="src/pages/member/recovery-plan/recovery-plan.html#journey">Start your journey <span aria-hidden="true">→</span></a><a class="button button-light" href="src/pages/member/training/training.html#training-types"><span class="activity-arrow" aria-hidden="true">→</span> Explore activities</a></div>
+        <div class="hero-actions">
+          <a class="hero-explore" href="src/pages/member/training/training.html#training-types">
+            <span class="hero-explore-icons" aria-hidden="true"><i><svg viewBox="0 0 32 32"><path d="M16 7c-4-3-9-3-13-2v19c5-1 10 0 13 3 3-3 8-4 13-3V5c-4-1-9-1-13 2Zm0 0v20"/></svg></i><i><svg viewBox="0 0 32 32"><path d="M5 18v-3a11 11 0 0 1 22 0v3M5 17h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9Zm22 0h-4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-9Z"/></svg></i><i><svg viewBox="0 0 32 32"><circle cx="18" cy="5" r="2"/><path d="m13 28 3-9-4-4-4 5m4-5 4-5 5 1 3 5m-8 3 7 3 2 7"/></svg></i></span>
+            <span class="hero-explore-text"><strong>Explore activities</strong><small>Short practices &amp; offline ideas</small></span>
+            <span class="hero-explore-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></span>
+          </a>
+          <a class="hero-how" href="#journey-title">See how it works <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14m-6-6 6 6 6-6"/></svg></a>
+        </div>
         <div class="hero-community"><div class="avatar-stack" aria-hidden="true"><img src="assets/community/avatar-sara.png" alt=""><img src="assets/community/avatar-omar.png" alt=""><img src="assets/community/avatar-lina.png" alt=""><img src="assets/community/avatar-yousef.png" alt=""></div><p><strong>You’re growing with others.</strong><br>Find encouragement in the <a href="src/pages/member/community/community.html">community</a>.</p></div>
       </div>
       <div class="hero-visual" aria-label="Bimo overlooking an illustrated golden landscape">
         <div class="hero-halo" aria-hidden="true"></div><div class="hero-photo" aria-hidden="true"></div>
+        <div class="hero-feed" aria-hidden="true"><span class="feed-chip f1"><img src="assets/home-kit/icons/tiktok-color.svg" alt=""></span><span class="feed-chip f2"><img src="assets/home-kit/icons/instagram-color.svg" alt=""></span><span class="feed-chip f3"><img src="assets/home-kit/icons/youtube-color.svg" alt=""></span><span class="feed-leaf l1"></span><span class="feed-leaf l2"></span><span class="feed-leaf l3"></span></div>
         <p class="hero-handwriting" aria-hidden="true">Small steps<br>grow big<br>change.</p>
         <img class="hero-bimo" src="assets/home-redesign/bimo-laptop.png" alt="Bimo, the DeepSprout mascot, sitting outdoors with a laptop">
         <div class="hero-benefits-card" aria-label="Benefits of spending less time scrolling">
           <h2>Less Scrolling<br>More Living</h2>
-          <div class="benefits-progress" aria-hidden="true"><span></span></div>
+          
           <ul>
             <li><span class="benefit-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 20 5.5v5.8c0 5.2-3.1 8.3-8 10.2-4.9-1.9-8-5-8-10.2V5.5L12 2.5Z"/><path d="M12 16v-5m0 3c-2.5 0-3.4-1.5-3.4-3.4 2.3 0 3.4 1.1 3.4 3.4Zm0-3c0-2.1 1-3.4 3.4-3.4 0 2.1-.9 3.4-3.4 3.4Z"/></svg></span>Focus</li>
             <li><span class="benefit-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 15.8A8.9 8.9 0 0 1 8.2 3.7a8.9 8.9 0 1 0 12.1 12.1Z"/></svg></span>Better Sleep</li>
@@ -43,22 +52,56 @@
       </div>
     </section>
 
-    <section class="feature-strip shell" aria-label="Your DeepSprout spaces">
-      <a class="feature" href="src/pages/member/recovery-plan/recovery-plan.html#journey"><span class="feature-icon"><img src="assets/home-kit/icons/sprout.svg" alt=""></span><strong>Personalized Plan</strong><span>Follow the path that fits your life.</span></a>
-      <button class="feature" type="button" id="mission-feature"><span class="feature-icon"><img src="assets/home-kit/icons/target.svg" alt=""></span><strong>Today's Mission</strong><span id="mission-summary">Take one small, meaningful step.</span></button>
-      <a class="feature" href="src/pages/member/shield/shield.html"><span class="feature-icon"><img src="assets/home-kit/icons/shield-check.svg" alt=""></span><strong>Digital Shield</strong><span>Make more room for focus.</span></a>
-      <a class="feature" href="src/pages/member/garden/garden.html"><span class="feature-icon"><img src="assets/home-kit/icons/community.svg" alt=""></span><strong>Your Garden</strong><span>See the growth behind your effort.</span></a>
-      <a class="feature-next" href="src/pages/member/insights/insights.html" aria-label="View your insights">→</a>
+    <section class="spaces shell" aria-labelledby="spaces-title">
+      <div class="spaces-head"><h2 id="spaces-title">Four places, one direction</h2><p>Everything you do in DeepSprout lands in one of these.</p></div>
+      <div class="spaces-grid">
+        <a class="space-card sc-roadmap" href="src/pages/member/recovery-plan/recovery-plan.html#overview">
+          <span class="space-visual" aria-hidden="true">
+            <svg class="mini-route" viewBox="0 0 220 110"><path class="mini-route-path" d="M14 86C50 86 52 36 92 36s46 50 86 50c18 0 26-16 30-30"/><circle class="mini-node" data-node="0" cx="14" cy="86" r="8"/><circle class="mini-node" data-node="1" cx="92" cy="36" r="8"/><circle class="mini-node" data-node="2" cx="178" cy="86" r="8"/><circle class="mini-node" data-node="3" cx="208" cy="56" r="8"/></svg>
+          </span>
+          <span class="space-copy"><small>Roadmap</small><strong id="space-roadmap-title">A four-week plan</strong><span id="space-roadmap-note">One focus per week, built from your goal.</span></span>
+          <span class="space-go" aria-hidden="true">→</span>
+        </a>
+        <a class="space-card sc-today" id="space-today" href="src/pages/member/training/training.html#training-types">
+          <span class="space-visual" aria-hidden="true"><span class="today-check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span><span class="today-lines"><i></i><i></i><i></i></span></span>
+          <span class="space-copy"><small>Next step</small><strong id="space-today-title">Explore activities</strong><span id="space-today-note">Short, timed practices and offline ideas.</span></span>
+          <span class="space-go" aria-hidden="true">→</span>
+        </a>
+        <a class="space-card sc-shield" href="src/pages/member/shield/shield.html">
+          <span class="space-visual" aria-hidden="true"><span class="shield-drop d1"><img src="assets/home-kit/icons/instagram-color.svg" alt=""></span><span class="shield-drop d2"><img src="assets/home-kit/icons/tiktok-color.svg" alt=""></span><span class="shield-drop d3"><img src="assets/home-kit/icons/youtube-color.svg" alt=""></span><span class="shield-basket"><img src="assets/shield/shield-leaf.svg" alt=""></span></span>
+          <span class="space-copy"><small>Digital Shield</small><strong id="space-shield-title">Put the feeds away</strong><span id="space-shield-note">Choose the apps to keep out of focus time.</span></span>
+          <span class="space-go" aria-hidden="true">→</span>
+        </a>
+        <a class="space-card sc-garden" href="src/pages/member/garden/garden.html">
+          <span class="space-visual" aria-hidden="true"><svg class="mini-garden" id="mini-garden" viewBox="80 110 340 230"></svg></span>
+          <span class="space-copy"><small>Garden</small><strong id="space-garden-title">Grows as you log</strong><span id="space-garden-note">Every practice and offline day grows a plot.</span></span>
+          <span class="space-go" aria-hidden="true">→</span>
+        </a>
+      </div>
     </section>
 
-    <section class="progress-section shell" aria-labelledby="progress-heading"><span class="section-pill">Your progress</span><h2 id="progress-heading">A calmer, healthier, more connected you</h2><p>Every small choice makes room for the life you want to live.</p><div class="progress-grid">
-      <a href="src/pages/member/recovery-plan/recovery-plan.html#journey" class="progress-item"><span class="progress-icon"><img src="assets/home-kit/icons/route.svg" alt=""></span><span><strong>Rebuild</strong><small>Current phase · 3 of 5</small></span></a>
-      <a href="src/pages/member/training/training.html#progress" class="progress-item"><span class="progress-icon"><img src="assets/home-kit/icons/calendar.svg" alt=""></span><span><strong id="training-progress">3 of 5</strong><small>Sessions this week</small></span></a>
-      <button class="progress-item" type="button" id="edit-goal" aria-label="Edit your goal"><span class="progress-icon"><img src="assets/home-kit/icons/target.svg" alt=""></span><span><strong>52%</strong><small id="goal-summary-title">Spend less time scrolling</small></span></button>
-      <a href="src/pages/member/garden/garden.html" class="progress-item"><span class="progress-icon"><img src="assets/home-kit/icons/sprout.svg" alt=""></span><span><strong><span id="garden-xp">120</span> XP</strong><small>Garden growth</small></span></a>
-    </div></section>
+    <section class="week-section shell" aria-labelledby="week-heading">
+      <div class="week-head">
+        <div><h2 id="week-heading">Your week so far</h2><p id="week-sub">Counted from what you logged — nothing estimated.</p></div>
+        <span class="goal-chip" id="goal-chip" hidden></span>
+      </div>
+      <div class="week-empty" id="week-empty" hidden>
+        <ol class="start-steps">
+          <li data-step="setup"><span>1</span><strong>Answer a few setup questions</strong><small>Your goal, your hardest times, the days you have.</small></li>
+          <li data-step="lab"><span>2</span><strong>Take four short baseline checks</strong><small id="start-lab-note">Attention, response control, reading depth, habits.</small></li>
+          <li data-step="plan"><span>3</span><strong>Activate your four-week plan</strong><small>Built from your answers and results.</small></li>
+        </ol>
+        <a class="button button-primary" id="start-cta" href="src/pages/member/onboarding/onboarding.html">Start your journey <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="week-grid" id="week-grid" hidden>
+        <a class="week-stat" href="src/pages/member/recovery-plan/recovery-plan.html#overview"><span class="ws-ring"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18"/><circle class="ws-fill" id="ws-day-ring" cx="22" cy="22" r="18"/></svg></span><strong id="ws-day">Day 1</strong><small id="ws-day-note">of 28 · week 1</small></a>
+        <a class="week-stat" href="src/pages/member/training/training.html#training-types"><span class="ws-icon wi-gold"><svg viewBox="0 0 32 32"><path d="M16 7c-4-3-9-3-13-2v19c5-1 10 0 13 3 3-3 8-4 13-3V5c-4-1-9-1-13 2Zm0 0v20"/></svg></span><strong id="ws-practices">0</strong><small id="ws-practices-note">practices this week</small><em>Self-reported</em></a>
+        <a class="week-stat" href="src/pages/member/training/training.html#offline-routine"><span class="ws-icon wi-leaf"><svg viewBox="0 0 32 32"><circle cx="18" cy="5" r="2"/><path d="m13 28 3-9-4-4-4 5m4-5 4-5 5 1 3 5m-8 3 7 3 2 7"/></svg></span><strong id="ws-routine">0</strong><small>offline routine days this week</small><em>Self-reported</em></a>
+        <a class="week-stat" href="src/pages/member/weekly-review/weekly-review.html"><span class="ws-icon wi-blue"><svg viewBox="0 0 32 32"><path d="M7 29V4m0 2h17l-4 6 4 6H7"/></svg></span><strong id="ws-review">—</strong><small id="ws-review-note">until your weekly review</small></a>
+      </div>
+    </section>
 
-    <section class="outside-section shell" aria-labelledby="outside-title"><div class="outside-image"><img src="assets/home-redesign/friends-overlook.jpg" alt="Friends taking in a sunset view together from a rocky overlook"><div class="outside-float"><img src="assets/home-redesign/forest-hike.jpg" alt=""><span><strong>Make room for life outside</strong><small>Choose an offline quest today</small></span><span aria-hidden="true">→</span></div></div><div class="outside-copy"><span class="section-pill">Step outside</span><h2 id="outside-title">Real-world activities<br>for a brighter you</h2><p>Join outdoor moments, workshops, and social activities that help you disconnect from screens and reconnect with what matters.</p><a class="button button-primary" href="src/pages/member/training/training.html#training-types">Explore activities <span aria-hidden="true">→</span></a><div class="activity-types" aria-label="Activity types"><a href="src/pages/member/training/training.html#training-types"><img src="assets/home-redesign/forest-hike.jpg" alt=""><span>Nature &amp; Outdoors</span></a><a href="src/pages/member/training/training.html#training-types"><img src="assets/home-redesign/pottery-workshop.jpg" alt=""><span>Workshops</span></a><a href="src/pages/member/training/training.html#training-types"><img src="assets/home-redesign/community-sports.jpg" alt=""><span>Sports &amp; Movement</span></a><a href="src/pages/member/community/community.html"><img src="assets/home-redesign/friends-overlook.jpg" alt=""><span>Social &amp; Community</span></a></div></div></section>
+    <section class="outside-section shell" aria-labelledby="outside-title"><div class="outside-image"><img src="assets/home-redesign/friends-overlook.jpg" alt="Friends taking in a sunset view together from a rocky overlook"><div class="outside-float"><img src="assets/home-redesign/forest-hike.jpg" alt=""><span><strong>Make room for life outside</strong><small>Choose an offline quest today</small></span><span aria-hidden="true">→</span></div></div><div class="outside-copy"><h2 id="outside-title">Real-world activities<br>for a brighter you</h2><p>Join outdoor moments, workshops, and social activities that help you disconnect from screens and reconnect with what matters.</p><a class="button button-primary" href="src/pages/member/training/training.html#training-types">Explore activities <span aria-hidden="true">→</span></a><div class="activity-types" aria-label="Activity types"><a href="src/pages/member/training/training.html#training-types"><img src="assets/home-redesign/forest-hike.jpg" alt=""><span>Nature &amp; Outdoors</span></a><a href="src/pages/member/training/training.html#training-types"><img src="assets/home-redesign/pottery-workshop.jpg" alt=""><span>Workshops</span></a><a href="src/pages/member/training/training.html#training-types"><img src="assets/home-redesign/community-sports.jpg" alt=""><span>Sports &amp; Movement</span></a><a href="src/pages/member/community/community.html"><img src="assets/home-redesign/friends-overlook.jpg" alt=""><span>Social &amp; Community</span></a></div></div></section>
 
     <section class="events-section shell" aria-labelledby="events-title"><div class="section-row"><h2 id="events-title"><img src="assets/home-kit/icons/calendar.svg" alt=""> Offline ideas to try</h2><a href="src/pages/member/training/training.html#training-types">View all activities <span aria-hidden="true">→</span></a></div><div class="event-grid">
       <a class="event-card" href="src/pages/member/training/training.html#training-types"><img class="event-image" src="assets/home-redesign/forest-hike.jpg" alt="Hikers on a green woodland trail"><div class="event-body"><span class="event-kind">OUTDOORS</span><strong>Explore a forest trail</strong><p>Take a screen-free walk and notice what’s around you.</p><span class="event-tags"><span>Nature</span><span>Offline quest</span></span><span class="event-arrow" aria-hidden="true">→</span></div></a>
@@ -66,15 +109,36 @@
       <a class="event-card" href="src/pages/member/community/community.html"><img class="event-image" src="assets/home-redesign/community-sports.jpg" alt="Friends playing an indoor sport together"><div class="event-body"><span class="event-kind">TOGETHER</span><strong>Move with your community</strong><p>Find shared energy and encouragement beyond the screen.</p><span class="event-tags"><span>Movement</span><span>Community</span></span><span class="event-arrow" aria-hidden="true">→</span></div></a>
     </div></section>
 
-    <section class="steps-section shell" aria-labelledby="steps-title"><span class="section-pill">How it works</span><h2 id="steps-title">Small steps. Real change.</h2><p>A simple path to help you build healthier digital habits and a richer, real-world life.</p><div class="steps-grid"><a class="step" href="src/pages/member/recovery-plan/recovery-plan.html#journey"><span class="step-icon"><img src="assets/home-kit/icons/sprout.svg" alt=""></span><span class="step-content"><small>01</small><strong>Set your goal</strong><span>Choose what you want to improve.</span></span></a><a class="step" href="src/pages/member/recovery-plan/recovery-plan.html#journey"><span class="step-icon"><img src="assets/home-kit/icons/route.svg" alt=""></span><span class="step-content"><small>02</small><strong>Follow your plan</strong><span>Take small, personalized steps.</span></span></a><a class="step" href="src/pages/member/training/training.html#training-types"><span class="step-icon"><img src="assets/home-kit/icons/activities.svg" alt=""></span><span class="step-content"><small>03</small><strong>Explore offline</strong><span>Practice focus in real life.</span></span></a><a class="step" href="src/pages/member/insights/insights.html"><span class="step-icon"><img src="assets/home-kit/icons/insights.svg" alt=""></span><span class="step-content"><small>04</small><strong>See your growth</strong><span>Notice the progress you’ve made.</span></span></a></div></section>
+    <section class="journey" id="journey" aria-labelledby="journey-title">
+      <div class="journey-track">
+        <div class="journey-frame">
+          <div class="journey-head shell"><span class="section-pill">How it works</span><h2 id="journey-title">From scrolling to something real</h2><p>The path every DeepSprout member walks, one step at a time.</p></div>
+          <div class="journey-world">
+            <div class="journey-sky" aria-hidden="true"><span class="j-sun"></span><span class="j-cloud jc1"></span><span class="j-cloud jc2"></span><span class="j-hill jh1"></span><span class="j-hill jh2"></span><span class="j-hill jh3"></span></div>
+            <svg class="journey-path" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+              <path class="jp-base" id="journey-route" d="M40 330C170 330 190 170 330 170S470 320 610 300 760 120 880 140 1030 300 1160 250"/>
+              <path class="jp-walked" d="M40 330C170 330 190 170 330 170S470 320 610 300 760 120 880 140 1030 300 1160 250"/>
+              <path class="jp-dash" d="M40 330C170 330 190 170 330 170S470 320 610 300 760 120 880 140 1030 300 1160 250"/>
+            </svg>
+            <ol class="journey-stops">
+              <li class="stop" data-at="0.03" style="--x:3.3%;--y:78%"><span class="stop-art"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="104" rx="40" ry="8" fill="#dfe9d3"/><rect x="56" y="34" width="8" height="72" rx="3" fill="#8a5a36"/><path d="M28 36h52l12 10-12 10H28Z" fill="#f6c445" stroke="#2d4a3e" stroke-width="3" stroke-linejoin="round"/><path d="M92 62H40l-12 10 12 10h52Z" fill="#8fd06a" stroke="#2d4a3e" stroke-width="3" stroke-linejoin="round"/><circle class="art-ping" cx="60" cy="22" r="8" fill="#ec6f9b"/></svg></span></li>
+              <li class="stop" data-at="0.27" style="--x:27.5%;--y:40%"><span class="stop-art"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="106" rx="38" ry="7" fill="#dfe9d3"/><rect x="52" y="12" width="16" height="12" rx="3" fill="#2d4a3e"/><circle cx="60" cy="64" r="38" fill="#fffdf6" stroke="#2d4a3e" stroke-width="4"/><path d="M34 64a26 26 0 0 1 52 0" fill="none" stroke="#e3efe0" stroke-width="9" stroke-linecap="round"/><path d="M34 64a26 26 0 0 1 22-25.7" fill="none" stroke="#6cc04f" stroke-width="9" stroke-linecap="round"/><g class="art-needle"><path d="M60 64 76 46" stroke="#ec6f9b" stroke-width="5" stroke-linecap="round"/></g><circle cx="60" cy="64" r="6" fill="#2d4a3e"/></svg></span></li>
+              <li class="stop" data-at="0.5" style="--x:50.8%;--y:72%"><span class="stop-art"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="106" rx="42" ry="7" fill="#dfe9d3"/><path d="M14 30 44 20l32 10 30-10v68l-30 10-32-10-30 10Z" fill="#fff8e6" stroke="#2d4a3e" stroke-width="3.5" stroke-linejoin="round"/><path d="M44 20v68M76 30v68" stroke="#2d4a3e" stroke-width="2.5" opacity=".35"/><path d="M24 80c14-6 16-26 32-24s18-20 36-26" fill="none" stroke="#168557" stroke-width="4" stroke-dasharray="6 7" stroke-linecap="round"/><g class="art-pin"><path d="M92 14c-9 0-14 7-14 13 0 9 14 21 14 21s14-12 14-21c0-6-5-13-14-13Z" fill="#ec6f9b" stroke="#2d4a3e" stroke-width="3"/><circle cx="92" cy="27" r="4.5" fill="#fff"/></g></svg></span></li>
+              <li class="stop" data-at="0.73" style="--x:73.3%;--y:33%"><span class="stop-art"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="106" rx="42" ry="7" fill="#dfe9d3"/><path d="M60 40c-12-10-30-10-44-6v58c14-4 32-4 44 6 12-10 30-10 44-6V34c-14-4-32-4-44 6Z" fill="#fffdf6" stroke="#2d4a3e" stroke-width="3.5" stroke-linejoin="round"/><path d="M60 40v58" stroke="#2d4a3e" stroke-width="3"/><path d="M26 52c8-2 16-2 24 2M26 64c8-2 16-2 24 2M70 54c8-4 16-4 24-2M70 66c8-4 16-4 24-2" stroke="#c7d6c4" stroke-width="3" stroke-linecap="round"/><g class="art-sprout"><path d="M60 40V22" stroke="#3f8a35" stroke-width="3.5" stroke-linecap="round"/><path d="M60 28c-12 0-16-8-16-14 10 0 16 5 16 14Z" fill="#6cc04f"/><path d="M60 24c0-9 5-14 16-14 0 9-6 14-16 14Z" fill="#4faa3e"/></g></svg></span></li>
+              <li class="stop" data-at="0.97" style="--x:96.6%;--y:60%"><span class="stop-art stop-garden"><svg id="journey-garden" viewBox="270 60 360 300" aria-hidden="true"></svg></span></li>
+            </ol>
+            <img class="journey-bimo" id="journey-bimo" src="assets/hero-v2/bimo-awake.png" alt="" aria-hidden="true">
+          </div>
+          <ol class="journey-cards"><li class="stop-card" data-index="0"><b>01</b><strong>Name your goal</strong><small>Less short-video, more intentional phone use, more offline time — you choose.</small></li><li class="stop-card" data-index="1"><b>02</b><strong>Measure your starting point</strong><small>Four short checks in the Lab: attention, response control, reading depth and habits.</small></li><li class="stop-card" data-index="2"><b>03</b><strong>Follow a four-week roadmap</strong><small>One focus per week. Each week is written after you review the last.</small></li><li class="stop-card" data-index="3"><b>04</b><strong>Swap the scroll for real things</strong><small>Timed practices, plus a small offline routine you choose and tick off yourself.</small></li><li class="stop-card" data-index="4"><b>05</b><strong>Review, and watch it grow</strong><small>A weekly review shapes next week. Your garden grows from what you logged.</small></li></ol>
+        </div>
+      </div>
+    </section>
 
     <section class="community-section shell" aria-labelledby="community-title"><span class="section-pill">Real stories</span><h2 id="community-title">Hear from your community</h2><div class="story-grid"><article class="story-card"><div class="story-person"><img src="assets/community/avatar-sara.png" alt=""><span><strong>Sara.M</strong><small>Community member</small></span></div><p>“I managed to finish all my suggested sessions this week. Reading feels easier already and I’m spending less time on short videos.”</p><a href="src/pages/member/community/community.html">Visit community <span aria-hidden="true">→</span></a></article><article class="story-card"><div class="story-person"><img src="assets/community/avatar-omar.png" alt=""><span><strong>Omar_97</strong><small>Community member</small></span></div><p>“I set a 10-minute timer, remove distractions, and choose a specific page goal. It’s simple but surprisingly effective!”</p><a href="src/pages/member/community/community.html">Visit community <span aria-hidden="true">→</span></a></article><article class="story-card"><div class="story-person"><img src="assets/community/avatar-lina.png" alt=""><span><strong>Lina</strong><small>Community member</small></span></div><p>“Today marks 30 days of using DeepSprout. My focus sessions, garden and mood have all improved. Grateful for this community!”</p><a href="src/pages/member/community/community.html">Visit community <span aria-hidden="true">→</span></a></article></div></section>
 
-    <section class="closing-section shell" aria-labelledby="closing-title"><div class="closing-script" aria-hidden="true">A brighter<br>tomorrow<br>starts today.</div><div class="closing-copy"><h2 id="closing-title">Ready to grow a better you?</h2><p>Keep building healthier habits and more meaningful moments, one step at a time.</p><div><a class="button button-cream" href="src/pages/member/recovery-plan/recovery-plan.html#journey">Continue your journey <span aria-hidden="true">→</span></a><a class="button button-ghost" href="src/pages/member/insights/insights.html">View insights</a></div></div><img src="assets/hero-v2/bimo-focus.png" alt="Bimo taking a calm pause"></section>
+    <section class="closing-section shell" aria-labelledby="closing-title"><div class="closing-script" aria-hidden="true">A brighter<br>tomorrow<br>starts today.</div><div class="closing-copy"><h2 id="closing-title">Ready to grow a better you?</h2><p>Keep building healthier habits and more meaningful moments, one step at a time.</p><div><a class="button button-cream" id="closing-cta" href="src/pages/member/recovery-plan/recovery-plan.html#overview">Continue your journey <span aria-hidden="true">→</span></a><a class="button button-ghost" href="src/pages/member/insights/insights.html">View insights</a></div></div><img src="assets/hero-v2/bimo-focus.png" alt="Bimo taking a calm pause"></section>
   </main>
   <div data-site-footer></div>
-  <dialog class="home-dialog" id="mission-dialog" aria-labelledby="mission-dialog-title"><form method="dialog" id="mission-form"><button class="dialog-close" type="button" data-close aria-label="Close mission">×</button><span class="dialog-eyebrow">TODAY'S MISSION</span><h2 id="mission-dialog-title">Set your screen-free time</h2><p>Choose when you’ll put distracting apps away this evening. This preference stays on this device.</p><label for="screen-free-time">Screen-free time</label><input id="screen-free-time" type="time" value="19:00" required><button class="button button-primary" type="submit">Save my rule <span aria-hidden="true">→</span></button></form></dialog>
-  <dialog class="home-dialog" id="goal-dialog" aria-labelledby="goal-dialog-title"><form method="dialog" id="goal-form"><button class="dialog-close" type="button" data-close aria-label="Close goal editor">×</button><span class="dialog-eyebrow">YOUR GOAL</span><h2 id="goal-dialog-title">Edit your goal</h2><label for="goal-input">What would you like to work on?</label><input id="goal-input" maxlength="65" required value="Spend less time scrolling"><label for="reason-input">Why does this matter to you?</label><textarea id="reason-input" rows="3" maxlength="180" required>I want to feel more present, focused, and in control of my time.</textarea><button class="button button-primary" type="submit">Save goal <span aria-hidden="true">→</span></button></form></dialog>
   <div class="home-toast" id="home-toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

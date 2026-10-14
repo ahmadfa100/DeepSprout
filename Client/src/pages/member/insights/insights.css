@@ -241,3 +241,13 @@ html.js .reveal.visible { opacity: 1; transform: translateY(0); }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   html.js .reveal { opacity: 1; transform: none; }
 }
+
+/* Shared hero frame (src/styles/page-hero.css), with the signpost labels laid over the art. */
+.ds-hero .hero-actions { margin-top: 6px; }
+.insights-sign { position: absolute; left: 81%; z-index: 2; transform: translateX(-50%) rotate(-2deg); color: #5b3a1e; font: 700 clamp(.7rem, 1.1vw, .92rem)/1 'DM Sans', sans-serif; white-space: nowrap; }
+.insights-sign.s1 { top: 33%; }
+.insights-sign.s2 { top: 47%; }
+.insights-sign.s3 { top: 61%; }
+@media (max-width: 860px) { .insights-sign { display: none; } .insights-art { --hero-focus: 38% 50%; } }
+main > .ds-hero { width: min(100% - 88px, 1446px); }
+@media (max-width: 860px) { main > .ds-hero { width: min(100% - 32px, 1446px); } }
