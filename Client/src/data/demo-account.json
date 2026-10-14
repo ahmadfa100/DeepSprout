@@ -1,0 +1,262 @@
+{
+  "schema": 1,
+  "account": {
+    "id": "demo",
+    "label": "Ahmad · seeded demo",
+    "seeded": true,
+    "asOf": "2026-01-17",
+    "asOfNote": "Demo clock. The seeded story is frozen on Saturday 17 January 2026, day 13 of the first cycle."
+  },
+
+  "user": {
+    "name": "Ahmad",
+    "registeredOn": "2026-01-05",
+    "goal": {
+      "id": "reduce-unintentional-scrolling",
+      "label": "Reduce unintentional scrolling",
+      "setOn": "2026-01-05"
+    }
+  },
+
+  "catalog": {
+    "activityTypes": [
+      { "id": "depth", "title": "Depth Practice", "skill": "Reading", "icon": "book" },
+      { "id": "listening", "title": "Listening Practice", "skill": "Listening", "icon": "headphones" },
+      { "id": "practical", "title": "Practical Micro-Challenge", "skill": "Practical", "icon": "pencil" },
+      { "id": "protected-work", "title": "Protected Work", "skill": "Protected Work", "icon": "shield", "verificationNote": "Time is measured. The quality of the work is not verified." }
+    ],
+    "trainingPolicy": {
+      "version": "TP-1.0",
+      "maxLevel": 4,
+      "validAttemptsToUnlock": 6,
+      "note": "Levels are independent per practice type. Only valid attempts at the current level count."
+    },
+    "assessmentDefinitions": [
+      {
+        "id": "digital-habits",
+        "title": "Digital Habits",
+        "kind": "Self-report questionnaire",
+        "provenance": "self-reported",
+        "minutes": 2,
+        "scale": { "min": 0, "max": 30, "unit": "", "direction": "lower" }
+      },
+      {
+        "id": "sustained-attention",
+        "title": "Sustained Attention",
+        "kind": "Timed response task",
+        "provenance": "measured",
+        "minutes": 3,
+        "scale": { "min": 0, "max": 100, "unit": "%", "direction": "higher" }
+      },
+      {
+        "id": "inhibitory-control",
+        "title": "Inhibitory Control",
+        "kind": "Go / no-go task",
+        "provenance": "measured",
+        "minutes": 3,
+        "scale": { "min": 0, "max": 100, "unit": "%", "direction": "higher" }
+      },
+      {
+        "id": "depth-challenge",
+        "title": "Depth Challenge",
+        "kind": "Reading comprehension",
+        "provenance": "measured",
+        "minutes": 5,
+        "scale": { "min": 0, "max": 10, "unit": "", "direction": "higher" }
+      }
+    ],
+    "checkInPolicy": {
+      "version": "CI-1.0",
+      "windowDays": 3,
+      "always": ["digital-habits"],
+      "rotation": ["sustained-attention", "inhibitory-control", "depth-challenge"],
+      "fullEveryCycles": 3
+    }
+  },
+
+  "plan": {
+    "cycleNumber": 1,
+    "startDate": "2026-01-05",
+    "lengthDays": 28,
+    "activatedOn": "2026-01-05",
+    "direction": [
+      { "week": 1, "title": "Notice the pattern", "note": "Build a picture of when feeds pull you in, without changing much yet." },
+      { "week": 2, "title": "Add one alternative", "note": "Put something in the gap the scrolling currently fills." },
+      { "week": 3, "title": "Hold attention longer", "note": "Stretch practices slightly as they start to feel manageable." },
+      { "week": 4, "title": "Decide what to keep", "note": "Review what actually worked and choose what carries on." }
+    ]
+  },
+
+  "scheduledActions": [
+    { "id": "s-0106", "date": "2026-01-06", "kind": "practice", "activityType": "depth", "level": 2, "minutes": 5 },
+    { "id": "s-0107", "date": "2026-01-07", "kind": "practice", "activityType": "listening", "level": 1, "minutes": 5 },
+    { "id": "s-0108", "date": "2026-01-08", "kind": "practice", "activityType": "practical", "level": 1, "minutes": 5 },
+    { "id": "s-0109", "date": "2026-01-09", "kind": "practice", "activityType": "depth", "level": 2, "minutes": 5 },
+    { "id": "s-0110", "date": "2026-01-10", "kind": "practice", "activityType": "protected-work", "level": 2, "minutes": 25 },
+    { "id": "s-0111", "date": "2026-01-11", "kind": "review", "week": 1 },
+
+    { "id": "s-0112", "date": "2026-01-12", "kind": "practice", "activityType": "depth", "level": 2, "minutes": 3 },
+    { "id": "s-0113", "date": "2026-01-13", "kind": "practice", "activityType": "protected-work", "level": 2, "minutes": 20 },
+    { "id": "s-0114", "date": "2026-01-14", "kind": "rest", "note": "A day off is part of the plan, not a gap in it." },
+    { "id": "s-0115", "date": "2026-01-15", "kind": "practice", "activityType": "practical", "level": 1, "minutes": 3 },
+    { "id": "s-0116", "date": "2026-01-16", "kind": "practice", "activityType": "depth", "level": 2, "minutes": 3 },
+    { "id": "s-0117", "date": "2026-01-17", "kind": "practice", "activityType": "listening", "level": 1, "minutes": 3 },
+    { "id": "s-0118", "date": "2026-01-18", "kind": "review", "week": 2 }
+  ],
+
+  "levelEvents": [
+    { "activityType": "depth", "level": 2, "on": "2026-01-05", "reason": "placement", "detail": "Placed at level 2 from your Depth Challenge starting point." },
+    { "activityType": "listening", "level": 1, "on": "2026-01-05", "reason": "placement", "detail": "Everyone starts listening at level 1." },
+    { "activityType": "practical", "level": 1, "on": "2026-01-05", "reason": "placement", "detail": "Everyone starts practical challenges at level 1." },
+    { "activityType": "protected-work", "level": 2, "on": "2026-01-05", "reason": "preference", "detail": "You chose level 2 during setup." }
+  ],
+
+  "activityAttempts": [
+    { "id": "a-01", "scheduledActionId": "s-0106", "activityType": "depth", "level": 2, "on": "2026-01-06", "valid": true, "outcome": "4 of 5 questions correct", "minutes": 5 },
+    { "id": "a-02", "scheduledActionId": "s-0107", "activityType": "listening", "level": 1, "on": "2026-01-07", "valid": true, "outcome": "3 of 4 questions correct", "minutes": 5 },
+    { "id": "a-03", "scheduledActionId": "s-0109", "activityType": "depth", "level": 2, "on": "2026-01-09", "valid": true, "outcome": "5 of 5 questions correct", "minutes": 5 },
+    { "id": "a-04", "scheduledActionId": null, "activityType": "listening", "level": 1, "on": "2026-01-10", "valid": false, "outcome": "Ended after 40 seconds", "invalidReason": "Stopped before the end of the clip", "minutes": 1 },
+    { "id": "a-05", "scheduledActionId": "s-0112", "activityType": "depth", "level": 2, "on": "2026-01-12", "valid": true, "outcome": "4 of 5 questions correct", "minutes": 3 },
+    { "id": "a-06", "scheduledActionId": "s-0113", "activityType": "protected-work", "level": 2, "on": "2026-01-13", "valid": true, "outcome": "20 minutes protected, no tab switches", "minutes": 20 },
+    { "id": "a-07", "scheduledActionId": null, "activityType": "practical", "level": 1, "on": "2026-01-14", "valid": true, "outcome": "Challenge finished", "minutes": 3 },
+    { "id": "a-08", "scheduledActionId": "s-0116", "activityType": "depth", "level": 2, "on": "2026-01-16", "valid": true, "outcome": "4 of 5 questions correct", "minutes": 3 },
+    { "id": "a-09", "scheduledActionId": "s-0117", "activityType": "listening", "level": 1, "on": "2026-01-17", "valid": true, "outcome": "4 of 4 questions correct", "minutes": 3 }
+  ],
+
+  "weeklyReviews": [
+    {
+      "week": 1,
+      "completedOn": "2026-01-11",
+      "answers": { "hardest": "Evenings after 22:00", "feltManageable": false },
+      "adjustment": { "on": "2026-01-11", "label": "Lighter load", "detail": "Week 2 practices shortened from 5 to 3 minutes." }
+    }
+  ],
+
+  "assessmentAttempts": [
+    {
+      "id": "aa-dh-1", "definitionId": "digital-habits", "official": true, "cycle": 1, "on": "2026-01-05", "late": false, "valid": true, "score": 19,
+      "details": [
+        { "label": "Items answered", "value": "10 of 10" },
+        { "label": "Rated \"often\" or more", "value": "6 of 10" }
+      ]
+    },
+    {
+      "id": "aa-sa-1", "definitionId": "sustained-attention", "official": true, "cycle": 1, "on": "2026-01-05", "late": false, "valid": true, "score": 88,
+      "details": [
+        { "label": "Targets detected", "value": "21 of 24" },
+        { "label": "Early responses", "value": "2" },
+        { "label": "Average reaction time", "value": "412 ms" }
+      ]
+    },
+    {
+      "id": "aa-ic-1", "definitionId": "inhibitory-control", "official": true, "cycle": 1, "on": "2026-01-05", "late": false, "valid": true, "score": 64,
+      "details": [
+        { "label": "Held on a stop signal", "value": "7 of 11" },
+        { "label": "Missed go signals", "value": "1" },
+        { "label": "Average reaction time", "value": "389 ms" }
+      ]
+    },
+    {
+      "id": "aa-dc-1", "definitionId": "depth-challenge", "official": true, "cycle": 1, "on": "2026-01-05", "late": false, "valid": true, "score": 7,
+      "details": [
+        { "label": "Questions correct", "value": "7 of 10" },
+        { "label": "Reading time", "value": "4m 02s" },
+        { "label": "Passage", "value": "Tier 1 · 612 words" }
+      ]
+    }
+  ],
+  "practiceRounds": [
+    { "definitionId": "inhibitory-control", "on": "2026-01-09", "note": "Practice round — not stored as an official attempt." }
+  ],
+
+  "shield": {
+    "extension": { "browser": "Chrome", "connectedOn": "2026-01-07" },
+    "policy": {
+      "version": 1,
+      "sites": ["instagram.com", "tiktok.com", "youtube.com"],
+      "dailyLimitMinutes": 120,
+      "bands": { "withinFrom": 0.4, "nearFrom": 0.8, "note": "Fractions of the daily limit: under < 40%, within < 80%, near ≤ 100%, over > 100%." },
+      "method": "chrome-extension-v1",
+      "methodLabel": "measured by the Chrome extension",
+      "since": "2026-01-07"
+    },
+    "dailyUsage": [
+      { "date": "2026-01-07", "minutes": 84, "siteSetVersion": 1, "method": "chrome-extension-v1" },
+      { "date": "2026-01-08", "minutes": 145, "siteSetVersion": 1, "method": "chrome-extension-v1" },
+      { "date": "2026-01-09", "minutes": 66, "siteSetVersion": 1, "method": "chrome-extension-v1" },
+      { "date": "2026-01-10", "minutes": 58, "siteSetVersion": 1, "method": "chrome-extension-v1" },
+      { "date": "2026-01-11", "minutes": 41, "siteSetVersion": 1, "method": "chrome-extension-v1" },
+      { "date": "2026-01-12", "minutes": 52, "siteSetVersion": 1, "method": "chrome-extension-v1" },
+      { "date": "2026-01-13", "minutes": 126, "siteSetVersion": 1, "method": "chrome-extension-v1" },
+      { "date": "2026-01-14", "minutes": 30, "siteSetVersion": 1, "method": "chrome-extension-v1" },
+      { "date": "2026-01-15", "minutes": 28, "siteSetVersion": 1, "method": "chrome-extension-v1" },
+      { "date": "2026-01-16", "minutes": 138, "siteSetVersion": 1, "method": "chrome-extension-v1" },
+      { "date": "2026-01-17", "minutes": 24, "siteSetVersion": 1, "method": "chrome-extension-v1" }
+    ]
+  },
+
+  "selfReports": [
+    { "kind": "phone-screen-time", "on": "2026-01-11", "minutesPerDay": 190, "context": "Entered during the week 1 review" }
+  ],
+
+  "routine": [
+    {
+      "id": "r-walk",
+      "title": "10-minute walk",
+      "hint": "Outside if you can, around the block if you cannot.",
+      "days": [1, 2, 3, 4, 5],
+      "recurrence": "weekly",
+      "paused": false,
+      "createdOn": "2026-01-05",
+      "removedOn": null,
+      "checkIns": [
+        { "date": "2026-01-07", "status": "done" },
+        { "date": "2026-01-09", "status": "done" },
+        { "date": "2026-01-12", "status": "done" },
+        { "date": "2026-01-13", "status": "done" },
+        { "date": "2026-01-15", "status": "skipped" },
+        { "date": "2026-01-16", "status": "done" }
+      ]
+    }
+  ],
+
+  "opportunities": [
+    {
+      "id": "init-beyond-reels",
+      "kind": "initiative",
+      "title": "Beyond Reels",
+      "organizer": "Amman Youth Centre",
+      "verified": false,
+      "startDate": "2026-01-10",
+      "endDate": "2026-02-21"
+    },
+    {
+      "id": "init-start-today",
+      "kind": "initiative",
+      "title": "Start Today",
+      "organizer": "Jordan University Student Life",
+      "verified": false,
+      "startDate": "2026-01-24",
+      "endDate": "2026-02-07"
+    }
+  ],
+  "registrations": [
+    {
+      "opportunityId": "init-beyond-reels",
+      "registeredOn": "2026-01-06",
+      "status": "confirmed",
+      "attendance": [
+        { "component": "Opening talk: what a feed is designed to do", "on": "2026-01-10", "confirmedBy": "organiser" }
+      ],
+      "completion": null
+    },
+    {
+      "opportunityId": "init-start-today",
+      "registeredOn": "2026-01-15",
+      "status": "confirmed",
+      "attendance": [],
+      "completion": null
+    }
+  ],
+  "experienceRegistrations": []
+}

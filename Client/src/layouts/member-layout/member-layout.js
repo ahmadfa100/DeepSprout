@@ -84,4 +84,96 @@
     infoDialog.showModal();
   }));
 
+  // Dev-only switch between the seeded demo account and an empty one. It
+  // appears on a local server or with ?dev=1, and shows the demo clock so an
+  // audience is never misled about which date the figures are "as of".
+  const mountDevSwitch = Account => {
+    if (!Account?.devMode()) return;
+    Account.load().then(account => {
+      const fmt = Account.format;
+      const plan = account.plan();
+      const clock = account.asOf
+        ? `${fmt.date(account.asOf, { weekday: true, year: true })}${plan ? ` · day ${plan.day}` : ''}`
+        : `${fmt.date(account.today, { weekday: true, year: true })} · real date`;
+      const option = (id, title, note) => `<label class="dev-switch-option"><input type="radio" name="dev-account" value="${id}"${account.id === id ? ' checked' : ''}><span><strong>${title}</strong><small>${note}</small></span></label>`;
+      const shell = document.createElement('div');
+      shell.className = 'dev-switch';
+      shell.innerHTML = `<button class="dev-switch-pill" type="button" aria-expanded="false" aria-controls="dev-switch-panel"><span class="dev-switch-dot" aria-hidden="true"></span><span>Demo data</span><b>${account.seeded ? 'Seeded' : 'Empty'}</b></button>
+        <div class="dev-switch-panel" id="dev-switch-panel" role="group" aria-label="Demo data" hidden>
+          <p class="dev-switch-eyebrow">Dev only · demo data</p>
+          <fieldset class="dev-switch-options" data-active="${account.id}"><legend class="visually-hidden">Account</legend><span class="dev-switch-thumb" aria-hidden="true"></span>
+            ${option('demo', 'Ahmad', 'Seeded story')}${option('empty', 'New account', 'Nothing recorded')}
+          </fieldset>
+          <p class="dev-switch-clock"><span>Clock</span>${clock}</p>
+          <p class="dev-switch-note">${account.asOfNote}</p>
+        </div>`;
+      document.body.append(shell);
+      const pill = shell.querySelector('.dev-switch-pill');
+      const panel = shell.querySelector('.dev-switch-panel');
+      const setOpen = open => {
+        panel.hidden = !open;
+        pill.setAttribute('aria-expanded', String(open));
+        shell.classList.toggle('is-open', open);
+      };
+      pill.addEventListener('click', () => setOpen(panel.hidden));
+      shell.querySelectorAll('input[name="dev-account"]').forEach(input => input.addEventListener('change', () => {
+        shell.querySelector('.dev-switch-options').dataset.active = input.value;
+        // Let the thumb finish its slide before the page reloads.
+        setTimeout(() => Account.choose(input.value), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260);
+      }));
+      document.addEventListener('keydown', event => { if (event.key === 'Escape' && !panel.hidden) { setOpen(false); pill.focus(); } });
+      document.addEventListener('click', event => { if (!shell.contains(event.target)) setOpen(false); });
+    }).catch(() => { /* The switch is a dev convenience; a page without data still renders. */ });
+  };
+  // The header shows the account the page's figures come from, so the name
+  // and the data never disagree.
+  const showAccountName = Account => Account.load().then(account => {
+    const name = account.profile().name?.trim() || 'Your account';
+    const summary = document.querySelector('.member-account summary');
+    if (!summary) return;
+    summary.querySelector('.member-avatar').textContent = name.charAt(0).toUpperCase();
+    summary.querySelector('.member-avatar + span').textContent = name;
+
+    // The bell shows the same computed next step the pages show.
+    const panel = document.querySelector('#member-notification-panel');
+    const dot = document.querySelector('.member-alert-dot');
+    const step = account.nextSteps(root)[0];
+    if (!panel) return;
+    panel.replaceChildren();
+    const title = document.createElement('strong');
+    const text = document.createElement('p');
+    if (step) {
+      title.textContent = 'Next for you';
+      text.textContent = step.reason;
+      const link = document.createElement('a');
+      link.className = 'member-popover-link';
+      link.href = step.href;
+      link.textContent = `${step.action} →`;
+      panel.append(title, text, link);
+    } else {
+      title.textContent = 'Notifications';
+      text.textContent = 'You’re all caught up for now.';
+      panel.append(title, text);
+    }
+    if (dot) dot.hidden = !step;
+  }).catch(() => { /* Keep the generic label when the data cannot load. */ });
+
+  const withAccount = Account => {
+    if (!Account) return;
+    showAccountName(Account);
+    mountDevSwitch(Account);
+  };
+
+  // Pages that read account data load account.js themselves, BEFORE this
+  // layout script. Only inject it when no copy is on the page at all.
+  const accountScript = document.querySelector('script[src*="js/data/account.js"]');
+  if (window.DeepSproutAccount) withAccount(window.DeepSproutAccount);
+  else if (accountScript) accountScript.addEventListener('load', () => withAccount(window.DeepSproutAccount));
+  else {
+    const script = document.createElement('script');
+    script.src = `${root}src/js/data/account.js`;
+    script.addEventListener('load', () => withAccount(window.DeepSproutAccount));
+    document.head.append(script);
+  }
+
 })();

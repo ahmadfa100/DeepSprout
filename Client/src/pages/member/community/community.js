@@ -2,15 +2,13 @@
   const feed = document.querySelector('#feed');
   const search = document.querySelector('#post-search');
   const filters = [...document.querySelectorAll('[data-filter]')];
-  const topics = [...document.querySelectorAll('[data-topic]')];
   const empty = document.querySelector('#empty-state');
   const dialog = document.querySelector('#compose-dialog');
   const form = document.querySelector('#compose-form');
   const toast = document.querySelector('#toast');
   const storageKey = 'deepsprout-community-demo-v1';
-  let state = { posts: [], liked: {}, saved: {}, joined: false };
+  let state = { posts: [], liked: {}, saved: {} };
   let activeFilter = 'all';
-  let activeTopic = '';
   let toastTimer;
 
   try {
@@ -32,12 +30,17 @@
     let shown = 0;
     cards().forEach(card => {
       const categoryMatch = activeFilter === 'all' || card.dataset.category === activeFilter;
-      const topicMatch = !activeTopic || (card.dataset.topics || '').split(' ').includes(activeTopic);
       const textMatch = !query || `${card.dataset.search || ''} ${card.textContent}`.toLowerCase().includes(query);
-      card.hidden = !(categoryMatch && topicMatch && textMatch);
+      card.hidden = !(categoryMatch && textMatch);
       if (!card.hidden) shown++;
     });
     empty.hidden = shown > 0;
+    // Say plainly when a category is empty rather than implying a search miss.
+    const noChallenges = activeFilter === 'challenges' && !query;
+    document.querySelector('#empty-text').textContent = noChallenges
+      ? 'No challenges have been shared yet. Start one and it will appear here.'
+      : 'No posts match your search yet. Try another category.';
+    document.querySelector('#empty-create').hidden = !noChallenges;
   };
   const setFilter = filter => {
     activeFilter = filter;
@@ -49,12 +52,6 @@
     applyFilters();
   };
   filters.forEach(button => button.addEventListener('click', () => setFilter(button.dataset.filter)));
-  topics.forEach(button => button.addEventListener('click', () => {
-    activeTopic = activeTopic === button.dataset.topic ? '' : button.dataset.topic;
-    topics.forEach(item => item.classList.toggle('selected', item.dataset.topic === activeTopic));
-    applyFilters();
-    document.querySelector('#feed').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }));
   search.addEventListener('input', applyFilters);
 
   const button = (className, label, icon, count) => {
@@ -191,22 +188,42 @@
     feed.insertBefore(makePost(post), feed.firstChild);
     feed.firstChild.id = post.id;
     search.value = '';
-    activeTopic = '';
-    topics.forEach(item => item.classList.remove('selected'));
     setFilter('all');
     form.reset(); dialog.close();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     notify('Your post was added on this device.');
   });
-  const join = document.querySelector('#join-challenge');
-  const refreshChallenge = () => { join.textContent = state.joined ? 'Joined ✓' : 'Join Challenge'; join.classList.toggle('joined', !!state.joined); join.setAttribute('aria-pressed', String(!!state.joined)); };
-  join.addEventListener('click', () => { state.joined = !state.joined; persist(); refreshChallenge(); notify(state.joined ? 'You joined the reading challenge!' : 'You left the reading challenge.'); });
-  refreshChallenge();
-  document.querySelectorAll('.see-all').forEach(button => button.addEventListener('click', () => {
-    const detail = button.closest('.side-panel').querySelector('.panel-detail');
-    detail.hidden = !detail.hidden;
-    button.setAttribute('aria-expanded', String(!detail.hidden));
-  }));
+  // Challenges: create one (posted to the feed under Challenges) or browse them.
+  const motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const showFeed = () => document.querySelector('#feed').scrollIntoView({ behavior: motion ? 'smooth' : 'auto', block: 'start' });
+  const challengeDialog = document.querySelector('#challenge-dialog');
+  const challengeForm = document.querySelector('#challenge-form');
+  document.querySelectorAll('#create-challenge, #empty-create').forEach(trigger => trigger.addEventListener('click', () => challengeDialog.showModal()));
+  challengeDialog.querySelectorAll('[data-close]').forEach(close => close.addEventListener('click', () => challengeDialog.close()));
+  challengeDialog.addEventListener('click', event => { if (event.target === challengeDialog) challengeDialog.close(); });
+  challengeForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const fields = new FormData(challengeForm);
+    const title = String(fields.get('title')).trim();
+    const goal = String(fields.get('goal')).trim();
+    if (!title || !goal) return;
+    const post = { id: `local-${Date.now()}`, category: 'challenges', title, message: `${goal} · ${fields.get('days')}-day challenge · ${fields.get('who')}` };
+    state.posts.push(post); persist();
+    const card = makePost(post);
+    card.id = post.id;
+    feed.insertBefore(card, feed.firstChild);
+    search.value = '';
+    setFilter('challenges');
+    challengeForm.reset(); challengeDialog.close();
+    showFeed();
+    notify('Your challenge was posted on this device.');
+  });
+  document.querySelector('#explore-challenges').addEventListener('click', () => {
+    search.value = '';
+    setFilter('challenges');
+    showFeed();
+    notify('Showing challenges from the community.');
+  });
   document.querySelectorAll('[data-info]').forEach(button => button.addEventListener('click', () => notify(`${button.dataset.info} information is coming soon.`)));
   applyFilters();
 })();

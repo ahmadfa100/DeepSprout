@@ -3,10 +3,14 @@
 A static HTML, CSS, and JavaScript implementation of the supplied DeepSprout mockups. Open `index.html` or serve this folder locally:
 
 ```sh
-python3 -m http.server 8765
+python3 serve.py --port 8765
 ```
 
 Pages: `index.html` (Home), `landing.html` (the former animated landing page), `onboarding.html`, `lab.html`, `recovery-plan.html`, `weekly-review.html`, `training.html` (Activities), `shield.html`, `garden.html`, `insights.html`, `explore.html`, `community.html`, `profile.html`, `pricing.html`, `login.html`, and `register.html`. Home content lives in `index.html` with its CSS and JS under `src/pages/public/home/`. Most other root files redirect to their page folder.
+
+`404.html` is the illustrated missing-page screen, with an animated SVG garden and Bimo, home and activity links, a pause control, and automatic reduced-motion support. The preview server above automatically displays it for any missing URL, including nested paths, while returning HTTP status 404. Try `/does-not-exist` to see it. Assets and recovery links use root-relative URLs so they also work at nested missing paths. For production, serve `Client/` as the site root and configure the host's missing-page handler to serve `/404.html` with HTTP status 404 (for example, Nginx `error_page 404 /404.html;` or Apache `ErrorDocument 404 /404.html`). Hosts with automatic `404.html` support need no extra rule.
+
+For VS Code Live Server, open the **DeepSprout repository** as the workspace. `.vscode/settings.json` configures port **5501** and `liveServer.settings.file: "Client/404.html"`, so missing URLs such as `/Client/well/index.html` display the illustrated page. **Stop and restart Live Server after changing this setting.** The error page detects whether assets live at `/` or `/Client/` and keeps recovery links within the app. Live Server's fallback returns HTTP 200; use `serve.py` or a production error handler when an actual HTTP 404 status is required.
 
 ## The individual cycle
 
@@ -28,6 +32,7 @@ Profile & settings has a **Reset everything** control so the full cycle can be d
 ```sh
 node tests/page-wiring.test.cjs      # element ids, icon symbols and asset paths resolve
 node tests/member-journey.test.cjs   # the whole individual cycle, in jsdom
+python3 tests/not-found-server.test.py # custom 404 responses, nested URLs, HEAD and normal assets
 ```
 
 The journey test needs `jsdom`; without it the test reports that it was skipped and exits cleanly. To run it against a jsdom installed elsewhere: `NODE_PATH=/path/to/node_modules node tests/member-journey.test.cjs`.

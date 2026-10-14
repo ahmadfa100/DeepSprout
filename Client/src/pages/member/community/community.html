@@ -33,6 +33,9 @@
     <symbol id="icon-comment" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4.2-1L3 21l1.9-5.1A8.5 8.5 0 1 1 21 11.5Z"/></symbol>
     <symbol id="icon-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4V3Z"/></symbol>
     <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="icon-target" viewBox="0 0 24 24"><path d="M20.5 10.5A8.5 8.5 0 1 1 13.5 3.6"/><path d="M16.6 11.2A4.7 4.7 0 1 1 12.8 7.4"/><path d="m12 12 7-7m-3 0h3v3"/></symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4m8-4v4m-6.5 7 2 2 4-4"/></symbol>
+    <symbol id="icon-flame" viewBox="0 0 24 24"><path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.4-5.4 3.6-8.8.4 1.9 1.4 3 2.5 3.6C12 6.7 13.3 4.6 15 3c.4 3.2 3.5 5.6 3.5 10.8 0 4.1-2.6 7.2-6.5 7.2Z"/><path d="M12 21c-1.6 0-2.8-1.2-2.8-2.9 0-1.6 1.2-2.6 2.8-4.3 1.6 1.7 2.8 2.7 2.8 4.3 0 1.7-1.2 2.9-2.8 2.9Z"/></symbol>
   </svg>
 
   <div data-site-header></div>
@@ -77,14 +80,34 @@
           <div class="post-body"><span class="post-badge questions">? &nbsp; Questions</span><h2>Any recommendations for offline activities?</h2><p>I want to spend more time away from the screen on weekends. What are some activities that helped you the most?</p><div class="post-actions"><button class="like-button" type="button" aria-label="Like Yousef's post" aria-pressed="false"><svg><use href="#icon-heart"/></svg><span>12</span></button><button class="comment-button" type="button" aria-label="Show comments on Yousef's post"><svg><use href="#icon-comment"/></svg><span>15</span></button><button class="save-button" type="button" aria-label="Save Yousef's post" aria-pressed="false"><svg><use href="#icon-bookmark"/></svg></button></div></div>
           <img class="post-image" src="../../../../assets/community/post-offline.png" alt="Backpack and book on a mountain trail"><button class="post-more" type="button" aria-label="More options for Yousef's post">•••</button><div class="post-comments" hidden><strong>Conversation</strong><p>Weekend hikes and a good paperback are my favorites.</p><form class="comment-form"><input aria-label="Write a comment" placeholder="Add some encouragement..."><button type="submit">Post</button></form></div>
         </article>
-        <p class="empty-state" id="empty-state" hidden>No posts match your search yet. Try another topic or category.</p>
+        <div class="empty-state" id="empty-state" hidden><p id="empty-text">No posts match your search yet. Try another category.</p><button type="button" class="challenge-cta is-primary" id="empty-create" hidden><svg aria-hidden="true"><use href="#icon-plus"/></svg>Create a challenge</button></div>
       </section>
 
-      <aside class="sidebar" aria-label="Community highlights">
-        <section class="side-panel glance"><div class="panel-heading"><h2>Community at a Glance</h2><button type="button" class="see-all" data-panel="glance">See all <svg><use href="#icon-arrow"/></svg></button></div><div class="stat-grid"><div class="stat"><img src="../../../../assets/community/members.png" alt=""><strong>1.2K</strong><small>Members</small></div><div class="stat"><img src="../../../../assets/community/leaf.png" alt=""><strong>340</strong><small>Posts</small></div><div class="stat"><img src="../../../../assets/community/comments.png" alt=""><strong>1.1K</strong><small>Comments</small></div><div class="stat"><img src="../../../../assets/community/star.png" alt=""><strong>120</strong><small>Weekly Active</small></div></div><p class="panel-detail" hidden>A growing space for sharing progress, questions, tips, and small wins.</p></section>
-        <section class="side-panel challenge"><div class="panel-heading"><h2><span class="heading-icon gold">★</span>This Week’s Challenge</h2><button type="button" class="see-all" data-panel="challenge">See all <svg><use href="#icon-arrow"/></svg></button></div><div class="challenge-row"><img src="../../../../assets/community/challenge-sprout.png" alt="Growing sprout"><div><h3>7-Day Reading Focus</h3><p>Read for at least 15 minutes each day<br>and share your experience.</p></div><button type="button" id="join-challenge">Join Challenge</button></div><p class="panel-detail" hidden>Start with one short reading session today. Your challenge status stays on this device.</p></section>
-        <section class="side-panel topics"><div class="panel-heading"><h2><span class="heading-icon orange">◆</span>Trending Topics</h2><button type="button" class="see-all" data-panel="topics">See all <svg><use href="#icon-arrow"/></svg></button></div><div class="topic-list"><button type="button" data-topic="reading">#Reading</button><button type="button" data-topic="focustips">#FocusTips</button><button type="button" data-topic="offlineactivities">#OfflineActivities</button><button type="button" data-topic="myjourney">#MyJourney</button><button type="button" data-topic="deepwork">#DeepWork</button><button type="button" data-topic="studyhabits">#StudyHabits</button></div><p class="panel-detail" hidden>Select a topic to filter the feed. Select it again to show every post.</p></section>
-        <section class="side-panel contributors"><div class="panel-heading"><h2><span class="heading-icon gold">★</span>Top Contributors</h2><button type="button" class="see-all" data-panel="contributors">See all <svg><use href="#icon-arrow"/></svg></button></div><div class="contributor-list"><div><img src="../../../../assets/community/avatar-lina.png" alt=""><span><strong>Lina</strong><small>1.2K pts</small></span><b>1</b></div><div><img src="../../../../assets/community/avatar-omar.png" alt=""><span><strong>Omar_97</strong><small>980 pts</small></span><b>2</b></div><div><img src="../../../../assets/community/avatar-sara.png" alt=""><span><strong>Sara.M</strong><small>860 pts</small></span><b>3</b></div></div><p class="panel-detail" hidden>Thanks to everyone making this space welcoming and encouraging.</p></section>
+      <aside class="sidebar" aria-label="Challenges">
+        <section class="challenge-card is-create" aria-labelledby="create-challenge-title">
+          <div class="challenge-card-main">
+            <span class="challenge-card-icon" aria-hidden="true"><svg><use href="#icon-target"/></svg></span>
+            <div class="challenge-card-copy"><h2 id="create-challenge-title">Create a Challenge</h2><p>Set a personal goal or invite a partner to stay accountable together.</p></div>
+            <button type="button" class="challenge-cta is-primary" id="create-challenge"><svg aria-hidden="true"><use href="#icon-plus"/></svg>Create Challenge</button>
+          </div>
+          <ul class="challenge-features">
+            <li><svg aria-hidden="true"><use href="#icon-people"/></svg>1 on 1 or small group</li>
+            <li><svg aria-hidden="true"><use href="#icon-calendar"/></svg>Set duration &amp; goal</li>
+            <li><svg aria-hidden="true"><use href="#icon-bars"/></svg>Shared to the feed</li>
+          </ul>
+        </section>
+        <section class="challenge-card is-find" aria-labelledby="find-challenge-title">
+          <div class="challenge-card-main">
+            <span class="challenge-card-icon" aria-hidden="true"><svg><use href="#icon-search"/></svg></span>
+            <div class="challenge-card-copy"><h2 id="find-challenge-title">Find a Challenge</h2><p>Join an existing challenge and grow together with others.</p></div>
+            <button type="button" class="challenge-cta is-outline" id="explore-challenges"><svg aria-hidden="true"><use href="#icon-search"/></svg>Explore Challenges</button>
+          </div>
+          <ul class="challenge-features">
+            <li><svg aria-hidden="true"><use href="#icon-people"/></svg>Various topics</li>
+            <li><svg aria-hidden="true"><use href="#icon-flame"/></svg>All levels</li>
+            <li><svg aria-hidden="true"><use href="#icon-target"/></svg>Start anytime</li>
+          </ul>
+        </section>
       </aside>
     </div>
   </main>
@@ -92,6 +115,7 @@
   <div data-site-footer></div>
 
   <dialog id="compose-dialog" aria-labelledby="compose-title"><form id="compose-form"><button class="dialog-close" type="button" data-close aria-label="Close">×</button><p class="dialog-eyebrow">GROW TOGETHER</p><h2 id="compose-title">Share with the community</h2><label>Category<select name="category" required><option value="progress">Progress</option><option value="tips">Tips &amp; Resources</option><option value="questions">Questions</option><option value="challenges">Challenges</option><option value="wins">Wins</option></select></label><label>Title<input name="title" maxlength="100" required placeholder="What would you like to share?"></label><label>Your post<textarea name="message" maxlength="600" rows="5" required placeholder="Every small step is worth sharing..."></textarea></label><div class="dialog-actions"><button type="button" class="cancel-button" data-close>Cancel</button><button type="submit" class="publish-button">Share post</button></div><p class="dialog-note">This frontend demo saves your post on this device only.</p></form></dialog>
+  <dialog id="challenge-dialog" aria-labelledby="challenge-title"><form id="challenge-form"><button class="dialog-close" type="button" data-close aria-label="Close">×</button><p class="dialog-eyebrow">NEW CHALLENGE</p><h2 id="challenge-title">Create a challenge</h2><label>Name<input name="title" maxlength="80" required placeholder="e.g. Phone-free mornings"></label><label>Your daily goal<input name="goal" maxlength="140" required placeholder="e.g. No phone for the first hour after waking"></label><div class="challenge-form-row"><label>Who<select name="who"><option value="Just me">Just me</option><option value="With a partner">With a partner</option><option value="Small group">Small group</option></select></label><label>Duration<select name="days"><option value="7">7 days</option><option value="14">14 days</option><option value="28">28 days</option></select></label></div><div class="dialog-actions"><button type="button" class="cancel-button" data-close>Cancel</button><button type="submit" class="publish-button">Create challenge</button></div><p class="dialog-note">Your challenge is posted to the feed under Challenges. This frontend demo saves it on this device only.</p></form></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
