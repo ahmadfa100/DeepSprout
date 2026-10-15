@@ -8,8 +8,6 @@
   const $ = id => document.getElementById(id);
   const reducedMotion = typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const STAGES = [['Seed', 0], ['Sprout', 1], ['Sapling', 2], ['Tree', 4], ['Blossom', 6]];
-  const stageFor = count => STAGES.reduce((stage, [, from], index) => (count >= from ? index : stage), 0);
   const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
   const STATE_LABELS = { completed: 'Completed', missed: 'Missed', rest: 'Planned rest day', 'not-due': 'Not due yet', none: 'Nothing scheduled' };
@@ -53,13 +51,13 @@
       $('space-shield-note').textContent = 'Connect the Chrome extension to measure the sites you choose.';
     }
 
-    // What this week has grown: valid practices plus routine days, both real records.
-    const week = plan ? account.adherence().completed + (account.routine().week?.done || 0) : 0;
-    const stage = stageFor(week);
-    $('space-garden-title').textContent = week ? `${STAGES[stage][0]} · ${plural(week, 'thing')} this week` : 'A seed, ready to grow';
-    $('space-garden-note').textContent = stage < 4
-      ? `${STAGES[stage + 1][1] - week} more to reach ${STAGES[stage + 1][0].toLowerCase()}.`
-      : 'In full blossom this week.';
+    // The same policy the Garden page uses: one plant, grown from qualifying records.
+    const garden = account.garden();
+    const stage = garden.stageIndex;
+    $('space-garden-title').textContent = garden.count ? `${garden.stage.label} · ${plural(garden.count, 'growth step')}` : 'A seed, ready to grow';
+    $('space-garden-note').textContent = garden.next
+      ? `${garden.toNext} more to reach ${garden.next.label.toLowerCase()}.`
+      : 'In full blossom.';
     if (Art) $('mini-garden').innerHTML = `${Art.defs}${Art.tile(250, 250, 2)}<g class="mini-plant" style="transform-origin:250px 254px">${Art.plant(stage, 250, 254, 2)}</g>`;
   }
 

@@ -3,7 +3,7 @@
  *
  * Every member page reads and writes one object so the individual cycle stays
  * connected: onboarding collects a goal, the Lab records assessment attempts,
- * plan activation writes commitments, and Home / Recovery Plan / Garden read
+ * plan activation writes commitments, and Home / Roadmap / Garden read
  * the same record. Nothing here talks to a server; this is device-local demo
  * state for the client preview.
  *
@@ -362,7 +362,7 @@
       };
     }
     if (!state.onboarding.planActivated) {
-      return { label: 'Build my recovery plan', href: path('src/pages/member/onboarding/starting-point.html'), why: 'Your results are ready' };
+      return { label: 'Build my Roadmap', href: path('src/pages/member/onboarding/starting-point.html'), why: 'Your results are ready' };
     }
     if (reviewDue()) {
       return { label: 'Review your week', href: path('src/pages/member/weekly-review/weekly-review.html'), why: `Week ${cycleWeek()} is wrapping up` };

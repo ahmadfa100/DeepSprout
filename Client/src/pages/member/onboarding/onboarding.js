@@ -240,6 +240,18 @@
         current.onboarding.setupDone = true;
         current.onboarding.introSeen = true;
       });
+      // Also record the setup on the account, so Home, Profile and every
+      // account-backed page see that it is done.
+      window.DeepSproutAccount?.load().then(account => account.mutate({
+        type: 'setup.save',
+        goal: answers.goal ? { id: answers.goal, label: DS.GOALS[answers.goal] || answers.goal, setOn: account.todayKey } : null,
+        setup: {
+          answeredOn: account.todayKey,
+          distracting: answers.distracting || [], peakTime: answers.peakTime || '', baselineMinutes: answers.baselineMinutes || '',
+          devices: answers.devices || [], offlineInterests: answers.offlineInterests || [],
+          availableDays: answers.availableDays || '', protection: answers.protection || ''
+        }
+      })).catch(() => { /* the setup is still kept on this device */ });
       show('handoff');
       return;
     }

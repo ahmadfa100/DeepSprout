@@ -28,23 +28,19 @@ const planDialog = document.getElementById('plan-dialog');
 const dialogTitle = document.getElementById('dialog-title');
 const dialogPrice = document.getElementById('dialog-price');
 const dialogDescription = document.getElementById('dialog-description');
-const planDetails = {
-  monthly: {
-    title: 'Plus Monthly',
-    price: '$3.99 per month',
-    description: 'Includes extra sessions, advanced depth paths, AI-personalized content within a monthly quota, advanced insights, and garden customization.'
-  },
-  annual: {
-    title: 'Plus Annual',
-    price: '$29.99 per year · about $2.50/month',
-    description: 'The same Plus features at the annual price shown in the supplied design. Annual billing offers the best value for long-term use.'
-  }
-};
-document.querySelectorAll('[data-plan]').forEach(button => button.addEventListener('click', () => {
-  const plan = planDetails[button.dataset.plan];
-  dialogTitle.textContent = plan.title;
-  dialogPrice.textContent = plan.price;
-  dialogDescription.textContent = plan.description;
-  planDialog.showModal();
-}));
+const catalogue = import('../../../js/config/subscriptions.js');
+catalogue.then(({planById,money})=>{
+  document.querySelectorAll('[data-plan]').forEach(button=>{
+    const plan=planById(button.dataset.plan);
+    const card=button.closest('.plan-card');
+    card.querySelector('.price strong').textContent=money(plan.amount);
+    if(plan.interval==='year')card.querySelector('.annual-note').textContent=`About ${money(Math.round(plan.amount/12))}/mo, billed annually`;
+    button.addEventListener('click',()=>{
+      dialogTitle.textContent=plan.name;
+      dialogPrice.textContent=`${money(plan.amount)} per ${plan.interval}`;
+      dialogDescription.textContent='Plus includes extra sessions, advanced depth paths, advanced insights, and garden customisation. These are proposed features in this preview.';
+      planDialog.showModal();
+    });
+  });
+});
 planDialog.addEventListener('click', event => { if (event.target === planDialog) planDialog.close(); });

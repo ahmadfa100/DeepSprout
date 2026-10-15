@@ -13,66 +13,39 @@
   <link rel="stylesheet" href="../../../../src/styles/style.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
   <link rel="stylesheet" href="garden.css">
-  <script src="../../../../src/js/utils/storage.js" defer></script>
+  
+  <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
-  <script src="garden-art.js" defer></script>
   <script src="garden.js" defer></script>
 </head>
 <body data-page="garden" data-root="../../../../">
   <div data-site-header></div>
 
   <main class="garden-page">
+    <!-- 1 · Heading -->
     <header class="garden-head">
-      <svg class="garden-head-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 36V20" stroke="#2f8a4e" stroke-width="3" stroke-linecap="round"/><path d="M20 22C11 22 6 16 6 7c10 0 14 5 14 15Z" fill="#5fb15a"/><path d="M20 20c0-9 4-15 14-15 0 10-5 15-14 15Z" fill="#3f9a4c"/></svg>
+      <p class="garden-eyebrow">Garden</p>
       <h1>My Garden</h1>
-      <p id="garden-subtitle">Every practice and offline day you log grows something here.</p>
+      <p id="garden-subtitle">One plant, grown only from what you actually did. Nothing here is a score.</p>
     </header>
 
-    <section class="garden-stage" aria-label="Your garden">
-      <div class="garden-ambient" aria-hidden="true">
-        <span class="amb bush b1"></span><span class="amb bush b2"></span><span class="amb bush b3"></span><span class="amb bush b4"></span><span class="amb bush b5"></span>
-        <span class="amb cloud c1"></span><span class="amb cloud c2"></span>
-      </div>
-
-      <div class="garden-scene" id="garden-scene">
-        <svg id="garden-svg" viewBox="0 0 900 520" role="img" aria-labelledby="garden-svg-title"><title id="garden-svg-title">Your garden</title></svg>
-        <div class="garden-effects" id="garden-effects" aria-hidden="true"></div>
-      </div>
-
-      <button type="button" class="reward" data-reward="flower" style="--x: 24%; --y: 14%"><span class="reward-orb"><span class="reward-icon"></span><span class="reward-q">?</span></span><span class="reward-label">New Flower</span><span class="reward-spark s-pink" aria-hidden="true"></span></button>
-      <button type="button" class="reward" data-reward="bloom" style="--x: 76%; --y: 14%"><span class="reward-orb"><span class="reward-icon"></span><span class="reward-q">?</span></span><span class="reward-label">Special Bloom</span><span class="reward-spark s-gold" aria-hidden="true"></span></button>
-      <button type="button" class="reward" data-reward="decor" style="--x: 15%; --y: 64%"><span class="reward-orb"><span class="reward-icon"></span><span class="reward-q">?</span></span><span class="reward-label">Garden Decor</span><span class="reward-spark s-leaf" aria-hidden="true"></span></button>
-      <button type="button" class="reward" data-reward="effect" style="--x: 85%; --y: 66%"><span class="reward-orb"><span class="reward-icon"></span><span class="reward-q">?</span></span><span class="reward-label">Visual Effect</span><span class="reward-spark s-blue" aria-hidden="true"></span></button>
+    <!-- 2 · The scene -->
+    <section class="garden-scene" aria-label="Your garden">
+      <canvas id="garden-canvas" role="img" aria-label="Your garden is loading"></canvas>
+      <!-- One transparent button over each tree: focusable, with a tooltip on hover, focus or tap. -->
+      <div class="garden-trees" id="garden-trees" role="group" aria-label="Trees in your garden" hidden></div>
+      <div class="garden-tip" id="garden-tip" aria-hidden="true" hidden></div>
+      <button type="button" class="garden-replay" id="garden-replay" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/></svg>Replay entrance
+      </button>
     </section>
+    <p class="garden-hint" id="garden-hint"></p>
 
-    <section class="garden-detail" id="garden-detail" aria-live="polite"></section>
+    <!-- 3 · Next unlock -->
+    <p class="garden-next" id="garden-next" aria-live="polite"></p>
 
-    <section class="garden-rules" aria-labelledby="rules-title">
-      <h2 id="rules-title" class="visually-hidden">How your garden grows</h2>
-      <div class="rule">
-        <span class="rule-icon r-gold"><svg viewBox="0 0 32 32"><path d="M16 7c-4-3-9-3-13-2v19c5-1 10 0 13 3 3-3 8-4 13-3V5c-4-1-9-1-13 2Zm0 0v20"/></svg></span>
-        <div><strong id="count-practices">0</strong><span>practices logged</span></div>
-      </div>
-      <div class="rule">
-        <span class="rule-icon r-leaf"><svg viewBox="0 0 32 32"><path d="M4 21c4 0 5-4 6-9l5 2 1 5c3 1 6 2 12 2v5H4v-5Z"/></svg></span>
-        <div><strong id="count-routine">0</strong><span>offline routine days</span></div>
-      </div>
-      <div class="rule">
-        <span class="rule-icon r-blue"><svg viewBox="0 0 32 32"><path d="M7 29V4m0 2h17l-4 6 4 6H7"/></svg></span>
-        <div><strong id="count-reviews">0</strong><span>weekly reviews</span></div>
-      </div>
-      <ol class="stage-legend" aria-label="Growth stages">
-        <li><i class="st st0"></i>Seed</li><li><i class="st st1"></i>Sprout · 1</li><li><i class="st st2"></i>Sapling · 2</li><li><i class="st st3"></i>Tree · 4</li><li><i class="st st4"></i>Blossom · 6</li>
-      </ol>
-      <p class="rules-note">One plot per week of your plan. Each practice or offline routine day you log that week grows its plot. Self-reported — nothing here is a score.</p>
-    </section>
-
-    <div class="garden-actions">
-      <a class="g-button g-primary" href="../training/training.html#training-types">Log a practice <svg viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
-      <a class="g-button" href="../training/training.html#offline-routine">Tick your offline routine</a>
-    </div>
-
-    <div class="garden-toast" id="garden-toast" role="status" aria-live="polite" hidden></div>
+    <!-- 4 · Recent achievement -->
+    <article class="garden-achievement" id="garden-achievement" aria-labelledby="achievement-title"></article>
   </main>
 
   <div data-site-footer></div>

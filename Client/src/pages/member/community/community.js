@@ -7,7 +7,7 @@
   const form = document.querySelector('#compose-form');
   const toast = document.querySelector('#toast');
   const storageKey = 'deepsprout-community-demo-v1';
-  let state = { posts: [], liked: {}, saved: {} };
+  let state = { posts: [], liked: {}, saved: {}, reports: [], moderation: {} };
   let activeFilter = 'all';
   let toastTimer;
 
@@ -16,7 +16,10 @@
     state = { ...state, ...saved };
     if (!Array.isArray(state.posts)) state.posts = [];
   } catch { /* The demo still works when storage is unavailable. */ }
-  const persist = () => { try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch {} };
+  const refreshModeration = () => {
+    try { const latest=JSON.parse(localStorage.getItem(storageKey)||'{}');state.reports=Array.isArray(latest.reports)?latest.reports:[];state.moderation=latest.moderation||{}; } catch {}
+  };
+  const persist = () => { refreshModeration();try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch {} };
   const notify = message => {
     toast.textContent = message;
     toast.classList.add('show');
@@ -31,7 +34,7 @@
     cards().forEach(card => {
       const categoryMatch = activeFilter === 'all' || card.dataset.category === activeFilter;
       const textMatch = !query || `${card.dataset.search || ''} ${card.textContent}`.toLowerCase().includes(query);
-      card.hidden = !(categoryMatch && textMatch);
+      card.hidden = state.moderation?.[cardId(card)]==='hidden' || !(categoryMatch && textMatch);
       if (!card.hidden) shown++;
     });
     empty.hidden = shown > 0;
@@ -148,11 +151,20 @@
       document.querySelectorAll('.post-menu').forEach(open => open.remove());
       const popover = document.createElement('div');
       popover.className = 'post-menu';
-      popover.innerHTML = '<button type="button" data-action="copy">Copy post link</button><button type="button" data-action="hide">Hide for now</button>';
+      popover.innerHTML = '<button type="button" data-action="copy">Copy post link</button><button type="button" data-action="hide">Hide for now</button><button type="button" data-action="report">Report to moderation</button>';
       card.append(popover);
     } else if (target.dataset.action === 'copy') {
       const link = `${location.href.split('#')[0]}#${id}`;
       navigator.clipboard?.writeText(link).then(() => notify('Post link copied.')).catch(() => notify('Copy is unavailable in this browser.'));
+      target.closest('.post-menu').remove();
+    } else if (target.dataset.action === 'report') {
+      refreshModeration();
+      if (state.reports.some(report=>report.postId===id&&report.status==='pending')) {
+        notify('This post is already awaiting review.');
+      } else {
+        state.reports.push({id:`report-${Date.now()}`,postId:id,reason:'Member requested content review',status:'pending',created:new Date().toISOString(),post:{id,title:card.querySelector('h2')?.textContent||'Community post',body:card.querySelector('.post-body > p')?.textContent||'',author:card.querySelector('.post-author strong')?.textContent||'Member'}});
+        try { localStorage.setItem(storageKey,JSON.stringify(state));notify('Report sent to the local moderation queue.'); } catch { notify('The report could not be saved. Please try again.'); }
+      }
       target.closest('.post-menu').remove();
     } else if (target.dataset.action === 'hide') {
       card.dataset.hiddenByUser = 'true';
@@ -226,4 +238,16 @@
   });
   document.querySelectorAll('[data-info]').forEach(button => button.addEventListener('click', () => notify(`${button.dataset.info} information is coming soon.`)));
   applyFilters();
+  window.addEventListener('storage',event=>{if(event.key===storageKey){refreshModeration();applyFilters();}});
+
+  // Arriving from "Share" on the Garden: open the composer prefilled. The
+  // person still decides whether to post — nothing is shared automatically.
+  const shared = new URLSearchParams(location.search).get('share');
+  if (shared) {
+    form.querySelector('[name="category"]').value = 'wins';
+    form.querySelector('[name="title"]').value = shared.slice(0, 100);
+    form.querySelector('[name="message"]').value = '';
+    dialog.showModal();
+    form.querySelector('[name="message"]').focus();
+  }
 })();

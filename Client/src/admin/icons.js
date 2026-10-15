@@ -1,0 +1,30 @@
+// Small inline outline icons; no runtime icon dependency.
+const paths={
+ billing:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/>',
+ dashboard:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+ users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M15 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/>',
+ user:'<circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2M8 21h8"/>',
+ activities:'<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/>',
+ run:'<circle cx="16" cy="4" r="2"/><path d="m5 10 4-3 5 3 4 2 3-1M12 10l-3 5-5 1m9-4 3 4-2 5M9 7l3 3"/>',
+ plans:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>',
+ assessments:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/>',
+ shield:'<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/>',
+ content:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z M14 2v6h6M8 13h8M8 17h6"/>',
+ reports:'<path d="M3 21h18M5 18V9h3v9m3 0V3h3v15m3 0v-6h3v6"/>',
+ settings:'<path d="m9 3-1 3-3 1v4l-2 1 2 1v4l3 1 1 3h6l1-3 3-1v-4l2-1-2-1V7l-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/>',
+ panel:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M5.5 8h1M5.5 12h1M5.5 16h1"/>',
+ bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
+ external:'<path d="M15 3h6v6m0-6-10 10M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"/>',
+ logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5M21 12H9"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ bolt:'<path d="m13 2-9 12h7l-1 8 10-12h-7Z"/>',
+ alert:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h.01"/>',
+ sprout:'<path d="M12 22v-9M12 13C3 13 2 8 2 4c8 0 10 4 10 9Zm0 3c0-8 3-12 10-12 0 7-3 12-10 12Z"/>',
+ plus:'<path d="M12 4v16M4 12h16"/>',
+ chevron:'<path d="m9 5 7 7-7 7"/>',
+ arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>',
+ check:'<path d="m5 12 4 4L19 6"/>',
+ pie:'<path d="M21 12a9 9 0 1 1-9-9v9Z M15 3a9 9 0 0 1 6 6h-6Z"/>',
+ close:'<path d="m6 6 12 12M6 18 18 6"/>'
+};
+export const icon=name=>`<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]||paths.content}</svg>`;

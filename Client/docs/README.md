@@ -1,9 +1,13 @@
 # Client documentation
 
-## Architecture
+The [authoritative DeepSprout specification](../../DeepSprout.md) defines the approved target and decision register. These files are **dated implementation and design handoffs**; their original test results, collaboration boundaries and open-question lists should not override later owner approvals. The [cross-workspace cycle audit](../../docs/cycles/README.md) records the current route and data-boundary evidence, while [master §29](../../DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) summarizes current versus target.
 
-- [Admin cycle](architecture/admin-cycle.md)
+## Architecture and current-state reports
+
+- [Legacy Admin cycle](architecture/admin-cycle.md)
 - [Partner workspaces](architecture/partner-workspaces.md)
+- [Admin dashboard redesign](architecture/admin-dashboard-redesign.md)
+- [Admin/member integration audit](architecture/admin-member-ia-audit.md)
 
 ## Experience handoffs
 
@@ -23,4 +27,4 @@
 - [Validation evidence](validation/README.md)
 - [Original design references](../references/README.md)
 
-Handoffs describe the implementation at their original milestone. Historical reports retain their original measurements and recorded path strings; current evidence locations are indexed in the validation guide.
+Historical reports retain their original measurements and path strings. The next technical slice is defined in [master §30](../../DeepSprout.md#30-implementation-dependency-roadmap-and-handoff).

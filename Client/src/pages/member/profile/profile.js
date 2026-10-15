@@ -1,31 +1,35 @@
-/** Profile and settings, including the controls that make the demo repeatable. */
+/** Profile and settings, read from the account record, plus demo controls. */
 (() => {
-  const DS = window.DeepSprout;
+  const Account = window.DeepSproutAccount;
   const root = document.body.dataset.root || '../../../../';
+  let account = null;
+  const PREFS_KEY = 'deepsprout-preferences';
+  const readPrefs = () => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch { return {}; } };
+  const writePrefs = value => { try { localStorage.setItem(PREFS_KEY, JSON.stringify(value)); } catch { /* this visit only */ } };
 
   /* ---------------------------------------------------------------- account */
 
   function renderAccount() {
-    const { profile, onboarding, plan } = DS.get();
+    const profile = account.profile();
+    const plan = account.plan();
     document.getElementById('name').value = profile.name || '';
     document.getElementById('email').value = profile.email || '';
     document.getElementById('profile-name').textContent = profile.name || 'Your account';
-    document.getElementById('avatar').textContent = (profile.name || 'A').trim().charAt(0).toUpperCase();
-
-    const day = DS.cycleDay();
-    document.getElementById('profile-state').textContent = onboarding.planActivated && plan
-      ? `Cycle ${plan.cycleNumber}, day ${day} of ${plan.cycleLength} · ${plan.goalLabel}`
+    document.getElementById('avatar').textContent = (profile.name || 'Y').trim().charAt(0).toUpperCase();
+    document.getElementById('profile-state').textContent = plan
+      ? `Cycle ${plan.cycleNumber}, day ${plan.day} of ${plan.lengthDays} · ${plan.goalLabel}`
       : 'No plan is active yet. Your first run sets your goal and your starting point.';
   }
 
   document.getElementById('save-account').addEventListener('click', () => {
-    DS.update(state => {
-      state.profile.name = document.getElementById('name').value.trim();
-      state.profile.email = document.getElementById('email').value.trim();
+    account.mutate({
+      type: 'profile.update',
+      name: document.getElementById('name').value.trim(),
+      email: document.getElementById('email').value.trim()
     });
     renderAccount();
     const saved = document.getElementById('account-saved');
-    saved.textContent = 'Saved on this device.';
+    saved.textContent = 'Saved to this account.';
     window.setTimeout(() => { saved.textContent = ''; }, 3000);
   });
 
@@ -61,15 +65,15 @@
       return value.map(entry => LABELS[key]?.[entry] || entry).join(', ');
     }
     if (!value) return null;
-    if (key === 'goal') return DS.GOALS[value] || value;
+    if (key === 'goal') return account.profile().goal?.label || null;
     if (key === 'availableDays') return `${value} day${value === '1' ? '' : 's'} a week`;
     return LABELS[key]?.[value] || value;
   };
 
   function renderAnswers() {
-    const profile = DS.get().profile;
+    const profile = account.profile().setup || {};
     const rows = [
-      ['Main goal', describe('goal', profile.goal)],
+      ['Main goal', describe('goal', account.profile().goal ? 'goal' : null)],
       ['Most distracting', describe('distracting', profile.distracting)],
       ['Usually scrolls', describe('peakTime', profile.peakTime)],
       ['Self-reported daily time', describe('baselineMinutes', profile.baselineMinutes)],
@@ -94,17 +98,14 @@
   /* -------------------------------------------------------------- the journey */
 
   function renderJourney() {
-    const { onboarding } = DS.get();
-    const done = DS.ASSESSMENTS.filter(item => DS.assessmentAttempt(item.id)).length;
-
+    const names = Account.NAMES;
+    const baseline = account.checkIns().filter(entry => entry.baseline).length;
+    const plan = account.plan();
     const steps = [
-      { done: onboarding.bimoSeen, title: 'Met Bimo', note: 'The first-run introduction.', href: `${root}src/pages/member/onboarding/onboarding.html` },
-      { done: onboarding.setupDone, title: 'Personal setup', note: 'Eight quick questions.', href: `${root}src/pages/member/onboarding/onboarding.html?step=setup` },
-      { done: done === 4, title: 'Four assessments', note: `${done} of 4 recorded.`, href: `${root}src/pages/member/lab/lab.html` },
-      { done: onboarding.resultsSeen, title: 'Starting point', note: 'Your baseline results.', href: `${root}src/pages/member/onboarding/starting-point.html` },
-      { done: onboarding.planActivated, title: 'Plan activated', note: 'Your 28-day cycle is running.', href: `${root}src/pages/member/recovery-plan/recovery-plan.html` }
+      { done: Boolean(account.profile().setup), title: 'Personal setup', note: 'Eight quick questions.', href: `${root}src/pages/member/onboarding/onboarding.html?step=setup` },
+      { done: baseline === 4, title: `Starting ${names.checkIn.toLowerCase()}`, note: `${baseline} of 4 tasks recorded.`, href: `${root}src/pages/member/lab/lab.html` },
+      { done: Boolean(plan), title: 'Plan activated', note: plan ? `Cycle ${plan.cycleNumber} is running — day ${plan.day} of ${plan.lengthDays}.` : 'Your 28-day cycle starts here.', href: `${root}src/pages/member/recovery-plan/recovery-plan.html` }
     ];
-
     document.getElementById('journey-list').replaceChildren(...steps.map(step => {
       const item = document.createElement('li');
       if (step.done) item.classList.add('is-done');
@@ -125,7 +126,7 @@
   ];
 
   function renderToggles() {
-    const stored = DS.get().preferences || {};
+    const stored = readPrefs();
     const container = document.getElementById('toggles');
     container.replaceChildren(...TOGGLES.map(toggle => {
       const on = stored[toggle.key] !== false;
@@ -138,10 +139,7 @@
       button.setAttribute('aria-pressed', String(on));
       button.setAttribute('aria-label', `${toggle.title}: ${on ? 'on' : 'off'}`);
       button.addEventListener('click', () => {
-        DS.update(state => {
-          state.preferences = state.preferences || {};
-          state.preferences[toggle.key] = !on;
-        });
+        writePrefs({ ...readPrefs(), [toggle.key]: !on });
         renderToggles();
       });
       row.append(button);
@@ -151,22 +149,17 @@
 
   /* ----------------------------------------------------------- demo controls */
 
-  document.getElementById('replay-tour').addEventListener('click', () => {
-    DS.update(state => { state.onboarding.tourSeen = false; });
-    location.href = `${root}src/pages/member/onboarding/starting-point.html`;
-  });
-
   const dataDialog = document.getElementById('data-dialog');
   document.getElementById('export-data').addEventListener('click', () => {
-    document.getElementById('data-output').textContent = JSON.stringify(DS.get(), null, 2);
+    document.getElementById('data-output').textContent = JSON.stringify(account.exportRecord(), null, 2);
     dataDialog.showModal();
   });
 
   const resetDialog = document.getElementById('reset-dialog');
   document.getElementById('reset-demo').addEventListener('click', () => resetDialog.showModal());
   document.getElementById('confirm-reset').addEventListener('click', () => {
-    DS.reset();
-    location.href = `${root}src/pages/member/onboarding/onboarding.html`;
+    Account.resetChanges();
+    location.href = `${root}index.html`;
   });
 
   [dataDialog, resetDialog].forEach(dialog => {
@@ -175,8 +168,13 @@
     dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
   });
 
-  renderAccount();
-  renderAnswers();
-  renderJourney();
   renderToggles();
+  Account.load().then(loaded => {
+    account = loaded;
+    renderAccount();
+    renderAnswers();
+    renderJourney();
+  }).catch(() => {
+    document.getElementById('profile-state').textContent = 'Your account couldn’t be loaded.';
+  });
 })();

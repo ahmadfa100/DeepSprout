@@ -1,5 +1,5 @@
 # Server
 
-Reserved for the future backend application. No backend is implemented in this repository yet.
+Reserved for the eventual ASP.NET Core/C# API with EF Core and SQL Server. No backend, API endpoints, authentication service or database schema is implemented in this repository today.
 
-The current website runs from [Client/](../Client/README.md) and stores demo state in the browser. The intended backend direction and requirements are documented in the [product specification](../docs/product-specification.md).
+The current static demonstration runs from [Client/](../Client/README.md). The only authoritative target architecture and domain contract are in [DeepSprout.md](../DeepSprout.md), especially §§22–23 and 30.

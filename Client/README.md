@@ -1,6 +1,6 @@
 # DeepSprout client
 
-A static HTML, CSS, and JavaScript implementation of the supplied DeepSprout mockups. Open `index.html` or serve this folder locally:
+DeepSprout's current static HTML/CSS/JavaScript demonstration. The [authoritative v4.0 specification](../DeepSprout.md) covers the Individual, Institution Representative, Coach/Mentor, Invited Student, Outdoor Provider, Supervisor and one Platform Admin. The eventual stack is Angular plus ASP.NET Core/C#, EF Core and SQL Server. Serve this folder locally:
 
 ```sh
 python3 serve.py --port 8765
@@ -12,20 +12,15 @@ Pages: `index.html` (Home), `landing.html` (the former animated landing page), `
 
 For VS Code Live Server, open the **DeepSprout repository** as the workspace. `.vscode/settings.json` configures port **5501** and `liveServer.settings.file: "Client/404.html"`, so missing URLs such as `/Client/well/index.html` display the illustrated page. **Stop and restart Live Server after changing this setting.** The error page detects whether assets live at `/` or `/Client/` and keeps recovery links within the app. Live Server's fallback returns HTTP 200; use `serve.py` or a production error handler when an actual HTTP 404 status is required.
 
-## The individual cycle
+## Current Individual and partner cycles
 
-The whole journey for a regular user runs end to end, in this order:
+The regular Individual routes include Register/Login, Bimo onboarding, four Lab tasks, Your Starting Point, Recovery Plan, Activities/Offline Routine, Digital Shield, Garden, Insights, Explore, Community and Profile. `src/pages/member/` contains most destination pages; root HTML files retain public entry URLs. `index.html` is the current Home entry. A fresh four-baseline-to-active-plan run is **not verified** on this working tree; Starting Point still reads the older `DeepSprout` store while several current pages read `DeepSproutAccount`. The earlier [cycle audit](../docs/cycles/README.md) found first-run breaks. Do not call the flow complete merely because all screens render.
 
-1. **Register** → `src/pages/member/onboarding/onboarding.html` — Meet Bimo, Before We Begin, then eight quick setup questions.
-2. **Lab** → `src/pages/member/lab/` — the four baseline instruments. All four genuinely run: a questionnaire, a sustained-attention task, a go/no-go task, and a passage with comprehension questions. `assessment.html?test=<id>` runs one; `lab.html` is the hub with status and retest eligibility.
-3. **Your Starting Point** → `src/pages/member/onboarding/starting-point.html` — four separate results, a short plan-building transition, a plan preview, and **Activate My Plan**.
-4. **The running plan** — Recovery Plan, Activities (including the offline-routine checklist), Digital Shield, Garden, Insights.
-5. **Weekly Review** → `src/pages/member/weekly-review/weekly-review.html` — what was recorded, two questions, and a choice for next week.
-6. **Explore** and **Profile & settings** are reachable from the navbar and account menu.
+`workspaces.html` and `partners.html` provide browser-local Institution, Coach, Invited Student, Outdoor Provider, Supervisor, partner Participant and Admin workflows. Their local command/state flows are richer than mock screens, but **regular** `explore.html` currently reads `src/data/listings.json` and separate Individual records; a new partner-published Initiative did not appear there in the dated browser audit. Identity, applications, bookings, assignments and Garden evidence still need one cross-workspace contract. The limited partner Participant view is not the regular Individual account.
 
-`src/js/utils/storage.js` holds the shared journey state (`deepsprout-user-v1`): setup answers, assessment attempts, the active plan, the offline routine, activity log and registrations. Every page reads and writes that one record, which is what keeps the cycle joined up. It is browser-local only — there is no backend, no AI and no account service in this build.
+The current personal Garden renders a journey tree plus achievement trees and dims after quiet days. The approved target is **exactly four practice-type trees** in one fixed Personal scene, bounded flower/rabbit/birdhouse effects and neutral no-data status. The current Lab opens official rechecks around the end of a plan cycle; the approved target opens eligibility weekly, using Digital Habits plus one rotating task as the current implementation direction. See [master §§4, 9 and 29](../DeepSprout.md).
 
-Profile & settings has a **Reset everything** control so the full cycle can be demonstrated more than once on the same machine.
+The application uses multiple browser-local stores (`deepsprout-user-v1`, `deepsprout-account-changes-v1:<choice>`, `deepsprout-ecosystem-demo-v1` and legacy Admin data). No real login, email/OTP, payment, browser extension, secure QR, backend authorization or cross-device capacity guarantee is present. Demo prices and external-service outcomes must be labeled as illustrative or simulated.
 
 ## Tests
 
@@ -48,7 +43,7 @@ The journey test needs `jsdom`; without it the test reports that it was skipped 
 - `src/styles/page-hero.css` is the shared hero for Roadmap, Activities, Digital Shield, Insights and Community: one fixed-height frame with copy on the left and art on the right.
 - Digital Shield preferences are local browser preview data. The Digital Shield preview does not block apps or provide browser protection.
 
-Garden draws one isometric plot per week of the active plan (one plot before a plan exists). Each practice or offline-routine day logged that week grows its plot through five stages: seed, sprout, sapling, tree, blossom. Four rewards unlock on visible rules: New Flower (3 practices), Special Bloom (first weekly review), Garden Decor (5 routine days) and Visual Effect (something recorded on 5 different days). There is no XP. Home, Roadmap, Activities and Garden all read their numbers from `DeepSprout.stats()` in `src/js/utils/storage.js`, which counts only what was recorded on this device; nothing in this build measures screen time, so no screen-time figure is shown. Insights still displays illustrative sample data.
+Garden and Insights currently read `DeepSproutAccount` records, while some onboarding paths still use `DeepSprout`/`storage.js`; inspect the specific route before relying on a shared-state claim. The Personal Garden and official reassessment behavior in the current code differ from the owner-approved target described above. Current source-specific metrics must never be described as verified cross-workspace analytics.
 
 Community reproduces the supplied 1440 × 960 SVG with live cards, filters, search, post composer, likes, comments, bookmarks, challenge toggle, and responsive layouts. New posts, likes, bookmarks, and challenge membership are demo data stored on the same device; there is no community backend.
 
@@ -74,8 +69,8 @@ A browser regression suite lives at `tests/home-story.test.cjs`. With this folde
 
 ## Admin demo
 
-The Login page includes **Continue as Admin (Demo)**. It opens a separate, responsive Admin workspace at `admin.html#/dashboard` with all management, recovery operations, Content Studio, community moderation, analytics, settings, and audit screens. Admin records persist locally across navigation and refreshes. Published activities appear in Training as previews; published Content Studio regions appear on the public landing page. See [Admin architecture and demo boundaries](docs/architecture/admin-cycle.md).
+The Login page includes the explicitly simulated **Continue as Admin (Demo)** shortcut. It opens a separate, responsive legacy Admin workspace at `admin.html#/dashboard` with all management, recovery operations, Content Studio, community moderation, subscriptions and revenue, settings, and audit screens. Platform analytics live on Dashboard. Admin records persist locally across navigation and refreshes. Published activities appear in Training as previews; published Content Studio regions appear on the public landing page. See [the dated Admin architecture report](docs/architecture/admin-cycle.md) and the [Admin/member IA and integration audit](docs/architecture/admin-member-ia-audit.md).
 
 ## File organization
 
-See the [documentation index](docs/README.md), [asset guide](assets/README.md), and [reference guide](references/README.md). Runtime artwork is consolidated under `assets/`; `src/` contains application source and local demo data. Root HTML files remain stable public entry URLs and animation labs.
+See the [documentation index](docs/README.md), [dated cross-workspace audit](../docs/cycles/README.md) and [authoritative master](../DeepSprout.md), [asset guide](assets/README.md), and [reference guide](references/README.md). Runtime artwork is consolidated under `assets/`; `src/` contains application source and local demo data. Root HTML files remain stable public entry URLs and animation labs.

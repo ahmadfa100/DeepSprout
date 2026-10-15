@@ -1,182 +1,172 @@
-/** Lab hub: status of the four instruments, retest eligibility and results. */
+/**
+ * Check-in hub. (Data entities and file names keep the "assessment"/"lab"
+ * naming; only the display name changes, and it lives in Account.NAMES.)
+ *
+ * Scheduling rules, all read from the account's check-in policy:
+ *  - The starting point is the first official attempt of each task.
+ *  - Official re-checks open only at the end of a cycle, ±windowDays.
+ *  - Each cycle repeats Digital Habits plus ONE rotating task; every third
+ *    cycle is a full check of all four.
+ *  - A missed window stays available on return; the result is marked late.
+ *  - Practice rounds are open any time and are never stored or compared.
+ */
 (() => {
-  const DS = window.DeepSprout;
+  const Account = window.DeepSproutAccount;
   const INSTRUMENTS = window.DeepSproutAssessments;
-  const grid = document.getElementById('lab-grid');
-  const dialog = document.getElementById('detail-dialog');
+  if (!Account) return;
+  const fmt = Account.format;
+  const NAMES = Account.NAMES;
+  const $ = id => document.getElementById(id);
+  const grid = $('lab-grid');
+  const dialog = $('detail-dialog');
+  const lower = text => text.toLowerCase();
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+  const plural = (count, one, many = `${one}s`) => `${count} ${count === 1 ? one : many}`;
+  const list = items => (items.length > 1 ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}` : items[0] || '');
+  const scoreText = (value, scale) => `${value}${scale.unit}`;
+  const rangeText = scale => `${scale.min}–${scale.max}${scale.unit}, ${scale.direction} is better`;
 
-  const completedCount = () =>
-    DS.ASSESSMENTS.filter(item => DS.assessmentAttempt(item.id)?.completedAt).length;
+  document.title = `${NAMES.checkIn} — DeepSprout`;
 
-  function renderStatus() {
-    const done = completedCount();
-    const total = DS.ASSESSMENTS.length;
-    document.getElementById('lab-meter').style.width = `${(done / total) * 100}%`;
-    document.getElementById('lab-meter-caption').textContent =
-      `${done} of ${total} assessments completed`;
+  Account.load().then(account => {
+    const due = account.checkInWindow();
+    const plan = account.plan();
+    const instruments = account.checkIns();
+    const nextOfficial = instruments.find(entry => account.checkInMode(entry.id).mode === 'official');
 
-    const note = document.getElementById('lab-status-note');
-    const actions = document.getElementById('lab-actions');
-    actions.replaceChildren();
+    /* ---------------------------------------------------------- hero actions */
 
-    if (done === 0) {
-      note.textContent = 'Nothing recorded yet. Your baseline is the set of four first attempts.';
-    } else if (done < total) {
-      note.textContent = 'Partial progress is not a baseline. Finish all four before comparing anything.';
+    const actions = $('lab-actions');
+    const button = (href, label, kind = 'btn-primary') => `<a class="btn ${kind}" href="${href}">${esc(label)} <svg><use href="#i-arrow"/></svg></a>`;
+    if (nextOfficial) {
+      actions.innerHTML = button(`assessment.html?test=${nextOfficial.id}`, due.state === 'baseline-needed' ? `Start with ${nextOfficial.title}` : `Continue: ${nextOfficial.title}`)
+        + button('../insights/insights.html#checkins', 'Results in Insights', 'btn-ghost');
     } else {
-      const next = DS.ASSESSMENTS.map(item => DS.assessmentAttempt(item.id))
-        .reduce((latest, attempt) => (!latest || attempt.completedAt > latest.completedAt ? attempt : latest), null);
-      note.textContent = `Baseline complete. Last attempt recorded ${DS.formatDate(next.completedAt, { month: 'long', day: 'numeric' })}. Formal retests open ${DS.RETEST_WINDOW_DAYS} days after each attempt.`;
+      actions.innerHTML = `<span class="btn btn-primary is-disabled" aria-disabled="true"><svg><use href="#i-lock"/></svg> ${due.opens ? `Your next ${lower(NAMES.checkIn)} in ${plural(due.daysUntilOpen, 'day')}` : 'All done for now'}</span>`
+        + button('../insights/insights.html#checkins', 'Results in Insights', 'btn-ghost');
     }
 
-    const pending = DS.nextAssessment();
-    if (pending) {
-      const start = document.createElement('a');
-      start.className = 'btn btn-primary';
-      start.href = `assessment.html?test=${pending.id}`;
-      start.innerHTML = `${done === 0 ? 'Start' : 'Continue'} with ${pending.title} <svg><use href="#i-arrow"/></svg>`;
-      actions.append(start);
+    /* ------------------------------------------------------------ the window */
+
+    const tasks = list(due.tasks.map(task => task.title));
+    const windowBox = $('ci-window');
+    windowBox.dataset.state = due.state;
+    const head = (eyebrow, title) => `<p class="eyebrow">${esc(eyebrow)}</p><h2 id="ci-window-title">${title}</h2>`;
+    if (due.state === 'baseline-needed') {
+      const remaining = instruments.filter(entry => !entry.latest);
+      windowBox.innerHTML = `<div>${head(NAMES.baseline, `Take your starting ${lower(NAMES.checkIn)}`)}
+        <p>${esc(list(remaining.map(entry => entry.title)))} · about ${remaining.reduce((sum, entry) => sum + entry.minutes, 0)} minutes in total. Your plan is built from it.</p></div>
+        ${nextOfficial ? button(`assessment.html?test=${nextOfficial.id}`, `Start with ${nextOfficial.title}`) : ''}`;
+    } else if (due.state === 'upcoming') {
+      windowBox.innerHTML = `<div>${head('Next official check', `Your next ${lower(NAMES.checkIn)} in <span class="ci-num">${due.daysUntilOpen}</span> ${due.daysUntilOpen === 1 ? 'day' : 'days'}`)}
+        <p>Opens ${esc(fmt.date(due.opens, { weekday: true, year: true }))} and stays open until ${esc(fmt.date(due.closes, { weekday: true }))}. A ${due.kind} check: ${esc(tasks)} · about ${due.minutes} minutes.</p></div>
+        <span class="btn btn-primary is-disabled" aria-disabled="true"><svg><use href="#i-lock"/></svg> Opens ${esc(fmt.date(due.opens, { year: true }))}</span>`;
+    } else if (due.state === 'open' || due.state === 'late') {
+      windowBox.classList.add('is-open');
+      windowBox.innerHTML = `<div>${head(due.state === 'late' ? 'Window closed — still available' : 'Your window is open',
+        due.state === 'late' ? `Take your ${lower(NAMES.checkIn)} now — it will be marked late` : `It’s time for your ${lower(NAMES.checkIn)}`)}
+        <p>We’ll repeat <strong>${esc(tasks)}</strong>. It takes about <strong>${due.minutes} minutes</strong>${due.state === 'late'
+          ? `. The window closed on ${esc(fmt.date(due.closes, { weekday: true }))}, so results are flagged as late.`
+          : ` and the window is open until ${esc(fmt.date(due.closes, { weekday: true }))}.`}</p></div>
+        ${nextOfficial ? button(`assessment.html?test=${nextOfficial.id}`, `Start ${nextOfficial.title}`) : ''}`;
     } else {
-      const results = document.createElement('a');
-      results.className = 'btn btn-primary';
-      results.href = '../onboarding/starting-point.html';
-      results.innerHTML = 'View your starting point <svg><use href="#i-arrow"/></svg>';
-      actions.append(results);
+      windowBox.innerHTML = `<div>${head('This cycle', `This cycle’s ${lower(NAMES.checkIn)} is done`)}<p>Your next one opens at the end of the next cycle.</p></div>`;
     }
-    const insights = document.createElement('a');
-    insights.className = 'btn btn-ghost';
-    insights.href = '../insights/insights.html';
-    insights.innerHTML = 'Compare in Insights <svg><use href="#i-chart"/></svg>';
-    actions.append(insights);
-  }
 
-  function resultRows(attempt, instrument) {
-    const rows = [];
-    (attempt.summary || []).forEach(entry => rows.push([entry.label, entry.value]));
-    rows.push(['Instrument version', instrument.version]);
-    rows.push(['Recorded', DS.formatDate(attempt.completedAt, { month: 'short', day: 'numeric', year: 'numeric' })]);
-    return rows;
-  }
+    /* ---------------------------------------------------------- the schedule */
 
-  function renderCards() {
-    grid.replaceChildren(...DS.ASSESSMENTS.map(meta => {
-      const instrument = INSTRUMENTS[meta.id];
-      const attempt = DS.assessmentAttempt(meta.id);
+    const timeline = $('ci-timeline');
+    if (!plan) {
+      timeline.innerHTML = `<li class="ci-step is-now"><b>Starting point</b><span>Before your plan begins — all four tasks once.</span></li>
+        <li class="ci-step"><b>End of each cycle</b><span>Digital Habits plus one rotating task, about 5 minutes.</span></li>
+        <li class="ci-step"><b>Every third cycle</b><span>A full check of all four tasks.</span></li>`;
+    } else {
+      const policy = account.checkInPolicy();
+      const rows = [`<li class="ci-step is-done"><b>${esc(NAMES.baseline[0].toUpperCase() + NAMES.baseline.slice(1))}</b><span>All four tasks · ${esc(fmt.date(instruments.find(entry => entry.baseline)?.baseline.on, { year: true }))}</span><em>Done</em></li>`];
+      for (let offset = 0; offset < 3; offset += 1) {
+        const cycle = plan.cycleNumber + offset;
+        const end = Account.addDays(plan.start, (offset + 1) * plan.lengthDays - 1);
+        const set = account.checkInTasks(cycle);
+        const opens = Account.addDays(end, -policy.windowDays);
+        const current = offset === 0 ? due.state : 'later';
+        rows.push(`<li class="ci-step${offset === 0 ? ' is-now' : ''}${set.kind === 'full' ? ' is-full' : ''}">
+          <b>End of cycle ${cycle} · ${set.kind === 'full' ? 'full check' : 'short check'}</b>
+          <span>${esc(list(set.tasks.map(task => task.title)))} · about ${set.minutes} min · window ${esc(fmt.date(opens))} – ${esc(fmt.date(Account.addDays(end, policy.windowDays)))}</span>
+          <em>${current === 'upcoming' ? `In ${plural(Account.daysBetween(account.today, opens), 'day')}` : current === 'open' ? 'Open now' : current === 'late' ? 'Late — available' : current === 'done' ? 'Done' : 'Later'}</em></li>`);
+      }
+      timeline.innerHTML = rows.join('');
+    }
+
+    /* ------------------------------------------------------------ the tasks */
+
+    grid.replaceChildren(...instruments.map(entry => {
+      const instrument = INSTRUMENTS[entry.id];
+      const allowed = account.checkInMode(entry.id);
       const card = document.createElement('article');
       card.className = 'card lab-card';
-
-      const head = document.createElement('div');
-      head.className = 'card-head';
-      head.innerHTML = `<span class="badge-icon ${instrument.tone}"><svg><use href="#${instrument.icon}"/></svg></span>
-        <div><h3>${instrument.title}</h3><p class="lab-kind">${instrument.kind}</p></div>`;
-
-      const blurb = document.createElement('p');
-      blurb.textContent = instrument.blurb;
-
-      const meta_row = document.createElement('div');
-      meta_row.className = 'lab-meta';
-      const status = attempt
-        ? `<span class="pill"><svg><use href="#i-check"/></svg> Completed</span>`
-        : `<span class="pill open">Not taken yet</span>`;
-      meta_row.innerHTML = `${status}
-        <span class="pill neutral"><svg><use href="#i-clock"/></svg> ~${instrument.minutes} min</span>
-        <span class="evidence" data-kind="${instrument.evidence}">${instrument.evidence === 'verified' ? 'Task-measured' : 'Self-reported'}</span>`;
-
-      card.append(head, blurb, meta_row);
-
-      if (attempt) {
-        const result = document.createElement('div');
-        result.className = 'lab-result';
-        const list = document.createElement('dl');
-        resultRows(attempt, instrument).slice(0, 3).forEach(([label, value]) => {
-          const dt = document.createElement('dt');
-          dt.textContent = label;
-          const dd = document.createElement('dd');
-          dd.textContent = value;
-          list.append(dt, dd);
-        });
-        result.append(list);
-        card.append(result);
+      const measured = entry.latest
+        ? entry.comparison
+          ? `<dl><dt>${esc(NAMES.baseline)}</dt><dd>${esc(scoreText(entry.comparison.from.score, entry.scale))} · ${esc(fmt.date(entry.comparison.from.on))}</dd>
+              <dt>${esc(NAMES.latest)}</dt><dd>${esc(scoreText(entry.comparison.to.score, entry.scale))} · ${esc(fmt.date(entry.comparison.to.on))}${entry.comparison.to.late ? ' · late' : ''}</dd></dl>`
+          : `<dl><dt>${esc(NAMES.baseline)}</dt><dd>${esc(scoreText(entry.latest.score, entry.scale))} · ${esc(fmt.date(entry.latest.on, { year: true }))}</dd>
+              <dt>Last measured</dt><dd>Cycle ${entry.lastMeasuredCycle}</dd></dl>`
+        : '<p class="lab-unmeasured">Not measured yet.</p>';
+      const next = entry.nextMeasured
+        ? `Next measured: end of cycle ${entry.nextMeasured.cycle}, from ${fmt.date(entry.nextMeasured.opens)}`
+        : '';
+      card.innerHTML = `<div class="card-head"><span class="badge-icon ${instrument.tone}"><svg><use href="#${instrument.icon}"/></svg></span>
+          <div><h3>${esc(entry.title)}</h3><p class="lab-kind">${esc(entry.kind)} · ${esc(rangeText(entry.scale))}</p></div></div>
+        <div class="lab-meta"><span class="evidence" data-kind="${entry.provenance.id === 'measured' ? 'verified' : 'self'}">${esc(entry.provenance.label)}</span>
+          <span class="pill neutral"><svg><use href="#i-clock"/></svg> ~${entry.minutes} min</span></div>
+        <div class="lab-result">${measured}</div>
+        <p class="lab-next">${esc(next)}</p>
+        <div class="lab-card-actions"></div>`;
+      const cardActions = card.querySelector('.lab-card-actions');
+      if (allowed.mode === 'official') {
+        cardActions.insertAdjacentHTML('beforeend', button(`assessment.html?test=${entry.id}`, allowed.kind === 'baseline' ? 'Take it' : allowed.late ? 'Take it (late)' : 'Take it now'));
       }
-
-      const actions = document.createElement('div');
-      actions.className = 'lab-card-actions';
-
-      if (!attempt) {
-        const start = document.createElement('a');
-        start.className = 'btn btn-primary';
-        start.href = `assessment.html?test=${meta.id}`;
-        start.innerHTML = `Take it <svg><use href="#i-arrow"/></svg>`;
-        actions.append(start);
-      } else {
+      cardActions.insertAdjacentHTML('beforeend', `<a class="btn btn-ghost" href="assessment.html?test=${entry.id}&mode=practice">Practice round</a>`);
+      if (entry.latest) {
         const details = document.createElement('button');
         details.type = 'button';
-        details.className = 'btn btn-ghost';
-        details.textContent = 'See full result';
-        details.addEventListener('click', () => openDetail(instrument, attempt));
-        actions.append(details);
-
-        if (DS.retestEligible(meta.id)) {
-          const retest = document.createElement('a');
-          retest.className = 'btn btn-primary';
-          retest.href = `assessment.html?test=${meta.id}&mode=retest`;
-          retest.innerHTML = `Retake <svg><use href="#i-arrow"/></svg>`;
-          actions.append(retest);
-        } else {
-          const days = DS.RETEST_WINDOW_DAYS - DS.daysBetween(attempt.completedAt, new Date());
-          const locked = document.createElement('span');
-          locked.className = 'lab-locked';
-          locked.textContent = `Formal retest opens in ${Math.max(1, days)} day${days === 1 ? '' : 's'}`;
-          actions.append(locked);
-        }
+        details.className = 'btn btn-quiet';
+        details.textContent = 'Full result';
+        details.addEventListener('click', () => openDetail(instrument, entry));
+        cardActions.append(details);
       }
-
-      card.append(actions);
       return card;
     }));
-  }
 
-  function openDetail(instrument, attempt) {
-    document.getElementById('detail-eyebrow').textContent = instrument.kind;
-    document.getElementById('detail-title').textContent = instrument.title;
-    const body = document.getElementById('detail-body');
-    body.replaceChildren();
-
-    const summary = document.createElement('p');
-    summary.textContent = instrument.records;
-    body.append(summary);
-
-    const list = document.createElement('dl');
-    resultRows(attempt, instrument).forEach(([label, value]) => {
-      const dt = document.createElement('dt');
-      dt.textContent = label;
-      const dd = document.createElement('dd');
-      dd.textContent = value;
-      list.append(dt, dd);
-    });
-    body.append(list);
-
-    const note = document.createElement('p');
-    note.className = 'card-note';
-    note.textContent = attempt.attemptNumber > 1
-      ? `Attempt ${attempt.attemptNumber}. Earlier attempts are kept, but comparisons only hold when the instrument version matches.`
-      : 'This is your baseline attempt. A comparison needs a second eligible attempt on the same instrument version.';
-    body.append(note);
-
-    if (attempt.caveat) {
-      const caveat = document.createElement('p');
-      caveat.className = 'card-note';
-      caveat.textContent = attempt.caveat;
-      body.append(caveat);
+    function openDetail(instrument, entry) {
+      $('detail-eyebrow').textContent = entry.kind;
+      $('detail-title').textContent = entry.title;
+      const body = $('detail-body');
+      body.replaceChildren();
+      const summary = document.createElement('p');
+      summary.textContent = instrument.records;
+      const rows = document.createElement('dl');
+      [...(entry.latest.details || []).map(detail => [detail.label, detail.value]),
+        ['Score', `${scoreText(entry.latest.score, entry.scale)} (${rangeText(entry.scale)})`],
+        ['Recorded', fmt.date(entry.latest.on, { weekday: true, year: true })]
+      ].forEach(([term, value]) => {
+        const dt = document.createElement('dt');
+        dt.textContent = term;
+        const dd = document.createElement('dd');
+        dd.textContent = value;
+        rows.append(dt, dd);
+      });
+      const note = document.createElement('p');
+      note.className = 'card-note';
+      note.textContent = entry.comparison
+        ? 'Compared with your starting point because this task was measured again. Repeating a test can raise the score through practice alone.'
+        : `No comparison yet. A comparison appears only after this task is measured again at the end of a cycle — practice rounds never count.`;
+      body.append(summary, rows, note);
+      dialog.showModal();
     }
+  }).catch(() => {
+    $('ci-window').innerHTML = '<p>Your check-in record couldn’t be loaded. Nothing is shown rather than results that aren’t true.</p>';
+  });
 
-    dialog.showModal();
-  }
-
-  dialog.querySelectorAll('[data-close-dialog]').forEach(button =>
-    button.addEventListener('click', () => dialog.close()));
+  dialog.querySelectorAll('[data-close-dialog]').forEach(close => close.addEventListener('click', () => dialog.close()));
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
-
-  renderStatus();
-  renderCards();
 })();

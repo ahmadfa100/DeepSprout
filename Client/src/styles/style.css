@@ -27,6 +27,11 @@
   --color-gold: #e9b956;         /* the user's own limit exceeded — and nothing else in data views */
   --color-alert: #ff3439;        /* the app's alert red (notification dot); a missed practice border */
 
+  /* Garden scene — measured from the existing Garden page artwork. */
+  --color-soil: #a86b3d;
+  --color-grass: #8fd06a;
+  --color-grass-deep: #5aa847;
+
   /* Leaf intensity steps for data grids, derived from the tokens above. */
   --color-leaf-1: var(--color-mint);
   --color-leaf-2: color-mix(in srgb, var(--color-leaf) 42%, var(--color-surface));

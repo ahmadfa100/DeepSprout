@@ -65,3 +65,14 @@ dialog{width:min(92vw,520px);max-height:90vh;padding:26px;border:1px solid #dfe7
 
 /* Shared hero frame (src/styles/page-hero.css) spans the community column. */
 main.page-shell > .ds-hero { width: 100%; margin-bottom: 18px; }
+
+/* Spacing pass — posts breathe. Spacing tokens only; content and structure unchanged. */
+.content-grid{gap:var(--space-24)}
+.feed{gap:var(--space-16)}
+.post-card{gap:0 var(--space-16);padding:var(--space-22) var(--space-26) var(--space-18)}
+.post-author{padding-top:var(--space-4)}
+.post-body h2{margin-top:var(--space-10);line-height:var(--leading-heading)}
+.post-body p{margin-top:var(--space-8);line-height:var(--leading-body)}
+.post-actions{margin-top:var(--space-14)}
+.post-more{right:var(--space-18);bottom:var(--space-14)}
+@media(max-width:700px){.feed{gap:var(--space-14)}.post-card{gap:0 var(--space-12);padding:var(--space-18)}.post-body{margin-top:var(--space-12)}}

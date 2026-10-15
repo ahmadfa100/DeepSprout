@@ -24,7 +24,9 @@ const pages = [
   ['src/pages/member/insights/insights.html'],
   ['src/pages/member/community/community.html'],
   ['src/pages/member/recovery-plan/recovery-plan.html'],
-  ['index.html']
+  ['index.html'],
+  ['src/pages/member/garden/garden.html'],
+  ['src/pages/member/shield/shield.html']
 ];
 
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');

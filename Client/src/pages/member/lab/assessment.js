@@ -1,11 +1,16 @@
 /**
- * Runs one baseline assessment end to end and records a single attempt.
+ * Runs one check-in task end to end.
  *
- * Only a finished run is saved. A partial run is discarded, because a partial
- * attempt is not a baseline (spec 4.4 / 4.5).
+ * An attempt is OFFICIAL only when the account allows it: the starting point,
+ * or a task repeated inside the end-of-cycle window (or late, after a missed
+ * window). Anything else is a PRACTICE ROUND: allowed any time, clearly
+ * labelled, and never stored or compared. Only a finished run is saved; a
+ * partial run is discarded (spec 4.4 / 4.5).
  */
 (() => {
-  const DS = window.DeepSprout;
+  const Account = window.DeepSproutAccount;
+  let account = null;
+  let mode = { mode: 'practice', kind: 'practice' };
   const INSTRUMENTS = window.DeepSproutAssessments;
   const params = new URLSearchParams(location.search);
   const id = params.get('test');
@@ -44,13 +49,38 @@
     ? 'A task result reflects one attempt on one day. Tiredness, interruptions and practice all move it.'
     : 'These answers are stored as self-reports. They are never combined with the timed task results.';
 
-  const previous = DS.assessmentAttempt(id);
-  if (previous && params.get('mode') !== 'retest') {
-    document.getElementById('begin-button').textContent = 'Take it again';
-  }
-
+  const begin = document.getElementById('begin-button');
+  const banner = document.getElementById('mode-banner');
+  begin.disabled = true;
   document.getElementById('begin-button').addEventListener('click', start);
   showStage('intro', { step: instrument.kind });
+
+  Account.load().then(loaded => {
+    account = loaded;
+    const allowed = account.checkInMode(id);
+    // ?mode=practice always runs a practice round, even when an official attempt is open.
+    mode = params.get('mode') === 'practice' ? { ...allowed, mode: 'practice', kind: 'practice' } : allowed;
+    const names = Account.NAMES;
+    if (mode.mode === 'practice') {
+      banner.hidden = false;
+      banner.textContent = 'Practice round — this does not count towards your results';
+      begin.innerHTML = 'Start practice round <svg><use href="#i-arrow"/></svg>';
+      if (allowed.mode === 'practice' && allowed.opens) {
+        document.getElementById('intro-caveat').textContent = `Your next official ${names.checkIn.toLowerCase()} opens ${Account.format.date(allowed.opens, { weekday: true, year: true })}. Practice as often as you like until then — it is never recorded.`;
+      }
+    } else if (mode.kind === 'recheck') {
+      banner.hidden = false;
+      banner.dataset.kind = 'official';
+      banner.textContent = mode.late
+        ? `Official ${names.checkIn.toLowerCase()} — taken after the window closed, so the result will be marked late`
+        : `Official ${names.checkIn.toLowerCase()} — this result is compared with ${names.baseline}`;
+    }
+    begin.disabled = false;
+  }).catch(() => {
+    banner.hidden = false;
+    banner.textContent = 'Your account couldn’t be loaded, so this run is a practice round and will not be recorded.';
+    begin.disabled = false;
+  });
 
   /* --------------------------------------------------------------- quitting */
 
@@ -125,6 +155,7 @@
 
   document.getElementById('survey-submit').addEventListener('click', () => {
     const values = instrument.items.map(item => surveyAnswers[item.id]);
+    const score = values.reduce((sum, value) => sum + value, 0);
     const frequent = values.filter(value => value >= 3).length;
     const strongest = instrument.items[values.indexOf(Math.max(...values))];
 
@@ -134,6 +165,7 @@
         { label: 'Rated "often" or more', value: `${frequent} of ${values.length}` },
         { label: 'Strongest self-report', value: strongest.text.replace(/^I /, '').replace(/\.$/, '') }
       ],
+      score,
       raw: { answers: { ...surveyAnswers }, scale: instrument.scale },
       lead: 'Your answers are recorded as self-reports. They describe how you see your own week — they are not a score and not a measurement.',
       caveat: 'Self-reports are useful for choosing what to work on. They are kept separate from the three timed tasks and are never averaged with them.'
@@ -302,6 +334,7 @@
           { label: 'Average reaction time', value: mean === null ? 'Not available' : `${mean} ms` },
           { label: 'Steadiness (spread)', value: spread === null ? 'Not available' : `±${spread} ms` }
         ],
+        score: taskRecord.goTotal ? Math.round((times.length / taskRecord.goTotal) * 100) : 0,
         raw: { ...taskRecord, meanRt: mean, sdRt: spread },
         valid: !sloppy,
         lead: 'Your responses to the targets were recorded. Reaction time and steadiness are reported separately — a fast average with a wide spread is a different picture from a slower, even one.',
@@ -319,6 +352,7 @@
         { label: 'Responded on a hold signal', value: `${taskRecord.commissions} of ${taskRecord.noGoTotal}` },
         { label: 'Average reaction time', value: mean === null ? 'Not available' : `${mean} ms` }
       ],
+      score: taskRecord.noGoTotal ? Math.round(((taskRecord.noGoTotal - taskRecord.commissions) / taskRecord.noGoTotal) * 100) : 0,
       raw: { ...taskRecord, meanRt: mean, sdRt: spread },
       valid: !sloppy,
       lead: 'Responding quickly and holding back are recorded as two different things. Fast responses with several hold-signal errors is a familiar pattern, not a failure.',
@@ -401,6 +435,7 @@
         { label: 'Reading time', value: `${Math.floor(seconds / 60)}m ${String(seconds % 60).padStart(2, '0')}s` },
         { label: 'Passage', value: `${instrument.difficulty} · ${words} words` }
       ],
+      score: correct,
       raw: { correct, total: instrument.questions.length, readingSeconds: seconds, answers: [...quizAnswers] },
       lead: 'Accuracy and reading time are recorded together. Reading quickly and answering poorly is a different result from reading slowly and answering well.',
       caveat: 'Comparisons only hold between passages of the same difficulty tier. A different passage is a different task.'
@@ -409,19 +444,34 @@
 
   /* ----------------------------------------------------------------- finish */
 
-  function finish({ summary, raw, lead, caveat, valid = true }) {
-    DS.saveAssessment(id, {
-      version: instrument.version,
-      kind: instrument.kind,
-      evidence: instrument.evidence,
-      summary,
-      raw,
-      valid,
-      caveat
-    });
+  function finish({ summary, raw, lead, caveat, valid = true, score }) {
+    const official = mode.mode === 'official' && account;
+    const names = Account.NAMES;
+    if (official) {
+      account.mutate({
+        type: 'assessment.add',
+        attempt: {
+          id: `aa-${Date.now().toString(36)}`,
+          definitionId: id,
+          official: true,
+          cycle: mode.cycle,
+          on: account.todayKey,
+          late: Boolean(mode.late),
+          valid,
+          score,
+          version: instrument.version,
+          details: summary,
+          raw
+        }
+      });
+    }
 
-    document.getElementById('result-title').textContent = `${instrument.title} recorded.`;
-    document.getElementById('result-lead').textContent = lead;
+    document.getElementById('result-title').textContent = official
+      ? `${instrument.title} recorded${mode.late ? ' · marked late' : ''}.`
+      : 'Practice round finished — not recorded.';
+    document.getElementById('result-lead').textContent = official
+      ? lead
+      : 'This run did not count towards your results. It is not stored, and it is never compared with anything.';
     document.getElementById('result-caveat').textContent = caveat;
 
     const rows = document.getElementById('result-rows');
@@ -441,15 +491,14 @@
 
     const actions = document.getElementById('result-actions');
     actions.replaceChildren();
-    const next = DS.nextAssessment();
-
+    // The next official task still to take, if any (starting point or an open window).
+    const next = official ? account.checkIns().find(entry => entry.id !== id && account.checkInMode(entry.id).mode === 'official') : null;
     if (next) {
       const continueButton = document.createElement('a');
       continueButton.className = 'btn btn-primary';
       continueButton.href = `assessment.html?test=${next.id}${onboardingFlow ? '&flow=onboarding' : ''}`;
       continueButton.innerHTML = `Next: ${next.title} <svg><use href="#i-arrow"/></svg>`;
       actions.append(continueButton);
-
       const pause = document.createElement('a');
       pause.className = 'btn btn-ghost';
       pause.href = 'lab.html';
@@ -458,17 +507,16 @@
     } else {
       const results = document.createElement('a');
       results.className = 'btn btn-primary';
-      results.href = '../onboarding/starting-point.html';
-      results.innerHTML = 'See your starting point <svg><use href="#i-arrow"/></svg>';
+      results.href = '../insights/insights.html#checkins';
+      results.innerHTML = `${official ? 'See your results' : 'Your results'} <svg><use href="#i-arrow"/></svg>`;
       actions.append(results);
-
-      const lab = document.createElement('a');
-      lab.className = 'btn btn-ghost';
-      lab.href = 'lab.html';
-      lab.textContent = 'Back to the Lab';
-      actions.append(lab);
+      const back = document.createElement('a');
+      back.className = 'btn btn-ghost';
+      back.href = 'lab.html';
+      back.textContent = `Back to ${names.checkInPage}`;
+      actions.append(back);
     }
 
-    showStage('result', { step: 'Recorded', progress: 1 });
+    showStage('result', { step: official ? 'Recorded' : 'Practice round · not recorded', progress: 1 });
   }
 })();

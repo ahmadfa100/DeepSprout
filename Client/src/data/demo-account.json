@@ -15,6 +15,16 @@
       "id": "reduce-unintentional-scrolling",
       "label": "Reduce unintentional scrolling",
       "setOn": "2026-01-05"
+    },
+    "setup": {
+      "answeredOn": "2026-01-05",
+      "distracting": ["instagram", "tiktok", "youtube"],
+      "peakTime": "late-night",
+      "baselineMinutes": "60-120",
+      "devices": ["chrome-desktop", "phone"],
+      "offlineInterests": ["walking", "reading"],
+      "availableDays": "5",
+      "protection": "balanced"
     }
   },
 
@@ -38,7 +48,7 @@
         "kind": "Self-report questionnaire",
         "provenance": "self-reported",
         "minutes": 2,
-        "scale": { "min": 0, "max": 30, "unit": "", "direction": "lower" }
+        "scale": { "min": 0, "max": 32, "unit": "", "direction": "lower" }
       },
       {
         "id": "sustained-attention",
@@ -62,9 +72,33 @@
         "kind": "Reading comprehension",
         "provenance": "measured",
         "minutes": 5,
-        "scale": { "min": 0, "max": 10, "unit": "", "direction": "higher" }
+        "scale": { "min": 0, "max": 5, "unit": "", "direction": "higher" }
       }
     ],
+    "gardenPolicy": {
+      "version": "GP-1.1",
+      "note": "One plant. Each qualifying record adds one growth step, once. No points, no multipliers.",
+      "stages": [
+        { "id": "seed", "label": "Seed", "from": 0 },
+        { "id": "sprout", "label": "Sprout", "from": 2 },
+        { "id": "sapling", "label": "Sapling", "from": 6 },
+        { "id": "tree", "label": "Tree", "from": 14 },
+        { "id": "blossom", "label": "Blossom", "from": 24 }
+      ],
+      "routineDaysPerWeek": 3,
+      "companion": { "id": "bunny", "label": "a bunny", "unlock": "first-weekly-review" },
+      "achievements": [
+        { "id": "first-practice", "title": "First practice", "kind": "practice", "count": 1, "tree": "pine", "why": "Your first valid practice." },
+        { "id": "first-offline-day", "title": "First offline day", "kind": "routine", "count": 1, "tree": "round", "why": "The first day you ticked your offline routine." },
+        { "id": "first-review", "title": "First weekly review", "kind": "review", "count": 1, "tree": "round", "why": "You looked back on a full week of your plan." },
+        { "id": "first-attendance", "title": "First time showing up", "kind": "attended", "count": 1, "tree": "pine", "why": "An organiser confirmed you were there." },
+        { "id": "reached-sprout", "title": "Reached Sprout", "stage": "sprout", "tree": "round", "why": "Your journey tree reached the Sprout stage." },
+        { "id": "reached-sapling", "title": "Reached Sapling", "stage": "sapling", "tree": "pine", "why": "Your journey tree reached the Sapling stage." },
+        { "id": "reached-tree", "title": "Reached Tree", "stage": "tree", "tree": "round", "why": "Your journey tree reached the Tree stage." },
+        { "id": "reached-blossom", "title": "Reached Blossom", "stage": "blossom", "tree": "pine", "why": "Your journey tree came into blossom." }
+      ],
+      "vitality": { "fullWithinDays": 2, "lowestAfterDays": 7 }
+    },
     "checkInPolicy": {
       "version": "CI-1.0",
       "windowDays": 3,
@@ -136,8 +170,8 @@
     {
       "id": "aa-dh-1", "definitionId": "digital-habits", "official": true, "cycle": 1, "on": "2026-01-05", "late": false, "valid": true, "score": 19,
       "details": [
-        { "label": "Items answered", "value": "10 of 10" },
-        { "label": "Rated \"often\" or more", "value": "6 of 10" }
+        { "label": "Items answered", "value": "8 of 8" },
+        { "label": "Rated \"often\" or more", "value": "5 of 8" }
       ]
     },
     {
@@ -157,11 +191,11 @@
       ]
     },
     {
-      "id": "aa-dc-1", "definitionId": "depth-challenge", "official": true, "cycle": 1, "on": "2026-01-05", "late": false, "valid": true, "score": 7,
+      "id": "aa-dc-1", "definitionId": "depth-challenge", "official": true, "cycle": 1, "on": "2026-01-05", "late": false, "valid": true, "score": 4,
       "details": [
-        { "label": "Questions correct", "value": "7 of 10" },
-        { "label": "Reading time", "value": "4m 02s" },
-        { "label": "Passage", "value": "Tier 1 · 612 words" }
+        { "label": "Questions correct", "value": "4 of 5" },
+        { "label": "Reading time", "value": "2m 11s" },
+        { "label": "Passage", "value": "Tier 1 · 348 words" }
       ]
     }
   ],
@@ -220,26 +254,6 @@
     }
   ],
 
-  "opportunities": [
-    {
-      "id": "init-beyond-reels",
-      "kind": "initiative",
-      "title": "Beyond Reels",
-      "organizer": "Amman Youth Centre",
-      "verified": false,
-      "startDate": "2026-01-10",
-      "endDate": "2026-02-21"
-    },
-    {
-      "id": "init-start-today",
-      "kind": "initiative",
-      "title": "Start Today",
-      "organizer": "Jordan University Student Life",
-      "verified": false,
-      "startDate": "2026-01-24",
-      "endDate": "2026-02-07"
-    }
-  ],
   "registrations": [
     {
       "opportunityId": "init-beyond-reels",

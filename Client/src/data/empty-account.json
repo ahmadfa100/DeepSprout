@@ -11,7 +11,8 @@
   "user": {
     "name": "",
     "registeredOn": null,
-    "goal": null
+    "goal": null,
+    "setup": null
   },
 
   "catalog": {
@@ -28,11 +29,35 @@
       "note": "Levels are independent per practice type. Only valid attempts at the current level count."
     },
     "assessmentDefinitions": [
-      { "id": "digital-habits", "title": "Digital Habits", "kind": "Self-report questionnaire", "provenance": "self-reported", "minutes": 2, "scale": { "min": 0, "max": 30, "unit": "", "direction": "lower" } },
+      { "id": "digital-habits", "title": "Digital Habits", "kind": "Self-report questionnaire", "provenance": "self-reported", "minutes": 2, "scale": { "min": 0, "max": 32, "unit": "", "direction": "lower" } },
       { "id": "sustained-attention", "title": "Sustained Attention", "kind": "Timed response task", "provenance": "measured", "minutes": 3, "scale": { "min": 0, "max": 100, "unit": "%", "direction": "higher" } },
       { "id": "inhibitory-control", "title": "Inhibitory Control", "kind": "Go / no-go task", "provenance": "measured", "minutes": 3, "scale": { "min": 0, "max": 100, "unit": "%", "direction": "higher" } },
-      { "id": "depth-challenge", "title": "Depth Challenge", "kind": "Reading comprehension", "provenance": "measured", "minutes": 5, "scale": { "min": 0, "max": 10, "unit": "", "direction": "higher" } }
+      { "id": "depth-challenge", "title": "Depth Challenge", "kind": "Reading comprehension", "provenance": "measured", "minutes": 5, "scale": { "min": 0, "max": 5, "unit": "", "direction": "higher" } }
     ],
+    "gardenPolicy": {
+      "version": "GP-1.1",
+      "note": "One plant. Each qualifying record adds one growth step, once. No points, no multipliers.",
+      "stages": [
+        { "id": "seed", "label": "Seed", "from": 0 },
+        { "id": "sprout", "label": "Sprout", "from": 2 },
+        { "id": "sapling", "label": "Sapling", "from": 6 },
+        { "id": "tree", "label": "Tree", "from": 14 },
+        { "id": "blossom", "label": "Blossom", "from": 24 }
+      ],
+      "routineDaysPerWeek": 3,
+      "companion": { "id": "bunny", "label": "a bunny", "unlock": "first-weekly-review" },
+      "achievements": [
+        { "id": "first-practice", "title": "First practice", "kind": "practice", "count": 1, "tree": "pine", "why": "Your first valid practice." },
+        { "id": "first-offline-day", "title": "First offline day", "kind": "routine", "count": 1, "tree": "round", "why": "The first day you ticked your offline routine." },
+        { "id": "first-review", "title": "First weekly review", "kind": "review", "count": 1, "tree": "round", "why": "You looked back on a full week of your plan." },
+        { "id": "first-attendance", "title": "First time showing up", "kind": "attended", "count": 1, "tree": "pine", "why": "An organiser confirmed you were there." },
+        { "id": "reached-sprout", "title": "Reached Sprout", "stage": "sprout", "tree": "round", "why": "Your journey tree reached the Sprout stage." },
+        { "id": "reached-sapling", "title": "Reached Sapling", "stage": "sapling", "tree": "pine", "why": "Your journey tree reached the Sapling stage." },
+        { "id": "reached-tree", "title": "Reached Tree", "stage": "tree", "tree": "round", "why": "Your journey tree reached the Tree stage." },
+        { "id": "reached-blossom", "title": "Reached Blossom", "stage": "blossom", "tree": "pine", "why": "Your journey tree came into blossom." }
+      ],
+      "vitality": { "fullWithinDays": 2, "lowestAfterDays": 7 }
+    },
     "checkInPolicy": {
       "version": "CI-1.0",
       "windowDays": 3,
@@ -56,7 +81,6 @@
   },
   "selfReports": [],
   "routine": [],
-  "opportunities": [],
   "registrations": [],
   "experienceRegistrations": []
 }
