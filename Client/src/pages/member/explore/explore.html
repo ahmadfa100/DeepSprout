@@ -5,18 +5,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f9fcf5">
-  <meta name="description" content="Find youth initiatives, sessions, outdoor experiences and camps on DeepSprout.">
+  <meta name="description" content="Explore beyond the screen: initiatives, sessions, outdoor experiences and competitions.">
   <title>Explore — DeepSprout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../../src/styles/style.css">
-  <link rel="stylesheet" href="../../../../src/styles/member-page.css">
   <link rel="stylesheet" href="explore.css">
-  <link rel="stylesheet" href="../../../../src/styles/page-hero.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
-  <script src="../../../../src/js/utils/storage.js" defer></script>
-  <script src="explore-data.js" defer></script>
+  <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
   <script src="explore.js" defer></script>
 </head>
@@ -35,71 +32,73 @@
     <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8.5v.5"/></symbol>
     <symbol id="i-tent" viewBox="0 0 24 24"><path d="m12 4-9 16h18L12 4Zm0 0v16"/><path d="m8 20 4-7 4 7"/></symbol>
     <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v1a3 3 0 0 0 3 3m10-4h3v1a3 3 0 0 1-3 3M9 20h6m-3-6v6"/></symbol>
-  </svg>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H5m6-6-6 6 6 6"/></symbol>
+    <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.3 2.9 8 7 9.5 4.1-1.5 7-5.2 7-9.5V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4m0 1h11l-2 4 2 4H5"/></symbol>
+    <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9m8-18c0 5-8 5-8 9s8 4 8 9"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11m-5-5 5 5 5-5M4 20h16"/></symbol>
+</svg>
 
   <div data-site-header></div>
 
-  <main>
-    <header class="ds-hero" aria-labelledby="explore-title">
-      <div class="ds-hero-copy">
-        <p class="ds-hero-eyebrow">Explore</p>
-        <h1 id="explore-title">Things to do,<br><em>away from a screen.</em></h1>
-        <p class="ds-hero-text">Initiatives, sessions, trips and camps. Your city is a filter, not a fence.</p>
-        <div class="ds-hero-meta"><a class="ex-registrations-link" href="#my-registrations">
-          <span class="badge-icon gold"><svg><use href="#i-ticket"/></svg></span>
-          <span><small>My registrations</small><strong id="registration-count">None yet</strong></span>
-          <svg><use href="#i-arrow"/></svg>
-        </a></div>
+  <main class="ex">
+    <!-- Hero: three layers moving at different speeds -->
+    <header class="ex-hero" aria-labelledby="ex-title">
+      <div class="ex-hero-layer ex-hero-back" data-depth="0.12"><img src="../../../../assets/explore/Bimo-ExploerPage.png" alt="" fetchpriority="high"></div>
+      <div class="ex-hero-layer ex-hero-mid" data-depth="0.28" aria-hidden="true"><span class="ex-haze h1"></span><span class="ex-haze h2"></span><span class="ex-float f1"></span><span class="ex-float f2"></span><span class="ex-float f3"></span></div>
+      <div class="ex-hero-copy">
+        <p class="ex-eyebrow">Explore</p>
+        <h1 id="ex-title">Explore <em>Beyond</em> the Screen</h1>
+        <p class="ex-lead">Initiatives, sessions, outdoor experiences and competitions — real things to do, run by real organisers.</p>
+        <p class="ex-hero-meta" id="ex-hero-meta"></p>
       </div>
-      <figure class="ds-hero-art is-cutout"><img src="../../../../assets/hero-v2/bimo-awake.png" alt="Bimo standing, ready to head out"></figure>
+      <svg class="ex-hero-layer ex-hero-front" data-depth="-0.08" viewBox="0 0 1440 140" preserveAspectRatio="none" aria-hidden="true"><path d="M0 140V96C120 70 210 64 300 82C380 52 470 46 560 74C650 44 760 42 860 72C960 46 1060 44 1160 70C1260 48 1360 52 1440 78V140Z"/></svg>
     </header>
 
-    <div class="page-shell ex-body">
-      <section class="ex-controls" aria-label="Filter opportunities">
-        <div class="ex-search">
-          <svg><use href="#i-search"/></svg>
-          <input id="search" type="search" placeholder="Search by title, topic or organizer" aria-label="Search opportunities">
+    <div class="ex-shell">
+      <!-- Filters -->
+      <section class="ex-filters" aria-label="Filter listings">
+        <div class="ex-chip-row" role="group" aria-label="What kind" id="kind-filters">
+          <button type="button" class="ex-chip" data-kind="all" aria-pressed="true">All</button>
+          <button type="button" class="ex-chip" data-kind="initiative" aria-pressed="false">Initiatives</button>
+          <button type="button" class="ex-chip" data-kind="session" aria-pressed="false">Sessions</button>
+          <button type="button" class="ex-chip" data-kind="experience" aria-pressed="false">Experiences</button>
+          <button type="button" class="ex-chip" data-kind="competition" aria-pressed="false">Competitions</button>
         </div>
-        <div class="ex-filter-row" role="group" aria-label="Type">
-          <button type="button" class="ex-chip is-active" data-kind="all">All</button>
-          <button type="button" class="ex-chip" data-kind="initiative">Initiatives</button>
-          <button type="button" class="ex-chip" data-kind="session">Sessions &amp; workshops</button>
-          <button type="button" class="ex-chip" data-kind="outdoor">Outdoor experiences</button>
-          <button type="button" class="ex-chip" data-kind="camp">Camps</button>
-          <button type="button" class="ex-chip" data-kind="competition">Competitions</button>
-        </div>
-        <div class="ex-filter-row ex-secondary" role="group" aria-label="How to take part">
-          <button type="button" class="ex-chip small is-active" data-mode="all">Any mode</button>
-          <button type="button" class="ex-chip small" data-mode="online">Online</button>
-          <button type="button" class="ex-chip small" data-mode="in-person">In person</button>
-          <button type="button" class="ex-chip small" data-mode="hybrid">Hybrid</button>
-          <label class="ex-toggle"><input type="checkbox" id="open-only"> <span>Only show open registration</span></label>
+        <div class="ex-chip-row ex-mode-row" role="group" aria-label="Where" id="mode-filters">
+          <button type="button" class="ex-chip is-quiet" data-mode="all" aria-pressed="true">Any format</button>
+          <button type="button" class="ex-chip is-quiet" data-mode="online" aria-pressed="false">Online</button>
+          <button type="button" class="ex-chip is-quiet" data-mode="in-person" aria-pressed="false">In person</button>
+          <button type="button" class="ex-chip is-quiet" data-mode="hybrid" aria-pressed="false">Hybrid</button>
         </div>
       </section>
 
-      <p class="ex-demo-banner"><svg><use href="#i-info"/></svg> These listings are sample data for the preview. Nothing here is a real booking, and no organizer is contacted.</p>
+      <p class="ex-count" id="ex-count" aria-live="polite"></p>
+      <div class="ex-grid" id="ex-grid"></div>
+      <div class="ex-empty" id="ex-empty" hidden>
+        <p id="ex-empty-text">Nothing matches these filters right now.</p>
+        <button type="button" class="ex-button is-quiet" id="ex-clear">Clear filters</button>
+      </div>
 
-      <section aria-labelledby="results-title">
-        <div class="ex-results-head">
-          <h2 id="results-title">Opportunities</h2>
-          <p id="results-count"></p>
+      <!-- My registrations -->
+      <section class="ex-mine" id="my-registrations" aria-labelledby="mine-title">
+        <div class="ex-section-head">
+          <div><p class="ex-eyebrow">Your registrations</p><h2 id="mine-title">My registrations</h2></div>
+          <p>Registering is not attending, and attending is not completing — the organiser confirms each.</p>
         </div>
-        <div class="ex-grid" id="grid"></div>
-        <div class="empty" id="empty" hidden>
-          <strong>Nothing matches those filters</strong>
-          <p>Try a different type, or clear the mode filter. Changing your city preference does not hide online opportunities.</p>
-        </div>
-      </section>
-
-      <section id="my-registrations" aria-labelledby="registrations-title">
-        <div class="ex-results-head">
-          <h2 id="registrations-title">My registrations</h2>
-          <p>Registering, attending and completing are three different things. Only the first one happens here.</p>
-        </div>
-        <div id="registration-list"></div>
+        <ol class="ex-mine-list" id="ex-mine-list"></ol>
       </section>
     </div>
   </main>
+
+  <!-- Detail + registration: one sheet that grows out of the card -->
+  <dialog class="ex-sheet" id="ex-sheet" aria-labelledby="sheet-title">
+    <div class="ex-sheet-panel" id="ex-sheet-panel">
+      <button type="button" class="ex-sheet-close" id="ex-sheet-close" aria-label="Close"><svg><use href="#i-x"/></svg></button>
+      <div class="ex-sheet-body" id="ex-sheet-body"></div>
+    </div>
+  </dialog>
 
   <div data-site-footer></div>
 

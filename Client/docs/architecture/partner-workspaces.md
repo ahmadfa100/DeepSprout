@@ -1,10 +1,12 @@
 # Non-Individual workspace implementation
 
+> **Historical implementation report.** This file records behavior and verification at its original milestone. The [authoritative DeepSprout v4.0 specification](../../../DeepSprout.md) governs the approved target; see [§29](../../../DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) for the current-versus-target boundary.
+
 ## Collaboration boundary
 
 Claude Code owns the Regular/Individual cycle. This implementation adds `workspaces.html`, `partners.html`, `join.html`, `src/workspaces/`, and its own tests. Existing member, public, auth, admin, and shared styling files are left unchanged. Its only persisted key is `deepsprout-ecosystem-demo-v1`; resetting it never clears Individual or existing Admin data.
 
-The actual checkout is a static ES-module frontend, as documented in `Client/README.md`. There is no Angular dependency, CLI, or build configuration. Preserve this architecture while another agent works here. Hash routes follow the existing Admin convention and need no server rewrites. Angular migration is a separate decision.
+The actual checkout is a static ES-module frontend, as documented in `Client/README.md`. There is no Angular dependency, CLI, or build configuration. Preserve this architecture while another agent works here. Hash routes follow the existing Admin convention and need no server rewrites. The later owner-approved target retains an Angular port after the Phase-1 static demonstration; this paragraph describes the original implementation boundary.
 
 ## Progress
 
@@ -106,4 +108,8 @@ For a later integration, link to `partners.html` or `workspaces.html#/auth/works
 
 ## Open product decisions
 
-Real vetting criteria, age/consent rules, seat-offer duration/priority exceptions, completion/reward thresholds, numeric quotas, prices, assessment protocols and production permission definitions remain undecided. Editable defaults are demonstration settings rather than adopted policies. All operational records are fictional and local to this browser.
+Later owner approvals fixed **135 accepted students and three active Supervisors per Institution Initiative**, a **configurable 24-hour offer-expiry demo default**, weekly Lab eligibility, exactly four Personal practice trees, and Group Garden ownership. Vetting evidence, age/guardian policy, waitlist priority exceptions/delivery, exact reward thresholds, real prices and production permissions still need detail. All operational records here are fictional and local to this browser.
+
+## Approved target after this historical implementation
+
+The six-stage Institution Builder must publish to **regular Individual Explore**; a Representative or active Initiative Supervisor may approve the same Application once. Institution-invited Coach/Supervisor identities need no separate Admin approval. An Initiative may publish before Supervisor acceptance, but attendance stays disabled with `Needs Supervisor` until an active grant exists. In-person QR has typed/pasted or audited manual fallback; online uses roster verification. Student excuses are separate from factual attendance and Representative-decided. Institution structured mode remains an Initiative, and Groups parent either that Initiative or an independent Coach Program. The Provider queue needs its full lifecycle with the configurable 24-hour demo default and test clock. Surveys are **identified** in Phase 1, despite the earlier current-code anonymous path above. The Personal Garden has exactly four practice-type trees, and Group Gardens exist for one Initiative-wide scene or one independent Coach group, not a Provider cohort. See [master §§13–17](../../../DeepSprout.md#13-coach--mentor-program-and-shared-assignment-engine) and [§29](../../../DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026).

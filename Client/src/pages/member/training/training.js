@@ -266,7 +266,7 @@ try {
     const heading = document.createElement('h2');
     heading.textContent = 'More activities to explore';
     const note = document.createElement('p');
-    note.textContent = 'Published from the local DeepSprout Admin demo. Completion tracking for these is not connected yet.';
+    note.textContent = 'Published activity guides. Read the instructions here; these guides do not record a timed practice or change your roadmap.';
     const grid = document.createElement('div');
     grid.className = 'admin-activity-grid';
     for (const activity of published) {
@@ -284,7 +284,16 @@ try {
       description.textContent = activity.description;
       const instructions = document.createElement('p');
       instructions.textContent = activity.instructions;
-      card.append(summary, description, instructions);
+      const details = document.createElement('p');
+      details.textContent = `Goals: ${(activity.goals || []).join(', ')}. Completion: ${activity.completion || 'Not specified'}. Evidence: ${activity.evidence || 'None'}.`;
+      card.append(summary, description, instructions, details);
+      if (/^assets\/[a-z0-9/_ .-]+\.(png|jpe?g|webp|svg)$/i.test(activity.image || '')) {
+        const image = document.createElement('img');
+        image.src = '../../../../' + activity.image;
+        image.alt = activity.alt || '';
+        image.style.cssText = 'max-width:100%;max-height:180px;object-fit:contain';
+        card.append(image);
+      }
       grid.append(card);
     }
     host.append(heading, note, grid);

@@ -7,6 +7,8 @@ export const modes = ['Assigned', 'On Demand', 'Triggered', 'Scheduled Review'];
 export const evidenceTypes = ['In-platform recorded', 'Self-reported offline', 'None'];
 
 const seed = () => ({
+  subscriptions: [],
+  payments: [],
   users: [
     ['u1','Lina Haddad','lina@example.test','Student','active','2026-07-03','Complete','Active','Connected'],
     ['u2','Omar Saad','omar@example.test','Student','active','2026-07-11','In progress','Active','Not connected'],
@@ -65,7 +67,7 @@ const seed = () => ({
 });
 
 export function read() {
-  try { const raw = localStorage.getItem(DATA_KEY); if (raw) { const data=JSON.parse(raw);if(!data.planTemplates){data.planTemplates=seed().planTemplates;write(data);}return data; } }
+  try { const raw = localStorage.getItem(DATA_KEY); if (raw) { const data=JSON.parse(raw);data.subscriptions??=[];data.payments??=[];if(!data.planTemplates){data.planTemplates=seed().planTemplates;write(data);}return data; } }
   catch { /* a private browser may disable storage */ }
   const data = seed(); write(data); return data;
 }

@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../../../../src/styles/style.css">
   <link rel="stylesheet" href="../../../../src/styles/member-page.css">
   <link rel="stylesheet" href="assessment.css">
-  <script src="../../../../src/js/utils/storage.js" defer></script>
+  <script src="../../../../src/js/data/account.js" defer></script>
   <script src="assessment-data.js" defer></script>
   <script src="assessment.js" defer></script>
 </head>
@@ -32,7 +32,7 @@
 
   <header class="as-bar">
     <div class="as-bar-inner">
-      <a class="as-exit" href="lab.html"><svg><use href="#i-back"/></svg> <span>Lab</span></a>
+      <a class="as-exit" href="lab.html"><svg><use href="#i-back"/></svg> <span data-name="checkIn">Check-in</span></a>
       <div class="as-bar-title">
         <strong id="bar-title">Assessment</strong>
         <small id="bar-step"></small>
@@ -41,6 +41,7 @@
     </div>
     <div class="as-bar-meter"><span id="bar-meter"></span></div>
   </header>
+  <p class="as-mode" id="mode-banner" role="status" hidden></p>
 
   <main class="as-main">
 

@@ -281,4 +281,22 @@
       saveMessage.textContent = 'Preferences saved in this browser.';
     } catch { saveMessage.textContent = 'This browser could not save your preferences.'; }
   });
+
+  /* What the extension measures — the same record Insights reads. */
+  const Account = window.DeepSproutAccount;
+  Account?.load().then(account => {
+    const box = document.getElementById('shield-measured');
+    const cycle = account.usageCycle() || account.usage(28);
+    const fmt = Account.format;
+    box.hidden = false;
+    if (!cycle.connected) {
+      box.innerHTML = `<div><p class="shield-measured-eyebrow">What's measured</p><h2 id="measured-title">Nothing yet — the extension isn't connected</h2>
+        <p>Once the Chrome extension is connected it measures time on the sites you choose. Nothing is estimated before then.</p></div>`;
+      return;
+    }
+    box.innerHTML = `<div><p class="shield-measured-eyebrow">What's measured · Measured by the Chrome extension</p>
+        <h2 id="measured-title">${cycle.sites.map(site => `<span>${site}</span>`).join(' · ')}</h2>
+        <p>Measured since ${fmt.date(cycle.connectedOn, { weekday: true, year: true })}. Your daily limit is <strong>${cycle.limit} minutes</strong>${cycle.overLimitDays ? `, passed on <strong>${cycle.overLimitDays} ${cycle.overLimitDays === 1 ? 'day' : 'days'}</strong> this cycle` : ''}.</p></div>
+      <a class="shield-measured-link" href="../insights/insights.html#usage">See the day-by-day grid →</a>`;
+  }).catch(() => {});
 })();

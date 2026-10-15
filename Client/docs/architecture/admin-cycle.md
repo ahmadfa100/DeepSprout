@@ -1,5 +1,7 @@
 # DeepSprout Admin frontend
 
+> **Historical implementation report.** This file records behavior and verification at its original milestone. The [authoritative DeepSprout v4.0 specification](../../../DeepSprout.md) governs the approved target; see [§29](../../../DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) for the current-versus-target boundary.
+
 Open `login.html` and choose **Continue as Admin (Demo)**. The shortcut sets `deepsprout-admin-demo-session` in local storage and opens `admin.html#/dashboard`. The route check in `src/admin/app.js` sends visitors without that demo flag back to Login. Log out removes the flag. This is only a client-side development convenience, not production authorization.
 
 ## Structure
@@ -25,3 +27,7 @@ Open `login.html` and choose **Continue as Admin (Demo)**. The shortcut sets `de
 The member Login form remains a preview and does not send or save credentials. The Admin session and all Admin data are local browser state. Community moderation does not affect a server feed. Digital Shield extension telemetry and actual browser blocking are unavailable. Garden previews do not grant rewards. Assessment scoring rules remain outside this editor. Admin roles are shown for future authorization but the frontend has one Super Admin demo. Production requires ASP.NET authentication and authorization, APIs and database persistence, trustworthy analytics and audit records, extension integration, and shared content/activity delivery.
 
 Use **Settings → Reset demo data** to restore the seeded dataset. This resets Admin data and published demo content but keeps unrelated member-page local preferences.
+
+## Approved Admin destination
+
+This is the **legacy** current Admin implementation. One conceptual Platform Admin will retain its activity guide publishing, landing Content Studio, Community moderation, member preview, plan templates/simulator, Shield presets, Garden rule previews, groups and subscription views while incorporating the partner workspace's approval, resource oversight, reports, CMS and audit capabilities. The partner Admin is the migration destination only after each legacy capability has a verified replacement. Institution Initiatives require Institution/Representative approval, **not per-Initiative Admin approval**; invited Initiative Coaches/Supervisors need no separate Admin approval. The demo shortcut is permitted as an explicitly simulated login, with no production-security claim. See [master §19](../../../DeepSprout.md#19-one-platform-admin-governance-publishing-and-migration).

@@ -181,7 +181,7 @@
         <ul class="ins-facts">
           <li>Weekly reviews: <strong>${reviews.completed} of ${reviews.expected} completed</strong>${nextReview}</li>
           ${adjustment}
-          <li><a class="ins-link" href="${href('src/pages/member/recovery-plan/recovery-plan.html#history')}">Recovery Plan → History${icon('i-arrow')}</a></li>
+          <li><a class="ins-link" href="${href('src/pages/member/recovery-plan/recovery-plan.html#history')}">Roadmap → History${icon('i-arrow')}</a></li>
         </ul>
       </div>`;
   };
@@ -402,8 +402,8 @@
   const tickStep = scale => {
     const span = scale.max - scale.min;
     if (scale.unit === '%') return 10;
-    if (span <= 10) return 1;
-    return 5;
+    // The finest friendly step that divides the range exactly, with at most 12 ticks.
+    return [1, 2, 4, 5, 10].find(step => span % step === 0 && span / step <= 12) || 1;
   };
 
   const axis = instrument => {
@@ -493,7 +493,8 @@
         const [baseShape, latestShape] = item.provenance.id === 'self-reported' ? ['dashed ring', 'ring'] : ['hollow', 'solid'];
         status = `${NAMES.baseline[0].toUpperCase()}${NAMES.baseline.slice(1)} (${baseShape}) ${fmt.date(item.comparison.from.on, { year: true })} · ${NAMES.latest} (${latestShape}) ${fmt.date(item.comparison.to.on, { year: true })}${item.comparison.to.late ? ' · taken late' : ''}`;
       } else if (anyComparison) {
-        status = `Last measured: cycle ${item.lastMeasuredCycle}${item.nextMeasured ? ` · next at the end of cycle ${item.nextMeasured.cycle}` : ''}`;
+        const dueNow = (due.state === 'open' || due.state === 'late') && due.tasks.some(task => task.id === item.id);
+        status = `Last measured: cycle ${item.lastMeasuredCycle}${dueNow ? ' · repeated in the check-in that is open now' : item.nextMeasured ? ` · next at the end of cycle ${item.nextMeasured.cycle}` : ''}`;
       } else if (item.nextMeasured) {
         const opens = fmt.date(item.nextMeasured.opens, { year: true });
         const inNextCheck = due.opens && item.nextMeasured.opens.getTime() === due.opens.getTime();

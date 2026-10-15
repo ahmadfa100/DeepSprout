@@ -217,3 +217,12 @@ body { background: #fbfdf8; }
 @media (prefers-reduced-motion: reduce) {
   .as-stage, .as-arena-shape { animation: none; }
 }
+
+/* Official vs practice — stated before the task starts and kept visible. */
+.as-mode {
+  width: min(100% - var(--gutter-narrow), 760px); margin: var(--space-16) auto 0; padding: var(--space-12) var(--space-18);
+  border: 1.5px dashed var(--color-muted); border-radius: var(--radius-tile); background: var(--color-surface);
+  color: var(--color-ink); font: var(--weight-bold) var(--text-body)/1.4 var(--font-sans); text-align: center;
+}
+.as-mode[data-kind="official"] { border-style: solid; border-color: var(--color-leaf); background: var(--color-mint); }
+.as-mode[hidden] { display: none; }

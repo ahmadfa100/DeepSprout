@@ -1,5 +1,6 @@
+import {communityRecords,saveMemberModeration} from './community.js';
 import {mutate,reset} from './store.js';
-import {esc,date,badge,button,section,field,select,textarea,table,row,openDialog,confirmAction,toast,contentHeader,bars} from './ui.js';
+import {esc,date,badge,button,section,field,select,textarea,table,row,openDialog,confirmAction,toast,contentHeader} from './ui.js';
 const editable=[
   {key:'landing.hero.lead',label:'Hero introduction',type:'text',section:'Hero'},
   {key:'landing.features.intro',label:'Features introduction',type:'text',section:'Features'},
@@ -7,7 +8,7 @@ const editable=[
   {key:'landing.feature.focus.image',label:'Focus card image',type:'image',section:'Features'}
 ];
 const assets=[['assets/home/features-v2.png','Feature illustration'],['assets/home-kit/illustrations/hero-right-art.png','Garden illustration'],['assets/brand/floral-mark.png','Floral mark']];
-const state={contentRegion:'landing.hero.lead',editMode:false,mobile:false,analyticsFrom:'',analyticsTo:''};
+const state={contentRegion:'landing.hero.lead',editMode:false,mobile:false};
 function content(data) {
   const source=data.content.draft||data.content.published;
   const selected=editable.find(e=>e.key===state.contentRegion)||editable[0];
@@ -27,6 +28,7 @@ function contentEdit(data,key) {
   },'Save draft');
 }
 function community(data) {
+  data={...data,community:communityRecords(data)};
   const reports=data.community.reports.map(r=>{const post=data.community.posts.find(p=>p.id===r.postId);return row([date(r.created),esc(post?.title||'Removed post'),esc(r.reason),badge(r.status),button('Review','report-review',r.id)],{status:r.status});});
   const posts=data.community.posts.map(p=>row([esc(p.title),esc(p.author),badge(p.status),button('View','post-view',p.id)],{status:p.status}));
   return contentHeader('PLATFORM','Community','Review reported content and track Joint Goals.')+
@@ -34,33 +36,22 @@ function community(data) {
     `<div class="two-col">${section('Community posts',table(['Title','Author','Status','Action'],posts,[{key:'status',label:'Status',options:['visible','hidden']}]))}${section('Joint Goals',`<div class="item-list">${data.community.jointGoals.map(g=>`<div><strong>${esc(g.name)}</strong><small>${g.members} members · ${esc(g.status)}</small></div>`).join('')}</div><p class="footnote">Joint Goals are separate from student training groups.</p>`)}</div>`;
 }
 function reportReview(data,id) {
+  data={...data,community:communityRecords(data)};
   const report=data.community.reports.find(r=>r.id===id),post=data.community.posts.find(p=>p.id===report?.postId);if(!report)return;
   openDialog('Review community report',`<div class="preview-card"><p class="eyebrow">${esc(report.reason)}</p><h3>${esc(post?.title||'Post unavailable')}</h3><p>${esc(post?.body||'')}</p><small>By ${esc(post?.author||'Unknown')} · ${date(report.created)}</small></div><p>Status: ${badge(report.status)}</p><div class="dialog-link-actions">${button('Approve content','report-approve',id)}${button('Hide content','report-hide',id)}${button('Dismiss report','report-dismiss',id)}</div>`,()=>{},'Close');
 }
-function reports(data) {
-  const from=state.analyticsFrom,to=state.analyticsTo;
-  const users=data.users.filter(u=>(!from||u.joined>=from)&&(!to||u.joined<=to));
-  const completions=data.activityCompletions.filter(c=>(!from||c.date>=from)&&(!to||c.date<=to));
-  const regs=['Jun','Jul','Aug','Sep','Oct'].map((label,i)=>({label,value:users.filter(u=>Number(u.joined.slice(5,7))===i+6).length}));
-  const activity=Array.from(new Set(data.activityCompletions.map(c=>c.category))).map(label=>({label:label.split(' & ')[0],value:completions.filter(c=>c.category===label).reduce((n,c)=>n+c.count,0)}));
-  return contentHeader('PLATFORM','Reports & Analytics','Figures are calculated from fictional local demo records.',button('Export CSV','analytics-export','','primary'))+
-    `<div class="filter-bar"><label class="field compact"><span>From</span><input id="analytics-from" type="date" value="${esc(from)}"></label><label class="field compact"><span>To</span><input id="analytics-to" type="date" value="${esc(to)}"></label>${button('Apply range','analytics-apply')}${button('Clear','analytics-clear')}</div>`+
-    `<div class="kpi-grid analytics-kpis">${[['Registrations',users.length],['Students',users.filter(u=>u.role==='Student').length],['Active users',users.filter(u=>u.status==='active').length],['Active groups',data.groups.filter(g=>g.status==='active').length],['Active plans',data.plans.filter(p=>p.status==='active').length],['Assessment completions',data.assessments.reduce((n,a)=>n+a.completions,0)],['Activity completions',completions.reduce((n,c)=>n+c.count,0)],['Pending reports',data.community.reports.filter(r=>r.status==='pending').length]].map(([label,value])=>`<div class="kpi"><span>${esc(label)}</span><strong>${value}</strong></div>`).join('')}</div>`+
-    `<div class="two-col">${section('Registrations',bars(regs))}${section('Activity participation',bars(activity))}</div>`+
-    section('Recovery plan adoption',bars(goalsBreakdown(data)))+`<p class="footnote">Date range applies to account registrations and activity completion records. Other current-state counts are snapshots. Shield telemetry is unavailable; no scientific improvement claims are inferred.</p>`;
-}
-const goalsBreakdown=data=>Array.from(new Set(data.plans.map(p=>p.goal))).map(label=>({label,value:data.plans.filter(p=>p.goal===label).length}));
 function settings(data) {
   return contentHeader('SYSTEM','Settings','Demo administrator profile, platform defaults, and data controls.')+
     `<div class="two-col">${section('Admin profile',`<dl class="settings-list"><div><dt>Name</dt><dd>${esc(data.settings.adminName)}</dd></div><div><dt>Role</dt><dd>Super Admin (demo)</dd></div></dl>${button('Edit profile','settings-profile')}`)}${section('General platform',`<dl class="settings-list"><div><dt>Site name</dt><dd>${esc(data.settings.siteName)}</dd></div><div><dt>Announcement</dt><dd>${esc(data.settings.announcement||'None')}</dd></div></dl>${button('Edit general settings','settings-general')}`)}</div>`+
     `<div class="two-col">${section('Appearance',`<dl class="settings-list"><div><dt>Brand accent</dt><dd>${esc(data.settings.brandAccent)}</dd></div><div><dt>Design tokens</dt><dd>Cream, pine, leaf, mint</dd></div></dl><p class="footnote">Brand tokens are constrained to preserve the existing design.</p>`)}${section('Admin roles & permissions',`<div class="item-list"><div><strong>Super Admin</strong><small>All local demo controls</small></div><div><strong>Content Editor</strong><small>Future backend role</small></div><div><strong>Community Moderator</strong><small>Future backend role</small></div></div>`)}</div>`+
+    section('Administration tools','<div class="dialog-link-actions"><a class="button" href="#/audit">Audit log</a><a class="button" href="#/groups">Training groups</a><a class="button" href="#/garden">Garden rule previews</a><a class="button" href="workspaces.html#/admin/overview">Partner administration ↗</a></div>')+
     section('Demo data',`<p>Reset all local Admin records to the original fictional dataset. This does not clear member-page preferences.</p>${button('Reset demo data','settings-reset','','danger')}`);
 }
 function audit(data) {
   const rows=[...data.events].sort((a,b)=>b.time.localeCompare(a.time)).map(e=>row([date(e.time),esc(e.action),esc(e.resource),esc(e.admin),esc(e.summary)],{action:e.action}));
   return contentHeader('SYSTEM','Audit log','Client-side history of administrative demo changes.')+section('Recent changes',table(['When','Action','Resource','Admin','Summary'],rows))+`<p class="footnote">This log is stored in the same browser and is not a tamper-proof server audit trail.</p>`;
 }
-export function renderPlatform(route,data) {return ({content,community,reports,settings,audit})[route]?.(data);}
+export function renderPlatform(route,data) {return ({content,community,settings,audit})[route]?.(data);}
 export function platformAction(action,id,data) {
   if(action==='content-select'){state.contentRegion=id;window.dispatchEvent(new Event('admin-refresh'));}
   else if(action==='content-device'){state.mobile=!state.mobile;window.dispatchEvent(new Event('admin-refresh'));}
@@ -71,11 +62,8 @@ export function platformAction(action,id,data) {
   else if(action==='content-restore'){const version=data.content.versions[Number(id)];if(version){data.content.draft=structuredClone(version.content);mutate(data,'Content Version Restored','Landing Page','Restored prior version as draft.');toast('Version restored as draft. Review before publishing.');window.dispatchEvent(new Event('admin-refresh'));}}
   else if(action==='content-view-site')window.open('landing.html','_blank','noopener');
   else if(action==='report-review')reportReview(data,id);
-  else if(action==='post-view'){const post=data.community.posts.find(p=>p.id===id);openDialog(post.title,`<p>${esc(post.body)}</p><p class="footnote">By ${esc(post.author)} · ${esc(post.status)}</p>`,()=>{},'Close');}
-  else if(['report-approve','report-hide','report-dismiss'].includes(action)){const report=data.community.reports.find(r=>r.id===id),post=data.community.posts.find(p=>p.id===report.postId);confirmAction(`${action==='report-hide'?'Hide content':action==='report-dismiss'?'Dismiss report':'Approve content'}?`,()=>{report.status=action==='report-dismiss'?'dismissed':'reviewed';if(post)post.status=action==='report-hide'?'hidden':'visible';mutate(data,'Community Report Reviewed',report.id,`${action} on ${post?.title||'post'}.`);document.getElementById('editor-dialog').close();toast('Moderation action saved.');window.dispatchEvent(new Event('admin-refresh'));});}
-  else if(action==='analytics-apply'){state.analyticsFrom=document.getElementById('analytics-from').value;state.analyticsTo=document.getElementById('analytics-to').value;if(state.analyticsFrom&&state.analyticsTo&&state.analyticsFrom>state.analyticsTo){toast('Start date must be before end date.');return;}window.dispatchEvent(new Event('admin-refresh'));}
-  else if(action==='analytics-clear'){state.analyticsFrom='';state.analyticsTo='';window.dispatchEvent(new Event('admin-refresh'));}
-  else if(action==='analytics-export'){const rows=[['type','id','name','date','status'],...data.users.map(u=>['user',u.id,u.name,u.joined,u.status]),...data.activities.map(a=>['activity',a.id,a.name,'',a.status]),...data.groups.map(g=>['group',g.id,g.name,g.created,g.status])];const csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const link=document.createElement('a');link.href=url;link.download='deepsprout-demo-report.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  else if(action==='post-view'){const post=communityRecords(data).posts.find(p=>p.id===id);if(!post)return;openDialog(post.title,`<p>${esc(post.body)}</p><p class="footnote">By ${esc(post.author)} · ${esc(post.status)}</p>`,()=>{},'Close');}
+  else if(['report-approve','report-hide','report-dismiss'].includes(action)){const records=communityRecords(data),report=records.reports.find(r=>r.id===id);if(!report)return;const post=records.posts.find(p=>p.id===report.postId);confirmAction(`${action==='report-hide'?'Hide content':action==='report-dismiss'?'Dismiss report':'Approve content'}?`,()=>{if(report.source==='member'){saveMemberModeration(id,action);}else{report.status=action==='report-dismiss'?'dismissed':'reviewed';if(post&&action!=='report-dismiss')post.status=action==='report-hide'?'hidden':'visible';}mutate(data,'Community Report Reviewed',report.id,`${action} on ${post?.title||'post'}.`);document.getElementById('editor-dialog').close();toast('Moderation action saved.');window.dispatchEvent(new Event('admin-refresh'));});}
   else if(action==='settings-profile')openDialog('Edit Admin profile',field('Display name','adminName',data.settings.adminName,'text','required maxlength="60"'),form=>{data.settings.adminName=String(form.get('adminName')).trim();mutate(data,'Admin Profile Updated','Demo Administrator','Changed local display name.');window.dispatchEvent(new Event('admin-refresh'));});
   else if(action==='settings-general')openDialog('General platform settings',`${field('Site name','siteName',data.settings.siteName,'text','required maxlength="60"')}${field('Internal announcement','announcement',data.settings.announcement,'text','maxlength="160"')}`,form=>{data.settings.siteName=String(form.get('siteName')).trim();data.settings.announcement=String(form.get('announcement')).trim();mutate(data,'Platform Settings Updated','General','Updated local demo settings.');window.dispatchEvent(new Event('admin-refresh'));});
   else if(action==='settings-reset')confirmAction('Reset all Admin demo records, drafts, and audit history? This cannot be undone in this browser.',()=>{reset();toast('Demo data reset.');window.dispatchEvent(new Event('admin-refresh'));});

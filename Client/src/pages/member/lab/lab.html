@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f9fcf5">
   <meta name="description" content="The DeepSprout Lab: four short assessments that mark your starting point.">
-  <title>Lab — DeepSprout</title>
+  <title>Check-in — DeepSprout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="lab.css">
   <link rel="stylesheet" href="../../../../src/styles/page-hero.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
-  <script src="../../../../src/js/utils/storage.js" defer></script>
+  <script src="../../../../src/js/data/account.js" defer></script>
   <script src="assessment-data.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
   <script src="lab.js" defer></script>
@@ -39,28 +39,29 @@
   <main>
     <header class="ds-hero" aria-labelledby="lab-title">
       <div class="ds-hero-copy">
-        <p class="ds-hero-eyebrow">The Lab</p>
-        <h1 id="lab-title">Four short checks.<br><em>Four separate results.</em></h1>
-        <p class="ds-hero-text">They mark your starting point. They are not a diagnosis, and never added up into one score.</p>
+        <p class="ds-hero-eyebrow" data-name="checkIn">Check-in</p>
+        <h1 id="lab-title"><span data-name="checkInPage">Your Check-in</span><br><em>Measured, not chased.</em></h1>
+        <p class="ds-hero-text">Four short measurement tasks. They mark your starting point, and once a cycle show what changed. Never a diagnosis, never one combined score.</p>
         <div class="btn-row lab-hero-actions" id="lab-actions"></div>
       </div>
       <figure class="ds-hero-art is-cutout"><img src="../../../../assets/hero-v2/bimo-focus.png" alt="Bimo in a calm, focused pose"></figure>
     </header>
 
     <div class="page-shell lab-body">
-      <aside class="lab-status card lab-status-strip" aria-labelledby="lab-status-title">
-          <div class="card-head">
-            <span class="badge-icon"><svg><use href="#i-check"/></svg></span>
-            <div><p class="eyebrow">Baseline</p><h2 id="lab-status-title">Your progress</h2></div>
-          </div>
-          <div class="meter"><span id="lab-meter"></span></div>
-          <p class="meter-caption" id="lab-meter-caption">0 of 4 assessments completed</p>
-          <p class="card-note" id="lab-status-note"></p>
-        </aside>
+      <section class="ci-window" id="ci-window" aria-live="polite" aria-labelledby="ci-window-title"></section>
+
+      <section class="ci-schedule card" aria-labelledby="ci-schedule-title">
+        <div class="ci-section-head">
+          <div><p class="eyebrow">The schedule</p><h2 id="ci-schedule-title">When you are measured again</h2></div>
+          <p>Repeating a task raises the score through practice alone, so official checks open on a schedule — never on demand.</p>
+        </div>
+        <ol class="ci-timeline" id="ci-timeline"></ol>
+      </section>
+
       <section aria-labelledby="instruments-title">
         <div class="lab-section-head">
-          <h2 id="instruments-title">The four instruments</h2>
-          <p>Each one records its own result, its own version and its own date.</p>
+          <h2 id="instruments-title">The four tasks</h2>
+          <p>Each records its own result, version and date. Practice rounds are open any time and never counted.</p>
         </div>
         <div class="lab-grid" id="lab-grid"></div>
       </section>
@@ -72,10 +73,10 @@
             <h2 id="notes-title">How to read these results</h2>
           </div>
           <ul class="lab-note-list">
-            <li><strong>Four assessments, not four diagnoses.</strong> Each measures something different. There is no combined percentage and no brain-health score.</li>
-            <li><strong>Practice effects are real.</strong> Repeating a task often improves the score without anything else changing. That is why formal retests open on a schedule rather than on demand.</li>
-            <li><strong>Comparisons need matching versions.</strong> Two attempts are only comparable when the same instrument version and conditions were used.</li>
-            <li><strong>Reassessment is free.</strong> Seeing your own progress is never placed behind a paid plan.</li>
+            <li><strong>Four tasks, not four diagnoses.</strong> Each measures something different. There is no combined percentage and no brain-health score.</li>
+            <li><strong>Practice effects are real.</strong> Repeating a task often improves the score without anything else changing. That is why official checks open on a schedule.</li>
+            <li><strong>Comparisons need a real re-measurement.</strong> A comparison appears only for a task that was actually measured again. Practice rounds are never compared.</li>
+            <li><strong>Re-checking is free.</strong> Seeing your own progress is never placed behind a paid plan.</li>
           </ul>
         </div>
         <div class="card">
@@ -83,10 +84,10 @@
             <span class="badge-icon lilac"><svg><use href="#i-lock"/></svg></span>
             <h2>Who can see this</h2>
           </div>
-          <p>Your assessment results are private by default. Mentors, institutions and outdoor providers do not see them.</p>
-          <p class="card-note">In this client preview nothing is sent anywhere — results are stored in this browser only.</p>
+          <p>Your results are private by default. Mentors, institutions and outdoor providers do not see them.</p>
+          <p class="card-note">In this client preview nothing is sent anywhere.</p>
           <div class="btn-row" style="margin-top:18px">
-            <a class="btn btn-ghost" href="../insights/insights.html">Open Insights <svg><use href="#i-chart"/></svg></a>
+            <a class="btn btn-ghost" href="../insights/insights.html#checkins">Results in Insights <svg><use href="#i-chart"/></svg></a>
           </div>
         </div>
       </section>

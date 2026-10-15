@@ -14,7 +14,8 @@
   <link rel="stylesheet" href="../../../../src/styles/member-page.css">
   <link rel="stylesheet" href="profile.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
-  <script src="../../../../src/js/utils/storage.js" defer></script>
+
+  <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
   <script src="profile.js" defer></script>
 </head>
@@ -63,13 +64,20 @@
           <div class="field">
             <label for="email">Email</label>
             <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
-            <p class="field-hint">Stored on this device only in the preview. No account service is connected.</p>
+            <p class="field-hint">Saved to this account in this browser. No account service is connected.</p>
           </div>
         </div>
         <div class="btn-row pr-form-actions">
           <button class="btn btn-primary" type="button" id="save-account">Save <svg><use href="#i-check"/></svg></button>
           <span class="pr-saved" id="account-saved" aria-live="polite"></span>
         </div>
+      </section>
+
+      <section class="card" aria-labelledby="subscription-title">
+        <div class="card-head"><div><p class="eyebrow">Subscription</p><h2 id="subscription-title">Your plan</h2></div></div>
+        <p>Free preview · the core individual journey is available on this account.</p>
+        <p>No paid subscription or payment is connected to this preview.</p>
+        <div class="btn-row"><a class="btn btn-ghost" href="../../public/pricing/pricing.html">Compare Free and Plus plans <svg><use href="#i-arrow"/></svg></a></div>
       </section>
 
       <section class="card" aria-labelledby="setup-title">
@@ -100,7 +108,7 @@
           </div>
           <ul class="pr-privacy">
             <li><strong>Your assessment results</strong><small>Private. Mentors, institutions and providers never see them.</small></li>
-            <li><strong>Your recovery plan</strong><small>Private. A mentor sees only work you submit to their programme.</small></li>
+            <li><strong>Your Roadmap</strong><small>Private. A mentor sees only work you submit to their programme.</small></li>
             <li><strong>Browsing records</strong><small>Private, and only ever from a supported browser you connected yourself.</small></li>
             <li><strong>Community posts</strong><small>Visible to other members — only what you choose to post.</small></li>
           </ul>
@@ -122,11 +130,10 @@
           <span class="badge-icon"><svg><use href="#i-refresh"/></svg></span>
           <div><p class="eyebrow">Preview controls</p><h2 id="demo-title">Demo data</h2></div>
         </div>
-        <p>This build stores everything locally so the whole individual journey can be walked through end to end. These controls exist for that purpose.</p>
+        <p>Your account record is the seeded demo data plus anything you change in this browser. These controls show it, or put it back exactly as seeded.</p>
         <div class="pr-demo-grid">
-          <button class="btn btn-ghost" type="button" id="replay-tour"><svg><use href="#i-sprout"/></svg> Replay the product tour</button>
-          <button class="btn btn-ghost" type="button" id="export-data"><svg><use href="#i-download"/></svg> Show my stored data</button>
-          <button class="btn btn-ghost pr-reset" type="button" id="reset-demo"><svg><use href="#i-trash"/></svg> Reset everything</button>
+                    <button class="btn btn-ghost" type="button" id="export-data"><svg><use href="#i-download"/></svg> Show my stored data</button>
+          <button class="btn btn-ghost pr-reset" type="button" id="reset-demo"><svg><use href="#i-trash"/></svg> Reset demo changes</button>
         </div>
       </section>
     </div>
@@ -138,8 +145,8 @@
     <button class="ds-dialog-close" type="button" data-close-dialog aria-label="Close">&times;</button>
     <div class="ds-dialog-inner">
       <p class="eyebrow">Reset demo data</p>
-      <h2 id="reset-title">Clear everything and start over?</h2>
-      <p>This removes your setup answers, all four assessment results, your plan, routine, activity history and registrations from this browser. It cannot be undone.</p>
+      <h2 id="reset-title">Undo every change on this account?</h2>
+      <p>Routine ticks, edits, deletions, practices, reviews and check-ins you made in this browser are removed, and the account returns exactly to its seeded story.</p>
       <div class="btn-row" style="margin-top:20px">
         <button class="btn btn-ghost" type="button" data-close-dialog>Keep my data</button>
         <button class="btn btn-primary pr-reset-confirm" type="button" id="confirm-reset">Clear it and start over</button>

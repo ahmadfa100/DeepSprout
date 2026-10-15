@@ -174,3 +174,14 @@
 .shield-page{width:min(calc(100% - 72px),1180px);padding-top:0}
 .shield-page .ds-hero{width:100%;margin:28px 0 22px}
 @media(max-width:860px){.shield-page{width:calc(100% - 32px)}.shield-page .ds-hero{margin-top:18px}}
+
+/* What the extension measures (from the account record) */
+.shield-measured { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-14) var(--space-24); width: min(100% - var(--gutter), var(--container)); margin: var(--space-22) auto 0; padding: var(--space-22) var(--space-26); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-card); font-family: var(--font-sans); }
+.shield-measured[hidden] { display: none; }
+.shield-measured-eyebrow { margin: 0 0 var(--space-6); color: var(--color-leaf); font-size: var(--text-eyebrow); font-weight: var(--weight-bold); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; }
+.shield-measured h2 { margin: 0; color: var(--color-ink); font-size: var(--text-h2-panel); font-weight: var(--weight-heavy); letter-spacing: var(--tracking-h3); }
+.shield-measured p { margin: var(--space-6) 0 0; max-width: 62ch; color: var(--color-muted); font-size: var(--text-body); }
+.shield-measured p strong { color: var(--color-ink); }
+.shield-measured-link { color: var(--color-leaf); font-weight: var(--weight-bold); text-decoration: none; }
+.shield-measured-link:hover { text-decoration: underline; }
+@media (max-width: 760px) { .shield-measured { width: min(100% - var(--gutter-narrow), var(--container)); padding: var(--section-pad-narrow); } }

@@ -163,6 +163,31 @@
       case 'attempt.add':
         data.activityAttempts.push(event.attempt);
         break;
+      case 'review.add':
+        if (!data.weeklyReviews.some(review => review.week === event.review.week)) data.weeklyReviews.push(event.review);
+        break;
+      case 'assessment.add':
+        data.assessmentAttempts.push(event.attempt);
+        break;
+      case 'setup.save':
+        data.user.goal = event.goal;
+        data.user.setup = event.setup;
+        if (!data.user.registeredOn) data.user.registeredOn = event.on;
+        break;
+      case 'profile.update':
+        if (typeof event.name === 'string') data.user.name = event.name;
+        if (typeof event.email === 'string') data.user.email = event.email;
+        break;
+      case 'registration.add':
+        data.registrations = data.registrations.filter(entry => entry.opportunityId !== event.registration.opportunityId || entry.status !== 'cancelled');
+        if (!data.registrations.some(entry => entry.opportunityId === event.registration.opportunityId)) data.registrations.push(event.registration);
+        break;
+      case 'registration.cancel': {
+        const entry = data.registrations.find(item => item.opportunityId === event.opportunityId && item.status !== 'cancelled');
+        // Cancelling releases the place; attendance already recorded stays.
+        if (entry) { entry.status = 'cancelled'; entry.cancelledOn = event.on; }
+        break;
+      }
       case 'plan.adjust':
         (data.planAdjustments ||= []).push({ on: event.on, label: event.label, detail: event.detail });
         break;
@@ -170,13 +195,21 @@
     }
   };
 
-  const createAccount = (seed, choice) => {
+  const createAccount = (seed, choice, catalogue = { listings: [] }) => {
     const data = JSON.parse(JSON.stringify(seed));
     data.planAdjustments ||= [];
     const changes = readChanges(choice);
     changes.forEach(event => applyChange(data, event));
     const today = data.account.asOf ? parse(data.account.asOf) : parse(keyOf(new Date()));
     const todayKey = keyOf(today);
+    // Listings carry dates relative to the account's today, so every story stays coherent.
+    data.timezone = catalogue.timezone || '';
+    data.opportunities = (catalogue.listings || []).map(listing => ({
+      ...listing,
+      startDate: keyOf(addDays(today, listing.startsInDays)),
+      endDate: keyOf(addDays(today, listing.endsInDays ?? listing.startsInDays)),
+      components: (listing.components || []).map(component => ({ ...component, date: keyOf(addDays(today, component.inDays)) }))
+    }));
     // An account with no recorded registration date was created today.
     const registeredKey = data.user.registeredOn || todayKey;
     const byId = (list, id) => list.find(item => item.id === id) || null;
@@ -504,7 +537,8 @@
       const opens = addDays(current.end, -policy.windowDays);
       const closes = addDays(current.end, policy.windowDays);
       const target = current.cycleNumber + 1;
-      const done = data.assessmentAttempts.some(entry => entry.official && entry.cycle === target);
+      const repeated = checkInTasks(current.cycleNumber).tasks;
+      const done = repeated.every(task => data.assessmentAttempts.some(entry => entry.official && entry.definitionId === task.id && entry.cycle === target));
       let state = 'upcoming';
       if (done) state = 'done';
       else if (today > closes) state = 'late';
@@ -518,6 +552,28 @@
         daysUntilOpen: Math.max(0, daysBetween(today, opens)),
         ...checkInTasks(current.cycleNumber)
       };
+    };
+
+    /**
+     * Whether an attempt on this instrument, taken now, is OFFICIAL or a
+     * PRACTICE ROUND. Practice rounds are allowed any time and are never stored.
+     *   official — the starting point, or a task repeated inside (or after a
+     *              missed) end-of-cycle window that has not been taken yet
+     *   practice — everything else
+     */
+    const checkInMode = id => {
+      const due = checkInWindow();
+      const attempts = officialAttempts(id);
+      if (!attempts.length) {
+        return { mode: 'official', kind: 'baseline', cycle: plan()?.cycleNumber || 1, late: false };
+      }
+      if ((due.state === 'open' || due.state === 'late') && due.tasks.some(task => task.id === id)) {
+        const cycle = plan().cycleNumber + 1;
+        if (!attempts.some(attempt => attempt.cycle === cycle)) {
+          return { mode: 'official', kind: 'recheck', cycle, late: due.state === 'late' };
+        }
+      }
+      return { mode: 'practice', kind: 'practice', cycle: null, late: false, opens: due.opens };
     };
 
     /**
@@ -570,7 +626,9 @@
     };
 
     const experiences = () => {
-      const entries = data.experienceRegistrations.filter(entry => entry.status !== 'cancelled');
+      const kindOfExperience = id => byId(data.opportunities, id)?.kind === 'experience';
+      const entries = [...data.experienceRegistrations, ...data.registrations.filter(entry => kindOfExperience(entry.opportunityId))]
+        .filter(entry => entry.status !== 'cancelled' && entry.status !== 'waitlisted');
       return {
         provenance: PROVENANCE['supervisor-confirmed'],
         registered: entries.length,
@@ -688,6 +746,116 @@
       return steps.slice(0, 3);
     };
 
+    /* ---- explore: listings with places, dates and the user's own status */
+
+    const KIND_LABELS = { initiative: 'Initiative', session: 'Session', experience: 'Experience', competition: 'Competition' };
+    const registrationFor = id => data.registrations.find(entry => entry.opportunityId === id && entry.status !== 'cancelled') || null;
+    const listing = item => {
+      const mine = registrationFor(item.id);
+      const holding = mine && (mine.status === 'confirmed' || mine.status === 'pending') ? 1 : 0;
+      const taken = item.registered + holding;
+      const remaining = item.capacity === null ? null : Math.max(0, item.capacity - taken);
+      return {
+        ...item,
+        kindLabel: KIND_LABELS[item.kind] || item.kind,
+        start: parse(item.startDate),
+        end: parse(item.endDate),
+        timezone: data.timezone,
+        remaining,
+        full: remaining === 0 && !holding,
+        ongoing: item.startDate <= todayKey && item.endDate >= todayKey,
+        past: item.endDate < todayKey,
+        mine: mine ? { ...mine, registeredOn: parse(mine.registeredOn) } : null,
+        components: item.components.map(component => ({ ...component, date: parse(component.date) }))
+      };
+    };
+    const listings = () => data.opportunities.map(listing);
+    const listingById = id => { const item = byId(data.opportunities, id); return item ? listing(item) : null; };
+    /** What registering would do right now: confirm, ask the organiser, or join the waiting list. */
+    const registrationOutcome = id => {
+      const item = listingById(id);
+      if (!item) return null;
+      if (item.full) return 'waitlisted';
+      return item.approval === 'organiser' ? 'pending' : 'confirmed';
+    };
+
+    /* ---- garden: one plant, grown only from qualifying records */
+
+    /**
+     * Every record that grows the plant, oldest first. Each counts once:
+     * a valid practice, a routine day (capped per plan week), a completed
+     * weekly review, an organiser-confirmed attendance.
+     */
+    const growthSteps = () => {
+      const policy = data.catalog.gardenPolicy;
+      const steps = [];
+      data.activityAttempts.filter(attempt => attempt.valid && activityType(attempt.activityType)).forEach(attempt => steps.push({
+        on: attempt.on, kind: 'practice', title: activityType(attempt.activityType).title, detail: attempt.outcome,
+        source: 'Measured by the app', why: 'A valid practice adds one growth step.'
+      }));
+      const perWeek = new Map();
+      data.routine.forEach(item => item.checkIns.filter(entry => entry.status === 'done').forEach(entry => {
+        const week = data.plan ? Math.floor(daysBetween(parse(data.plan.startDate), parse(entry.date)) / 7) : entry.date.slice(0, 7);
+        const count = perWeek.get(week) || 0;
+        if (count >= policy.routineDaysPerWeek) return;
+        perWeek.set(week, count + 1);
+        steps.push({ on: entry.date, kind: 'routine', title: item.title, detail: 'Offline routine ticked', source: 'Self-reported', why: `A routine day adds one growth step (up to ${policy.routineDaysPerWeek} a week).` });
+      }));
+      data.weeklyReviews.forEach(review => steps.push({
+        on: review.completedOn, kind: 'review', title: `Week ${review.week} review`, detail: 'Weekly review completed',
+        source: 'Your plan', why: 'A completed weekly review adds one growth step.'
+      }));
+      data.registrations.forEach(entry => entry.attendance.filter(item => item.confirmedBy === 'organiser').forEach(item => steps.push({
+        on: item.on, kind: 'attended', title: item.component, detail: byId(data.opportunities, entry.opportunityId)?.title || '',
+        source: 'Organiser-confirmed', why: 'Attendance confirmed by the organiser adds one growth step.'
+      })));
+      return steps.filter(step => step.on <= todayKey).sort((a, b) => a.on.localeCompare(b.on));
+    };
+
+    const garden = () => {
+      const policy = data.catalog.gardenPolicy;
+      const steps = growthSteps();
+      const count = steps.length;
+      const stages = policy.stages;
+      const stageIndex = stages.reduce((found, stage, index) => (count >= stage.from ? index : found), 0);
+      const next = stages[stageIndex + 1] || null;
+      const firstReview = data.weeklyReviews.slice().sort((a, b) => a.completedOn.localeCompare(b.completedOn))[0];
+      const companion = policy.companion.unlock === 'first-weekly-review' && firstReview && firstReview.completedOn <= todayKey
+        ? { ...policy.companion, on: parse(firstReview.completedOn), why: 'Unlocked by your first completed weekly review.' }
+        : null;
+      // Achievements: dated milestones from the policy, oldest first. A rule
+      // names either the nth step of one kind or the step that reached a stage.
+      const stageFrom = id => stages.find(stage => stage.id === id)?.from;
+      // `slot` is the rule's place in the policy, so a tree's spot never shifts.
+      const rules = policy.achievements || [];
+      const achievements = rules.map((rule, order) => {
+        const step = rule.stage
+          ? (stageFrom(rule.stage) > 0 ? steps[stageFrom(rule.stage) - 1] : null)
+          : steps.filter(item => item.kind === rule.kind)[rule.count - 1];
+        return step ? { rule, step, order } : null;
+      }).filter(Boolean)
+        .sort((a, b) => a.step.on.localeCompare(b.step.on) || a.order - b.order)
+        .map(({ rule, step }) => ({
+          id: rule.id, slot: rules.indexOf(rule), title: rule.title, tree: rule.tree, why: rule.why,
+          earnedBy: [step.title, step.detail].filter(Boolean).join(' · '), on: parse(step.on)
+        }));
+      const last = steps[steps.length - 1] || null;
+      const quiet = last ? daysBetween(parse(last.on), today) : null;
+      // Vitality is a reversible surface effect: it never touches the earned stage.
+      const { fullWithinDays, lowestAfterDays } = policy.vitality;
+      const vitality = quiet === null ? 1 : quiet <= fullWithinDays ? 1
+        : Math.max(0.55, 1 - 0.45 * Math.min(1, (quiet - fullWithinDays) / (lowestAfterDays - fullWithinDays)));
+      return {
+        steps, count, stages, stageIndex, stage: stages[stageIndex], next,
+        toNext: next ? next.from - count : 0,
+        companion,
+        achievements,
+        vitality,
+        recent: last ? { ...last, on: parse(last.on) } : null,
+        policy: { routineDaysPerWeek: policy.routineDaysPerWeek, note: policy.note }
+      };
+    };
+
     /* ---- history: everything recorded, newest first, each with its source */
 
     const history = () => {
@@ -761,7 +929,11 @@
       asOfNote: data.account.asOfNote,
       today,
       todayKey,
+      /** The full record as it stands now (seed plus changes) — for "show my data". */
+      exportRecord: () => JSON.parse(JSON.stringify(data)),
       profile: () => ({
+        email: data.user.email || '',
+        setup: data.user.setup ? { ...data.user.setup } : null,
         name: data.user.name,
         registeredOn: parse(registeredKey),
         goal: data.user.goal ? { ...data.user.goal, setOn: parse(data.user.goal.setOn) } : null
@@ -782,6 +954,13 @@
       checkIns,
       checkInWindow,
       checkInTasks,
+      checkInMode,
+      checkInPolicy: () => ({ ...data.catalog.checkInPolicy }),
+      garden,
+      listings,
+      listingById,
+      registrationOutcome,
+      allRegistrations: () => data.registrations.map(entry => ({ ...entry, listing: listingById(entry.opportunityId) })),
       initiatives,
       experiences,
       nextSteps
@@ -808,17 +987,20 @@
   let pending = null;
 
   /** Fetch and model the chosen account. Resolves to the same object for every caller. */
-  const load = () => {
+  const load = (refresh = false) => {
+    if (refresh) pending = null;
     if (pending) return pending;
     const choice = readChoice();
     const url = new URL(`../../data/${ACCOUNTS[choice]}`, SCRIPT_URL);
-    pending = Promise.resolve()
-      .then(() => fetch(url, { cache: 'no-cache' }))
+    const listingsUrl = new URL('../../data/listings.json', SCRIPT_URL);
+    const json = target => Promise.resolve()
+      .then(() => fetch(target, { cache: 'no-cache' }))
       .then(response => {
         if (!response.ok) throw new Error(`Account data could not be loaded (${response.status}).`);
         return response.json();
-      })
-      .then(data => createAccount(data, choice));
+      });
+    pending = Promise.all([json(url), json(listingsUrl).catch(() => ({ listings: [] }))])
+      .then(([data, catalogue]) => createAccount(data, choice, catalogue));
     return pending;
   };
 
@@ -837,7 +1019,16 @@
     return ['localhost', '127.0.0.1', '', '[::1]'].includes(location.hostname);
   };
 
+  // Display names live in ONE constant. Any element marked data-name="checkIn"
+  // (etc.) shows the current wording, so a rename is a one-line change.
+  const applyNames = (scope = document) => scope.querySelectorAll('[data-name]').forEach(node => {
+    if (NAMES[node.dataset.name]) node.textContent = NAMES[node.dataset.name];
+  });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => applyNames());
+  else applyNames();
+
   window.DeepSproutAccount = {
+    applyNames,
     ACCOUNTS: Object.keys(ACCOUNTS),
     NAMES,
     PROVENANCE,

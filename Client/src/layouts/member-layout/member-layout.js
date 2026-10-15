@@ -9,23 +9,24 @@
     ['training', 'Activities', 'src/pages/member/training/training.html', 'activities.svg'],
     ['shield', 'Digital Shield', 'src/pages/member/shield/shield.html', 'shield-plus.svg'],
     ['garden', 'Garden', 'src/pages/member/garden/garden.html', 'sprout.svg'],
-    ['lab', 'Lab', 'src/pages/member/lab/lab.html', 'target.svg'],
     ['insights', 'Insights', 'src/pages/member/insights/insights.html', 'insights.svg'],
     ['explore', 'Explore', 'src/pages/member/explore/explore.html', 'plant.svg'],
-    ['community', 'Community', 'src/pages/member/community/community.html', 'community.svg']
+    ['community', 'Community', 'src/pages/member/community/community.html', 'community.svg'],
+    ['pricing', 'Pricing', 'pricing.html', 'calendar.svg']
   ];
-  const links = items.map(([key, label, path, glyph]) =>
-    `<a href="${root}${path}"${page === key ? ' aria-current="page"' : ''}>${icon(`icons/${glyph}`)}<span>${label}</span></a>`
-  ).join('');
-  // The header reads the shared journey state when it is loaded, so the
-  // account name and the "what's next" notice stay true to where the user is.
-  const state = window.DeepSprout?.get();
-  const displayName = state?.profile?.name?.trim() || 'Your account';
-  const initial = displayName.charAt(0).toUpperCase();
-  const next = window.DeepSprout?.nextAction(root);
-  const notice = next
-    ? `<strong>Next for you</strong><p>${next.why}</p><a class="member-popover-link" href="${next.href}">${next.label} →</a>`
-    : `<strong>Notifications</strong><p>You’re all caught up for now.</p>`;
+  // Display names come from ONE constant (Account.NAMES); a label written as a
+  // name key is filled from it, so renaming "Check-in" is a one-line change.
+  const NAMES = window.DeepSproutAccount?.NAMES || {};
+  const links = items.map(([key, label, path, glyph]) => {
+    const text = label === 'checkIn' ? `<span data-name="checkIn">${NAMES.checkIn || ''}</span>` : `<span>${label}</span>`;
+    return `<a href="${root}${path}"${page === key ? ' aria-current="page"' : ''}>${icon(`icons/${glyph}`)}${text}</a>`;
+  }).join('');
+  // Name and notice come from the account record once it loads (see
+  // showAccountName below). Until then the header stays neutral, so it never
+  // shows another source's name or next step first.
+  const displayName = 'Your account';
+  const initial = 'Y';
+  const notice = '<strong>Notifications</strong><p>Loading…</p>';
 
   const headerMount = document.querySelector('[data-site-header]');
   if (headerMount) headerMount.outerHTML = `<header class="member-header" id="top">
@@ -33,7 +34,7 @@
       <a class="member-brand" href="${root}index.html" aria-label="DeepSprout home">${brandLogo}<strong>DeepSprout</strong></a>
       <nav class="member-nav" id="member-nav" aria-label="Member navigation">${links}</nav>
       <div class="member-header-actions">
-        <div class="member-notifications"><button class="member-icon-button" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="member-notification-panel">${icon('icons/bell.svg')}<span class="member-alert-dot"></span></button><div class="member-popover" id="member-notification-panel" hidden>${notice}</div></div>
+        <div class="member-notifications"><button class="member-icon-button" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="member-notification-panel">${icon('icons/bell.svg')}<span class="member-alert-dot" hidden></span></button><div class="member-popover" id="member-notification-panel" hidden>${notice}</div></div>
         <details class="member-account"><summary><span class="member-avatar">${initial}</span><span>${displayName}</span>${icon('icons/chevron-down.svg')}</summary><div class="member-account-menu"><a href="${root}index.html">Home</a><a href="${root}src/pages/member/profile/profile.html">Profile &amp; settings</a><a href="${root}src/pages/member/weekly-review/weekly-review.html">Weekly review</a><a href="${root}src/pages/member/explore/explore.html#my-registrations">My registrations</a><a href="${root}src/pages/member/onboarding/onboarding.html">Replay first run</a><a href="${root}login.html">Log in page</a></div></details>
         <button class="member-menu-toggle" type="button" aria-label="Open navigation" aria-controls="member-nav" aria-expanded="false">${icon('icons/menu.svg')}</button>
       </div>
@@ -188,7 +189,10 @@
 
   const withAccount = Account => {
     if (!Account) return;
+    Account.applyNames(document.querySelector('.member-header') || document);
     showAccountName(Account);
+    // Any change on the account (a review saved, a name edited) updates the header too.
+    window.addEventListener('deepsprout:account', () => showAccountName(Account));
     mountDevSwitch(Account);
   };
 

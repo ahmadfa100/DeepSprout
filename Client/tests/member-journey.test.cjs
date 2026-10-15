@@ -150,6 +150,17 @@ const check = (name, fn) => { checks.push([name, fn]); };
 
 /* ----------------------------------------------------------- the journey */
 
+/** Wait for a page's account data to load and its first render to finish. */
+const settled = async window => {
+  await window.DeepSproutAccount.load();
+  await new Promise(resolve => setTimeout(resolve, 0));
+};
+const clearAccountChanges = () => [...store.keys()]
+  .filter(key => key.startsWith('deepsprout-account-changes'))
+  .forEach(key => store.delete(key));
+
+
+
 check('onboarding records the setup answers', () => {
   const window = load('src/pages/member/onboarding/onboarding.html');
   const document = window.document;
@@ -179,105 +190,87 @@ check('onboarding records the setup answers', () => {
   assert.equal(document.querySelector('[data-step="handoff"]').hidden, false, 'handoff should show');
 });
 
-check('each assessment records a distinct attempt', () => {
+const officialAttempt = (window, id) => window.DeepSproutAccount.load()
+  .then(account => account.checkIns().find(entry => entry.id === id).latest);
+
+check('each starting task records one official attempt on the account', async () => {
+  clearAccountChanges();
   // Questionnaire: answer every item, then finish.
-  const survey = load('src/pages/member/lab/assessment.html', { search: '?test=digital-habits' });
+  const survey = load('src/pages/member/lab/assessment.html', { search: '?account=empty&test=digital-habits' });
+  await settled(survey);
   survey.document.getElementById('begin-button').click();
   survey.document.querySelectorAll('.as-scale').forEach(scale => scale.children[2].click());
   assert.equal(survey.document.getElementById('survey-submit').disabled, false,
     'finish should unlock once every item is answered');
   survey.document.getElementById('survey-submit').click();
-
-  const habits = survey.DeepSprout.assessmentAttempt('digital-habits');
-  assert.ok(habits.completedAt, 'digital habits attempt should be saved');
+  const habits = await officialAttempt(survey, 'digital-habits');
+  assert.ok(habits, 'digital habits attempt should be saved');
   assert.equal(habits.version, 'DH-1.0', 'instrument version should be recorded');
-  assert.equal(habits.evidence, 'self-reported', 'questionnaire is a self-report');
+  assert.equal(habits.cycle, 1, 'the first attempt is the starting point');
+  assert.equal(habits.score, 16, 'eight answers of 2 on a 0–4 scale score 16 of 32');
 
   // Reading task: read the passage, then answer the five questions.
-  const depth = load('src/pages/member/lab/assessment.html', { search: '?test=depth-challenge' });
+  const depth = load('src/pages/member/lab/assessment.html', { search: '?account=empty&test=depth-challenge' });
+  await settled(depth);
   depth.document.getElementById('begin-button').click();
   assert.ok(depth.document.getElementById('passage-body').children.length >= 4,
     'passage should render its paragraphs');
   depth.document.getElementById('passage-done').click();
-
   for (let question = 0; question < 5; question += 1) {
     depth.document.querySelector('#quiz-options .choice').click();
     depth.document.getElementById('quiz-next').click();
   }
-  const reading = depth.DeepSprout.assessmentAttempt('depth-challenge');
-  assert.ok(reading.completedAt, 'depth challenge attempt should be saved');
-  assert.match(reading.summary[0].value, /of 5$/, 'accuracy should be out of five');
-  assert.equal(reading.evidence, 'verified', 'the reading task is measured, not self-reported');
-
-  // The two timed tasks are driven by timers; record them directly so the rest
-  // of the journey has a complete baseline to work from.
-  ['sustained-attention', 'inhibitory-control'].forEach(id => {
-    survey.DeepSprout.saveAssessment(id, {
-      version: id === 'sustained-attention' ? 'SA-1.0' : 'IC-1.0',
-      evidence: 'verified',
-      summary: [{ label: 'Average reaction time', value: '408 ms' }],
-      valid: true
-    });
-  });
-
-  assert.equal(survey.DeepSprout.assessmentsComplete(), true, 'all four should now be recorded');
-  assert.equal(survey.DeepSprout.nextAssessment(), null, 'nothing should be left to take');
+  const reading = await officialAttempt(depth, 'depth-challenge');
+  assert.ok(reading, 'depth challenge attempt should be saved');
+  assert.match(reading.details[0].value, /of 5$/, 'accuracy should be out of five');
+  assert.ok(reading.score >= 0 && reading.score <= 5, 'the score sits on the 0–5 scale');
 });
 
-check('the sustained attention task scores hits, misses and early responses', () => {
-  const window = load('src/pages/member/lab/assessment.html', {
-    search: '?test=sustained-attention', clock: true
-  });
+check('the sustained attention task scores hits, misses and early responses', async () => {
+  const window = load('src/pages/member/lab/assessment.html', { search: '?account=empty&test=sustained-attention', clock: true });
+  await settled(window);
   const document = window.document;
   const timers = window.__timers;
   const arena = document.getElementById('arena');
-
   document.getElementById('begin-button').click();
 
-  // Step through the run: respond whenever a target is actually showing, and
-  // deliberately press once while the box is empty to produce an early response.
+  // Respond whenever a target is showing; press once on an empty box.
   let earlyResponses = 0;
   let responded = 0;
   for (let step = 0; step < 4000 && timers.pending; step += 1) {
     const shape = document.getElementById('arena-shape');
     if (!shape.hidden) {
-      timers.advance(380);           // a plausible reaction time
+      timers.advance(380);
       arena.click();
       responded += 1;
     } else if (earlyResponses === 0 && responded === 2) {
-      arena.click();                 // one press with nothing on screen
+      arena.click();
       earlyResponses = 1;
     }
     timers.step();
   }
   timers.drain();
 
-  const attempt = window.DeepSprout.assessmentAttempt('sustained-attention');
+  const attempt = await officialAttempt(window, 'sustained-attention');
   assert.ok(attempt, 'the attempt should be recorded');
   assert.equal(attempt.version, 'SA-1.0');
   assert.equal(attempt.raw.falseAlarms, 1, 'the press on an empty box is an early response');
   assert.ok(attempt.raw.hits.length > 15, `expected most targets detected, got ${attempt.raw.hits.length}`);
   assert.equal(attempt.raw.meanRt, 380, 'reaction time should be measured from the stimulus');
-
-  const labels = attempt.summary.map(entry => entry.label);
+  const labels = attempt.details.map(entry => entry.label);
   assert.ok(labels.includes('Missed targets'), 'misses are reported separately');
   assert.ok(labels.includes('Early responses'), 'early responses are reported separately');
-  assert.equal(attempt.summary.some(entry => /%/.test(entry.value)), false,
-    'no single percentage score should be produced');
+  assert.equal(attempt.details.some(entry => /%/.test(entry.value)), false,
+    'the result rows never collapse into a single percentage');
 });
 
-check('the go/no-go task separates commission errors from misses', () => {
-  const window = load('src/pages/member/lab/assessment.html', {
-    search: '?test=inhibitory-control', clock: true
-  });
+check('the go/no-go task separates commission errors from misses', async () => {
+  const window = load('src/pages/member/lab/assessment.html', { search: '?account=empty&test=inhibitory-control', clock: true });
+  await settled(window);
   const document = window.document;
   const timers = window.__timers;
   const arena = document.getElementById('arena');
-
   document.getElementById('begin-button').click();
-
-  // Respond to every signal, green or amber — the amber ones must be counted
-  // as commission errors rather than as hits.
   for (let step = 0; step < 4000 && timers.pending; step += 1) {
     const shape = document.getElementById('arena-shape');
     if (!shape.hidden) {
@@ -287,8 +280,7 @@ check('the go/no-go task separates commission errors from misses', () => {
     timers.step();
   }
   timers.drain();
-
-  const attempt = window.DeepSprout.assessmentAttempt('inhibitory-control');
+  const attempt = await officialAttempt(window, 'inhibitory-control');
   assert.ok(attempt, 'the attempt should be recorded');
   assert.equal(attempt.version, 'IC-1.0');
   assert.ok(attempt.raw.noGoTotal > 0, 'the run should include hold signals');
@@ -296,14 +288,52 @@ check('the go/no-go task separates commission errors from misses', () => {
     'responding to every signal means every hold signal is a commission error');
   assert.equal(attempt.raw.omissions, 0, 'no go signal was missed');
   assert.equal(attempt.raw.goTotal + attempt.raw.noGoTotal, 40, 'all 40 trials ran');
+  assert.equal(attempt.score, 0, 'no hold signal was withheld, so inhibitory control scores 0%');
+  clearAccountChanges();
 });
 
-check('a completed baseline is not retestable immediately', () => {
-  const window = load('src/pages/member/lab/lab.html');
-  assert.equal(window.DeepSprout.retestEligible('digital-habits'), false,
-    'a formal retest should not open on the same day');
-  assert.equal(window.document.querySelectorAll('.lab-card').length, 4, 'four instrument cards');
-  assert.match(window.document.getElementById('lab-meter-caption').textContent, /4 of 4/);
+check('a completed starting point is not retestable until the window opens', async () => {
+  clearAccountChanges();
+  const window = load('src/pages/member/lab/lab.html', { search: '?account=demo' });
+  await settled(window);
+  const account = await window.DeepSproutAccount.load();
+  assert.equal(account.checkInMode('digital-habits').mode, 'practice', 'no official retest on demand');
+  assert.equal(window.document.querySelectorAll('.lab-card').length, 4, 'four task cards');
+  assert.match(window.document.getElementById('ci-window').textContent, /next check-in in 12 days/i);
+  assert.equal(window.document.querySelectorAll('.lab-card a[href*="mode=practice"]').length, 4, 'practice rounds are always open');
+  assert.equal([...window.document.querySelectorAll('.lab-card a')].some(link => /Take it/.test(link.textContent)), false,
+    'no official attempt is offered outside the window');
+});
+
+check('a practice round is never recorded or compared', async () => {
+  clearAccountChanges();
+  const window = load('src/pages/member/lab/assessment.html', { search: '?account=demo&test=digital-habits' });
+  await settled(window);
+  const account = await window.DeepSproutAccount.load();
+  const before = account.exportRecord().assessmentAttempts.length;
+  assert.match(window.document.getElementById('mode-banner').textContent, /Practice round — this does not count towards your results/);
+  window.document.getElementById('begin-button').click();
+  window.document.querySelectorAll('.as-scale').forEach(scale => scale.children[1].click());
+  window.document.getElementById('survey-submit').click();
+  assert.equal(account.exportRecord().assessmentAttempts.length, before, 'nothing is stored');
+  assert.match(window.document.getElementById('result-title').textContent, /not recorded/);
+  assert.equal(account.checkIns().some(entry => entry.comparison), false, 'no comparison appears');
+});
+
+check('an open window makes the repeat official, and a missed one marks it late', async () => {
+  clearAccountChanges();
+  let window = load('src/pages/member/lab/lab.html', { search: '?account=demo', patchAccount: data => { data.account.asOf = '2026-01-30'; } });
+  await settled(window);
+  let account = await window.DeepSproutAccount.load();
+  assert.deepEqual([account.checkInMode('digital-habits').mode, account.checkInMode('sustained-attention').mode, account.checkInMode('inhibitory-control').mode],
+    ['official', 'official', 'practice'], 'cycle 1 repeats Digital Habits and Sustained Attention only');
+  assert.match(window.document.getElementById('ci-window').textContent, /Digital Habits and Sustained Attention/);
+  assert.match(window.document.getElementById('ci-window').textContent, /about 5 minutes/);
+
+  window = load('src/pages/member/lab/lab.html', { search: '?account=demo', patchAccount: data => { data.account.asOf = '2026-02-06'; } });
+  await settled(window);
+  account = await window.DeepSproutAccount.load();
+  assert.equal(account.checkInMode('digital-habits').late, true, 'after the window closes the repeat is marked late');
 });
 
 check('the plan preview requires an offline commitment before activating', () => {
@@ -344,15 +374,6 @@ check('the plan preview requires an offline commitment before activating', () =>
     waitForPreview();
   });
 });
-
-/** Wait for a page's account data to load and its first render to finish. */
-const settled = async window => {
-  await window.DeepSproutAccount.load();
-  await new Promise(resolve => setTimeout(resolve, 0));
-};
-const clearAccountChanges = () => [...store.keys()]
-  .filter(key => key.startsWith('deepsprout-account-changes'))
-  .forEach(key => store.delete(key));
 
 check('the offline routine edits and deletes without rewriting history', async () => {
   clearAccountChanges();
@@ -414,7 +435,7 @@ check('the roadmap shows the current week from the account, not cumulative count
   assert.equal(weekTitles.join(' | '), seed.plan.direction.map(entry => entry.title).join(' | '));
   assert.match(document.querySelector('[data-week="1"]').className, /is-done/);
   assert.match(document.querySelector('[data-week="2"]').className, /is-current/);
-  assert.match(document.querySelector('.ds-hero-art img').getAttribute('src'), /Bimo_Roadmap-Page\.png$/);
+  assert.match(document.querySelector('.ds-hero-art img').getAttribute('src'), /bimo-roadmap\.png$/);
 });
 
 check('home shows the real week when active and the three steps only when empty', async () => {
@@ -440,71 +461,79 @@ check('home shows the real week when active and the three steps only when empty'
   assert.match(window.document.querySelector('#start-steps li').className, /is-current/);
 });
 
-check('the weekly review shows unknown data as unknown', () => {
-  const window = load('src/pages/member/weekly-review/weekly-review.html', { search: '?force=1' });
+check('the weekly review shows unknown data as unknown, and saving moves every page on', async () => {
+  clearAccountChanges();
+  const window = load('src/pages/member/weekly-review/weekly-review.html', {
+    search: '?account=demo',
+    patchAccount: data => { data.shield.dailyUsage = data.shield.dailyUsage.filter(day => day.date < '2026-01-12'); }
+  });
+  await settled(window);
   const document = window.document;
-
-  assert.equal(document.querySelector('[data-stage="review"]').hidden, false,
-    'the review should open when forced');
-
-  const ledger = document.getElementById('ledger').textContent;
-  assert.match(ledger, /No browser usage data available/,
+  assert.equal(document.querySelector('[data-stage="review"]').hidden, false, 'the review opens the day before it is due');
+  assert.match(document.getElementById('ledger').textContent, /No browser data for this week/,
     'missing browser data must say so rather than show a zero');
-
-  assert.equal(document.getElementById('save-review').disabled, true,
-    'saving should wait for both answers');
-
+  assert.equal(document.getElementById('save-review').disabled, true, 'saving should wait for both answers');
   document.querySelector('#q1 .choice').click();
   document.querySelector('#q2 .choice').click();
-  assert.ok(document.querySelectorAll('#outcome-options .wr-option').length >= 2,
-    'outcomes should appear once both questions are answered');
-
+  assert.ok(document.querySelectorAll('#outcome-options .wr-option').length >= 2, 'outcomes appear once both are answered');
   document.querySelector('#outcome-options .wr-option').click();
-  assert.equal(document.getElementById('save-review').disabled, false);
   document.getElementById('save-review').click();
-
-  const state = window.DeepSprout.get();
-  assert.equal(state.reviews.length, 1, 'the review should be recorded');
-  assert.equal(state.plan.revisions.length, 1, 'a plan revision should be appended');
+  const account = await window.DeepSproutAccount.load();
+  assert.equal(account.reviews().history.some(review => review.week === 2), true, 'the review is recorded on the account');
+  assert.equal(account.nextSteps('').some(step => step.id === 'review'), false, 'no page still asks for this review');
+  clearAccountChanges();
 });
 
-check('explore registers and cancels without touching the plan', () => {
-  const window = load('src/pages/member/explore/explore.html');
+check('explore registers through review to confirmation, without touching the plan', async () => {
+  clearAccountChanges();
+  const window = load('src/pages/member/explore/explore.html', { search: '?account=demo' });
+  window.HTMLElement.prototype.animate = function () { return { finished: Promise.resolve() }; };
+  await settled(window);
   const document = window.document;
-
-  const planBefore = JSON.stringify(window.DeepSprout.get().plan);
+  const account = await window.DeepSproutAccount.load();
+  const planBefore = JSON.stringify(account.plan());
   assert.ok(document.querySelectorAll('.ex-card').length >= 8, 'listings should render');
 
-  document.querySelector('.ex-card').click();
-  document.querySelector('#detail-actions .btn-primary').click();
+  // A session with places: detail → form → review → confirmed.
+  document.querySelector('.ex-card[data-id="session-attention-talk"] [data-open]').click();
+  assert.match(document.getElementById('ex-sheet-body').textContent, /What registering commits you to/);
+  document.querySelector('[data-act="start"]').click();
+  const form = document.getElementById('ex-form');
+  form.elements.namedItem('email').value = 'ahmad@example.com';
+  form.elements.namedItem('consent').checked = true;
+  form.dispatchEvent(new window.Event('submit', { cancelable: true }));
+  assert.match(document.getElementById('ex-sheet-body').textContent, /Check before you confirm/);
+  document.querySelector('[data-act="confirm"]').click();
+  const body = document.getElementById('ex-sheet-body').textContent;
+  assert.match(body, /You’re registered/);
+  assert.match(body, /DS-[A-Z0-9]{6}/, 'a booking reference is shown');
+  assert.equal(account.listingById('session-attention-talk').mine.status, 'confirmed');
+  assert.match(document.querySelector('.ex-card[data-id="session-attention-talk"] .ex-status').textContent, /Confirmed/, 'the card shows the after state');
+  assert.match(document.getElementById('ex-mine-list').textContent, /What attention actually is/);
+  assert.equal(JSON.stringify(account.plan()), planBefore, 'registering must not alter the Roadmap');
 
-  const registrations = window.DeepSprout.get().registrations;
-  assert.equal(registrations.length, 1, 'one registration should be stored');
-  assert.equal(registrations[0].status, 'confirmed');
-  assert.equal(JSON.stringify(window.DeepSprout.get().plan), planBefore,
-    'registering for an opportunity must not alter the recovery plan');
-
-  // A full listing offers a waiting list rather than a registration.
-  const full = window.DeepSproutOpportunities.find(item => item.status === 'full');
-  window.DeepSprout.register(full, 'waitlisted');
-  assert.equal(window.DeepSprout.registrationFor(full.id).status, 'waitlisted');
+  // A full listing offers the waiting list, never a place.
+  assert.equal(account.registrationOutcome('session-phone-workshop'), 'waitlisted');
+  // An organiser-approved experience is pending until the organiser confirms.
+  assert.equal(account.registrationOutcome('exp-ajloun'), 'pending');
+  // Registering for an initiative books none of its sessions.
+  assert.equal(account.listingById('init-beyond-reels').components.length > 0, true);
+  clearAccountChanges();
 });
 
-check('profile reflects the finished journey and can reset it', () => {
-  const window = load('src/pages/member/profile/profile.html');
+check('profile reflects the account and can reset demo changes', async () => {
+  clearAccountChanges();
+  const window = load('src/pages/member/profile/profile.html', { search: '?account=demo' });
+  await settled(window);
   const document = window.document;
-
-  assert.equal(document.querySelectorAll('.pr-journey li.is-done').length, 5,
-    'every journey step should read as done');
-  assert.match(document.getElementById('profile-state').textContent, /day 1 of 28/);
-
+  assert.equal(document.querySelectorAll('.pr-journey li.is-done').length, 3, 'setup, starting point and plan read as done');
+  assert.match(document.getElementById('profile-state').textContent, /day 13 of 28/);
+  assert.equal(document.getElementById('name').value, 'Ahmad');
+  const account = await window.DeepSproutAccount.load();
+  account.mutate({ type: 'profile.update', name: 'Someone else' });
+  assert.ok([...store.keys()].some(key => key.startsWith('deepsprout-account-changes')), 'the change is stored');
   document.getElementById('confirm-reset').click();
-  const state = window.DeepSprout.get();
-  assert.equal(state.onboarding.planActivated, false, 'reset should clear the plan');
-  assert.equal(state.routine.length, 0, 'reset should clear the routine');
-  assert.equal(Object.keys(state.assessments).length, 0, 'reset should clear the assessments');
-  assert.equal(state.registrations.length, 0, 'reset should clear the registrations');
-  assert.equal(store.size, 0, 'reset should leave no deepsprout keys behind');
+  assert.equal([...store.keys()].some(key => key.startsWith('deepsprout-account-changes')), false, 'reset removes every change');
 });
 
 /* --------------------------------------------------------------- the run */
