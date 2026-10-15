@@ -100,10 +100,12 @@
   const reset = () => {
     try {
       localStorage.removeItem(KEY);
-      // Clear the per-page keys the earlier pages wrote directly.
-      Object.keys(localStorage)
-        .filter(key => key.startsWith('deepsprout-'))
-        .forEach(key => localStorage.removeItem(key));
+      // Clear only the personal first-run page keys the earlier pages wrote
+      // directly. Partner/Institution records, Admin, Community and personal
+      // journals are separate partitions and are never erased from here.
+      const PERSONAL_PAGE_KEYS = ['deepsprout-recovery-focus', 'deepsprout-recovery-settings', 'deepsprout-scroll-reminder', 'deepsprout-training-saved',
+        'deepsprout-shield-time', 'deepsprout-shield-apps', 'deepsprout-shield-custom-apps', 'deepsprout-shield-reminder'];
+      PERSONAL_PAGE_KEYS.forEach(key => localStorage.removeItem(key));
     } catch { /* ignore */ }
     cache = null;
     return read();

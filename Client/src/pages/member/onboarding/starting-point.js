@@ -8,6 +8,16 @@
 (() => {
   const DS = window.DeepSprout;
   const INSTRUMENTS = window.DeepSproutAssessments;
+  // The four official baselines are recorded in the personal journal
+  // (DeepSproutAccount) by the assessment page. Read them from there first;
+  // the older first-run store is only a fallback for earlier local data.
+  let journal = null;
+  const journalAttempt = definitionId => {
+    const attempt = journal?.exportRecord().assessmentAttempts.filter(entry => entry.official && entry.definitionId === definitionId && entry.cycle === 1).pop();
+    return attempt ? { summary: attempt.details || [], valid: attempt.valid !== false, caveat: 'This attempt was flagged as not fully valid.' } : null;
+  };
+  const baselineAttempt = definitionId => journalAttempt(definitionId) || DS.assessmentAttempt(definitionId);
+  const baselinesComplete = () => DS.ASSESSMENTS.every(meta => baselineAttempt(meta.id));
   const stages = [...document.querySelectorAll('.sp-stage')];
 
   const show = stage => {
@@ -23,7 +33,7 @@
     const grid = document.getElementById('result-grid');
     grid.replaceChildren(...DS.ASSESSMENTS.map(meta => {
       const instrument = INSTRUMENTS[meta.id];
-      const attempt = DS.assessmentAttempt(meta.id);
+      const attempt = baselineAttempt(meta.id);
       const card = document.createElement('article');
       card.className = 'card sp-result-card';
 
@@ -332,6 +342,15 @@
       commitment: commitment.title
     });
 
+    // The same plan in the personal journal that Home and Roadmap read.
+    if (journal && !journal.plan()) {
+      const typeOf = { 'Depth Practice': 'depth', 'Listening & Recall': 'listening', 'Practical Micro-Challenge': 'practical', 'Protected Work': 'protected-work' };
+      const today = new Date();
+      journal.mutate({ type: 'plan.activate', goal, goalLabel: DS.GOALS[goal], lengthDays: DS.get().plan.cycleLength || 28,
+        direction: (DIRECTIONS[goal] || DIRECTIONS['reduce-scrolling']).map(([title, note]) => ({ title, note })),
+        schedule: week.map((entry, offset) => entry.kind === 'practice' ? { date: window.DeepSproutAccount.keyOf(DS.addDays(today, offset)), activityType: typeOf[entry.title] } : null).filter(Boolean) });
+      journal.mutate({ type: 'routine.add', title: commitment.title, hint: commitment.hint || '', days: [0, 1, 2, 3, 4, 5, 6], recurrence: 'weekly' });
+    }
     document.getElementById('done-day').textContent = `Day 1 of ${DS.get().plan.cycleLength}`;
     document.getElementById('done-lead').textContent =
       `Your goal is to ${DS.GOALS[goal].toLowerCase()}, with ${week.filter(entry => entry.kind === 'practice').length} practices and "${commitment.title}" this week. Day 1 starts today.`;
@@ -340,6 +359,7 @@
 
   /* ------------------------------------------------------------------ entry */
 
+  const start = () => {
   renderResults();
   document.getElementById('plan-days').value = String(Math.min(5, Math.max(2, days)));
 
@@ -350,10 +370,14 @@
     document.getElementById('done-lead').textContent =
       `Your plan is on day ${DS.cycleDay()} of ${plan.cycleLength}, working towards: ${plan.goalLabel.toLowerCase()}.`;
     show('done');
-  } else if (!DS.assessmentsComplete()) {
+  } else if (!baselinesComplete()) {
     // Results page still renders, with the unfinished instruments marked as such.
     show('results');
   } else {
     show('results');
   }
+  };
+  start();
+  // Refresh once the personal journal (where the baselines are recorded) has loaded.
+  window.DeepSproutAccount?.load().then(loaded => { journal = loaded; renderResults(); }, () => {});
 })();

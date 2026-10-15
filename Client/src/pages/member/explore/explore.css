@@ -248,3 +248,65 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
   .ex-detail-grid { grid-template-columns: 1fr; }
   .ex-review div { grid-template-columns: 1fr; gap: 2px; }
 }
+
+/* Live Institution initiatives & My Initiatives ------------------------------
+   Same tokens as the rest of Explore. Live records are labelled distinctly
+   from static sample listings. */
+.ex-trust.is-live { background: color-mix(in srgb, var(--color-leaf) 14%, var(--color-surface)); color: var(--color-pine); }
+.ex-status[data-status="offered"] { background: var(--color-gold); color: var(--color-deep); }
+.ex-status[data-status="warning"] { border: 1.5px solid var(--color-soil); color: var(--color-soil); }
+.ex-status[data-status="complete"] { background: var(--color-pine); color: var(--color-white); }
+.ex-lead-text { font-size: var(--text-lead); line-height: var(--leading-body); }
+.ex-code { font-variant-numeric: tabular-nums; letter-spacing: .06em; font-weight: var(--weight-heavy); color: var(--color-pine); }
+.ex-inline-link { color: var(--color-leaf); font-weight: var(--weight-bold); text-underline-offset: 3px; }
+.ex-button.ex-small { padding: var(--space-8) var(--space-14); font-size: var(--text-caption); }
+.ex-policy { margin-top: var(--space-18); border-top: 1px solid var(--color-line); padding-top: var(--space-12); }
+.ex-policy summary { cursor: pointer; font-weight: var(--weight-bold); color: var(--color-ink); }
+.ex-my-initiatives { background: linear-gradient(180deg, color-mix(in srgb, var(--color-mint) 38%, var(--color-surface)), var(--color-surface) 220px); }
+.ex-initiative-list { display: grid; gap: var(--space-16); }
+.ex-initiative {
+  border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); padding: var(--space-20);
+  box-shadow: var(--shadow-card); animation: ex-rise var(--dur-slow) var(--ease-standard) both;
+}
+.ex-initiative.is-ended { box-shadow: none; background: color-mix(in srgb, var(--color-bg) 70%, var(--color-surface)); }
+.ex-initiative-head { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: var(--space-14); align-items: center; }
+.ex-initiative-head img, .ex-initiative-mark { width: 64px; height: 64px; border-radius: var(--radius-tile); object-fit: cover; }
+.ex-initiative-mark { display: grid; place-items: center; background: var(--color-mint); color: var(--color-leaf); }
+.ex-initiative-mark svg { width: 26px; height: 26px; }
+.ex-initiative-head .ex-eyebrow { margin-bottom: var(--space-4); }
+.ex-initiative-head h3 { margin: 0; font-family: var(--font-display); font-size: 1.3rem; letter-spacing: var(--tracking-h3); color: var(--color-ink); }
+.ex-initiative-head small { display: block; margin-top: var(--space-4); color: var(--color-muted); }
+.ex-initiative-status { display: flex; flex-wrap: wrap; gap: var(--space-6); justify-content: flex-end; }
+.ex-initiative-message { margin: var(--space-14) 0 0; padding: var(--space-12) var(--space-14); border-radius: var(--radius-tile); background: var(--color-bg); line-height: var(--leading-body); }
+.ex-initiative-body { margin-top: var(--space-14); }
+.ex-initiative-body > summary { cursor: pointer; font-weight: var(--weight-bold); color: var(--color-leaf); list-style-position: inside; }
+.ex-initiative-body h4 { margin: var(--space-18) 0 var(--space-8); font-size: var(--text-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--color-muted); }
+.ex-session-list { display: grid; gap: var(--space-10); margin: 0; padding: 0; list-style: none; }
+.ex-session { border: 1px solid var(--color-line); border-radius: var(--radius-tile); padding: var(--space-12) var(--space-14); }
+.ex-session-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-12); align-items: center; }
+.ex-session-head small { display: block; color: var(--color-muted); margin-top: 2px; }
+.ex-inline-field select { padding: var(--space-6) var(--space-10); border: 1px solid var(--color-line); border-radius: var(--radius-pill); background: var(--color-surface); font: inherit; font-size: var(--text-caption); }
+.ex-qr { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: var(--space-16); align-items: center; margin-top: var(--space-12); padding: var(--space-14); border-radius: var(--radius-tile); background: var(--color-white); border: 1px dashed color-mix(in srgb, var(--color-leaf) 45%, var(--color-line)); }
+.ex-qr-code svg { display: block; width: 132px; height: 132px; }
+.ex-qr-code svg path, .ex-qr-code svg rect { stroke: none; }
+.ex-qr .ex-code { font-size: 1.25rem; }
+.ex-excuse { margin-top: var(--space-12); padding: var(--space-12) var(--space-14); border-radius: var(--radius-tile); background: color-mix(in srgb, var(--color-gold) 12%, var(--color-surface)); }
+.ex-excuse p { margin: 0 0 var(--space-6); }
+.ex-steps-compact { margin: var(--space-8) 0; }
+.ex-history { display: grid; gap: var(--space-6); margin: 0; padding: 0; list-style: none; font-size: var(--text-caption); }
+.ex-history li { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: var(--space-10); color: var(--color-muted); }
+.ex-complete { display: flex; gap: var(--space-8); align-items: center; padding: var(--space-10) var(--space-14); border-radius: var(--radius-tile); background: var(--color-mint); color: var(--color-pine); font-weight: var(--weight-bold); }
+.ex-complete svg { width: 16px; height: 16px; }
+.ex-initiative .ex-error { margin-top: var(--space-10); }
+@media (max-width: 650px) {
+  .ex-initiative-head { grid-template-columns: 48px minmax(0, 1fr); }
+  .ex-initiative-head img, .ex-initiative-mark { width: 48px; height: 48px; }
+  .ex-initiative-status { grid-column: 1 / -1; justify-content: flex-start; }
+  .ex-session-head { grid-template-columns: 1fr; }
+  .ex-qr { grid-template-columns: 1fr; justify-items: start; }
+}
+@media (prefers-reduced-motion: reduce) { .ex-initiative { animation: none; } }
+.ex-initiative { min-width: 0; }
+.ex-initiative .ex-sheet-actions { flex-wrap: wrap; }
+.ex-initiative .ex-button { white-space: normal; text-align: left; }
+.ex-initiative-head > div { min-width: 0; overflow-wrap: anywhere; }

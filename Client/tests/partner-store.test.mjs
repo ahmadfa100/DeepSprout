@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {read,seed,dispatch,workspaces,inviteState,snapshotForTests,STORAGE_KEY} from '../src/workspaces/store.js';
 import {seats,occupied} from '../src/workspaces/domain.js';
 const as=personId=>dispatch('demo.signin',{personId});
-const reset=personId=>{dispatch('demo.reset');if(personId)as(personId);};
+// Pinned operational clock (16 Oct 2026 update) so seeded windows reproduce on any day.
+const reset=personId=>{dispatch('demo.reset');dispatch('demo.clock',{at:'2026-10-15T09:00:00+03:00'});if(personId)as(personId);};
 
 test('Mentor creation → invitation → OTP → program → submission → review → one Garden contribution',()=>{
  reset('p-maya');const gid=dispatch('mentor.group.save',{name:'A new beginning',purpose:'Practice starting meaningful work.',capacity:4});
@@ -35,11 +36,13 @@ test('Invitation invalid, revoked, exhausted, full, expiry, admission approval a
  dispatch('auth.otp',{email:'expired@demo.example',token:'fresh-start'});const exp=read();exp.otpChallenges.at(-1).expires=0;snapshotForTests(exp);assert.throws(()=>dispatch('auth.join',{email:'expired@demo.example',name:'Expired',token:'fresh-start',code:'246810'}),/expired/);
 });
 
-test('Institution publication, independent enrollment, hybrid capacity and anonymous versioned answers',()=>{
+// Updated 15 Oct 2026 for the approved v4.0 contract: publication now requires a public summary and
+// consent text (master §15.2), and Phase-1 forms are identified (D41), so a response keeps its personId.
+test('Institution publication, independent enrollment, hybrid capacity and identified versioned answers',()=>{
  reset('p-maya');const fid=dispatch('organization.form.save',{title:'New question',purpose:'Survey',anonymous:true,version:1,questions:[{id:'q-new',label:'Your first step?',type:'Single choice',required:true,options:['Write','Walk']}]});dispatch('organization.form.publish',{id:fid});
- const iid=dispatch('organization.initiative.save',{title:'A new community invitation',topic:'Youth wellbeing',objective:'Create room to take part.',audience:'Adults',coverage:'Nationwide',start:'2026-10-14',end:'2026-11-02',minAge:18,maxAge:30,conditions:'Adults in Jordan',completion:'Per component',capacity:5,enrollment:true,teamIds:['team-maya'],components:[{id:'cmp-new',type:'Survey or Quiz',title:'A purposeful question',resourceId:fid}]});dispatch('organization.initiative.publish',{id:iid});
+ const iid=dispatch('organization.initiative.save',{title:'A new community invitation',topic:'Youth wellbeing',objective:'Create room to take part.',summary:'A short invitation to take part.',consent:'I agree to respectful participation.',audience:'Adults',coverage:'Nationwide',start:'2026-10-14',end:'2026-11-02',minAge:18,maxAge:30,conditions:'Adults in Jordan',completion:'Per component',capacity:5,enrollment:true,teamIds:['team-maya'],components:[{id:'cmp-new',type:'Survey or Quiz',title:'A purposeful question',resourceId:fid}]});dispatch('organization.initiative.publish',{id:iid});
  as('p-rania');const before=read().sessionRegistrations.length;dispatch('participant.enroll',{initiativeId:iid,age:22,consent:true});assert.equal(read().sessionRegistrations.length,before);
- assert.throws(()=>dispatch('participant.form.respond',{formId:fid,answers:{}}),/Answer/);dispatch('participant.form.respond',{formId:fid,answers:{'q-new':'Write'}});const response=read().responses.find(x=>x.formId===fid);assert.equal(response.personId,null);assert.equal(response.version,1);
+ assert.throws(()=>dispatch('participant.form.respond',{formId:fid,answers:{}}),/Answer/);dispatch('participant.form.respond',{formId:fid,answers:{'q-new':'Write'}});const response=read().responses.find(x=>x.formId===fid);assert.equal(response.personId,'p-rania');assert.equal(response.version,1);
  dispatch('participant.session.register',{sessionId:'s-intro',mode:'In-person',consent:true});assert.throws(()=>dispatch('participant.session.register',{sessionId:'s-intro',mode:'Online',consent:true}),/already registered/);
  as('p-maya');const revision=dispatch('organization.form.revise',{id:fid});assert.equal(read().forms.find(x=>x.id===revision).version,2);assert.equal(read().responses.find(x=>x.id===response.id).version,1);
 });

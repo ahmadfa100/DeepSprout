@@ -127,7 +127,10 @@ function load(page, { search = '', clock = false, patchAccount = null } = {}) {
   const timers = clock ? controlClock(window) : null;
 
   // Execute the page's own deferred scripts in order.
+  // ES-module scripts (the shared member bridge) cannot run under jsdom's
+  // eval; pages must work without them, and the Playwright suite covers them.
   [...window.document.querySelectorAll('script[src]')]
+    .filter(tag => tag.type !== 'module')
     .map(tag => tag.getAttribute('src'))
     .filter(src => !src.startsWith('http'))
     .forEach(src => {

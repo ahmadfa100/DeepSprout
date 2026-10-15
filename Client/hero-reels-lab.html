@@ -3,43 +3,31 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#c8eefa">
-<title>DeepSprout — The attention collapse</title>
-<meta name="description" content="DeepSprout helps you reclaim your focus, build healthier digital habits, and make more time for what matters.">
+<meta name="theme-color" content="#f6f5ef">
+<title>DeepSprout — Less scrolling. More living.</title>
+<meta name="description" content="Reclaim your attention. Make room for real life. Discover a gentler relationship with your digital habits, with DeepSprout.">
 <link rel="icon" type="image/png" href="assets/brand/logo.png">
 <link rel="preload" as="font" type="font/ttf" crossorigin href="assets/hero-v2/fonts/inter-800.ttf">
 <link rel="preload" as="font" type="font/ttf" crossorigin href="assets/hero-v2/fonts/inter-400.ttf">
-<link rel="stylesheet" href="src/styles/hero-v2/hero.css">
-<link rel="stylesheet" href="src/styles/reels/reels.css">
-<link rel="stylesheet" href="src/styles/lines/lines.css">
-<link rel="stylesheet" href="src/styles/lines/path.css">
-<link rel="stylesheet" href="src/styles/journey/garden.css">
-<link rel="stylesheet" href="src/styles/lines/garden-stage.css">
-
 <link rel="preload" as="image" href="assets/hero-v2/environment.webp">
 <link rel="preload" as="image" href="assets/hero-v2/bimo-awake.png">
-<link rel="preload" as="image" href="assets/hero-v2/first-paint.webp">
-<link rel="preload" as="image" href="assets/hero-v2/stone-growth.webp">
-<link rel="preload" as="image" href="assets/hero-v2/stone-heart.webp">
-<link rel="preload" as="image" href="assets/hero-v2/stone-lotus.webp">
-<link rel="preload" as="image" href="assets/hero-v2/stone-clock.webp">
-<link rel="preload" as="image" href="assets/hero-v2/stone-book.webp">
-<link rel="preload" as="image" href="assets/hero-v2/stone-community.webp">
-<link rel="preload" as="image" href="assets/hero-v2/stone-sprout.webp">
-<script defer src="assets/vendor/gsap/gsap.min.js">
-</script>
-<script defer src="assets/vendor/rive/rive.js">
-</script>
-<script type="module" src="src/js/reels/experience.js">
-</script>
+<link rel="stylesheet" href="src/styles/hero-v2/hero.css">
+<link rel="stylesheet" href="src/styles/reels/cinematic.css?v=cinematic-2">
+<script type="module" src="src/js/reels/experience.js?v=cinematic-2"></script>
 </head>
 <body>
-<div class="hero-track">
-<main id="hero-v2" class="hero" data-phase="ARRIVAL" data-story-unlocked="false" data-intro-complete="false" aria-labelledby="hero-title">
+<a class="skip-link" href="#protection">Skip the story</a>
+<header class="site-header">
+ <a class="wordmark" href="index.html" aria-label="DeepSprout home"><svg viewBox="0 0 32 36" aria-hidden="true"><path d="M16 32V15M16 23C5 23 3 16 4 9c9 0 13 5 12 14Zm0-7C15 7 20 3 29 3c0 8-4 14-13 13Z"/></svg>DeepSprout<span class="brand-dot">®</span></a>
+ <nav aria-label="Main navigation"><a class="nav-story" href="#way-back">The way back</a><a href="login.html">Log in</a><a class="nav-join" href="register.html">Get started <span aria-hidden="true">↗</span></a></nav>
+</header>
+<main>
+<div class="hero-track" id="story">
+<section id="hero-v2" class="hero" aria-labelledby="hero-title" data-layers-ready="true">
 <div class="world" aria-hidden="true">
-<canvas class="vortex-back"></canvas>
-<canvas class="vortex-front"></canvas>
-<div class="atmosphere"></div>
+
+
+
 <div class="environment">
 </div>
 <svg class="cloud-layers" viewBox="0 0 1672 941" preserveAspectRatio="none">
@@ -140,117 +128,61 @@
 <img class="first-paint" src="assets/hero-v2/first-paint.webp" alt="" width="1672" height="941">
 </div>
 <div class="copy">
-<h1 id="hero-title">
-<span class="headline-line">Less scrolling.</span>
-<span class="headline-line headline-living">More living.</span>
-</h1>
-<p class="lead">DeepSprout helps you reclaim your focus,<br class="desktop-break"> build healthier digital habits, and make<br class="desktop-break"> more time for what matters.</p>
-<div class="actions">
-<button class="cta cta-primary" id="focus-check" type="button">Take the quick focus check <svg viewBox="0 0 24 24" aria-hidden="true">
-<path d="M4 12h16m-6-6 6 6-6 6"/>
-</svg>
-</button>
-<button class="cta cta-secondary" id="replay" type="button" title="Replay the opening">
-<svg viewBox="0 0 24 24" aria-hidden="true">
-<path d="m7 4 13 8-13 8Z"/>
-</svg>See how it works</button>
+<p class="eyebrow hero-eyebrow">A little less online. A little more you.</p>
+<h1 id="hero-title"><span class="headline-line">Less scrolling.</span><span class="headline-line headline-living">More living.</span></h1>
+<p class="lead">Reclaim your attention.<br>Make room for real life.</p>
 </div>
+<div class="gravity-scene" aria-hidden="true">
+ <div class="horizon-art"><img class="horizon-fallback" src="assets/cinematic/event-horizon-reference.png" alt="" width="1290" height="864" loading="lazy"><canvas class="horizon-canvas"></canvas></div>
+ <div class="gravity-cards"></div>
+ <div class="gravity-shade"></div>
 </div>
-<div class="story-copy" aria-live="off"><p class="story-kicker">THE ATTENTION COLLAPSE</p><h2></h2><p class="story-support"></p></div>
-<div class="scroll-cue" aria-hidden="true"><span>Scroll to see what pulls us away</span><i>↓</i></div>
-<div class="story-progress" aria-hidden="true"><span></span></div>
-<div class="vortex-transition" aria-hidden="true"><div class="transition-void"></div></div>
-<p class="sr-only" id="story-description">A small notification becomes an overwhelming storm of reels. Bimo loses his balanced stones and is pulled into endless scrolling. A few minutes became hours. The reels spiral into the vortex, followed by Bimo, and everything goes dark.</p>
-<button class="motion-control" id="motion-control" aria-label="Pause animation" aria-pressed="false" type="button">
-<svg class="pause" viewBox="0 0 20 20" aria-hidden="true">
-<path d="M7 5v10M13 5v10"/>
-</svg>
-<svg class="play" viewBox="0 0 20 20" aria-hidden="true">
-<path d="m7 5 8 5-8 5Z"/>
-</svg>
-</button>
+<div class="story-copy"><p class="eyebrow">The pull of one more</p><h2>One more scroll.<br><span>Another hour gone.</span></h2></div>
+<div class="release-copy"><svg class="release-sprout" viewBox="0 0 60 80" aria-hidden="true"><path d="M30 75V30M30 50C8 48 6 32 8 19c20 0 25 13 22 31Zm0-15C28 13 40 5 56 5c0 18-8 29-26 30Z"/></svg><p class="eyebrow">There is a way back</p><h2>Your attention.<br><em>Yours again.</em></h2></div>
+<div class="scroll-cue" aria-hidden="true"><span class="mouse-cue"><i></i></span><span class="touch-cue">↓</span><span>Scroll to explore</span></div>
+<div class="scene-meta" aria-hidden="true"><span class="scene-number">01 — A little more living</span><span class="scene-progress"><i></i></span></div>
+<p class="sr-only">The garden gives way to a dark black hole. Short-video cards are drawn toward its center as you scroll, then fade into a calmer space. DeepSprout helps you make room for what matters.</p>
+</section>
+</div>
+<section class="protection" id="protection" aria-labelledby="protection-title">
+ <div class="protection-stage">
+  <div class="protection-copy">
+   <p class="eyebrow"><span class="chapter-number">01 /</span> Protection</p>
+   <h2 id="protection-title">Turn down<br> the noise.</h2>
+   <p class="section-lead">Block the sites you choose,<br>for as long as you choose.</p>
+   <p class="protection-detail">A boundary for your browser.<br>A little space for yourself.</p>
+   <p class="scope-note">Manual Website Protection through the browser extension. Website blocking, not mobile-app blocking. Separate from Shared Website Usage Reminders.</p>
+  </div>
+  <div class="silence-demo" role="img" aria-label="Illustrative browser protection: selected Instagram, YouTube and TikTok websites become quiet monochrome tiles around a lock. Chosen duration: 25 minutes. No session is active.">
+   <div class="demo-heading"><span class="browser-dots"><i></i><i></i><i></i></span><span>YOUR BROWSER, A LITTLE QUIETER</span><span class="preview-tag">PREVIEW</span></div>
+   <div class="silence-field" aria-hidden="true">
+    <div class="protection-boundary"></div><div class="protection-pulse"></div>
+    <div class="platform-tile tile-instagram"><svg viewBox="0 0 64 64"><rect x="12" y="12" width="40" height="40" rx="12"/><circle cx="32" cy="32" r="10"/><circle class="icon-dot" cx="44" cy="20" r="3"/></svg><span>instagram.com</span></div>
+    <div class="platform-tile tile-youtube"><svg viewBox="0 0 64 64"><path class="icon-fill" d="M54 19c-2-4-42-4-44 0-3 5-3 21 0 26 2 4 42 4 44 0 3-5 3-21 0-26Z"/><path class="play-cutout" d="m27 23 15 9-15 9Z"/></svg><span>youtube.com</span></div>
+    <div class="platform-tile tile-tiktok"><svg viewBox="0 0 64 64"><path class="icon-fill" d="M34 9h8c1 7 5 11 12 12v8c-5 0-9-2-12-4v19c0 10-8 16-17 14-17-3-17-27 1-30v9c-7 1-9 10-2 12 5 2 10-1 10-6Z"/></svg><span>tiktok.com</span></div>
+    <div class="silence-lock"><svg viewBox="0 0 40 44"><path d="M11 20v-7a9 9 0 0 1 18 0v7"/><rect x="6" y="20" width="28" height="21" rx="7"/><path d="M20 28v5"/></svg></div>
+    <div class="silence-dust"></div>
+    <div class="session-duration"><span class="duration-label">YOUR CHOSEN DURATION</span><strong>25<span>:</span>00</strong><span class="session-caption">Time for what matters.</span></div>
+   </div>
+   <div class="demo-footer"><span class="demo-status"><i></i><span>Choose your websites</span></span><span>Illustrative session</span></div>
+  </div>
+ </div>
+</section>
+<section class="way-back" id="way-back" aria-labelledby="way-back-title">
+ <div class="section-intro"><p class="eyebrow"><span class="chapter-number">02 /</span> Your own pace</p><h2 id="way-back-title">Small steps.<br>A different kind of momentum.</h2><p>You don’t have to change everything.<br>Start with a little room to grow.</p></div>
+ <div class="practice-list">
+  <article><span class="practice-index">01</span><div><h3>Understand your starting point.</h3><p>Four short checks to help you notice your patterns.</p></div><img src="assets/hero-v2/stone-book.webp" alt="" width="380" height="252" loading="lazy"></article>
+  <article><span class="practice-index">02</span><div><h3>Make a plan that fits your life.</h3><p>A four-week cycle, with one week in focus at a time.</p></div><img src="assets/hero-v2/stone-clock.webp" alt="" width="396" height="245" loading="lazy"></article>
+  <article><span class="practice-index">03</span><div><h3>Find your way beyond the screen.</h3><p>Meaningful practices, workshops and real-world experiences. A missed day doesn’t erase your progress.</p></div><img src="assets/hero-v2/stone-community.webp" alt="" width="434" height="256" loading="lazy"></article>
+ </div>
+</section>
+<section class="growth" id="product-journey" aria-labelledby="growth-title">
+ <div class="growth-art"><img src="assets/journey/garden.svg" alt="An illustrated garden with a tree, flowers and a sprout" width="600" height="480" loading="lazy"><div class="growth-orbit" aria-hidden="true"></div><span class="growth-note">A little care goes a long way.</span></div>
+ <div class="growth-copy"><p class="eyebrow"><span class="chapter-number">03 /</span> Make growth tangible</p><h2 id="growth-title">Life grows<br>where your<br><em>attention goes.</em></h2><p>Complete meaningful practices and watch your personal garden grow, one small step at a time.</p><a class="text-link" href="register.html">Find your starting point <span aria-hidden="true">↗</span></a></div>
+</section>
+<section class="invitation" aria-labelledby="invitation-title"><p class="eyebrow">Your next chapter</p><h2 id="invitation-title">Make room<br>for <em>real life.</em></h2><a href="https://tally.so/r/QKgA0G" class="join-link" target="_blank" rel="noopener noreferrer">Join the waitlist <span aria-hidden="true">↗</span></a><p>A little less scrolling. A whole lot more living.</p></section>
 </main>
-</div>
-<section id="not-alone" class="lines" aria-labelledby="not-alone-title">
- <div class="lines-stage">
-  <canvas class="lines-canvas" aria-hidden="true"></canvas>
-  <div class="lines-copy">
-   <div class="lines-scene lines-alone" data-lines-scene="alone">
-    <h2 class="lines-headline" id="not-alone-title">You’re not alone.</h2>
-    <p class="lines-body">Millions of people are scrolling the same feed, right now.</p>
-   </div>
-   <div class="lines-scene lines-scale" data-lines-scene="scale">
-    <p class="lines-numeral" aria-hidden="true"><span data-lines-count>20</span><span class="lines-unit">/100</span></p>
-    <div class="lines-steps">
-     <p class="lines-body" data-lines-step="tiktok">1 in 5 teens is on TikTok almost constantly.</p>
-     <p class="lines-body" data-lines-step="online"><span class="lines-year" aria-hidden="true" data-lines-year>2015</span>4 in 10 teens are online almost constantly — up from 24% a decade ago.</p>
-    </div>
-    <p class="lines-caption">Pew Research Center, 2025 · survey of 1,458 US teens aged 13–17</p>
-   </div>
-   <div class="lines-scene lines-rot" data-lines-scene="rot">
-    <h3 class="sr-only">brain rot</h3>
-    <p class="lines-caption">Oxford Word of the Year 2024 · usage +230% (2023→2024) · first recorded 1854</p>
-    <p class="lines-caption">Oxford University Press · public vote, 37,000+ participants</p>
-   </div>
-   <div class="lines-scene lines-research" data-lines-scene="research">
-    <p class="lines-body">Research links heavy short-form use with lower sustained attention.</p>
-    <p class="lines-body">Association, not proof.</p>
-    <p class="lines-caption">peer-reviewed studies, 2024–2025</p>
-   </div>
-   <div class="lines-scene lines-turn" data-lines-scene="turn">
-    <p class="lines-eyebrow">The way back</p>
-   </div>
-  </div>
- </div>
-</section>
-<section id="way-back" class="path" aria-labelledby="way-back-title">
- <div class="path-stage">
-  <svg class="path-svg" aria-hidden="true"></svg>
-  <div class="path-copy">
-   <h2 class="sr-only" id="way-back-title">The way back</h2>
-   <p class="path-eyebrow path-handoff" aria-hidden="true">The way back</p>
-   <div class="path-weeks" aria-hidden="true"><span>W1</span><span>W2</span><span>W3</span><span>W4</span></div>
-   <div class="path-station" data-station="assess"><p class="path-name">Quick assessments</p><p class="path-body">Four short checks. No score — just a starting point.</p></div>
-   <div class="path-station" data-station="plan"><p class="path-name">Your plan</p><p class="path-body">A 4-week cycle. Only this week is detailed — the rest adapts to you.</p></div>
-   <div class="path-station" data-station="activities"><p class="path-name">Daily &amp; weekly activities</p><p class="path-body">A missed day doesn’t break the line.</p></div>
-   <div class="path-station" data-station="protect"><p class="path-name">Protection</p><p class="path-body">Block the sites you choose, for as long as you choose.</p></div>
-   <div class="path-station" data-station="beyond"><p class="path-name">Beyond the screen</p><p class="path-body">Initiatives, workshops and real-world experiences — optional, always.</p></div>
-   <div class="path-station path-together" data-station="together"><p class="path-echo">You’re not alone.</p></div>
-  </div>
- </div>
-</section>
-<section id="product-journey" class="product-journey" aria-labelledby="journey-title">
- <h2 id="journey-title" class="sr-only">The DeepSprout journey: understand yourself, build better habits, and grow together.</h2>
- <div class="journey-stage">
-  <div class="journey-copy">
-   <article class="journey-scene" id="journey-garden" data-scene="garden">
-    <p class="journey-kicker">05 / Make growth tangible</p><h3>Your progress <br> deserves to <br> <em>grow.</em></h3><p class="journey-support">Complete activities, stay consistent, and watch your garden come to life.</p><p class="journey-detail">A small space that grows <br> with the habits you build.</p>
-    <p class="sr-only">A seed becomes a sprout, then a flower, a little tree, and a complete illustrated garden. Each stage corresponds to a simulated achievement. Garden growth is a visual reward, not a measurement of neurological change.</p>
-    <div class="journey-panel garden-panel" aria-hidden="true"><div class="garden-heading"><span class="mini-brand">YOUR LITTLE GARDEN</span><span class="garden-achievement">Small steps. A garden of your own.</span></div><div class="garden-art"><img src="assets/journey/garden.svg" alt="" width="600" height="480" loading="lazy"></div><div class="garden-details"><div><strong class="garden-streak">3 days</strong><span>Growth streak</span></div><div><strong class="garden-unlocked">4 / 4</strong><span>Plants unlocked</span></div><div><strong class="garden-week">80%</strong><span>Week progress</span></div></div><p class="garden-reward">Next reward <span>A little more room to grow →</span></p></div>
-   </article>
-   <article class="journey-scene journey-finish" id="journey-finish" data-scene="finish">
-    <p class="journey-kicker">Your next chapter</p><h3>A little progress. <br> A whole <br> <em>new world.</em></h3><p class="journey-support">Your journey starts with one small step.</p><a class="journey-cta" href="https://tally.so/r/QKgA0G" target="_blank" rel="noopener noreferrer">Join the Waitlist <span aria-hidden="true">↗</span></a><p class="journey-invitation">Make room for what matters.</p>
-   </article>
-  </div>
-  <div class="journey-viewport" aria-hidden="true"><div class="journey-camera"><div class="journey-sets"></div><svg class="journey-seed" viewBox="0 0 32 42"><path class="seed-body" d="M16 2C4 5 2 16 5 28c3 10 11 13 18 7 8-7 8-23-7-33Z"/><path class="seed-seam" d="M17 7Q10 24 18 34"/></svg></div></div>
- </div>
-</section>
-<dialog id="focus-dialog" aria-labelledby="check-title">
-<form method="dialog">
-<button class="dialog-close" aria-label="Close focus check">×</button>
-</form>
-<h2 id="check-title">Let's find your starting point.</h2>
-<p>How often does scrolling interrupt something you meant to do?</p>
-<div class="check-options">
-<button data-result="You've already noticed the pattern. Try one 25-minute focus session today.">Sometimes <span>→</span>
-</button>
-<button data-result="A short focus session can help you reclaim one moment at a time. Start with 10 minutes.">Most days <span>→</span>
-</button>
-<button data-result="Start gently: put your phone aside for five minutes and focus on one small task.">Many times a day <span>→</span>
-</button>
-</div>
-<p id="check-result" aria-live="polite">
-</p>
-</dialog>
+<footer><a class="footer-brand" href="index.html">DeepSprout</a><span>Grow at your own pace.</span><a href="login.html">Log in <span aria-hidden="true">↗</span></a></footer>
+<button id="motion-control" class="motion-toggle" type="button" aria-pressed="false">Reduce motion</button>
 </body>
 </html>

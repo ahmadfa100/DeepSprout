@@ -507,8 +507,10 @@
     } else {
       const results = document.createElement('a');
       results.className = 'btn btn-primary';
-      results.href = '../insights/insights.html#checkins';
-      results.innerHTML = `${official ? 'See your results' : 'Your results'} <svg><use href="#i-arrow"/></svg>`;
+      // The four baselines lead to Your Starting Point and plan activation (D04).
+      const baseline = official && (onboardingFlow || mode.cycle === 1);
+      results.href = baseline ? '../onboarding/starting-point.html' : '../insights/insights.html#checkins';
+      results.innerHTML = `${baseline ? 'See your starting point' : official ? 'See your results' : 'Your results'} <svg><use href="#i-arrow"/></svg>`;
       actions.append(results);
       const back = document.createElement('a');
       back.className = 'btn btn-ghost';

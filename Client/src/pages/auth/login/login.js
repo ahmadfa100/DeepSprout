@@ -35,9 +35,12 @@ const validate = () => {
 form.addEventListener('submit', event => {
   event.preventDefault();
   if (!validate()) return;
-  // Not connected to an account service: credentials are discarded. The
-  // preview continues wherever this device's journey was last left.
-  showToast('This login preview is not connected to an account service. Your credentials were not sent or saved — continuing where you left off.');
+  // Not connected to an account service: the password is discarded. The
+  // email selects the matching person on this device (demo only).
+  const known = window.DeepSproutRepo?.read().people.find(person => person.email.toLowerCase() === email.value.trim().toLowerCase());
+  if (window.DeepSproutRepo && !known) { setError(email, 'No account uses this email on this device. Create an account first.'); email.focus(); return; }
+  if (known) { window.DeepSproutRepo.run('member.signin', { email: known.email }); try { sessionStorage.removeItem('deepsprout-account-choice'); } catch { /* ignore */ } }
+  showToast(`Signed in as ${known?.name || 'this device'} (demo — your password was not checked, sent or saved).`);
   const resume = window.DeepSprout?.onboardingResume('../../../../') || '../../../../index.html';
   setTimeout(() => { location.href = resume; }, 1600);
 });

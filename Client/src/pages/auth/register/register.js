@@ -30,8 +30,17 @@ terms.addEventListener('change', () => setError(terms, ''));
 form.addEventListener('submit', event => {
   event.preventDefault();
   if (!validate()) return;
-  // No account service is connected. The name and email are kept on this
-  // device so the first run can greet the person by name; the password is not.
+  // No account service is connected. The person is created once in the
+  // shared local identity store (the same person partner workspaces use);
+  // the password is never stored. An existing email is not merged silently.
+  try {
+    window.DeepSproutRepo?.run('member.register', { name: nameInput.value.trim(), email: email.value.trim(), consent: true });
+    try { sessionStorage.removeItem('deepsprout-account-choice'); } catch { /* ignore */ }
+  } catch (error) {
+    setError(email, error.message);
+    email.focus();
+    return;
+  }
   window.DeepSprout?.update(state => {
     state.profile.name = nameInput.value.trim();
     state.profile.email = email.value.trim();

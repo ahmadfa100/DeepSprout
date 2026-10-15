@@ -51,14 +51,29 @@
       $('space-shield-note').textContent = 'Connect the Chrome extension to measure the sites you choose.';
     }
 
-    // The same policy the Garden page uses: one plant, grown from qualifying records.
-    const garden = account.garden();
-    const stage = garden.stageIndex;
-    $('space-garden-title').textContent = garden.count ? `${garden.stage.label} · ${plural(garden.count, 'growth step')}` : 'A seed, ready to grow';
-    $('space-garden-note').textContent = garden.next
-      ? `${garden.toNext} more to reach ${garden.next.label.toLowerCase()}.`
-      : 'In full blossom.';
-    if (Art) $('mini-garden').innerHTML = `${Art.defs}${Art.tile(250, 250, 2)}<g class="mini-plant" style="transform-origin:250px 254px">${Art.plant(stage, 250, 254, 2)}</g>`;
+    // The same model and policy as My Garden: four small practice-type trees,
+    // grown from the journal's valid practices and Coach-approved tasks.
+    const paintGarden = () => {
+      const journal = account.practiceGarden();
+      const policy = journal.policy;
+      const repo = window.DeepSproutRepo, me = repo?.me();
+      const shared = repo && me ? repo.selectors.personalGardenEffects(repo.read(), me.id) : [];
+      const trees = journal.types.map(type => {
+        const n = type.sources.length + shared.filter(e => e.effect === 'tree' && e.type === type.id).length;
+        return { title: type.title, n, stage: policy.treeSteps.filter(step => n >= step).length };
+      });
+      const records = trees.reduce((sum, tree) => sum + tree.n, 0);
+      const growing = trees.filter(tree => tree.stage > 0).length;
+      $('space-garden-title').textContent = records ? `${growing} of 4 trees growing · ${plural(records, 'qualifying record')}` : 'Four places, ready to grow';
+      $('space-garden-note').textContent = trees.map(tree => `${tree.title.split(' ')[0]}: ${policy.stageNames[tree.stage].toLowerCase()}`).join(' · ');
+      const spots = [[250, 228], [305, 254], [195, 254], [250, 280]];
+      if (Art) $('mini-garden').innerHTML = `${Art.defs}${Art.tile(250, 250, 2)}${trees.map((tree, index) => {
+        const [x, y] = spots[index];
+        return `<g class="mini-plant" transform="translate(${x} ${y}) scale(.42) translate(${-x} ${-y})">${Art.plant(tree.stage, x, y, index + 2)}</g>`;
+      }).join('')}`;
+    };
+    paintGarden();
+    window.addEventListener('deepsprout:repo-ready', paintGarden, { once: true });
   }
 
   /* ------------------------------------------------------------ your week */

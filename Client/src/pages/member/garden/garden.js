@@ -1,20 +1,13 @@
 /**
- * My Garden — a small isometric garden grown only from real records.
- *
- * Product rules: the journey tree in the centre is the one plant tied to
- * progress; its size and fullness follow the growth stage. Each smaller tree
- * around it is one earned achievement (account.garden().achievements), planted
- * in a fixed slot in the order it was earned, so trees never move or overlap.
- * Vitality is a reversible surface effect and never touches the earned stage.
- *
- * The scene is low-poly geometry on a 2D canvas: an orthographic isometric
- * camera, flat-shaded faces and ONE fixed light for everything. Transparent
- * buttons laid over the canvas make every tree focusable, with a tooltip on
- * hover, keyboard focus or tap.
- *
- * Entrance: once per session the camera swings into place, the achievement
- * trees grow in the order they were earned and the journey tree grows last.
- * prefers-reduced-motion shows the resting frame at once and drops the hover lift.
+ * My Garden — the Personal Garden (master §9.1): one fixed ivory scene with
+ * exactly four small practice-type trees (Depth, Listening & Recall,
+ * Practical Micro-Challenge, Protected Work) and no central fifth tree.
+ * Trees grow from valid practice attempts in the private journal and from
+ * Coach-approved tasks in the shared records — each source once. A flower
+ * (Offline Routine), rabbit (Supervisor-confirmed attendance) and birdhouse
+ * (verified camp completion) are bounded decorations. Missing data is
+ * neutral: nothing dims or wilts. The low-poly isometric engine below is
+ * unchanged: one camera, one light, focusable buttons over every object.
  */
 (() => {
   const Account = window.DeepSproutAccount;
@@ -178,10 +171,10 @@
   ];
   const BLOBS = [[-0.66, -0.24, 0.28, 0.62], [0.62, -0.18, -0.24, 0.6], [0.14, 0.26, -0.64, 0.58], [0.22, -0.32, 0.66, 0.52]];
 
-  function journey(stage, fraction) {
+  function journey(stage, fraction, seed = 41) {
     const spec = JOURNEY[stage];
     const g = (1 + 0.14 * fraction) * TREE_SCALE * 0.94;
-    const random = rng(41);
+    const random = rng(seed);
     const R = spec.crown * g;
     const trunk = spec.trunk * g;
     const centre = [0, trunk + R * 0.6, 0];
@@ -328,8 +321,7 @@
     const parts = tree.model.sortParts ? [first, ...rest.sort((a, b) => dot(a.centre, cam.t) - dot(b.centre, cam.t))] : tree.model.parts;
     parts.forEach(item => {
       let base = item.color;
-      if (item.foliage && tree.journey) base = mix(base, C.muted, (1 - state.vitality) * 0.55);
-      base = shade(base, tree.hover * 0.08);
+            base = shade(base, tree.hover * 0.08);
       item.faces
         .filter(face => dot(face.n, cam.t) > 0)
         .map(face => ({ face, depth: dot(face.mid, cam.t) }))
@@ -368,7 +360,7 @@
       const target = tree === active ? 1 : 0;
       tree.hover = reduced.matches ? target : tree.hover + (target - tree.hover) * (1 - Math.exp(-dt * 16));
       if (Math.abs(tree.hover - target) > 0.004) settling = true; else tree.hover = target;
-      tree.grow = easeBack(phase(t, tree.delay, tree.journey ? 1.5 : 0.8));
+      tree.grow = easeBack(phase(t, tree.delay, tree.kind ? 0.6 : 1.1));
     });
     trees.forEach(tree => treeShadow(tree, tree.grow));
     trees.slice().sort((a, b) => (a.x * cam.t[0] + a.z * cam.t[2]) - (b.x * cam.t[0] + b.z * cam.t[2])).forEach(tree => drawTree(tree, tree.grow));
@@ -507,42 +499,85 @@
 
   /* -------------------------------------------------------------- page */
 
+  /**
+   * Personal Garden contract (master §9.1–9.2, D06–D11): exactly four small
+   * practice-type trees in fixed places, no central fifth tree; a bounded
+   * flower (Offline Routine), rabbit (confirmed session attendance) and
+   * birdhouse (verified camp completion). Each source counts once; no-data is
+   * neutral and nothing wilts. Thresholds are configurable demo defaults.
+   */
+  const TREE_SPOTS = { depth: [-3.1, -2.1], listening: [3.1, -2.1], practical: [-3.1, 2.3], 'protected-work': [3.1, 2.3] };
+  const SPECIES = { depth: { crown: P.pine, seed: 11, label: 'a deep green pine-like crown' }, listening: { crown: P.round, seed: 23, label: 'a round, soft crown' }, practical: { crown: P.crown, seed: 37, label: 'a bright, branching crown' }, 'protected-work': { crown: mix(P.crown, C.gold, 0.18), seed: 53, label: 'a warm, dense crown' } };
+  let TREE_STEPS = [1, 3, 7, 12];                // overwritten from the journal's shared policy
+  let STAGE_NAMES = ['Not started', 'Sprout', 'Sapling', 'Young tree', 'Full tree'];
+  let FLOWER_AT = [3, 10, 21];                   // routine days → up to three flowers
+  let MAX_RABBITS = 3;
+  const DECOR_SPOTS = { flower: [[-1.2, 4.3], [0, 4.6], [1.2, 4.3]], rabbit: [[-0.7, 0.4], [0.9, 0.9], [0.1, -0.6]], birdhouse: [[0, -4.2]] };
+  const at = ([u, w]) => ({ x: (u + w) / Math.SQRT2, z: (w - u) / Math.SQRT2 });
+  const moved = (item, d) => ({ ...item, centre: item.centre.map((v, i) => v + d[i]), faces: item.faces.map(f => ({ ...f, pts: f.pts.map(p => p.map((v, i) => v + d[i])), mid: f.mid.map((v, i) => v + d[i]) })) });
+  const tinted = (item, color) => ({ ...item, color });
+  function box(w, h, d, y0, color) {
+    const x = w / 2, z = d / 2, y1 = y0 + h;
+    const v = [[-x, y0, -z], [x, y0, -z], [x, y0, z], [-x, y0, z], [-x, y1, -z], [x, y1, -z], [x, y1, z], [-x, y1, z]];
+    return part([[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]].map(f => f.map(i => v[i])), [0, y0 + h / 2, 0], color);
+  }
+  function practiceTree(type, stage, fraction) {
+    const spec = SPECIES[type];
+    const model = journey(Math.max(0, stage), fraction, spec.seed);
+    const scale = stage === 0 ? 0.32 : 0.5 + stage * 0.035;
+    const parts = model.parts.map((item, index) => ({ ...(index ? tinted(item, stage === 0 ? mix(spec.crown, C.muted, 0.5) : spec.crown) : item), faces: item.faces.map(f => ({ ...f, pts: f.pts.map(p => p.map(v => v * scale)), mid: f.mid.map(v => v * scale) })), centre: item.centre.map(v => v * scale) }));
+    return { reach: model.reach * scale, height: model.height * scale, parts, sortParts: true };
+  }
+  function flower(seed) {
+    const random = rng(seed);
+    const petals = P.bloom[seed % 2];
+    return { reach: 0.3, height: 0.6, sortParts: true, parts: [tinted(prism(0.03, 0, 0.42, random), mix(P.round, C.ink, 0.1)), crown(0.09, [0.12, 0.2, 0], random, P.round), crown(0.13, [0, 0.5, 0], random, petals)] };
+  }
+  function rabbit(seed) {
+    const random = rng(seed);
+    const fur = mix(C.white, C.muted, 0.14);
+    return { reach: 0.34, height: 0.62, sortParts: true, parts: [crown(0.2, [0, 0.19, 0], random, fur), crown(0.13, [0.2, 0.36, 0.02], random, fur), moved(cone(0.04, 0, 0.24, random, fur), [0.17, 0.44, -0.04]), moved(cone(0.04, 0, 0.24, random, fur), [0.25, 0.44, 0.06]), crown(0.06, [-0.2, 0.2, 0], random, C.white)] };
+  }
+  function birdhouse(seed) {
+    const random = rng(seed);
+    return { reach: 0.4, height: 1.25, sortParts: false, parts: [prism(0.05, 0, 0.8, random), box(0.42, 0.34, 0.36, 0.78, mix(P.soil, C.white, 0.25)), moved(cone(0.36, 0, 0.26, random, mix(P.bark, C.ink, 0.1)), [0, 1.12, 0])] };
+  }
+  const scaled = (model, f) => ({ ...model, reach: model.reach * f, height: model.height * f, parts: model.parts.map(item => ({ ...item, centre: item.centre.map(v => v * f), faces: item.faces.map(face => ({ ...face, pts: face.pts.map(p => p.map(v => v * f)), mid: face.mid.map(v => v * f) })) })) });
+  const stageOf = n => TREE_STEPS.filter(step => n >= step).length;
   const ICONS = {
-    practice: '<path d="M12 6.5C9.5 4.7 6.5 4.5 3.5 5v13c3-.5 6-.3 8.5 1.5 2.5-1.8 5.5-2 8.5-1.5V5c-3-.5-6-.3-8.5 1.5Zm0 0v13"/>',
-    routine: '<circle cx="13" cy="4.5" r="1.8"/><path d="m10 21 2.5-6.5L15 17v4m-2.5-6.5L13 9l-3.5 1.5L8 14m5-5 2 3 3 1"/>',
-    review: '<path d="M5 21V4m0 1h11l-2 4 2 4H5"/>',
-    attended: '<path d="m12 3 2.2 1.6 2.7-.1.9 2.6 2.2 1.6-.8 2.6.8 2.6-2.2 1.6-.9 2.6-2.7-.1L12 20.4l-2.2-1.6-2.7.1-.9-2.6L4 14.7l.8-2.6L4 9.5l2.2-1.6.9-2.6 2.7.1L12 3Z"/><path d="m9 12 2 2 4-4"/>'
+    tree: '<path d="M12 21v-7m0 0c-4 0-6-2.5-6-5.5S8.5 3 12 3s6 2.5 6 5.5-2 5.5-6 5.5Z"/>',
+    flower: '<circle cx="12" cy="8" r="3"/><path d="M12 11v10m0-4c-2-2-4-2-5-1m5-1c2-2 4-2 5-1"/>',
+    rabbit: '<path d="M8 21c-2 0-3-2-3-4 0-3 3-5 7-5s6 2 6 4-1 3-3 3M14 12l1-8m-3 8-1-7"/>',
+    birdhouse: '<path d="M5 10 12 4l7 6v8H5Zm7 11v-3"/><circle cx="12" cy="13" r="2"/>'
   };
 
   Account.load().then(account => {
-    const garden = account.garden();
-    const steps = n => `${n} growth ${n === 1 ? 'step' : 'steps'}`;
-    const span = garden.next ? garden.next.from - garden.stage.from : 1;
-    state = { stage: garden.stageIndex, fraction: garden.next ? (garden.count - garden.stage.from) / span : 0, vitality: garden.vitality };
-    const earned = garden.achievements || [];
-    const planted = earned.filter(item => item.slot >= 0 && item.slot < MAX_TREES);
-
-    // The trees: the journey tree first, then one per achievement in the order earned.
-    const growthLine = garden.next ? `${garden.next.label} in ${steps(garden.toNext)}` : 'Fully grown';
-    const main = {
-      journey: true, x: 0, z: 0, model: journey(state.stage, state.fraction),
-      label: `Journey tree: ${garden.stage.label} stage, ${garden.stageIndex + 1} of ${garden.stages.length}, from ${steps(garden.count)}. ${growthLine}.`,
-      tip: `<p class="garden-tip-eyebrow">Journey tree</p><p class="garden-tip-title">${esc(garden.stage.label)} stage</p>
-        <p>Stage ${garden.stageIndex + 1} of ${garden.stages.length} · ${esc(steps(garden.count))}</p><p class="garden-tip-meta">${esc(growthLine)}</p>`
-    };
-    const companions = planted.map(item => {
-      const date = fmt.date(item.on, { weekday: true, year: true });
-      return {
-        x: SLOTS[item.slot].x, z: SLOTS[item.slot].z, model: companion(item.tree, 17 + item.slot * 31),
-        label: `Achievement: ${item.title}. ${item.why} Earned by ${item.earnedBy}, ${date}.`,
-        tip: `<p class="garden-tip-eyebrow">Achievement</p><p class="garden-tip-title">${esc(item.title)}</p>
-          <p>${esc(item.why)}</p><p class="garden-tip-meta">${esc(item.earnedBy)}<br>${esc(date)}</p>`
-      };
+    const repo = window.DeepSproutRepo;
+    const me = repo?.me();
+    const shared = me && repo ? repo.selectors.personalGardenEffects(repo.read(), me.id) : [];
+    const journal = account.practiceGarden();
+    ({ treeSteps: TREE_STEPS, stageNames: STAGE_NAMES, flowerAt: FLOWER_AT, maxRabbits: MAX_RABBITS } = journal.policy);
+    const sourcesFor = type => [...journal.types.find(t => t.id === type)?.sources || [], ...shared.filter(e => e.effect === 'tree' && e.type === type).map(e => ({ key: e.key, on: e.on, title: e.title, detail: e.detail, source: 'Coach-approved task' }))];
+    const typeTitle = { depth: 'Depth Practice', listening: 'Listening & Recall', practical: 'Practical Micro-Challenge', 'protected-work': 'Protected Work' };
+    state = { stage: 0, fraction: 0, vitality: 1 };
+    const practice = Object.keys(TREE_SPOTS).map((type, index) => {
+      const sources = sourcesFor(type), n = sources.length, stage = stageOf(n), next = TREE_STEPS[stage];
+      const fraction = next ? (n - (TREE_STEPS[stage - 1] || 0)) / (next - (TREE_STEPS[stage - 1] || 0)) : 0;
+      const nextLine = next ? `${next - n} more qualifying ${next - n === 1 ? 'record' : 'records'} to ${STAGE_NAMES[stage + 1].toLowerCase()}` : 'Fully grown — it simply stays';
+      return { type, title: typeTitle[type], sources, stage, ...at(TREE_SPOTS[type]), model: practiceTree(type, stage, fraction), delay: 0.7 + index * 0.18,
+        label: `${typeTitle[type]} tree: ${STAGE_NAMES[stage]}, from ${n} qualifying ${n === 1 ? 'record' : 'records'}. ${nextLine}.`,
+        tip: `<p class="garden-tip-eyebrow">${esc(typeTitle[type])}</p><p class="garden-tip-title">${esc(STAGE_NAMES[stage])}</p><p>${n ? `${n} qualifying ${n === 1 ? 'record' : 'records'} · ${esc(SPECIES[type].label)}` : 'No practice recorded yet. Nothing has been earned here.'}</p><p class="garden-tip-meta">${esc(nextLine)}</p>` };
     });
-    companions.forEach((tree, index) => { tree.delay = 0.8 + index * 0.16; });
-    main.delay = 1 + companions.length * 0.16;
-    entranceEnd = main.delay + 1.5;
-    trees = [main, ...companions];
+    const flowers = FLOWER_AT.filter(need => journal.routineDays.length >= need).map((need, index) => ({ kind: 'flower', ...at(DECOR_SPOTS.flower[index]), model: scaled(flower(index + 3), 1.9), delay: 1.6 + index * 0.12,
+      label: `Flower: unlocked by ${need} self-reported Offline Routine days.`, tip: `<p class="garden-tip-eyebrow">Offline Routine</p><p class="garden-tip-title">Flower</p><p>Unlocked at ${need} routine days (self-reported).</p>` }));
+    const attended = shared.filter(e => e.effect === 'rabbit');
+    const rabbits = attended.slice(0, MAX_RABBITS).map((e, index) => ({ kind: 'rabbit', ...at(DECOR_SPOTS.rabbit[index]), model: scaled(rabbit(index + 5), 1.7), delay: 1.8 + index * 0.12,
+      label: `Rabbit: ${e.title}, ${e.detail}.`, tip: `<p class="garden-tip-eyebrow">Session attendance</p><p class="garden-tip-title">${esc(e.title)}</p><p>${esc(e.detail)}</p><p class="garden-tip-meta">${esc(fmt.date(e.on, { year: true }))}</p>` }));
+    const camps = shared.filter(e => e.effect === 'birdhouse');
+    const houses = camps.slice(0, 1).map(e => ({ kind: 'birdhouse', ...at(DECOR_SPOTS.birdhouse[0]), model: scaled(birdhouse(9), 1.4), delay: 2,
+      label: `Birdhouse: ${e.title}, ${e.detail}.`, tip: `<p class="garden-tip-eyebrow">Camp completion</p><p class="garden-tip-title">${esc(e.title)}</p><p>${esc(e.detail)}</p>` }));
+    trees = [...practice, ...flowers, ...rabbits, ...houses];
+    entranceEnd = Math.max(...trees.map(t => t.delay)) + 1;
     trees.forEach(tree => {
       tree.hover = 0;
       tree.button = Object.assign(document.createElement('button'), { type: 'button', className: 'garden-hit' });
@@ -550,43 +585,27 @@
       hits.append(tree.button);
       bindTree(tree);
     });
+    const grown = practice.filter(t => t.stage > 0).length;
+    canvas.setAttribute('aria-label', `Four practice trees: ${practice.map(t => `${t.title} ${STAGE_NAMES[t.stage].toLowerCase()}`).join(', ')}. ${flowers.length} flower${flowers.length === 1 ? '' : 's'}, ${rabbits.length} rabbit${rabbits.length === 1 ? '' : 's'}${houses.length ? ', a birdhouse' : ''}.`);
+    $('garden-subtitle').textContent = 'Four small trees, one for each kind of practice. They grow only from records — and nothing wilts while you rest.';
+    $('garden-hint').textContent = grown ? 'Hover, tap or tab to a tree or decoration to see exactly what grew it.' : 'All four places are ready. A valid practice — or a Coach-approved task — starts the matching tree.';
 
-    const more = earned.length - planted.length;
-    canvas.setAttribute('aria-label', `Your journey tree is at the ${garden.stage.label} stage, stage ${garden.stageIndex + 1} of ${garden.stages.length}, grown from ${steps(garden.count)}. ${planted.length
-      ? `${planted.length} smaller ${planted.length === 1 ? 'tree stands' : 'trees stand'} around it, one for each achievement you have earned${more > 0 ? ` (${planted.length} of ${earned.length} shown)` : ''}.`
-      : 'No achievement trees yet.'}`);
-    $('garden-hint').textContent = planted.length
-      ? 'Each small tree is one achievement. Hover, tap or tab to a tree to see what earned it.'
-      : 'Your first achievement — like your first practice — plants a small tree beside this one.';
-
-    // 3 · Next unlock — one line, from the policy.
     const next = $('garden-next');
-    if (garden.next) {
-      const dots = Array.from({ length: garden.next.from - garden.stage.from }, (_, index) =>
-        `<i class="${index < garden.count - garden.stage.from ? 'is-on' : ''}"></i>`).join('');
-      next.innerHTML = `<span>Next: <b>${esc(garden.next.label)}</b> in ${garden.toNext} more growth ${garden.toNext === 1 ? 'step' : 'steps'}</span>
-        <span class="garden-next-steps" aria-hidden="true">${dots}</span>
-        <span>A valid practice, a routine day (up to ${garden.policy.routineDaysPerWeek} a week), a weekly review or a confirmed attendance each add one.</span>`;
-    } else {
-      next.innerHTML = `<span>Your plant is in full <b>${esc(garden.stage.label.toLowerCase())}</b>. Nothing more to unlock — it simply stays.</span>`;
-    }
+    next.innerHTML = `<span class="garden-legend">${practice.map(t => `<b>${esc(t.title)}</b> ${esc(STAGE_NAMES[t.stage])} (${t.sources.length})`).join(' · ')}</span>
+      <span>Flowers come from your Offline Routine (${journal.routineDays.length} day${journal.routineDays.length === 1 ? '' : 's'} recorded; at ${FLOWER_AT.join(', ')}). A rabbit appears for Supervisor-confirmed session attendance (up to ${MAX_RABBITS}); a birdhouse for a verified camp completion. Joining, registering, an accepted excuse or completing an initiative add nothing here. Thresholds are demo defaults.</span>`;
 
-    // 4 · Recent achievement — the last real qualifying item.
     const card = $('garden-achievement');
-    const recent = garden.recent;
-    if (recent) {
-      const shareText = `${recent.title} — ${recent.detail}`;
-      card.innerHTML = `<span class="garden-achievement-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${ICONS[recent.kind] || ICONS.practice}</svg></span>
-        <div><p class="garden-achievement-eyebrow">Recent achievement</p>
-          <h2 id="achievement-title">${esc(recent.title)} · ${esc(recent.detail)}</h2>
-          <p>${esc(recent.why)}</p>
-          <small>${esc(fmt.date(recent.on, { weekday: true, year: true }))} · ${esc(recent.source)}</small></div>
-        <a class="garden-share" href="../community/community.html?share=${encodeURIComponent(shareText)}">Share <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7h16v-7M12 3v12m-5-5 5-5 5 5"/></svg></a>`;
-    } else {
-      card.innerHTML = `<span class="garden-achievement-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${ICONS.practice}</svg></span>
-        <div><p class="garden-achievement-eyebrow">Recent achievement</p><h2 id="achievement-title">Nothing yet</h2>
-        <p>Your first valid practice or routine day will appear here, with its date and where it came from.</p></div>`;
-    }
+    const recent = [...practice.flatMap(t => t.sources.map(x => ({ ...x, icon: 'tree', what: `${t.title} tree` }))), ...attended.map(e => ({ ...e, icon: 'rabbit', what: 'Rabbit', source: 'Supervisor-confirmed attendance' })), ...camps.map(e => ({ ...e, icon: 'birdhouse', what: 'Birdhouse', source: 'Provider-verified completion' }))]
+      .sort((a, b) => String(b.on).localeCompare(String(a.on))).slice(0, 5);
+    const groupLinks = repo && me ? repo.selectors.myInitiatives(repo.read(), me.id).filter(m => ['Accepted', 'Completed', 'Suspended'].includes(m.admission.status)) : [];
+    card.innerHTML = `<span class="garden-achievement-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${ICONS[recent[0]?.icon || 'tree']}</svg></span>
+      <div><p class="garden-achievement-eyebrow">Recently grown</p>${recent.length ? `<h2 id="achievement-title">${esc(recent[0].what)} · ${esc(recent[0].title)}</h2><ul class="garden-recent">${recent.map(x => `<li><span>${esc(x.what)} — ${esc(x.title)}</span><small>${esc(fmt.date(x.on, { year: true }))} · ${esc(x.source || '')}</small></li>`).join('')}</ul>` : '<h2 id="achievement-title">Nothing yet</h2><p>Your first valid practice, routine day or Coach-approved task will appear here with its date and source.</p>'}
+      ${groupLinks.length ? `<p class="garden-groups">Group Gardens are shared and separate: ${groupLinks.map(m => `<a href="#group-${esc(m.initiative.id)}" data-group-garden="${esc(m.initiative.id)}">${esc(m.initiative.title)}</a>`).join(', ')}</p><div id="group-garden-panel"></div>` : ''}</div>`;
+    card.querySelectorAll('[data-group-garden]').forEach(link => link.addEventListener('click', event => {
+      event.preventDefault();
+      const g = repo.selectors.initiativeGarden(repo.read(), link.dataset.groupGarden);
+      $('group-garden-panel').innerHTML = `<div class="garden-group-card"><p class="garden-achievement-eyebrow">Group Garden · ${esc(g.owner)}</p><h3>${esc(g.initiative.title)}</h3><p>Stage ${g.stage} of 5 · ${g.count} qualifying contributions from ${g.contributors} students across ${g.groups.length} group${g.groups.length === 1 ? '' : 's'}.${g.completedMilestone ? ' Initiative completed.' : ''}</p><p class="garden-tip-meta">${g.next ? `Next collective milestone “${esc(g.next.title)}” at ${g.next.at}.` : 'Every collective milestone reached.'} It is shared by everyone in the initiative and never mixes with your Personal Garden.</p></div>`;
+    }));
 
     const seen = (() => { try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch { return false; } })();
     const replay = $('garden-replay');
@@ -598,7 +617,8 @@
     let resizeTimer = 0;
     window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(resize, 120); });
     reduced.addEventListener?.('change', () => { replay.hidden = reduced.matches; entranceStart = null; draw(); });
-  }).catch(() => {
+  }).catch(error => {
+    console.error(error);
     $('garden-next').textContent = 'Your garden couldn’t be loaded.';
   });
 })();

@@ -2,7 +2,7 @@
 
 DeepSprout helps Individuals manage unintentional short-form scrolling through a personal Recovery Plan, four Meaningful Practice types, Digital Shield, Offline Routine, Garden and source-based Insights. Institutions, independent Coaches, Invited Students, Outdoor Providers and Supervisors also have connected program, initiative and experience workflows. One Platform Admin governs the platform.
 
-The **[authoritative product specification](DeepSprout.md)** is v4.0, dated 15 October 2026. It defines the approved target and distinguishes it from the present implementation. The current application is a static HTML/CSS/JavaScript demonstration with browser-local state. Partner workflows are substantial locally, while publication, identity and participation are not yet connected to the **regular Individual** pages. Login/OTP/email, payments, QR security, permissions and capacity concurrency are simulated or incomplete; no Angular or backend application exists yet. The eventual target is Angular with ASP.NET Core/C#, EF Core and SQL Server.
+The **[authoritative product specification](DeepSprout.md)** is v4.0, dated 15 October 2026. It defines the approved target and distinguishes it from the present implementation. The current application is a static HTML/CSS/JavaScript demonstration with browser-local state. As of 16 October 2026 the **Institution cycle is connected end to end**: one canonical person and scoped staff grants, publication into the regular `explore.html`, one shared Application, groups, Coach tasks in Activities → Assigned, Supervisor attendance with QR/code, excuses, reports and Gardens — see the [implementation report](docs/implementation/institution-cycle-implementation-report.md). Provider bookings and Individual-side forms/competitions are not yet connected. Login/OTP/email, payments, QR security, permissions and capacity concurrency are simulated or incomplete; no Angular or backend application exists yet. The eventual target is Angular with ASP.NET Core/C#, EF Core and SQL Server.
 
 ## Run locally
 
@@ -18,7 +18,7 @@ Open [http://127.0.0.1:8765/](http://127.0.0.1:8765/). The regular Individual en
 
 1. [DeepSprout.md](DeepSprout.md) is the only target specification and decision register; [the former spec path](docs/product-specification.md) redirects here.
 2. [Cycle audits](docs/cycles/README.md) and [client architecture reports](Client/docs/README.md) record dated current behavior and prior validation. Treat old open-question lists as historical where the master has a newer approval.
-3. The next implementation slice is [§30 of the master](DeepSprout.md#30-implementation-dependency-roadmap-and-handoff): define shared demo person/resource IDs, publish one new Institution Initiative into regular Explore, then carry one Individual application through the same Representative/Supervisor record and My Initiatives. No code for that slice was changed by this documentation consolidation.
+3. [§30 of the master](DeepSprout.md#30-implementation-dependency-roadmap-and-handoff) slices 1–4 are implemented for the Institution cycle (16 Oct 2026; [report](docs/implementation/institution-cycle-implementation-report.md), with test evidence and remaining gaps). Next: Provider publication/booking into regular Explore (slice 5), then Admin parity and weekly Lab (slice 6).
 
 | Location | Purpose |
 |---|---|

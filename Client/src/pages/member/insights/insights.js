@@ -566,6 +566,26 @@
         ${empty('You haven’t joined an initiative yet.', button('Browse initiatives', href('src/pages/member/explore/explore.html'), { quiet: true }))}</article>`);
     }
 
+    // Verified Institution initiatives: read from the shared records, never copied.
+    const repo = window.DeepSproutRepo, me = repo?.me();
+    const live = repo && me ? repo.selectors.myInitiatives(repo.read(), me.id) : [];
+    if (live.length) {
+      const sessions = live.flatMap(entry => entry.sessions);
+      const attended = sessions.filter(ss => ss.attendance && ss.attendance.status !== 'Absent').length;
+      const absent = sessions.filter(ss => ss.attendance?.status === 'Absent').length;
+      const excused = sessions.filter(ss => ss.display === 'Excused Absence').length;
+      cards.push(`<article class="ins-beyond-card">
+        <header><h3>Institution initiatives</h3><span class="ins-badge">Supervisor-confirmed</span></header>
+        <div class="ins-counts">
+          <div class="ins-count">${num(live.filter(entry => ['Accepted', 'Suspended', 'Completed'].includes(entry.admission.status)).length)}<small>joined</small></div>
+          <div class="ins-count">${num(attended)}<small>sessions attended</small></div>
+          <div class="ins-count">${num(live.filter(entry => entry.admission.status === 'Completed').length)}<small>completed</small></div>
+        </div>
+        <p>${absent ? `${absent} recorded ${plural(absent, 'absence')}${excused ? `, ${excused} excused` : ''}. An excused absence is a separate decision and never counts as attendance.` : 'Attendance is recorded by the initiative’s Supervisor.'} Completion adds history, not a Garden object, and never changes your Lab or Recovery results.</p>
+        <ul class="ins-facts">${live.map(entry => `<li>${esc(entry.initiative.title)} · ${esc(entry.initiative.organizer)} · ${esc(entry.admission.status)}</li>`).join('')}</ul>
+      </article>`);
+    }
+
     const experiences = account.experiences();
     cards.push(`<article class="ins-beyond-card">
       <header><h3>Outdoor experiences</h3>${experiences.registered ? badge(experiences.provenance) : ''}</header>

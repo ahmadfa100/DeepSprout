@@ -30,6 +30,44 @@
     cancelled: { label: 'Cancelled', icon: 'i-x' }
   };
 
+  // Live Institution records, read through the shared bridge (never copied).
+  const Repo = () => window.DeepSproutRepo || null;
+  const APP_STATUS = {
+    Pending: { label: 'Pending review', icon: 'i-hourglass', tone: 'pending' },
+    Accepted: { label: 'Accepted', icon: 'i-check', tone: 'confirmed' },
+    Queued: { label: 'Waiting list', icon: 'i-clock', tone: 'waitlisted' },
+    Offered: { label: 'Seat offered', icon: 'i-ticket', tone: 'offered' },
+    Suspended: { label: 'Suspended', icon: 'i-info', tone: 'warning' },
+    Rejected: { label: 'Not accepted', icon: 'i-x', tone: 'cancelled' },
+    Removed: { label: 'Removed', icon: 'i-x', tone: 'cancelled' },
+    Blocked: { label: 'Blocked', icon: 'i-x', tone: 'cancelled' },
+    Withdrawn: { label: 'Withdrawn', icon: 'i-x', tone: 'cancelled' },
+    Declined: { label: 'Offer declined', icon: 'i-x', tone: 'cancelled' },
+    Expired: { label: 'Offer expired', icon: 'i-clock', tone: 'cancelled' },
+    Completed: { label: 'Completed', icon: 'i-check', tone: 'complete' },
+    Closed: { label: 'Closed', icon: 'i-x', tone: 'cancelled' }
+  };
+  const appChip = status => { const s = APP_STATUS[status] || { label: status, icon: 'i-info', tone: 'pending' }; return `<span class="ex-status" data-status="${s.tone}">${icon(s.icon)}${esc(s.label)}</span>`; };
+  const liveById = id => {
+    const repo = Repo();
+    if (!repo) return null;
+    const card = repo.selectors.exploreInitiatives(repo.read(), repo.me()?.id).find(item => item.id === id)
+      || repo.selectors.myInitiatives(repo.read(), repo.me()?.id).map(entry => entry.initiative).find(item => item.id === id);
+    return card ? toItem(card) : null;
+  };
+  function toItem(card) {
+    const start = Account.parse(card.start); const end = Account.parse(card.end);
+    return {
+      ...card, start, end, startDate: card.start, endDate: card.end, startTime: card.sessions[0]?.time || '',
+      city: card.organizerCity, listing: 'live', eligibility: `${card.audience}${card.minAge || card.maxAge ? ` · ages ${card.minAge || 0}–${card.maxAge || 'any'}` : ''}`,
+      remaining: card.seatsLeft, past: false,
+      objectives: card.objective ? [card.objective] : [], commitment: card.policies.completion || card.withdrawal || ''
+    };
+  }
+  const liveItems = () => { const repo = Repo(); if (!repo) return []; return repo.selectors.exploreInitiatives(repo.read(), repo.me()?.id).map(toItem); };
+  const countdown = iso => { const ms = Date.parse(iso) - (Repo()?.nowMs() || Date.now()); if (ms <= 0) return 'expired'; const h = Math.floor(ms / 3600000); const m = Math.floor((ms % 3600000) / 60000); return h ? `${h} h ${m} min left` : `${m} min left`; };
+  const qrSvg = code => { try { const qr = window.qrcode(0, 'M'); qr.addData(code); qr.make(); return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); } catch { return ''; } };
+
   let account = null;
   const filters = { kind: 'all', mode: 'all' };
 
@@ -49,9 +87,11 @@
     if (item.full) return { text: 'Full — waiting list open', full: true };
     return { text: `${item.remaining} of ${item.capacity} places left`, full: false };
   };
-  const trust = item => (item.listing === 'verified'
-    ? `<span class="ex-trust is-verified" title="The organiser is verified by DeepSprout">${icon('i-shield-check')}Verified</span>`
-    : '<span class="ex-trust is-demo" title="Sample content for this preview">Demo listing</span>');
+  // Live listings come from a verified Institution's published record. Fixture
+  // listings are static preview samples and say so, whatever organiser they name.
+  const trust = item => (item.listing === 'live'
+    ? `<span class="ex-trust is-verified is-live" title="Published by an Institution verified by DeepSprout">${icon('i-shield-check')}Verified institution</span>`
+    : '<span class="ex-trust is-demo" title="Static sample listing in this preview — not a live record">Sample listing</span>');
   const statusChip = status => `<span class="ex-status" data-status="${status}">${icon(STATUS[status].icon)}${STATUS[status].label}</span>`;
   const reference = (item, on) => {
     let hash = 0;
@@ -65,8 +105,8 @@
   let cards = new Map();
 
   function cardHtml(item) {
-    const place = places(item);
-    const mine = item.mine;
+    const place = item.listing === 'live' ? livePlaces(item) : places(item);
+    const mine = item.listing === 'live' ? null : item.mine;
     return `${item.image ? `<div class="ex-card-media"><img src="${root}${item.image}" alt="${esc(item.imageAlt || '')}" loading="lazy"></div>` : ''}
       <div class="ex-card-band"><span class="ex-kind">${icon(KIND_ICON[item.kind])}${esc(item.kindLabel)}</span>${trust(item)}</div>
       <div class="ex-card-body">
@@ -80,13 +120,19 @@
         <p class="ex-reveal">${esc(item.summary)}</p>
         <div class="ex-card-foot">
           <button type="button" class="ex-card-link" data-open="${item.id}" aria-label="${esc(`View ${item.title}`)}">View details ${icon('i-arrow')}</button>
-          ${mine ? statusChip(mine.status) : ''}
+          ${mine ? statusChip(mine.status) : ''}${item.listing === 'live' && item.mine ? appChip(item.mine.status) : ''}
         </div>
       </div>`;
   }
 
+  function livePlaces(item) {
+    if (item.registration !== 'Open') return { text: item.registration === 'Opens soon' ? `Applications open ${fmt.date(Account.parse(item.registrationOpen))}` : 'Applications closed', full: false };
+    if (item.full) return { text: item.waitlist ? `All ${item.capacity} seats taken — waiting list open` : 'All seats taken', full: true };
+    return { text: `${item.seatsLeft} of ${item.capacity} student seats left`, full: false };
+  }
+
   function renderGrid() {
-    const items = account.listings().filter(item => !item.past);
+    const items = [...liveItems(), ...account.listings().filter(item => !item.past)];
     const seen = new Set();
     items.forEach((item, index) => {
       let card = cards.get(item.id);
@@ -107,7 +153,8 @@
     cards.forEach((card, id) => { if (!seen.has(id)) { card.remove(); cards.delete(id); } });
     applyFilters(false);
     const registered = account.allRegistrations().filter(entry => entry.status !== 'cancelled').length;
-    $('ex-hero-meta').innerHTML = `<span>${icon('i-compass')}${items.length} listings</span><span>${icon('i-shield-check')}${items.filter(item => item.listing === 'verified').length} from verified organisers</span>${registered ? `<span>${icon('i-check')}${registered} you’re registered for</span>` : ''}`;
+    const live = items.filter(item => item.listing === 'live').length;
+    $('ex-hero-meta').innerHTML = `<span>${icon('i-compass')}${items.length} listings</span><span>${icon('i-shield-check')}${live} live from verified institutions</span>${registered ? `<span>${icon('i-check')}${registered} you’re registered for</span>` : ''}`;
   }
 
   const matches = card => (filters.kind === 'all' || card.dataset.kind === filters.kind)
@@ -201,7 +248,7 @@
   let draft = {};
 
   function openSheet(id, origin) {
-    current = account.listingById(id);
+    current = liveById(id) || account.listingById(id);
     if (!current) return;
     openedFrom = origin || null;
     draft = {};
@@ -237,6 +284,7 @@
     `<li class="${index < stage ? 'is-done' : index === stage ? 'is-now' : ''}"${index === stage ? ' aria-current="step"' : ''}>${label}</li>`).join('')}</ol>`;
 
   function showDetail() {
+    if (current?.listing === 'live') { showLiveDetail(); return; }
     const item = current;
     const place = places(item);
     const outcome = account.registrationOutcome(item.id);
@@ -424,6 +472,266 @@
     });
   }
 
+  /* ------------------------------------------- live Institution Initiatives */
+
+  const costText = item => item.cost?.type === 'Paid' ? `${item.cost.price} ${item.cost.currency} · payment is simulated in this demo — nothing is charged` : 'Free';
+  const modesText = item => item.modes.join(' · ');
+  const liveRun = (action, payload) => Repo().run(action, payload);
+  const signInNote = () => `<p class="ex-muted">You need a DeepSprout account to apply. <a class="ex-inline-link" href="${root}login.html">Log in</a> or <a class="ex-inline-link" href="${root}register.html">create an account</a>.</p>`;
+
+  function showLiveDetail() {
+    const item = current;
+    const repo = Repo();
+    const me = repo?.me();
+    const mine = item.mine;
+    const place = livePlaces(item);
+    let action;
+    if (mine && !['Withdrawn', 'Rejected', 'Declined', 'Expired'].includes(mine.status)) {
+      action = `${appChip(mine.status)}<span class="ex-muted">Application <strong class="ex-code">${esc(mine.code)}</strong>${mine.position ? ` · position ${mine.position} on the waiting list` : ''}</span>
+        <button type="button" class="ex-button is-quiet" data-act="my-initiatives">Open in My Initiatives ${icon('i-arrow')}</button>`;
+    } else if (!me || !repo.canAct()) {
+      action = signInNote();
+    } else if (item.registration !== 'Open') {
+      action = `<span class="ex-muted">${item.registration === 'Opens soon' ? `Applications open on ${esc(fmt.date(Account.parse(item.registrationOpen), { year: true }))}.` : 'Applications are closed for this initiative.'}</span>`;
+    } else {
+      action = `<button type="button" class="ex-button" data-act="apply">${item.full ? 'Apply — waiting list' : 'Apply to join'} ${icon('i-arrow')}</button>
+        <span class="ex-muted">${item.full ? 'All seats are taken. Eligible applicants wait in order and are offered a seat when one opens.' : 'The institution reviews every application once.'}</span>`;
+      if (mine) action += `<span class="ex-muted">Your previous application ${esc(mine.code)} is ${esc(APP_STATUS[mine.status]?.label.toLowerCase() || mine.status)}.</span>`;
+    }
+    const sessions = item.sessions.filter(ss => ss.status === 'Published');
+    view(`<div data-live-view="detail">${item.image ? `<div class="ex-sheet-media"><img src="${root}${item.image}" alt="${esc(item.imageAlt || '')}"></div>` : '<div style="height:var(--space-22)"></div>'}
+      <div class="ex-card-band" style="padding:0"><span class="ex-kind">${icon('i-flag')}Initiative · ${esc(item.topic)}</span>${trust(item)}</div>
+      <h2 id="sheet-title">${esc(item.title)}</h2>
+      <p class="ex-muted">Run by ${esc(item.organizer)} · Institution verified by DeepSprout · version ${item.version}</p>
+      <p class="ex-lead-text">${esc(item.summary)}</p>
+      <ul class="ex-detail-grid">
+        <li><b>When</b><span>${esc(when(item))}</span></li>
+        <li><b>Time zone</b><span>${esc(item.timezone)}</span></li>
+        <li><b>How</b><span>${esc(modesText(item))}</span></li>
+        <li><b>Where</b><span>${esc([item.venue, item.modes.includes('Online') ? 'online' : ''].filter(Boolean).join(' · ') || 'Online')}</span></li>
+        <li><b>Who can join</b><span>${esc(item.eligibility)}</span></li>
+        <li><b>Eligible area</b><span>${esc(item.coverage || item.country)}</span></li>
+        <li><b>Seats</b><span>${esc(place.text)}</span></li>
+        <li><b>Cost</b><span>${esc(costText(item))}</span></li>
+        <li><b>Applications</b><span>${esc(item.registration)}${item.registrationClose ? ` · close ${esc(fmt.date(Account.parse(item.registrationClose)))}` : ''}</span></li>
+      </ul>
+      <h3>What it’s for</h3><p>${esc(item.objective)}</p>
+      ${item.description ? `<p>${esc(item.description)}</p>` : ''}
+      ${item.requirements ? `<h3>What it asks of you</h3><p>${esc(item.requirements)}</p>` : ''}
+      <h3>Its parts — each joined separately</h3>
+      <ul class="ex-parts">${item.components.map(part => `<li><span>${esc(part.title)}<br><small>${esc(part.type)}</small></span></li>`).join('')}${sessions.map(ss => `<li><span>${esc(ss.title)}<br><small>Session · ${esc(ss.format)}</small></span><small>${esc(fmt.date(Account.parse(ss.date), { weekday: true }))} · ${esc(ss.time)}</small></li>`).join('')}</ul>
+      <div class="ex-commit"><p><strong>Joining is not booking.</strong> Accepted students register for each session separately. Attendance is confirmed by a Supervisor on the day, and completion follows the published criteria: ${esc(item.policies.completion || 'see the institution’s rules')}.</p></div>
+      <details class="ex-policy"><summary>Participation rules &amp; privacy</summary><dl class="ex-review">
+        ${[['Admission', item.policies.admission], ['Waiting list', item.waitlist ? `Seats are offered in order and held for ${item.offerHours} hours (configurable demo default).` : 'No waiting list.'], ['Withdrawal', item.withdrawal], ['Attendance', item.policies.attendance], ['Excuses', item.policies.excuse], ['Conduct', item.policies.discipline], ['Privacy', item.policies.privacy], ['Notices', item.policies.notifications]].filter(([, v]) => v).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}
+      </dl></details>
+      <div class="ex-sheet-actions">${action}</div></div>`);
+    body.querySelector('[data-act="apply"]')?.addEventListener('click', showLiveForm);
+    body.querySelector('[data-act="my-initiatives"]')?.addEventListener('click', () => { closeSheet(); setTimeout(() => $('my-initiatives').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }), 220); });
+  }
+
+  function showLiveForm() {
+    const item = current;
+    const me = Repo().me();
+    view(`<div style="height:var(--space-22)"></div>
+      <p class="ex-eyebrow">Application</p>
+      <h2 id="sheet-title">${esc(item.title)}</h2>
+      ${steps(0)}
+      <form class="ex-form" id="ex-live-form" novalidate>
+        <p class="ex-muted">Applying as <strong>${esc(me.name)}</strong> · ${esc(me.email)}</p>
+        <label class="ex-field"><span>Your age</span><input name="age" type="number" inputmode="numeric" min="1" max="120" required value="${esc(draft.age || '')}"><small>${esc(item.eligibility)}</small></label>
+        ${item.modes.length > 1 ? `<label class="ex-field"><span>How would you mostly take part?</span><select name="mode">${item.modes.map(m => `<option${draft.mode === m ? ' selected' : ''}>${esc(m)}</option>`).join('')}</select></label>` : ''}
+        <label class="ex-field"><span>Why would you like to join? (optional)</span><textarea name="motivation" rows="3" maxlength="400">${esc(draft.motivation || '')}</textarea></label>
+        ${item.cost?.type === 'Paid' ? `<div class="ex-commit"><p><strong>Paid initiative · ${esc(item.cost.price)} ${esc(item.cost.currency)}.</strong> Payment is simulated in this demo. No card is requested and nothing is charged.</p></div>` : ''}
+        <label class="ex-consent"><input type="checkbox" name="consent"${draft.consent ? ' checked' : ''} required><span>${esc(item.consent || 'I agree to the participation terms.')}</span></label>
+        <p class="ex-error" id="ex-form-error" role="alert" hidden></p>
+        <div class="ex-sheet-actions">
+          <button type="button" class="ex-button is-quiet" data-act="back">${icon('i-back')} Back</button>
+          <button type="submit" class="ex-button">Review ${icon('i-arrow')}</button>
+        </div>
+      </form>`);
+    const form = $('ex-live-form');
+    form.elements.namedItem('age').focus();
+    body.querySelector('[data-act="back"]').addEventListener('click', showLiveDetail);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const f = form.elements;
+      draft = { age: f.namedItem('age').value, mode: f.namedItem('mode')?.value || item.modes[0], motivation: f.namedItem('motivation').value.trim(), consent: f.namedItem('consent').checked };
+      const age = Number(draft.age);
+      const problem = !age ? 'Add your age so eligibility can be checked.'
+        : (item.minAge && age < item.minAge) || (item.maxAge && age > item.maxAge) ? `This initiative is for ages ${item.minAge || 0}–${item.maxAge || 'any'}.`
+        : !draft.consent ? 'Tick the consent box to continue.' : '';
+      const error = $('ex-form-error');
+      if (problem) { error.textContent = problem; error.hidden = false; return; }
+      showLiveReview();
+    });
+  }
+
+  function showLiveReview() {
+    const item = current;
+    const rows = [['Initiative', item.title], ['Institution', item.organizer], ['When', `${when(item)} · ${item.timezone}`], ['Your age', draft.age], ['Main mode', draft.mode], ['Cost', costText(item)],
+      ['What happens', item.full ? 'Eligible applicants join the waiting list in order' : 'The Representative or a Supervisor reviews your application once']];
+    if (draft.motivation) rows.push(['Why you’re joining', draft.motivation]);
+    view(`<div style="height:var(--space-22)"></div>
+      <p class="ex-eyebrow">Review</p>
+      <h2 id="sheet-title">Check before you apply</h2>
+      ${steps(1)}
+      <dl class="ex-review">${rows.map(([term, value]) => `<div><dt>${esc(term)}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl>
+      <p class="ex-error" id="ex-live-error" role="alert" hidden></p>
+      <div class="ex-sheet-actions">
+        <button type="button" class="ex-button is-quiet" data-act="edit">${icon('i-back')} Edit</button>
+        <button type="button" class="ex-button" data-act="confirm">Submit application ${icon('i-check')}</button>
+      </div>`);
+    body.querySelector('[data-act="edit"]').addEventListener('click', showLiveForm);
+    body.querySelector('[data-act="confirm"]').addEventListener('click', event => {
+      event.currentTarget.disabled = true;
+      try {
+        const appId = liveRun('member.application.submit', { initiativeId: item.id, age: Number(draft.age), mode: draft.mode, motivation: draft.motivation, consent: draft.consent });
+        current = liveById(item.id) || current;
+        showLiveDone(appId);
+      } catch (error) {
+        const node = $('ex-live-error'); node.textContent = error.message; node.hidden = false; event.currentTarget.disabled = false;
+      }
+    });
+  }
+
+  function showLiveDone(appId) {
+    const item = current;
+    const app = Repo().read().admissions.find(entry => entry.id === appId);
+    view(`<div class="ex-done">
+      ${steps(2)}
+      <span class="ex-done-mark" data-status="pending">${icon('i-hourglass')}</span>
+      <h2 id="sheet-title">Application sent</h2>
+      <p>${esc(item.title)} · ${esc(item.organizer)}</p>
+      <div>${appChip(app.status)}</div>
+      <div class="ex-ref" aria-label="${esc(`Application ID ${app.code}`)}">${esc(app.code)}</div>
+      <h3>What happens next</h3>
+      <ul class="ex-next">
+        <li>${icon('i-arrow')}<span>The Representative or an active Supervisor reviews this same application once. You’ll see the decision in My Initiatives.</span></li>
+        <li>${icon('i-arrow')}<span>${item.full ? 'Seats are full right now: if you are eligible you join the waiting list and are offered a seat in order.' : `Pending applications don’t hold a seat. ${item.seatsLeft} of ${item.capacity} seats are open now.`}</span></li>
+        <li>${icon('i-arrow')}<span>Once accepted, you register for each session separately and your Coach’s tasks appear in Activities → Assigned.</span></li>
+      </ul>
+      <div class="ex-sheet-actions"><button type="button" class="ex-button" data-act="my-initiatives">See My Initiatives ${icon('i-arrow')}</button></div>
+    </div>`);
+    body.querySelector('[data-act="my-initiatives"]').addEventListener('click', () => { closeSheet(); setTimeout(() => $('my-initiatives').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }), 220); });
+  }
+
+  /* ---------------------------------------------------------- My Initiatives */
+
+  const openDetails = new Set();
+  const sessionWhen = ss => `${fmt.date(Account.parse(ss.date), { weekday: true, year: true })} · ${ss.time}–${ss.endTime} (${ss.timezone || 'Asia/Amman'})`;
+  const ATTEND_TONE = { Present: 'confirmed', Late: 'pending', Absent: 'cancelled', 'Excused Absence': 'waitlisted', Registered: 'pending', 'Not registered': 'cancelled' };
+  const attendChip = label => `<span class="ex-status" data-status="${ATTEND_TONE[label] || 'pending'}">${esc(label)}</span>`;
+
+  function statusMessage(entry) {
+    const a = entry.admission;
+    const last = [...(a.history || [])].reverse().find(h => h.reason);
+    switch (a.status) {
+      case 'Pending': return 'Waiting for one review by the Representative or an active Supervisor. Pending applications don’t hold a seat.';
+      case 'Queued': return `You’re eligible and on the waiting list${a.position ? ` — position ${a.position}` : ''}. You’ll be offered a seat when one opens.`;
+      case 'Offered': return `A seat is held for you. Accept before it expires (<span data-countdown="${esc(a.offer.expires)}">${esc(countdown(a.offer.expires))}</span>).`;
+      case 'Accepted': return entry.group ? `You’re in ${esc(entry.group.name)}${entry.group.coach ? ` with Coach ${esc(entry.group.coach)}` : ' · Coach to be assigned'}.` : 'You’re accepted. Your group will be assigned by the institution.';
+      case 'Suspended': return `Participation is suspended. ${esc(last?.reason || '')} Your history is kept.`;
+      case 'Completed': return 'Completed — recorded in your participation history.';
+      case 'Rejected': case 'Removed': case 'Blocked': return esc(last?.reason ? `Reason: ${last.reason}` : 'The institution recorded a decision.');
+      default: return esc(last?.reason || '');
+    }
+  }
+
+  function sessionBlock(entry, ss) {
+    const accepted = entry.admission.status === 'Accepted';
+    const reg = ss.registration?.status === 'Confirmed' ? ss.registration : null;
+    let actions = '';
+    if (ss.status === 'Cancelled') actions = `<span class="ex-muted">Cancelled${ss.cancelReason ? ` — ${esc(ss.cancelReason)}` : ''}</span>`;
+    else if (ss.attendance) {
+      actions = attendChip(ss.display);
+      if (ss.attendance.status === 'Absent' && !ss.excuse && accepted) actions += `<button type="button" class="ex-button is-quiet ex-small" data-excuse="${ss.attendance.id}">Explain this absence</button>`;
+    } else if (reg) {
+      actions = `${attendChip('Registered')}<button type="button" class="ex-button is-quiet ex-small" data-session-cancel="${reg.id}">Cancel registration</button>`;
+    } else if (accepted && ss.open) {
+      const modes = ss.format === 'Hybrid' ? ['In-person', 'Online'] : [ss.format];
+      actions = `<label class="ex-inline-field"><span class="visually-hidden">Mode</span><select data-mode-for="${ss.id}">${modes.map(m => `<option value="${m}"${(m === 'Online' ? ss.seats.online : ss.seats.inPerson) < 1 ? ' disabled' : ''}>${m} · ${m === 'Online' ? ss.seats.online : ss.seats.inPerson} left</option>`).join('')}</select></label><button type="button" class="ex-button ex-small" data-session-register="${ss.id}">Register</button>`;
+    } else actions = `<span class="ex-muted">${accepted ? 'Registration closed' : 'For accepted students'}</span>`;
+    const credential = reg && !ss.attendance ? (reg.mode === 'In-person'
+      ? `<div class="ex-qr"><div class="ex-qr-code" role="img" aria-label="${esc(`QR code for booking ${reg.code}`)}">${qrSvg(reg.code)}</div><div><p class="ex-eyebrow">Booking credential</p><strong class="ex-code">${esc(reg.code)}</strong><p class="ex-muted">Show this QR (or read out the code) to the Supervisor at ${esc(ss.venue)}. It identifies this booking only — it is not proof of anything else.</p></div></div>`
+      : `<p class="ex-muted">${icon('i-globe')} Online · ${esc(ss.meeting || 'The meeting link is shared with confirmed registrants.')} A Supervisor confirms attendance from the roster — opening the link alone doesn’t count.</p>`) : '';
+    const excuse = ss.excuse ? `<div class="ex-excuse"><p><strong>Your explanation</strong> · ${esc(fmt.date(Account.parse(ss.excuse.created.slice(0, 10))))}</p><p>${esc(ss.excuse.reason)}</p>
+      <ol class="ex-steps ex-steps-compact" aria-label="Excuse progress"><li class="is-done">Submitted</li><li class="${ss.excuse.recommendation ? 'is-done' : 'is-now'}">Supervisor review</li><li class="${ss.excuse.decision ? 'is-done' : ss.excuse.recommendation ? 'is-now' : ''}">Final decision</li></ol>
+      ${ss.excuse.status === 'Info Requested' ? `<form class="ex-form" data-excuse-respond="${ss.excuse.id}"><label class="ex-field"><span>Your Supervisor asked for more information</span><textarea name="text" rows="2" required></textarea></label><button class="ex-button ex-small">Send</button></form>` : ''}
+      ${ss.excuse.decision ? `<p>${attendChip(ss.excuse.status === 'Accepted' ? 'Excused Absence' : 'Absent')} ${esc(ss.excuse.decision.reason)}</p><p class="ex-muted">Factual attendance stays “Absent”. An accepted excuse is a separate decision and never counts as attendance.</p>` : ''}</div>` : '';
+    return `<li class="ex-session"><div class="ex-session-head"><div><strong>${esc(ss.title)}</strong><small>${esc(sessionWhen(ss))} · ${esc(ss.format)}${ss.venue ? ` · ${esc(ss.venue)}` : ''}</small></div><div class="ex-mine-actions">${actions}</div></div>${credential}${excuse}<div class="ex-excuse-slot" data-slot="${ss.attendance?.id || ''}"></div></li>`;
+  }
+
+  function renderMyInitiatives() {
+    const host = $('ex-my-initiatives');
+    if (!host) return;
+    const repo = Repo();
+    const me = repo?.me();
+    if (!repo || !me) { host.innerHTML = `<p class="ex-mine-empty">Sign in to see initiatives you have applied to.</p>`; return; }
+    const entries = repo.selectors.myInitiatives(repo.read(), me.id);
+    $('my-initiatives-who').textContent = `Signed in as ${me.name}`;
+    if (!entries.length) { host.innerHTML = '<p class="ex-mine-empty">No initiative applications yet. When you apply, the institution’s decision and your sessions appear here — from the same record the institution sees.</p>'; return; }
+    host.innerHTML = entries.map(entry => {
+      const a = entry.admission, item = entry.initiative;
+      const live = ['Pending', 'Queued', 'Offered', 'Accepted', 'Suspended'].includes(a.status);
+      const tasks = entry.tasks;
+      const open = openDetails.has(a.id) || entries.length === 1 || a.status === 'Offered';
+      return `<article class="ex-initiative${live ? '' : ' is-ended'}" data-admission="${a.id}">
+        <header class="ex-initiative-head">
+          ${item.image ? `<img src="${root}${item.image}" alt="" loading="lazy">` : `<span class="ex-initiative-mark">${icon('i-flag')}</span>`}
+          <div><p class="ex-eyebrow">${esc(item.organizer)}</p><h3>${esc(item.title)}</h3><small>Application <strong class="ex-code">${esc(a.code)}</strong> · applied ${esc(fmt.date(Account.parse(a.created.slice(0, 10)), { year: true }))}</small></div>
+          <div class="ex-initiative-status">${appChip(a.status)}${item.status !== 'Published' && item.status !== 'Completed' ? `<span class="ex-status" data-status="warning">Initiative ${esc(item.status.toLowerCase())}</span>` : ''}</div>
+        </header>
+        <p class="ex-initiative-message">${statusMessage(entry)}</p>
+        ${a.status === 'Offered' ? `<div class="ex-sheet-actions"><button type="button" class="ex-button" data-offer-accept="${a.id}">Accept seat ${icon('i-check')}</button><button type="button" class="ex-button is-quiet" data-offer-decline="${a.id}">Decline</button></div>` : ''}
+        <details class="ex-initiative-body" data-details="${a.id}"${open ? ' open' : ''}><summary>Sessions, tasks and history</summary>
+          ${entry.sessions.length ? `<h4>Sessions</h4><ol class="ex-session-list">${entry.sessions.map(ss => sessionBlock(entry, ss)).join('')}</ol>` : '<p class="ex-muted">No published sessions yet.</p>'}
+          <h4>Coach tasks</h4>${tasks.length ? `<p>${tasks.filter(t => t.status === 'Approved').length} of ${tasks.length} approved · ${tasks.filter(t => ['Assigned', 'In Progress', 'Needs Revision'].includes(t.status)).length} to do. <a class="ex-inline-link" href="${root}src/pages/member/training/training.html#assigned">Open Activities → Assigned</a></p>` : '<p class="ex-muted">No tasks assigned yet.</p>'}
+          ${entry.completion ? `<p class="ex-complete">${icon('i-check')} ${entry.completion.status} · ${esc(fmt.date(Account.parse(entry.completion.at.slice(0, 10)), { year: true }))}. Completion is recorded in your history and Insights; it doesn’t add a Garden object.</p>` : ''}
+          <h4>Decision history</h4><ol class="ex-history">${a.history.map(h => `<li><span>${esc(fmt.date(Account.parse(String(h.at).slice(0, 10))))}</span><span>${esc(h.to || '')}${h.reason ? ` — ${esc(h.reason)}` : ''}</span></li>`).join('')}</ol>
+          ${live ? `<div class="ex-sheet-actions"><button type="button" class="ex-button is-danger ex-small" data-withdraw="${a.id}">Withdraw from this initiative</button></div>` : ''}
+        </details>
+        <p class="ex-error" role="alert" hidden></p>
+      </article>`;
+    }).join('');
+  }
+
+  function liveAction(node, run) {
+    const card = node.closest('.ex-initiative');
+    const error = card?.querySelector('.ex-error');
+    try { run(); } catch (e) { if (error) { error.textContent = e.message; error.hidden = false; error.focus?.(); } else window.alert?.(e.message); }
+  }
+  document.addEventListener('toggle', event => { const id = event.target.dataset?.details; if (id) { if (event.target.open) openDetails.add(id); else openDetails.delete(id); } }, true);
+  document.addEventListener('click', event => {
+    const t = event.target.closest('[data-session-register],[data-session-cancel],[data-offer-accept],[data-offer-decline],[data-withdraw],[data-excuse]');
+    if (!t) return;
+    const card = t.closest('.ex-initiative'); if (card) openDetails.add(card.dataset.admission);
+    if (t.dataset.sessionRegister) liveAction(t, () => liveRun('member.session.register', { sessionId: t.dataset.sessionRegister, mode: card.querySelector(`[data-mode-for="${t.dataset.sessionRegister}"]`)?.value, consent: true }));
+    if (t.dataset.sessionCancel) liveAction(t, () => liveRun('member.session.cancel', { id: t.dataset.sessionCancel }));
+    if (t.dataset.offerAccept) liveAction(t, () => liveRun('member.offer.accept', { id: t.dataset.offerAccept }));
+    if (t.dataset.offerDecline) liveAction(t, () => liveRun('member.offer.decline', { id: t.dataset.offerDecline }));
+    if (t.dataset.withdraw) {
+      if (t.dataset.armed !== '1') { t.dataset.armed = '1'; t.textContent = 'Yes, withdraw — release my seat'; return; }
+      liveAction(t, () => liveRun('member.application.withdraw', { id: t.dataset.withdraw }));
+    }
+    if (t.dataset.excuse) {
+      const slot = card.querySelector(`[data-slot="${t.dataset.excuse}"]`);
+      slot.innerHTML = `<form class="ex-form ex-excuse" data-excuse-form="${t.dataset.excuse}">
+        <label class="ex-field"><span>Briefly explain why you missed this session</span><textarea name="reason" rows="3" maxlength="600" required></textarea><small>Seen by the initiative’s Supervisor and Representative only.</small></label>
+        <label class="ex-field"><span>Supporting document (optional)</span><input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png"><small>Only the file name is kept in this demo; the file itself is not uploaded.</small></label>
+        <div class="ex-sheet-actions"><button class="ex-button ex-small">Send explanation</button></div></form>`;
+      slot.querySelector('textarea').focus();
+    }
+  });
+  document.addEventListener('submit', event => {
+    const form = event.target;
+    if (form.dataset.excuseForm) {
+      event.preventDefault();
+      const file = form.elements.attachment.files?.[0];
+      liveAction(form, () => liveRun('member.excuse.submit', { attendanceId: form.dataset.excuseForm, reason: form.elements.reason.value, attachment: file ? { name: file.name, type: file.type, size: file.size } : null }));
+    }
+    if (form.dataset.excuseRespond) { event.preventDefault(); liveAction(form, () => liveRun('member.excuse.respond', { id: form.dataset.excuseRespond, text: form.elements.text.value })); }
+  });
+
   document.addEventListener('click', event => {
     const opener = event.target.closest('[data-open]');
     if (opener) openSheet(opener.dataset.open, opener);
@@ -448,8 +756,16 @@
     account = loaded;
     renderGrid();
     renderMine();
+    renderMyInitiatives();
     if (location.hash === '#my-registrations') $('my-registrations').scrollIntoView({ block: 'start' });
+    if (location.hash === '#my-initiatives') $('my-initiatives').scrollIntoView({ block: 'start' });
     window.addEventListener('deepsprout:account', () => { renderGrid(); renderMine(); });
+    // Another workspace (or tab) changed a shared record: re-read, never cache.
+    window.addEventListener('deepsprout:repo', () => {
+      renderGrid(); renderMyInitiatives();
+      if (sheet.open && current?.listing === 'live' && body.querySelector('[data-live-view="detail"]')) { current = liveById(current.id) || current; showLiveDetail(); }
+    });
+    setInterval(() => document.querySelectorAll('[data-countdown]').forEach(node => { node.textContent = countdown(node.dataset.countdown); }), 30000);
   }).catch(() => {
     $('ex-count').textContent = 'Listings couldn’t be loaded, so none are shown.';
   });

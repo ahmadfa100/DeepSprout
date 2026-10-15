@@ -188,6 +188,16 @@
         if (entry) { entry.status = 'cancelled'; entry.cancelledOn = event.on; }
         break;
       }
+      case 'plan.activate': {
+        // First-run activation from Your Starting Point. Applied once; a later
+        // replay of the same event never creates a second plan.
+        if (data.plan) break;
+        data.plan = { cycleNumber: 1, startDate: event.on, lengthDays: event.lengthDays || 28, activatedOn: event.on,
+          direction: (event.direction || []).map((entry, index) => ({ week: index + 1, title: entry.title, note: entry.note })) };
+        if (event.goal) data.user.goal = { id: event.goal, label: event.goalLabel || '', setOn: event.on };
+        (event.schedule || []).forEach((entry, index) => data.scheduledActions.push({ id: `s-${event.on}-${index}`, date: entry.date, kind: 'practice', activityType: entry.activityType, level: 1, minutes: entry.minutes || 5 }));
+        break;
+      }
       case 'plan.adjust':
         (data.planAdjustments ||= []).push({ on: event.on, label: event.label, detail: event.detail });
         break;
@@ -856,6 +866,29 @@
       };
     };
 
+    /**
+     * Personal Garden sources from this private journal (master §9): valid
+     * practice attempts per practice type and self-reported routine days.
+     * Partner-sourced effects (Coach-approved tasks, Supervisor-confirmed
+     * attendance, camp completion) are added by the Garden page from the
+     * shared records. Nothing here decays with inactivity.
+     */
+    const practiceGarden = () => {
+      const attempts = data.activityAttempts.filter(attempt => attempt.valid && attempt.on <= todayKey);
+      const routineDays = [...new Set(data.routine.flatMap(item => item.checkIns.filter(entry => entry.status === 'done' && entry.date <= todayKey).map(entry => entry.date)))].sort();
+      return {
+        types: data.catalog.activityTypes.map(type => ({
+          id: type.id, title: type.title,
+          sources: attempts.filter(attempt => attempt.activityType === type.id).map(attempt => ({
+            key: `attempt:${attempt.id || `${attempt.on}-${attempt.activityType}`}`, on: attempt.on, title: attempt.title || type.title, detail: attempt.outcome || 'Valid practice', source: 'Measured by the app'
+          }))
+        })),
+        routineDays,
+        // One set of configurable demo defaults, shared by the Garden page and the Home preview.
+        policy: { treeSteps: [1, 3, 7, 12], stageNames: ['Not started', 'Sprout', 'Sapling', 'Young tree', 'Full tree'], flowerAt: [3, 10, 21], maxRabbits: 3 }
+      };
+    };
+
     /* ---- history: everything recorded, newest first, each with its source */
 
     const history = () => {
@@ -957,6 +990,7 @@
       checkInMode,
       checkInPolicy: () => ({ ...data.catalog.checkInPolicy }),
       garden,
+      practiceGarden,
       listings,
       listingById,
       registrationOutcome,
@@ -971,12 +1005,35 @@
 
   const params = new URLSearchParams(location.search);
 
+  /**
+   * The canonical person signed in on this device (one session for member and
+   * partner pages). Their private journal is keyed by person, never merged into
+   * the shared operational graph. The seeded story stays bound to 'demo'.
+   */
+  const ECOSYSTEM_KEY = 'deepsprout-ecosystem-demo-v1';
+  const signedInPerson = () => {
+    try {
+      const graph = JSON.parse(localStorage.getItem(ECOSYSTEM_KEY) || 'null');
+      const person = graph?.people?.find(entry => entry.id === graph.session?.personId);
+      return person || null;
+    } catch { return null; }
+  };
+  const journalOf = person => {
+    if (!person) return null;
+    if (person.journal === 'demo') return 'demo';
+    if (person.individual || person.journal) return person.journal || `person:${person.id}`;
+    return null;
+  };
+  const seedFile = choice => ACCOUNTS[choice] || (String(choice).startsWith('person:') ? ACCOUNTS.empty : null);
+
   const readChoice = () => {
     const requested = params.get('account');
     if (requested && ACCOUNTS[requested]) {
       try { sessionStorage.setItem(STORE_KEY, requested); } catch { /* not persisted */ }
       return requested;
     }
+    const bound = journalOf(signedInPerson());
+    if (bound) return bound;
     try {
       const stored = sessionStorage.getItem(STORE_KEY);
       if (stored && ACCOUNTS[stored]) return stored;
@@ -991,7 +1048,7 @@
     if (refresh) pending = null;
     if (pending) return pending;
     const choice = readChoice();
-    const url = new URL(`../../data/${ACCOUNTS[choice]}`, SCRIPT_URL);
+    const url = new URL(`../../data/${seedFile(choice)}`, SCRIPT_URL);
     const listingsUrl = new URL('../../data/listings.json', SCRIPT_URL);
     const json = target => Promise.resolve()
       .then(() => fetch(target, { cache: 'no-cache' }))
@@ -1000,7 +1057,12 @@
         return response.json();
       });
     pending = Promise.all([json(url), json(listingsUrl).catch(() => ({ listings: [] }))])
-      .then(([data, catalogue]) => createAccount(data, choice, catalogue));
+      .then(([data, catalogue]) => {
+        // A person journal starts from the empty seed but carries the person's own name.
+        const person = String(choice).startsWith('person:') ? signedInPerson() : null;
+        if (person && !data.user.name) { data.user.name = person.name; data.user.email = person.email; data.account.label = `${person.name} · personal journal`; }
+        return createAccount(data, choice, catalogue);
+      });
     return pending;
   };
 
@@ -1040,6 +1102,8 @@
     load,
     choose,
     choice: readChoice,
+    /** The canonical person this journal belongs to, if someone is signed in. */
+    person: signedInPerson,
     /** Forget every change made on top of the seeded record, for this account. */
     resetChanges: () => { try { localStorage.removeItem(changesKey(readChoice())); } catch { /* ignore */ } },
     devMode

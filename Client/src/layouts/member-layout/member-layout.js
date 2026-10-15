@@ -196,6 +196,74 @@
     mountDevSwitch(Account);
   };
 
+  /* ------------------------------------------------ one identity, one bell
+     The canonical person (shared with the partner workspaces) and their
+     operational notices: application decisions, tasks, reviews, sessions,
+     excuses. Notices are local and visible only; no email is sent. */
+  const withRepo = callback => {
+    if (window.DeepSproutRepo) { callback(window.DeepSproutRepo); return; }
+    window.addEventListener('deepsprout:repo-ready', () => callback(window.DeepSproutRepo), { once: true });
+    if (!document.querySelector('script[src*="shared/member-bridge.js"]')) {
+      const bridge = document.createElement('script');
+      bridge.type = 'module';
+      bridge.src = `${root}src/shared/member-bridge.js`;
+      document.head.append(bridge);
+    }
+  };
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+  const linkFor = href => (href ? (/^(https?:|#)/.test(href) ? href : `${root}${href}`) : '');
+  const paintIdentity = repo => {
+    const me = repo.me();
+    const menu = document.querySelector('.member-account-menu');
+    const summary = document.querySelector('.member-account summary');
+    if (!menu || !summary) return;
+    menu.querySelector('.member-identity')?.remove();
+    const block = document.createElement('div');
+    block.className = 'member-identity';
+    const people = repo.individuals();
+    const links = repo.workspaceLinks();
+    block.innerHTML = `${me ? `<p class="member-identity-who"><small>Signed in as</small><strong>${escapeHtml(me.name)}</strong><span>${escapeHtml(me.email)}</span></p>` : '<p class="member-identity-who"><strong>Not signed in</strong></p>'}
+      <a href="${root}src/pages/member/explore/explore.html#my-initiatives">My Initiatives</a><a href="${root}src/pages/member/training/training.html#assigned">Assigned tasks</a>
+      ${links.map(link => `<a href="${root}${link.href}">${escapeHtml(link.label)} workspace</a>`).join('')}
+      <details class="member-identity-switch"><summary>Switch person (demo)</summary><div>${people.map(p => `<button type="button" data-person="${escapeHtml(p.id)}"${me?.id === p.id ? ' aria-current="true"' : ''}>${escapeHtml(p.name)}</button>`).join('')}<button type="button" data-signout>Sign out on this device</button></div><small>Local demonstration identities — not real authentication.</small></details>`;
+    menu.prepend(block);
+    if (me) { summary.querySelector('.member-avatar').textContent = me.name.charAt(0).toUpperCase(); summary.querySelector('.member-avatar + span').textContent = me.name.split(' ')[0]; }
+    block.querySelectorAll('[data-person]').forEach(button => button.addEventListener('click', () => {
+      repo.signInAs(button.dataset.person);
+      try { sessionStorage.removeItem('deepsprout-account-choice'); } catch { /* ignore */ }
+      location.reload();
+    }));
+    block.querySelector('[data-signout]')?.addEventListener('click', () => {
+      repo.signOut();
+      try { sessionStorage.setItem('deepsprout-account-choice', 'empty'); } catch { /* ignore */ }
+      location.reload();
+    });
+  };
+  const paintNotices = repo => {
+    const panel = document.querySelector('#member-notification-panel');
+    const dot = document.querySelector('.member-alert-dot');
+    if (!panel) return;
+    panel.querySelector('.member-notices')?.remove();
+    const notices = repo.notifications().slice(0, 6);
+    if (!notices.length) return;
+    const unread = notices.filter(n => !n.read);
+    const list = document.createElement('div');
+    list.className = 'member-notices';
+    list.innerHTML = `<strong>Updates${unread.length ? ` · ${unread.length} new` : ''}</strong><ul>${notices.map(n => `<li class="${n.read ? '' : 'is-unread'}">${n.link ? `<a href="${escapeHtml(linkFor(n.link))}">${escapeHtml(n.text)}</a>` : `<span>${escapeHtml(n.text)}</span>`}<small>${escapeHtml(new Date(n.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }))}</small></li>`).join('')}</ul>${unread.length ? '<button type="button" class="member-notices-read">Mark all as read</button>' : ''}<p class="member-notices-note">Shown in DeepSprout only — no email is sent in this demo.</p>`;
+    panel.prepend(list);
+    if (dot && unread.length) dot.hidden = false;
+    list.querySelector('.member-notices-read')?.addEventListener('click', () => { unread.forEach(n => { try { repo.run('member.notice.read', { id: n.id }); } catch { /* not mine */ } }); paintNotices(repo); });
+  };
+  withRepo(repo => {
+    const paint = () => { paintIdentity(repo); paintNotices(repo); };
+    paint();
+    window.addEventListener('deepsprout:repo', paint);
+    window.addEventListener('deepsprout:account', () => setTimeout(paint, 0));
+    // The personal next-step bell repaints after the journal loads; paint again on top of it.
+    const later = () => window.DeepSproutAccount?.load().then(() => setTimeout(paint, 0), () => {});
+    if (window.DeepSproutAccount) later(); else setTimeout(later, 300);
+  });
+
   // Pages that read account data load account.js themselves, BEFORE this
   // layout script. Only inject it when no copy is on the page at all.
   const accountScript = document.querySelector('script[src*="js/data/account.js"]');

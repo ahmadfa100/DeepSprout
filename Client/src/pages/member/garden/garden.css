@@ -132,3 +132,15 @@ body { margin: 0; background: var(--color-bg); color: var(--color-ink); font-fam
   .garden-tip { animation: none; }
 }
 .garden-replay[hidden] { display: none; }
+
+/* Four-tree contract: legend, recent sources and the separate Group Garden link. */
+.garden-legend { display: block; margin-bottom: 6px; color: var(--color-ink); }
+.garden-recent { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.garden-recent li { display: grid; gap: 1px; }
+.garden-recent small { color: var(--color-muted); }
+.garden-groups { margin-top: 14px; font-size: .92rem; }
+.garden-groups a { color: var(--color-leaf); font-weight: 700; }
+.garden-group-card { margin-top: 10px; padding: 14px 16px; border-radius: 16px; background: var(--color-mint); animation: garden-card-in .4s cubic-bezier(.2,.7,.2,1) both; }
+.garden-group-card h3 { margin: 2px 0 4px; }
+@keyframes garden-card-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .garden-group-card { animation: none; } }
