@@ -186,6 +186,8 @@ test('E · session booking, Needs Supervisor gate, QR/code, duplicate, online ro
   as('p-maya'); assert.throws(() => dispatch('initiative.attendance.record', {sessionId:sid, method:'code', code}), /active Supervisor/);
   as('p-hala'); dispatch('initiative.session.assign', {id:sid, supervisorIds:['p-hala']});
   s = read(); assert.equal(needsSupervisor(s, s.sessions.find(x => x.id === sid)), false);
+  assert.throws(() => dispatch('initiative.attendance.record', {sessionId:sid, method:'code', code}), /has not opened yet/, 'check-in window enforced');
+  dispatch('demo.clock', {at:'2026-10-28T16:05:00+03:00'});
   assert.throws(() => dispatch('initiative.attendance.record', {sessionId:sid, method:'code', code:'DS-WRONG1'}), /does not match/);
   assert.equal(dispatch('initiative.attendance.record', {sessionId:sid, method:'qr', code:code.toLowerCase()}), 'Present');
   assert.throws(() => dispatch('initiative.attendance.record', {sessionId:sid, method:'qr', code}), /Already checked in/);
@@ -240,7 +242,7 @@ test('Migration upgrades a schema-1 graph in place, keeps enrollments as Applica
   for (const key of ['grants','staffInvites','admissions','sessionAttendance','excuses','coachReports','supervisorSummaries','initiativeBlocks','completions']) delete legacy[key];
   legacy.enrollments.push({id:'en-legacy', initiativeId:'i-today', personId:'p-sami', status:'Pending Approval', created:'2026-10-14'});
   assert.equal(migrate(legacy), true);
-  assert.equal(legacy.schema, 2);
+  assert.equal(legacy.schema, 3);
   assert.equal(legacy.admissions.find(a => a.legacyEnrollmentId === 'en-legacy').status, 'Pending');
   const count = legacy.admissions.length;
   assert.equal(migrate(legacy), false); assert.equal(legacy.admissions.length, count);

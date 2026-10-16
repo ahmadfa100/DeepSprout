@@ -13,18 +13,19 @@ import {expireInitiativeOffers} from './commands/initiative.js';
 
 export const STORAGE_KEY='deepsprout-ecosystem-demo-v1';
 export const BACKUP_KEY=`${STORAGE_KEY}:backup:schema-1`;
+const backupKey=version=>`${STORAGE_KEY}:backup:schema-${version}`;
 export const demoEnabled=typeof location==='undefined'||location.protocol==='file:'||['localhost','127.0.0.1','[::1]'].includes(location.hostname);
 let memory;
 export function seed(){const s=structuredClone({...mentorship,...institution,...outdoor,...platform});s.people.forEach(p=>{if(p.verified&&!p.workspaces.includes('participant'))p.workspaces.push('participant');});s.organizations=[{...s.organization,memberIds:['p-maya']}];s.providers=[{...s.provider,memberIds:['p-sami']}];for(const key of ['sessions','forms','competitions','team','partnerships'])s[key].forEach(x=>x.ownerId=s.organization.id);s.otpChallenges=[];migrate(s);return s;}
 function persist(s){memory=s;try{globalThis.localStorage?.setItem(STORAGE_KEY,JSON.stringify(s));}catch{} }
 /** Keep one untouched copy of a schema-1 graph before it is first upgraded. */
-function backup(raw){try{if(raw&&!globalThis.localStorage?.getItem(BACKUP_KEY))globalThis.localStorage?.setItem(BACKUP_KEY,raw);}catch{}}
+function backup(raw,version=1){try{if(raw&&!globalThis.localStorage?.getItem(backupKey(version)))globalThis.localStorage?.setItem(backupKey(version),raw);}catch{}}
 export function read(){
   let s,raw=null;
   try{raw=globalThis.localStorage?.getItem(STORAGE_KEY)||null;s=JSON.parse(raw||'null');}catch{}
   let changed=false;
   if(s?.schema===1){backup(raw);changed=migrate(s);}
-  else if(s?.schema===2)migrate(s);
+  else if(s?.schema===2){backup(raw,2);changed=migrate(s);}else if(s?.schema===3)migrate(s);
   else{s=memory||seed();changed=!memory;}
   setClockOffset(s.clock?.offsetMs);
   if(expireOffers(s))changed=true;

@@ -5,7 +5,7 @@
  * from these originals. The migration in `migrate.js` adds the same records to
  * an existing schema-1 browser graph only when their parents still exist.
  */
-export const SCHEMA = 2;
+export const SCHEMA = 3;
 
 /** Canonical people added in schema 2. `individual` = full Individual capability. */
 export const people = [

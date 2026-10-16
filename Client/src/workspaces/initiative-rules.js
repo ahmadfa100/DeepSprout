@@ -72,3 +72,48 @@ export const PRACTICE_TYPES = [
   {id:'protected-work', title:'Protected Work', match:/protected/i}
 ];
 export const practiceTypeOf = activity => PRACTICE_TYPES.find(t => t.match.test(String(activity || '')))?.id || null;
+
+/* ------------------------------------------------- check-in window policy
+ * One explicit, configurable policy for every attendance-bearing session
+ * (Institution sessions and Provider experience sessions). Default: check-in
+ * opens 30 minutes before the start and closes 30 minutes after the end.
+ * `mode:'anytime'` is an explicit per-session choice, never a silent default.
+ */
+export const TZ_OFFSET = {'Asia/Amman':'+03:00', 'Asia/Riyadh':'+03:00', 'Asia/Dubai':'+04:00', 'Europe/London':'+01:00', 'UTC':'+00:00'};
+export const DEFAULT_CHECKIN = {mode:'window', before:30, after:30};
+const at = (date, time, tz) => Date.parse(`${date}T${time || '00:00'}:00${TZ_OFFSET[tz] || '+03:00'}`);
+export function checkInWindow(s, session, timezone) {
+  const policy = {...DEFAULT_CHECKIN, ...(session.checkInPolicy || {})};
+  const tz = session.timezone || timezone || 'Asia/Amman';
+  const start = at(session.date, session.time, tz), end = at(session.date, session.endTime || session.time, tz);
+  const opens = start - Number(policy.before) * 60000, closes = end + Number(policy.after) * 60000, t = nowMs(s);
+  const state = policy.mode === 'anytime' ? 'open' : t < opens ? 'early' : t > closes ? 'closed' : 'open';
+  return {state, policy, start, end, opens, closes, started:t >= start};
+}
+const clock = ms => new Date(ms).toLocaleString('en-GB', {timeZone:'Asia/Amman', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+export function windowMessage(w) {
+  if (w.policy.mode === 'anytime') return 'Check-in is open at any time for this session (explicit session policy).';
+  if (w.state === 'early') return `Check-in has not opened yet. It opens ${clock(w.opens)} (${w.policy.before} min before the start).`;
+  if (w.state === 'closed') return `Check-in closed ${clock(w.closes)} (${w.policy.after} min after the end). Use a reasoned manual exception or a correction.`;
+  return `Check-in open until ${clock(w.closes)}.`;
+}
+/** Throws an understandable error unless the method is allowed in the current window state. */
+export function assertWindow(s, session, method, timezone) {
+  const w = checkInWindow(s, session, timezone);
+  if (w.state === 'early') throw new Error(windowMessage(w));
+  if (w.state === 'closed' && !['manual','manual-exception','absent','roster'].includes(method)) throw new Error(windowMessage(w));
+  return w;
+}
+
+/* --------------------------------------------- forms & competitions links */
+export const initiativeOfResource = (s, resourceId, initiativeId) => (s.initiatives || []).find(i => i.id === initiativeId || (i.components || []).some(c => c.resourceId === resourceId));
+export const initiativeForms = (s, initiative) => (s.forms || []).filter(f => f.initiativeId === initiative.id || (initiative.components || []).some(c => c.resourceId === f.id));
+export const initiativeCompetitions = (s, initiative) => (s.competitions || []).filter(c => c.initiativeId === initiative.id || (initiative.components || []).some(x => x.resourceId === c.id));
+
+/* ----------------------------------------------- restricted attachments */
+/** Excuse evidence: the student, the Representative and active Supervisors of that Initiative only. */
+export function canViewExcuseEvidence(s, excuse, personId) {
+  const initiative = (s.initiatives || []).find(i => i.id === excuse.initiativeId);
+  return excuse.personId === personId || isRepresentative(s, initiative, personId) || isActiveSupervisor(s, excuse.initiativeId, personId);
+}
+export const ATTACHMENT_RULES = {types:['application/pdf','image/jpeg','image/png'], extensions:['pdf','jpg','jpeg','png'], maxBytes:2 * 1024 * 1024};

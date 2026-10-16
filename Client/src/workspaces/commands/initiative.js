@@ -11,6 +11,8 @@ import {id,now,nowMs,clockISO,requireThat,find,textRequired,numberIn,notify} fro
 import {displayCode,bookingCode} from '../migrate.js';
 import {MAX_SUPERVISORS,SEATED,REAPPLY_BLOCKED,seatCap,seatsUsed,queue,activeGrantsFor,isActiveSupervisor,isActiveCoach,isRepresentative,representativesOf,registrationState,sessionRegistrationOpen,modeCapacity,confirmedInMode,assignedActiveSupervisors,today} from '../initiative-rules.js';
 import {startTask,submitTask} from './mentorship.js';
+import {respondToForm,enterCompetition} from './institution.js';
+import {assertWindow,checkInWindow,initiativeOfResource,canViewExcuseEvidence,ATTACHMENT_RULES} from '../initiative-rules.js';
 
 const HOUR = 3600000;
 const LIVE = ['Published'];
@@ -106,6 +108,7 @@ export function initiativeCommand(s, action, p, actor) {
       return 'Queued';
     }
     history(a, actor, 'Pending', 'Accepted', p.reason || 'Eligible · seat available'); a.status = 'Accepted'; a.decidedBy = actor;
+    for (const f of (a.flags || []).filter(x => !x.resolved)) Object.assign(f, {resolved:true, resolvedBy:actor, resolvedAt:now(), resolution:'Application approved'});
     notify(s, a.personId, `You were accepted into ${initiative.title}.`, memberLink);
     return 'Accepted';
   }
@@ -115,6 +118,7 @@ export function initiativeCommand(s, action, p, actor) {
     requireThat(['Pending','Queued'].includes(a.status), 'Only a pending or queued application can be rejected.');
     const reason = textRequired(p.reason, 'Reason');
     history(a, actor, a.status, 'Rejected', reason); a.status = 'Rejected';
+    for (const f of (a.flags || []).filter(x => !x.resolved)) Object.assign(f, {resolved:true, resolvedBy:actor, resolvedAt:now(), resolution:'Application rejected'});
     notify(s, a.personId, `Your application ${a.code} to ${initiative.title} was not accepted. Reason: ${reason}`, memberLink);
     return;
   }
@@ -154,6 +158,50 @@ export function initiativeCommand(s, action, p, actor) {
     else { a.offer.status = 'Declined'; history(a, actor, 'Offered', 'Declined', 'Declined the offered seat'); a.status = 'Declined'; offerNextSeat(s, initiative); }
     noticeAll(s, staffAndRep(s, initiative), `${personOf(s, actor).name} ${action.endsWith('accept') ? 'accepted' : 'declined'} an offered seat in ${initiative.title}.`, `workspaces.html#/organization/participants?initiative=${initiative.id}`);
     return;
+  }
+
+  if (action === 'initiative.application.flag') {
+    const a = find(s.admissions, p.id), initiative = initiativeOf(s, a.initiativeId);
+    requireThat(isActiveSupervisor(s, initiative.id, actor), 'Only an active Supervisor can flag an application for the Representative.');
+    requireThat(['Pending','Queued'].includes(a.status), 'Only an undecided application can be flagged.');
+    const note = textRequired(p.note, 'What needs the Representative’s attention');
+    (a.flags ||= []).push({id:id('flag'), actorId:actor, note, at:now(), resolved:false});
+    noticeAll(s, representativesOf(s, initiative), `${personOf(s, actor).name} flagged application ${a.code} for your attention: ${note}`, `workspaces.html#/organization/participants?initiative=${initiative.id}&status=flagged`);
+    return;
+  }
+  if (action === 'initiative.application.flag.resolve') {
+    const a = find(s.admissions, p.id), initiative = initiativeOf(s, a.initiativeId); requireRep(s, initiative, actor);
+    for (const f of (a.flags || []).filter(x => !x.resolved)) Object.assign(f, {resolved:true, resolvedBy:actor, resolvedAt:now(), resolution:String(p.note || 'Reviewed')});
+    return;
+  }
+
+  /* ---- Identified forms and competitions from regular Individual pages (same engines, same records) */
+  if (action === 'member.form.respond') {
+    const f = find(s.forms, p.formId), initiative = initiativeOfResource(s, f.id, f.initiativeId);
+    requireThat(initiative, 'This form is not part of an initiative you can access.');
+    requireThat(initiative.status === 'Published' || initiative.status === 'Completed', 'This initiative is not collecting responses.');
+    const a = s.admissions.find(x => x.initiativeId === initiative.id && x.personId === actor && ['Pending','Queued','Offered','Accepted','Completed'].includes(x.status));
+    const registration = /registration/i.test(f.purpose || '');
+    requireThat(a && (['Accepted','Completed'].includes(a.status) || registration), registration ? 'Apply to this initiative first.' : 'This form is for accepted participants of this initiative.');
+    return respondToForm(s, f, p.answers || {}, actor);
+  }
+  if (action === 'member.competition.enter') {
+    const c = find(s.competitions, p.competitionId), initiative = initiativeOfResource(s, c.id, c.initiativeId);
+    requireThat(initiative && initiative.status === 'Published', 'This initiative is not accepting competition entries.');
+    const a = s.admissions.find(x => x.initiativeId === initiative.id && x.personId === actor && x.status === 'Accepted');
+    requireThat(a, 'Competition entries are for accepted participants of this initiative.');
+    const day = today(s);
+    requireThat(!c.open || day >= c.open, `Entries open on ${c.open}.`);
+    requireThat(!c.deadline || day <= c.deadline, 'The submission deadline has passed.');
+    return enterCompetition(s, c, p.text, actor);
+  }
+  /** Restricted evidence: returns the attachment reference only to permitted readers, and audits the access. */
+  if (action === 'initiative.excuse.evidence') {
+    const excuse = find(s.excuses, p.id);
+    requireThat(canViewExcuseEvidence(s, excuse, actor), 'This attachment is restricted to the student, the initiative’s Supervisors and its Representative.');
+    requireThat(excuse.attachment?.id, 'No stored attachment for this excuse.');
+    (excuse.evidenceLog ||= []).push({actorId:actor, at:now()});
+    return {...excuse.attachment};
   }
 
   /* ---- Staff: scoped invitations and grants (no Platform Admin approval) */
@@ -276,7 +324,7 @@ export function initiativeCommand(s, action, p, actor) {
     const inPersonCapacity = p.format === 'Online' ? 0 : numberIn(p.inPersonCapacity, 1, 1000, 'In-person seats');
     if (p.registrationOpen && p.registrationClose) requireThat(p.registrationClose >= p.registrationOpen, 'Registration must close after it opens.');
     const supervisorIds = (p.supervisorIds || []).filter(pid => isActiveSupervisor(s, initiative.id, pid));
-    const fields = {initiativeId:initiative.id, ownerId:initiative.ownerId, title, speaker, description:String(p.description || ''), agenda:String(p.agenda || ''), date:p.date, time:p.time, endTime:p.endTime, timezone:p.timezone || initiative.timezone || 'Asia/Amman', format:p.format, venue:String(p.venue || ''), meeting:String(p.meeting || ''), onlineCapacity, inPersonCapacity, capacity:onlineCapacity + inPersonCapacity, registrationOpen:p.registrationOpen || '', registrationClose:p.registrationClose || p.date, attendanceRequired:p.attendanceRequired !== false, completionRule:String(p.completionRule || 'Attendance only'), instructions:String(p.instructions || ''), eligibility:'Accepted participants of this initiative', supervisorIds};
+    const fields = {initiativeId:initiative.id, ownerId:initiative.ownerId, title, speaker, description:String(p.description || ''), agenda:String(p.agenda || ''), date:p.date, time:p.time, endTime:p.endTime, timezone:p.timezone || initiative.timezone || 'Asia/Amman', format:p.format, venue:String(p.venue || ''), meeting:String(p.meeting || ''), onlineCapacity, inPersonCapacity, capacity:onlineCapacity + inPersonCapacity, registrationOpen:p.registrationOpen || '', registrationClose:p.registrationClose || p.date, attendanceRequired:p.attendanceRequired !== false, completionRule:String(p.completionRule || 'Attendance only'), instructions:String(p.instructions || ''), eligibility:'Accepted participants of this initiative', supervisorIds, checkInPolicy:p.checkInMode === 'anytime' ? {mode:'anytime', before:0, after:0} : {mode:'window', before:numberIn(p.checkInBefore ?? 30, 0, 240, 'Minutes before start'), after:numberIn(p.checkInAfter ?? 30, 0, 720, 'Minutes after end')}};
     if (p.id) {
       const ss = find(s.sessions, p.id); requireThat(ss.initiativeId === initiative.id, 'This session belongs to another initiative.');
       requireThat(ss.status !== 'Cancelled', 'A cancelled session cannot be edited.');
@@ -353,8 +401,8 @@ export function initiativeCommand(s, action, p, actor) {
     requireThat((ss.supervisorIds || []).includes(actor), 'You are not the assigned Supervisor for this session. Ask for the duty to be assigned first.');
     requireThat(ss.status === 'Published', 'Attendance can be recorded only for a published, not cancelled, session.');
     requireOperational(initiative);
-    if (s.settings.enforceCheckInWindow) requireThat(today(s) >= ss.date, 'The check-in window for this session has not opened yet.');
     const method = p.method || (p.code ? 'code' : 'manual');
+    assertWindow(s, ss, method);
     let r;
     if (method === 'qr' || method === 'code') {
       const code = textRequired(p.code, 'Booking code').toUpperCase().replace(/\s+/g, '');
@@ -377,6 +425,7 @@ export function initiativeCommand(s, action, p, actor) {
   if (action === 'initiative.attendance.closeout') {
     const ss = find(s.sessions, p.sessionId), initiative = initiativeOf(s, ss.initiativeId);
     requireThat(isActiveSupervisor(s, initiative.id, actor) && (ss.supervisorIds || []).includes(actor), 'Only the assigned active Supervisor can close attendance.');
+    requireThat(checkInWindow(s, ss).started, 'Attendance can be closed only after the session has started.');
     let count = 0;
     for (const r of s.sessionRegistrations.filter(x => x.sessionId === ss.id && x.status === 'Confirmed' && !s.sessionAttendance.some(a => a.registrationId === x.id))) {
       s.sessionAttendance.push({id:id('att'), sessionId:ss.id, registrationId:r.id, initiativeId:initiative.id, personId:r.personId, status:'Absent', method:'close-out', reason:'Not checked in when attendance closed', actorId:actor, at:now(), history:[]});
@@ -403,7 +452,13 @@ export function initiativeCommand(s, action, p, actor) {
     requireThat(record.status === 'Absent', 'An excuse can be submitted only for a session recorded Absent.');
     requireThat(!s.excuses.some(x => x.attendanceId === record.id), 'An excuse for this session was already submitted.');
     const reason = textRequired(p.reason, 'Short explanation'); requireThat(reason.length <= 600, 'Keep the explanation under 600 characters.');
-    const attachment = p.attachment?.name ? {name:String(p.attachment.name).slice(0, 120), type:String(p.attachment.type || ''), size:Number(p.attachment.size || 0), note:'File name only · contents are not uploaded in this demo'} : null;
+    let attachment = null;
+    if (p.attachment?.name) {
+      const type = String(p.attachment.type || ''), size = Number(p.attachment.size || 0), ext = String(p.attachment.name).split('.').pop().toLowerCase();
+      requireThat(ATTACHMENT_RULES.types.includes(type) && ATTACHMENT_RULES.extensions.includes(ext), 'Attach a PDF, JPG or PNG file.');
+      requireThat(size > 0 && size <= ATTACHMENT_RULES.maxBytes, 'The attachment must be smaller than 2 MB.');
+      attachment = {id:p.attachment.id || null, name:String(p.attachment.name).slice(0, 120), type, size, storage:p.attachment.id ? 'browser-indexeddb' : 'name-only', note:p.attachment.id ? 'Stored in this browser only (demo); restricted to you, the Supervisors and the Representative of this initiative.' : 'File name only'};
+    }
     const excuse = {id:id('excuse'), attendanceId:record.id, sessionId:record.sessionId, initiativeId:record.initiativeId, personId:actor, reason, attachment, status:'Submitted', recommendation:null, decision:null, created:now(), history:[{at:now(), actorId:actor, change:'Submitted'}]};
     s.excuses.push(excuse);
     const initiative = initiativeOf(s, record.initiativeId), ss = find(s.sessions, record.sessionId);

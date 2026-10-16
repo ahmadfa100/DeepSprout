@@ -8,9 +8,10 @@ import {esc,nameOf,emailOf,pill,head,stats,stat,card,personCell,tabs,emptyState,
 import {seatCap,seatsUsed} from '../../initiative-rules.js';
 
 const GROUPS = {
+  flagged:['Pending','Queued'],
   pending:['Pending'], accepted:['Accepted'], waitlist:['Queued','Offered'], suspended:['Suspended'], ended:['Rejected','Removed','Blocked','Withdrawn','Declined','Expired','Closed','Completed']
 };
-const LABEL = {pending:'Pending', accepted:'Accepted', waitlist:'Waiting list', suspended:'Suspended', ended:'Closed & history'};
+const LABEL = {flagged:'Flagged by Supervisor', pending:'Pending', accepted:'Accepted', waitlist:'Waiting list', suspended:'Suspended', ended:'Closed & history'};
 
 function attendanceSummary(s, initiativeId, pid) {
   const rows = (s.sessionAttendance || []).filter(a => a.initiativeId === initiativeId && a.personId === pid);
@@ -32,7 +33,8 @@ export function renderParticipants(ctx, {role, initiatives, base}) {
   ctx.localUI.initiativeId = i.id;
   const tab = r.query.get('status') || (s.admissions.some(a => a.initiativeId === i.id && a.status === 'Pending') ? 'pending' : 'accepted');
   const all = s.admissions.filter(a => a.initiativeId === i.id);
-  const list = all.filter(a => GROUPS[tab]?.includes(a.status)).sort((a, b) => String(a.queuedAt || a.created).localeCompare(String(b.queuedAt || b.created)));
+  const isFlagged = a => (a.flags || []).some(f => !f.resolved);
+  const list = all.filter(a => GROUPS[tab]?.includes(a.status) && (tab !== 'flagged' || isFlagged(a))).sort((a, b) => String(a.queuedAt || a.created).localeCompare(String(b.queuedAt || b.created)));
   const sum = summary(s, i);
   const groups = sum.groups;
   const rows = list.map(a => {
@@ -45,6 +47,8 @@ export function renderParticipants(ctx, {role, initiatives, base}) {
       if (a.status === 'Suspended') acts.push(u.button('Restore', 'app-decide', {id:a.id, kind:'restore'}, 'button quiet small'));
       if (['Accepted','Suspended'].includes(a.status)) acts.push(u.button('Remove', 'app-decide', {id:a.id, kind:'remove'}, 'button quiet small'));
     }
+    if (role === 'supervisor' && ['Pending','Queued'].includes(a.status) && !isFlagged(a)) acts.push(u.button('Flag for Representative', 'app-flag', {id:a.id}, 'button quiet small'));
+    if (role === 'rep' && isFlagged(a)) acts.push(u.button('Resolve flag', 'app-flag-resolve', {id:a.id}, 'button quiet small'));
     acts.push(u.button('Details', 'app-detail', {id:a.id}, 'button quiet small'));
     return {search:`${nameOf(s, a.personId)} ${emailOf(s, a.personId)} ${a.code}`, status:a.status, cells:[
       personCell(s, a.personId, esc(emailOf(s, a.personId))),
@@ -52,14 +56,14 @@ export function renderParticipants(ctx, {role, initiatives, base}) {
       `<small>Age ${esc(a.answers?.age ?? '—')} · ${esc(a.mode || '—')}</small>`,
       group ? `${esc(group.name)}<small>${group.coachId ? `Coach ${esc(nameOf(s, group.coachId))}` : 'No Coach yet'}</small>` : (a.status === 'Accepted' ? pill('Unallocated', 'Unallocated') : '<small>—</small>'),
       `${attendanceSummary(s, i.id, a.personId)}${taskSummary(s, i.id, a.personId)}`,
-      `${pill(a.status)}${a.status === 'Offered' ? `<small>until ${esc(fmtDate(a.offer?.expires))}</small>` : ''}${a.status === 'Queued' ? `<small>#${all.filter(x => x.status === 'Queued').sort((x, y) => String(x.queuedAt).localeCompare(String(y.queuedAt))).findIndex(x => x.id === a.id) + 1} in queue</small>` : ''}`,
+      `${pill(a.status)}${isFlagged(a) ? `<span class="iw-flag" title="${esc((a.flags || []).filter(f => !f.resolved).map(f => `${nameOf(s, f.actorId)}: ${f.note}`).join(' · '))}">${u.icon('shield')}Flagged</span>` : ''}${a.status === 'Offered' ? `<small>until ${esc(fmtDate(a.offer?.expires))}</small>` : ''}${a.status === 'Queued' ? `<small>#${all.filter(x => x.status === 'Queued').sort((x, y) => String(x.queuedAt).localeCompare(String(y.queuedAt))).findIndex(x => x.id === a.id) + 1} in queue</small>` : ''}`,
       `<div class="actions">${acts.join('')}</div>`
     ]};
   });
-  const counts = Object.fromEntries(Object.entries(GROUPS).map(([k, v]) => [k, all.filter(a => v.includes(a.status)).length]));
+  const counts = Object.fromEntries(Object.entries(GROUPS).map(([k, v]) => [k, all.filter(a => v.includes(a.status) && (k !== 'flagged' || isFlagged(a))).length]));
   return head({eyebrow:role === 'rep' ? 'ADMISSIONS · ONE SHARED QUEUE' : 'SUPERVISOR · SHARED APPLICATION QUEUE', title:'Applications & Students', lead:role === 'rep' ? 'The same Application records your Supervisors and the applicants see. One approval gives one seat.' : 'You can approve eligible applications. Rejection and discipline stay with the Representative.', meta:initiativeSwitcher(ctx, initiatives, i)})
     + stats([stat(sum.accepted, 'Accepted students', {of:sum.cap, hint:`${sum.seatsUsed} seats in use incl. suspended & held offers`}), stat(sum.pending, 'Pending applications', {tone:sum.pending ? 'attention' : ''}), stat(sum.queued + sum.offered, 'Waiting list', {hint:sum.offered ? `${sum.offered} seat offer(s) open` : 'Offers hold a seat for 24 h'}), stat(sum.unallocated.length, 'Accepted, no group', {href:withInitiative(base, i), tone:sum.unallocated.length ? 'attention' : ''})])
-    + tabs(Object.keys(GROUPS).map(k => [LABEL[k], withInitiative(`${r.area}/${r.page}?status=${k}`, i), k, counts[k]]), tab)
+    + tabs(Object.keys(GROUPS).filter(k => k !== 'flagged' || counts.flagged || tab === 'flagged').map(k => [LABEL[k], withInitiative(`${r.area}/${r.page}?status=${k}`, i), k, counts[k]]), tab)
     + `<div class="iw-card iw-reveal">${u.filterBar()}${list.length ? u.table(['Student','Application ID','Eligibility','Group','Participation','Status','Actions'], rows) : `<p class="iw-muted">No ${LABEL[tab].toLowerCase()} records for ${esc(i.title)}.</p>`}</div>`
     + `<p class="iw-footnote">${u.icon('shield')}Staff see participation for this initiative only. Personal Lab, Shield and Recovery data are never shown here. ${role === 'rep' ? 'Only Platform Admin can ban a whole account.' : ''}</p>`;
 }
@@ -72,6 +76,7 @@ export function applicationDetail(ctx, id, role) {
     <div class="iw-detail-head">${personCell(s, a.personId, esc(emailOf(s, a.personId)))}${pill(a.status)}</div>
     <dl class="iw-facts"><div><dt>Application ID</dt><dd><code class="iw-code">${esc(a.code)}</code></dd></div><div><dt>Initiative</dt><dd>${esc(i.title)}</dd></div><div><dt>Age (eligibility ${esc(i.minAge || 0)}–${esc(i.maxAge || 'any')})</dt><dd>${esc(a.answers?.age ?? '—')}</dd></div><div><dt>Preferred mode</dt><dd>${esc(a.mode || '—')}</dd></div><div><dt>Consent</dt><dd>${esc(a.consent?.text || '—')} <small>v${esc(a.consent?.version || 1)} · ${esc(fmtDate(a.consent?.at))}</small></dd></div><div><dt>Motivation</dt><dd>${esc(a.answers?.motivation || '—')}</dd></div><div><dt>Group & Coach</dt><dd>${group ? `${esc(group.name)} · ${group.coachId ? esc(nameOf(s, group.coachId)) : 'Coach not assigned'}` : 'Not allocated'}</dd></div></dl>
     <h3>Attendance (factual)</h3>${att.length ? `<ul class="iw-mini-list">${att.map(x => { const ss = s.sessions.find(y => y.id === x.sessionId); const ex = (s.excuses || []).find(e => e.attendanceId === x.id); return `<li><span>${esc(ss?.title || 'Session')}</span>${pill(x.status)}${ex ? pill(ex.status === 'Accepted' ? 'Excused' : ex.status, ex.status === 'Accepted' ? 'Excused absence' : `Excuse ${ex.status.toLowerCase()}`) : ''}</li>`; }).join('')}</ul>` : '<p class="iw-muted">No attendance recorded.</p>'}
+    ${(a.flags || []).length ? `<h3>Supervisor flags</h3><ul class="iw-mini-list">${a.flags.map(f => `<li><span>${esc(nameOf(s, f.actorId))}: ${esc(f.note)}</span><small>${esc(fmtDate(f.at))} · ${f.resolved ? `resolved${f.resolution ? ` — ${esc(f.resolution)}` : ''}` : 'open'}</small></li>`).join('')}</ul>` : ''}
     <h3>Decision history</h3><ol class="iw-history">${(a.history || []).map(h => `<li><time>${esc(fmtDate(h.at))}</time><span>${esc(h.from || 'New')} → <strong>${esc(h.to)}</strong>${h.reason ? ` · ${esc(h.reason)}` : ''}</span><small>${esc(h.actorId === 'system' ? 'System' : nameOf(s, h.actorId))}</small></li>`).join('')}</ol>
     ${role === 'rep' && !['Blocked'].includes(a.status) ? `<p class="iw-muted">Blocking prevents this person from re-applying to this initiative only. ${u.button('Block from this initiative', 'app-decide', {id:a.id, kind:'block'}, 'button danger small')}</p>` : ''}
   </div>`;
@@ -82,6 +87,8 @@ const VERB = {reject:['Reject this application?','Rejected applicants are notifi
 export function participantAction(action, target, ctx) {
   const d = target.dataset;
   if (action === 'app-approve') { const result = ctx.run('initiative.application.approve', {id:d.id}, 'Application approved.'); u.toast(result === 'Queued' ? 'Eligible — all seats are taken, so the applicant joined the waiting list.' : 'Approved. One seat is now in use.'); ctx.render(); return true; }
+  if (action === 'app-flag') { u.modal('Flag for the Representative', '<p>Use this when an application needs a decision only the Representative can make (for example, a possible rejection or an eligibility question). The Representative is notified.</p>' + u.area('note', 'What needs attention', '', true), v => { ctx.run('initiative.application.flag', {id:target.dataset.id, note:v.note}, 'Flagged. The Representative was notified.'); ctx.render(); }, 'Send flag'); return true; }
+  if (action === 'app-flag-resolve') { u.modal('Resolve the Supervisor’s flag', u.area('note', 'Resolution note (optional)', ''), v => { ctx.run('initiative.application.flag.resolve', {id:target.dataset.id, note:v.note}, 'Flag resolved.'); ctx.render(); }, 'Resolve'); return true; }
   if (action === 'app-detail') { applicationDetail(ctx, d.id, ctx.route.area === 'organization' ? 'rep' : 'supervisor'); return true; }
   if (action === 'app-decide') {
     const [title, text, submit] = VERB[d.kind];

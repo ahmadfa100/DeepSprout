@@ -310,3 +310,17 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .ex-initiative .ex-sheet-actions { flex-wrap: wrap; }
 .ex-initiative .ex-button { white-space: normal; text-align: left; }
 .ex-initiative-head > div { min-width: 0; overflow-wrap: anywhere; }
+/* Forms, competitions and feedback inside My Initiatives */
+.ex-form-list { display: grid; gap: var(--space-10); margin: 0; padding: 0; list-style: none; }
+.ex-inline-form { margin-top: var(--space-12); padding-top: var(--space-12); border-top: 1px dashed var(--color-line); animation: ex-rise var(--dur-base) var(--ease-standard) both; }
+.ex-choices, .ex-rating { border: 0; padding: 0; margin: 0 0 var(--space-12); display: flex; flex-wrap: wrap; gap: var(--space-8) var(--space-14); }
+.ex-choices legend, .ex-rating legend { width: 100%; font-weight: var(--weight-bold); margin-bottom: var(--space-6); }
+.ex-rating label { position: relative; }
+.ex-rating input { position: absolute; opacity: 0; }
+.ex-rating span { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--color-line); font-weight: var(--weight-bold); cursor: pointer; transition: background var(--dur-fast), color var(--dur-fast); }
+.ex-rating input:checked + span { background: var(--color-leaf); color: var(--color-white); border-color: var(--color-leaf); }
+.ex-rating input:focus-visible + span { outline: 3px solid var(--color-mint); outline-offset: 2px; }
+.ex-flash { display: flex; gap: var(--space-8); align-items: center; margin: var(--space-10) 0 0; padding: var(--space-10) var(--space-14); border-radius: var(--radius-tile); background: var(--color-mint); color: var(--color-pine); font-weight: var(--weight-bold); animation: ex-rise var(--dur-base) var(--ease-standard) both; }
+.ex-flash svg { width: 16px; height: 16px; }
+.ex-link-button { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; }
+@media (prefers-reduced-motion: reduce) { .ex-inline-form, .ex-flash { animation: none; } }

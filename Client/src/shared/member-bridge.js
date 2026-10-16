@@ -17,6 +17,7 @@ import {read, dispatch, STORAGE_KEY, canActAsIndividual, workspaces} from '../wo
 import * as selectors from './selectors.js';
 import {nowMs, clockDay} from '../workspaces/domain.js';
 import {labels, defaults} from '../workspaces/navigation.js';
+import * as attachments from './attachments.js';
 
 const CHOICE_KEY = 'deepsprout-account-choice';
 const listeners = new Set();
@@ -35,6 +36,14 @@ function boundPerson(s) {
 
 const api = {
   selectors,
+  attachments,
+  /** Open restricted excuse evidence: the command checks permission and logs the access first. */
+  async openEvidence(excuseId) {
+    const ref = this.run('initiative.excuse.evidence', {id:excuseId});
+    const record = await attachments.read(ref.id).catch(() => null);
+    if (!record) throw new Error('This file is no longer available in this browser (attachments are stored on the device where they were added).');
+    return record;
+  },
   read,
   nowMs: () => nowMs(read()),
   today: () => clockDay(read()),

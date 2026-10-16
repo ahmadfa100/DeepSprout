@@ -618,6 +618,30 @@
   /* ---------------------------------------------------------- My Initiatives */
 
   const openDetails = new Set();
+  const flash = new Map();   // admission id → last success message, shown after re-render
+  const fmtWhen = iso => fmt.date(Account.parse(String(iso).slice(0, 10)), { year: true });
+  function questionHtml(formId, q) {
+    const name = `q-${q.id}`, req = q.required ? ' required' : '', label = `<span>${esc(q.label)}${q.required ? ' *' : ''}</span>`;
+    if (q.type === 'Long text') return `<label class="ex-field">${label}<textarea name="${name}" rows="3"${req}></textarea></label>`;
+    if (q.type === 'Single choice') return `<label class="ex-field">${label}<select name="${name}"${req}><option value="">Choose an answer</option>${q.options.map(o => `<option>${esc(o)}</option>`).join('')}</select></label>`;
+    if (q.type === 'Multiple choice') return `<fieldset class="ex-field ex-choices"><legend>${esc(q.label)}${q.required ? ' *' : ''}</legend>${q.options.map(o => `<label><input type="checkbox" name="${name}" value="${esc(o)}"> ${esc(o)}</label>`).join('')}</fieldset>`;
+    if (q.type === 'Rating') return `<fieldset class="ex-field ex-rating"><legend>${esc(q.label)}${q.required ? ' *' : ''}</legend>${[1, 2, 3, 4, 5].map(n => `<label><input type="radio" name="${name}" value="${n}"${req}><span>${n}</span></label>`).join('')}</fieldset>`;
+    const type = q.type === 'Number' ? 'number' : q.type === 'Date' ? 'date' : 'text';
+    return `<label class="ex-field">${label}<input type="${type}" name="${name}"${req}>${q.type === 'File preview' ? '<small>Type the file name — files are not uploaded on forms in this demo.</small>' : ''}</label>`;
+  }
+  function formsBlock(entry) {
+    if (!entry.forms.length) return '';
+    return `<h4>Forms &amp; surveys</h4><ul class="ex-form-list">${entry.forms.map(f => `<li class="ex-session"><div class="ex-session-head"><div><strong>${esc(f.title)}</strong><small>${esc(f.purpose)} · version ${f.version} · identified — the institution sees your name with your answers</small></div><div class="ex-mine-actions">${f.response ? `<span class="ex-status" data-status="confirmed">${icon('i-check')}Submitted ${esc(fmtWhen(f.response.submitted))}</span>` : f.canRespond ? `<button type="button" class="ex-button ex-small" data-form-open="${f.id}">Answer</button>` : `<span class="ex-muted">${f.status !== 'Published' ? 'Closed' : f.permitted ? 'Not open' : 'For accepted participants'}</span>`}</div></div>
+      ${f.response ? `<details class="ex-policy"><summary>Your answers (version ${f.response.version})</summary><dl class="ex-review">${f.questions.map(q => `<div><dt>${esc(q.label)}</dt><dd>${esc([].concat(f.response.answers[q.id] ?? '—').join(', '))}</dd></div>`).join('')}</dl></details>` : ''}
+      <form class="ex-form ex-inline-form" data-form-respond="${f.id}" hidden>${f.questions.map(q => questionHtml(f.id, q)).join('')}<p class="ex-error" role="alert" hidden></p><div class="ex-sheet-actions"><button class="ex-button ex-small">Submit answers</button><button type="button" class="ex-button is-quiet ex-small" data-form-cancel="${f.id}">Cancel</button></div></form></li>`).join('')}</ul>`;
+  }
+  function competitionsBlock(entry) {
+    if (!entry.competitions.length) return '';
+    return `<h4>Competitions</h4><ul class="ex-form-list">${entry.competitions.map(c => `<li class="ex-session"><div class="ex-session-head"><div><strong>${esc(c.title)}</strong><small>${esc(c.topic || '')} · entries ${esc(fmtWhen(c.open))} – ${esc(fmtWhen(c.deadline))}</small></div><div class="ex-mine-actions">${c.entry ? `<span class="ex-status" data-status="${c.resultsPublished ? 'complete' : 'pending'}">${esc(c.resultsPublished ? 'Results published' : c.entry.status === 'Reviewed' ? 'Reviewed · results pending' : 'Entry submitted')}</span>` : c.canEnter ? `<button type="button" class="ex-button ex-small" data-entry-open="${c.id}">Enter</button>` : `<span class="ex-muted">${!c.windowOpen ? 'Submission window closed' : 'For accepted participants'}</span>`}</div></div>
+      <details class="ex-policy"><summary>Rules &amp; judging criteria</summary><p>${esc(c.rules)}</p><p class="ex-muted">${esc(c.eligibility || '')}</p><ul>${c.criteria.map(k => `<li>${esc(k)}</li>`).join('')}</ul></details>
+      ${c.entry ? `<div class="ex-excuse"><p><strong>Your entry</strong> · ${esc(fmtWhen(c.entry.created))}</p><p>${esc(c.entry.text)}</p>${c.resultsPublished ? `<p><strong>Feedback:</strong> ${esc(c.entry.feedback || '—')}</p><ul>${Object.entries(c.entry.scores || {}).map(([k, v]) => `<li>${esc(k)}: ${esc(v)}/5</li>`).join('')}</ul>` : '<p class="ex-muted">Scores and feedback appear here when the institution publishes results.</p>'}</div>` : ''}
+      <form class="ex-form ex-inline-form" data-entry-form="${c.id}" hidden><label class="ex-field"><span>Your original entry</span><textarea name="text" rows="5" maxlength="4000" required></textarea><small>No sensitive personal information. Entering is not winning, and it adds nothing to your Garden.</small></label><p class="ex-error" role="alert" hidden></p><div class="ex-sheet-actions"><button class="ex-button ex-small">Submit entry</button><button type="button" class="ex-button is-quiet ex-small" data-entry-cancel="${c.id}">Cancel</button></div></form></li>`).join('')}</ul>`;
+  }
   const sessionWhen = ss => `${fmt.date(Account.parse(ss.date), { weekday: true, year: true })} · ${ss.time}–${ss.endTime} (${ss.timezone || 'Asia/Amman'})`;
   const ATTEND_TONE = { Present: 'confirmed', Late: 'pending', Absent: 'cancelled', 'Excused Absence': 'waitlisted', Registered: 'pending', 'Not registered': 'cancelled' };
   const attendChip = label => `<span class="ex-status" data-status="${ATTEND_TONE[label] || 'pending'}">${esc(label)}</span>`;
@@ -654,7 +678,7 @@
     const credential = reg && !ss.attendance ? (reg.mode === 'In-person'
       ? `<div class="ex-qr"><div class="ex-qr-code" role="img" aria-label="${esc(`QR code for booking ${reg.code}`)}">${qrSvg(reg.code)}</div><div><p class="ex-eyebrow">Booking credential</p><strong class="ex-code">${esc(reg.code)}</strong><p class="ex-muted">Show this QR (or read out the code) to the Supervisor at ${esc(ss.venue)}. It identifies this booking only — it is not proof of anything else.</p></div></div>`
       : `<p class="ex-muted">${icon('i-globe')} Online · ${esc(ss.meeting || 'The meeting link is shared with confirmed registrants.')} A Supervisor confirms attendance from the roster — opening the link alone doesn’t count.</p>`) : '';
-    const excuse = ss.excuse ? `<div class="ex-excuse"><p><strong>Your explanation</strong> · ${esc(fmt.date(Account.parse(ss.excuse.created.slice(0, 10))))}</p><p>${esc(ss.excuse.reason)}</p>
+    const excuse = ss.excuse ? `<div class="ex-excuse"><p><strong>Your explanation</strong> · ${esc(fmt.date(Account.parse(ss.excuse.created.slice(0, 10))))}</p><p>${esc(ss.excuse.reason)}</p>${ss.excuse.attachment?.id ? `<p><button type="button" class="ex-inline-link ex-link-button" data-evidence="${ss.excuse.id}">View your attachment (${esc(ss.excuse.attachment.name)})</button></p>` : ''}${ss.excuse.recommendationNote ? `<p class="ex-muted">Request from your Supervisor: ${esc(ss.excuse.recommendationNote)}</p>` : ''}
       <ol class="ex-steps ex-steps-compact" aria-label="Excuse progress"><li class="is-done">Submitted</li><li class="${ss.excuse.recommendation ? 'is-done' : 'is-now'}">Supervisor review</li><li class="${ss.excuse.decision ? 'is-done' : ss.excuse.recommendation ? 'is-now' : ''}">Final decision</li></ol>
       ${ss.excuse.status === 'Info Requested' ? `<form class="ex-form" data-excuse-respond="${ss.excuse.id}"><label class="ex-field"><span>Your Supervisor asked for more information</span><textarea name="text" rows="2" required></textarea></label><button class="ex-button ex-small">Send</button></form>` : ''}
       ${ss.excuse.decision ? `<p>${attendChip(ss.excuse.status === 'Accepted' ? 'Excused Absence' : 'Absent')} ${esc(ss.excuse.decision.reason)}</p><p class="ex-muted">Factual attendance stays “Absent”. An accepted excuse is a separate decision and never counts as attendance.</p>` : ''}</div>` : '';
@@ -681,11 +705,12 @@
           <div><p class="ex-eyebrow">${esc(item.organizer)}</p><h3>${esc(item.title)}</h3><small>Application <strong class="ex-code">${esc(a.code)}</strong> · applied ${esc(fmt.date(Account.parse(a.created.slice(0, 10)), { year: true }))}</small></div>
           <div class="ex-initiative-status">${appChip(a.status)}${item.status !== 'Published' && item.status !== 'Completed' ? `<span class="ex-status" data-status="warning">Initiative ${esc(item.status.toLowerCase())}</span>` : ''}</div>
         </header>
-        <p class="ex-initiative-message">${statusMessage(entry)}</p>
+        <p class="ex-initiative-message">${statusMessage(entry)}</p>${flash.has(a.id) ? `<p class="ex-flash" role="status">${icon('i-check')}${esc(flash.get(a.id))}</p>` : ''}
         ${a.status === 'Offered' ? `<div class="ex-sheet-actions"><button type="button" class="ex-button" data-offer-accept="${a.id}">Accept seat ${icon('i-check')}</button><button type="button" class="ex-button is-quiet" data-offer-decline="${a.id}">Decline</button></div>` : ''}
         <details class="ex-initiative-body" data-details="${a.id}"${open ? ' open' : ''}><summary>Sessions, tasks and history</summary>
           ${entry.sessions.length ? `<h4>Sessions</h4><ol class="ex-session-list">${entry.sessions.map(ss => sessionBlock(entry, ss)).join('')}</ol>` : '<p class="ex-muted">No published sessions yet.</p>'}
           <h4>Coach tasks</h4>${tasks.length ? `<p>${tasks.filter(t => t.status === 'Approved').length} of ${tasks.length} approved · ${tasks.filter(t => ['Assigned', 'In Progress', 'Needs Revision'].includes(t.status)).length} to do. <a class="ex-inline-link" href="${root}src/pages/member/training/training.html#assigned">Open Activities → Assigned</a></p>` : '<p class="ex-muted">No tasks assigned yet.</p>'}
+          ${formsBlock(entry)}${competitionsBlock(entry)}
           ${entry.completion ? `<p class="ex-complete">${icon('i-check')} ${entry.completion.status} · ${esc(fmt.date(Account.parse(entry.completion.at.slice(0, 10)), { year: true }))}. Completion is recorded in your history and Insights; it doesn’t add a Garden object.</p>` : ''}
           <h4>Decision history</h4><ol class="ex-history">${a.history.map(h => `<li><span>${esc(fmt.date(Account.parse(String(h.at).slice(0, 10))))}</span><span>${esc(h.to || '')}${h.reason ? ` — ${esc(h.reason)}` : ''}</span></li>`).join('')}</ol>
           ${live ? `<div class="ex-sheet-actions"><button type="button" class="ex-button is-danger ex-small" data-withdraw="${a.id}">Withdraw from this initiative</button></div>` : ''}
@@ -695,19 +720,32 @@
     }).join('');
   }
 
-  function liveAction(node, run) {
+  function liveAction(node, run, success = '') {
     const card = node.closest('.ex-initiative');
-    const error = card?.querySelector('.ex-error');
-    try { run(); } catch (e) { if (error) { error.textContent = e.message; error.hidden = false; error.focus?.(); } else window.alert?.(e.message); }
+    const error = node.closest('form')?.querySelector('.ex-error') || card?.querySelector(':scope > .ex-error');
+    try { if (success && card) flash.set(card.dataset.admission, success); run(); }
+    catch (e) { if (card) flash.delete(card.dataset.admission); if (error) { error.textContent = e.message; error.hidden = false; error.focus?.(); } else window.alert?.(e.message); return false; }
+    return true;
   }
   document.addEventListener('toggle', event => { const id = event.target.dataset?.details; if (id) { if (event.target.open) openDetails.add(id); else openDetails.delete(id); } }, true);
   document.addEventListener('click', event => {
+    const opener = event.target.closest('[data-form-open],[data-form-cancel],[data-entry-open],[data-entry-cancel],[data-evidence]');
+    if (opener) {
+      const card = opener.closest('.ex-initiative'); if (card) openDetails.add(card.dataset.admission);
+      const toggle = (selector, show) => { const f = card.querySelector(selector); f.hidden = !show; if (show) f.querySelector('input,textarea,select')?.focus(); };
+      if (opener.dataset.formOpen) toggle(`[data-form-respond="${opener.dataset.formOpen}"]`, true);
+      if (opener.dataset.formCancel) toggle(`[data-form-respond="${opener.dataset.formCancel}"]`, false);
+      if (opener.dataset.entryOpen) toggle(`[data-entry-form="${opener.dataset.entryOpen}"]`, true);
+      if (opener.dataset.entryCancel) toggle(`[data-entry-form="${opener.dataset.entryCancel}"]`, false);
+      if (opener.dataset.evidence) Repo().openEvidence(opener.dataset.evidence).then(record => { const url = URL.createObjectURL(record.blob); window.open(url, '_blank', 'noopener'); setTimeout(() => URL.revokeObjectURL(url), 60000); }, e => liveAction(opener, () => { throw e; }));
+      return;
+    }
     const t = event.target.closest('[data-session-register],[data-session-cancel],[data-offer-accept],[data-offer-decline],[data-withdraw],[data-excuse]');
     if (!t) return;
     const card = t.closest('.ex-initiative'); if (card) openDetails.add(card.dataset.admission);
-    if (t.dataset.sessionRegister) liveAction(t, () => liveRun('member.session.register', { sessionId: t.dataset.sessionRegister, mode: card.querySelector(`[data-mode-for="${t.dataset.sessionRegister}"]`)?.value, consent: true }));
+    if (t.dataset.sessionRegister) liveAction(t, () => liveRun('member.session.register', { sessionId: t.dataset.sessionRegister, mode: card.querySelector(`[data-mode-for="${t.dataset.sessionRegister}"]`)?.value, consent: true }), 'Session booked. Your booking credential is below.');
     if (t.dataset.sessionCancel) liveAction(t, () => liveRun('member.session.cancel', { id: t.dataset.sessionCancel }));
-    if (t.dataset.offerAccept) liveAction(t, () => liveRun('member.offer.accept', { id: t.dataset.offerAccept }));
+    if (t.dataset.offerAccept) liveAction(t, () => liveRun('member.offer.accept', { id: t.dataset.offerAccept }), 'Seat accepted. You are now an accepted participant.');
     if (t.dataset.offerDecline) liveAction(t, () => liveRun('member.offer.decline', { id: t.dataset.offerDecline }));
     if (t.dataset.withdraw) {
       if (t.dataset.armed !== '1') { t.dataset.armed = '1'; t.textContent = 'Yes, withdraw — release my seat'; return; }
@@ -717,19 +755,34 @@
       const slot = card.querySelector(`[data-slot="${t.dataset.excuse}"]`);
       slot.innerHTML = `<form class="ex-form ex-excuse" data-excuse-form="${t.dataset.excuse}">
         <label class="ex-field"><span>Briefly explain why you missed this session</span><textarea name="reason" rows="3" maxlength="600" required></textarea><small>Seen by the initiative’s Supervisor and Representative only.</small></label>
-        <label class="ex-field"><span>Supporting document (optional)</span><input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png"><small>Only the file name is kept in this demo; the file itself is not uploaded.</small></label>
+        <label class="ex-field"><span>Supporting document (optional · PDF, JPG or PNG · up to 2 MB)</span><input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><small>Stored only in this browser for the demo and shown only to you, this initiative’s Supervisors and its Representative. It is not encrypted production storage.</small></label>
         <div class="ex-sheet-actions"><button class="ex-button ex-small">Send explanation</button></div></form>`;
       slot.querySelector('textarea').focus();
     }
   });
-  document.addEventListener('submit', event => {
+  document.addEventListener('submit', async event => {
     const form = event.target;
     if (form.dataset.excuseForm) {
       event.preventDefault();
       const file = form.elements.attachment.files?.[0];
-      liveAction(form, () => liveRun('member.excuse.submit', { attendanceId: form.dataset.excuseForm, reason: form.elements.reason.value, attachment: file ? { name: file.name, type: file.type, size: file.size } : null }));
+      const error = form.querySelector('.ex-error') || form.insertAdjacentElement('beforeend', Object.assign(document.createElement('p'), { className: 'ex-error', role: 'alert' }));
+      const problem = file ? Repo().attachments.validate(file) : '';
+      if (problem) { error.textContent = problem; error.hidden = false; return; }
+      const button = form.querySelector('button'); button.disabled = true; button.textContent = file ? 'Saving attachment…' : 'Sending…';
+      let meta = null;
+      try { if (file) meta = await Repo().attachments.save(file, { ownerId: Repo().me()?.id }); }
+      catch (e) { error.textContent = e.message; error.hidden = false; button.disabled = false; button.textContent = 'Send explanation'; return; }
+      const ok = liveAction(form, () => liveRun('member.excuse.submit', { attendanceId: form.dataset.excuseForm, reason: form.elements.reason.value, attachment: meta }), 'Explanation sent to the Supervisor for a recommendation.');
+      if (!ok) { if (meta) Repo().attachments.remove(meta.id).catch(() => {}); button.disabled = false; button.textContent = 'Send explanation'; }
     }
-    if (form.dataset.excuseRespond) { event.preventDefault(); liveAction(form, () => liveRun('member.excuse.respond', { id: form.dataset.excuseRespond, text: form.elements.text.value })); }
+    if (form.dataset.excuseRespond) { event.preventDefault(); liveAction(form, () => liveRun('member.excuse.respond', { id: form.dataset.excuseRespond, text: form.elements.text.value }), 'Information sent to your Supervisor.'); }
+    if (form.dataset.formRespond) {
+      event.preventDefault();
+      const answers = {};
+      [...new FormData(form).entries()].forEach(([key, value]) => { const qid = key.slice(2); if (form.querySelectorAll(`[name="${key}"][type=checkbox]`).length) answers[qid] = [...(answers[qid] || []), value]; else answers[qid] = value; });
+      liveAction(form, () => liveRun('member.form.respond', { formId: form.dataset.formRespond, answers }), 'Answers submitted. The institution sees them with your name, pinned to this form version.');
+    }
+    if (form.dataset.entryForm) { event.preventDefault(); liveAction(form, () => liveRun('member.competition.enter', { competitionId: form.dataset.entryForm, text: form.elements.text.value }), 'Entry submitted. You will see the outcome here when results are published.'); }
   });
 
   document.addEventListener('click', event => {

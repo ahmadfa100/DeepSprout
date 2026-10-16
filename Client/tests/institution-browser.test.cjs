@@ -226,6 +226,8 @@ async function main() {
     assert.match(await store((m, a) => { try { m.dispatch('initiative.attendance.record', {sessionId:a.sid, method:'code', code:a.code}); return 'recorded'; } catch (e) { return e.message; } }, {sid:sessionId, code}), /not the assigned Supervisor/);
     await ws(`supervisor/schedule/${sessionId}`); await click(`[data-action=session-assign]`); await page.check('#dialog-body input[name=supervisorIds][value="p-hala"]'); await dialogSave();
     await ws(`supervisor/attendance?session=${sessionId}`);
+    assert.match(await text('main'), /Check-in not open yet/, 'window policy shown before the session');
+    await store((m, at) => m.dispatch('demo.clock', {at}), '2026-10-28T17:05:00+03:00'); await page.reload(); await page.waitForTimeout(400);
     await page.fill('[data-form=checkin] [name=code]', code.toLowerCase()); await click('[data-form=checkin] button.primary');
     assert.equal((await read()).sessionAttendance.filter(a => a.sessionId === sessionId && a.personId === 'p-ahmad').length, 1);
     await page.fill('[data-form=checkin] [name=code]', code); await click('[data-form=checkin] button.primary');

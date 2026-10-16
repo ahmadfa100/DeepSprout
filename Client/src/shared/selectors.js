@@ -4,7 +4,7 @@
  * original record it came from. Regular Individual pages, partner
  * workspaces and tests all read through these.
  */
-import {seatCap,seatsUsed,seatsLeft,registrationState,executionPhase,needsSupervisor,assignedActiveSupervisors,sessionRegistrationOpen,modeCapacity,confirmedInMode,practiceTypeOf,PRACTICE_TYPES,activeGrantsFor,today,queue} from '../workspaces/initiative-rules.js';
+import {initiativeForms,initiativeCompetitions,seatCap,seatsUsed,seatsLeft,registrationState,executionPhase,needsSupervisor,assignedActiveSupervisors,sessionRegistrationOpen,modeCapacity,confirmedInMode,practiceTypeOf,PRACTICE_TYPES,activeGrantsFor,today,queue} from '../workspaces/initiative-rules.js';
 import {nowMs} from '../workspaces/domain.js';
 
 const nameOf = (s, pid) => s.people.find(p => p.id === pid)?.name || 'Unknown participant';
@@ -66,13 +66,28 @@ export function myInitiatives(s, personId) {
         open:sessionRegistrationOpen(s, ss) && initiative.status === 'Published', seats:{online:Math.max(0, modeCapacity(ss, 'Online') - confirmedInMode(s, ss, 'Online')), inPerson:Math.max(0, modeCapacity(ss, 'In-person') - confirmedInMode(s, ss, 'In-person'))},
         registration:registration ? {id:registration.id, mode:registration.mode, status:registration.status, code:registration.code} : null,
         attendance:attendance ? {id:attendance.id, status:attendance.status, method:attendance.method, at:attendance.at} : null,
-        excuse:excuse ? {id:excuse.id, status:excuse.status, reason:excuse.reason, recommendation:excuse.recommendation?.decision || null, decision:excuse.decision || null, created:excuse.created} : null,
+        excuse:excuse ? {id:excuse.id, status:excuse.status, reason:excuse.reason, attachment:excuse.attachment || null, recommendation:excuse.recommendation?.decision || null, recommendationNote:excuse.recommendation?.decision === 'More information' ? excuse.recommendation.note : '', decision:excuse.decision || null, created:excuse.created} : null,
         display:attendance ? (attendance.status === 'Absent' && excuse?.status === 'Accepted' ? 'Excused Absence' : attendance.status) : registration?.status === 'Confirmed' ? 'Registered' : 'Not registered'};
     });
     const tasks = assignedTasks(s, personId).filter(t => t.initiativeId === initiative.id);
+    const day = today(s);
+    const memberOk = ['Accepted','Completed'].includes(a.status);
+    const forms = initiativeForms(s, initiative).filter(f => f.status !== 'Draft').map(f => {
+      const response = (s.responses || []).filter(r => r.formId === f.id && r.personId === personId).pop() || null;
+      const registration = /registration/i.test(f.purpose || '');
+      const permitted = memberOk || (registration && ['Pending','Queued','Offered'].includes(a.status));
+      return {id:f.id, title:f.title, purpose:f.purpose, version:f.version, status:f.status, questions:f.questions, permitted, canRespond:permitted && f.status === 'Published' && !response && ['Published','Completed'].includes(initiative.status), response:response ? {id:response.id, version:response.version, submitted:response.submitted, answers:response.answers} : null};
+    });
+    const competitions = initiativeCompetitions(s, initiative).filter(c => c.status !== 'Draft').map(c => {
+      const entry = (s.entries || []).find(x => x.competitionId === c.id && x.personId === personId) || null;
+      const windowOpen = (!c.open || day >= c.open) && (!c.deadline || day <= c.deadline);
+      return {id:c.id, title:c.title, topic:c.topic, rules:c.rules, eligibility:c.eligibility, open:c.open, deadline:c.deadline, criteria:c.criteria || [], status:c.status, resultsPublished:Boolean(c.resultsPublished), windowOpen,
+        canEnter:a.status === 'Accepted' && c.status === 'Published' && windowOpen && !entry && initiative.status === 'Published',
+        entry:entry ? {id:entry.id, text:entry.text, status:entry.status, created:entry.created, scores:c.resultsPublished ? entry.scores : null, feedback:c.resultsPublished ? entry.feedback : null} : null};
+    });
     return {admission:{id:a.id, code:a.code, status:a.status, created:a.created, history:a.history || [], offer:a.offer || null, completion:a.completion || null, position:a.status === 'Queued' ? queue(s, initiative.id).findIndex(x => x.id === a.id) + 1 : null},
       initiative:initiativeCard(s, initiative, personId), group:group ? {id:group.id, name:group.name, coach:group.coachId ? nameOf(s, group.coachId) : null} : null,
-      sessions, tasks, completion:(s.completions || []).find(c => c.admissionId === a.id) || null};
+      sessions, tasks, forms, competitions, completion:(s.completions || []).find(c => c.admissionId === a.id) || null};
   }).filter(Boolean);
 }
 

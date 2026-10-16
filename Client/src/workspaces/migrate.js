@@ -10,7 +10,7 @@
  */
 import * as ops from './data/initiative-ops.js';
 
-const COLLECTIONS = ['grants','staffInvites','admissions','sessionAttendance','excuses','coachReports','supervisorSummaries','initiativeBlocks','completions','notifications','rewards'];
+const COLLECTIONS = ['staffRequests','grants','staffInvites','admissions','sessionAttendance','excuses','coachReports','supervisorSummaries','initiativeBlocks','completions','notifications','rewards'];
 const clone = value => JSON.parse(JSON.stringify(value));
 const has = (list, key) => list.some(item => item.id === key);
 
@@ -46,6 +46,7 @@ export function normalizeInitiative(i) {
 
 export function migrate(s) {
   if (s.schema === ops.SCHEMA) { for (const key of COLLECTIONS) s[key] ||= []; s.clock ||= {offsetMs:0}; return false; }
+  if (s.schema === 2) { upgradeTo3(s); return true; }
   if (s.schema !== 1) return false;
   for (const key of COLLECTIONS) s[key] ||= [];
   s.clock ||= {offsetMs:0};
@@ -92,8 +93,26 @@ export function migrate(s) {
   }
   // D41: Phase-1 forms are identified. Earlier anonymous answers stay as labelled history.
   for (const f of s.forms) if (f.anonymous) { f.anonymous = false; f.legacyAnonymous = true; }
-  s.schema = ops.SCHEMA;
+  s.schema = 2;
+  upgradeTo3(s);
   return true;
+}
+
+/**
+ * schema 2 → 3: the seeded competition becomes a component of Start Today
+ * (so the regular Individual can reach it), appointments and Applications
+ * gain history/flag arrays. Additive and idempotent.
+ */
+function upgradeTo3(s) {
+  for (const key of COLLECTIONS) s[key] ||= [];
+  const today = s.initiatives.find(i => i.id === 'i-today'), contest = (s.competitions || []).find(c => c.id === 'c-create');
+  if (today && contest && !(today.components || []).some(c => c.resourceId === contest.id)) {
+    today.components.push({id:'cmp-competition', type:'Competition', title:contest.title, resourceId:contest.id});
+    contest.initiativeId ||= today.id;
+  }
+  for (const ap of s.appointments || []) ap.history ||= [];
+  for (const a of s.admissions || []) a.flags ||= [];
+  s.schema = 3;
 }
 
 /** Stable, readable display codes derived from an opaque ID. */

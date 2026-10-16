@@ -382,3 +382,35 @@ a.iw-stat:hover { transform: translateY(-3px); box-shadow: var(--iw-shadow-hover
 .builder-layout.is-initiative .field input:invalid:not(:focus) { border-color: #d7dfcd; }
 .builder-layout.is-initiative .field.has-error input:invalid { border-color: var(--iw-clay); }
 .iw-components h3 { margin: 0; font-size: 13px; color: var(--iw-forest); }
+.iw-evidence { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 14px; margin: 0 0 12px; border-radius: 14px; background: var(--iw-sage-50); border: 1px solid var(--iw-line); }
+.iw-evidence > div { flex: 1; min-width: 180px; }
+.iw-evidence small { display: block; color: var(--iw-muted); }
+.iw-evidence-view { display: block; width: 100%; max-height: 60vh; min-height: 280px; object-fit: contain; border-radius: 12px; background: var(--iw-paper); margin-bottom: 10px; }
+.iw-flag { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; padding: 3px 8px; border-radius: 999px; background: var(--iw-gold-50); color: #7a5717; font-size: 10.5px; font-weight: 600; }
+.iw-flag .icon { width: 12px; height: 12px; }
+.builder-duty { padding: 10px 0; border-bottom: 1px solid var(--iw-line); }
+.builder-duty small { display: block; margin-bottom: 6px; color: var(--iw-muted); }
+
+/* Supervisor assignment context ------------------------------------------- */
+.iw-contexts { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; margin: 0 0 18px; scroll-snap-type: x proximity; }
+.iw-context { flex: 0 0 auto; min-width: 220px; max-width: 320px; display: grid; gap: 3px; text-align: left; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--iw-line); background: var(--iw-ivory); color: var(--iw-ink); font: inherit; cursor: pointer; scroll-snap-align: start; transition: transform .2s var(--iw-ease), box-shadow .2s var(--iw-ease), border-color .2s, background .2s; }
+.iw-context:hover { transform: translateY(-2px); box-shadow: var(--iw-shadow); }
+.iw-context.is-active { border-color: var(--iw-forest); background: linear-gradient(180deg, #f1f6ea, var(--iw-ivory)); box-shadow: inset 0 0 0 1px var(--iw-forest); }
+.iw-context.is-provider.is-active { border-color: #8a6a48; box-shadow: inset 0 0 0 1px #8a6a48; background: linear-gradient(180deg, #f8f2e8, var(--iw-ivory)); }
+.iw-context strong { font: 500 15px/1.25 var(--iw-display); color: var(--iw-forest); }
+.iw-context small { color: var(--iw-muted); font-size: 11px; }
+.iw-contexts.is-single .iw-context { cursor: default; }
+.iw-context-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: 1.1px; text-transform: uppercase; font-weight: 600; color: var(--iw-sage-500); }
+.iw-context.is-provider .iw-context-tag, .iw-assignments li .iw-context-tag:has(+ div) { color: #8a6a48; }
+.iw-context-tag .icon { width: 13px; height: 13px; }
+.iw-assignments { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.iw-assignments li { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 14px; background: var(--iw-paper); }
+.iw-assignments small { display: block; color: var(--iw-muted); }
+main[data-route^="supervisor"] .iw-head, main[data-route^="supervisor"] .iw-stats { animation: iw-in .45s var(--iw-ease) both; }
+@media (max-width: 760px) { .iw-context { min-width: 200px; } .iw-assignments li { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .iw-context { transition: none; } main[data-route^="supervisor"] .iw-head, main[data-route^="supervisor"] .iw-stats { animation: none; } }
+.booking-qr { width: 156px; padding: 10px; margin: 10px 0; border-radius: 14px; background: #fff; border: 1px dashed var(--iw-sage-300); }
+.booking-qr svg { display: block; width: 100%; height: auto; }
+.booking-qr svg path, .booking-qr svg rect { stroke: none; }
+.staff-invite-card.is-provider { border-left-color: #8a6a48; }
+.iw-assignments li > .iw-pill { justify-self: start; }

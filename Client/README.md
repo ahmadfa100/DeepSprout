@@ -26,8 +26,8 @@ The application uses multiple browser-local stores (`deepsprout-user-v1`, `deeps
 
 ```sh
 node tests/page-wiring.test.cjs      # element ids, icon symbols and asset paths resolve
-node --test tests/partner-store.test.mjs tests/institution-cycle.test.mjs   # partner + Institution command/read-model rules
-BASE_URL=http://127.0.0.1:8765 CHROME_PATH="/path/to/chrome" NODE_PATH=/path/to/node_modules node tests/institution-browser.test.cjs   # real-browser Scenarios A–F (playwright-core)
+node --test tests/partner-store.test.mjs tests/institution-cycle.test.mjs tests/supervisor-cycle.test.mjs   # partner, Institution and Supervisor command/read-model rules
+BASE_URL=http://127.0.0.1:8765 CHROME_PATH="/path/to/chrome" NODE_PATH=/path/to/node_modules node tests/institution-browser.test.cjs   # real-browser Scenarios A–F (playwright-core); tests/supervisor-browser.test.cjs covers both Supervisor contexts
 node tests/member-journey.test.cjs   # the whole individual cycle, in jsdom
 python3 tests/not-found-server.test.py # custom 404 responses, nested URLs, HEAD and normal assets
 ```
