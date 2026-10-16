@@ -1,4 +1,8 @@
 (() => {
+  const access = window.DeepSproutPersonal;
+  if (access.denied()) { try { access.requireAccess(); } catch {} return; }
+  const subject = access.subject();
+  const preferenceKey = key => `${key}:person:${subject}`;
   const assetRoot = '../../../../assets/home-kit/icons/';
   const catalog = [
     { name: 'Instagram', image: 'instagram-color.svg' },
@@ -38,7 +42,7 @@
   let customApps = [];
 
   function readSaved(key) {
-    try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+    return access.preference(key, null, subject);
   }
   const savedTime = readSaved('deepsprout-shield-time');
   if (typeof savedTime === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(savedTime)) timeInput.value = savedTime;
@@ -55,7 +59,7 @@
   const savedReminder = readSaved('deepsprout-shield-reminder');
   if (typeof savedReminder === 'boolean') reminderInput.checked = savedReminder;
   try {
-    const timerState = JSON.parse(sessionStorage.getItem('deepsprout-shield-focus-timer'));
+    const timerState = JSON.parse(sessionStorage.getItem(preferenceKey('deepsprout-shield-focus-timer')));
     if (timerState && Number.isFinite(timerState.remaining)) {
       timerRemaining = Math.max(0, Math.min(timerDuration, timerState.remaining));
       if (timerState.running && Number.isFinite(timerState.deadline)) {
@@ -158,7 +162,8 @@
   }
   function saveTimerState() {
     try {
-      sessionStorage.setItem('deepsprout-shield-focus-timer', JSON.stringify({
+      access.assert(subject);
+      sessionStorage.setItem(preferenceKey('deepsprout-shield-focus-timer'), JSON.stringify({
         remaining: timerRemaining, deadline: timerDeadline, running: timerRunning
       }));
     } catch {}
@@ -270,14 +275,16 @@
       renderBasket();
     }
   });
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', async event => {
     event.preventDefault();
     if (!timeInput.reportValidity()) return;
     try {
-      localStorage.setItem('deepsprout-shield-time', JSON.stringify(timeInput.value));
-      localStorage.setItem('deepsprout-shield-apps', JSON.stringify([...selected]));
-      localStorage.setItem('deepsprout-shield-custom-apps', JSON.stringify(customApps));
-      localStorage.setItem('deepsprout-shield-reminder', JSON.stringify(reminderInput.checked));
+      access.assert(subject);
+      const account = await window.DeepSproutAccount.load();
+      account.mutate({type:'preferences.save',preferences:{
+        'deepsprout-shield-time':timeInput.value, 'deepsprout-shield-apps':[...selected],
+        'deepsprout-shield-custom-apps':customApps, 'deepsprout-shield-reminder':reminderInput.checked
+      }});
       saveMessage.textContent = 'Preferences saved in this browser.';
     } catch { saveMessage.textContent = 'This browser could not save your preferences.'; }
   });

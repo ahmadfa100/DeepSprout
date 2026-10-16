@@ -6,6 +6,7 @@
  * (spec 5.1). Nothing is committed until Activate is pressed.
  */
 (() => {
+  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const DS = window.DeepSprout;
   const INSTRUMENTS = window.DeepSproutAssessments;
   // The four official baselines are recorded in the personal journal
@@ -17,7 +18,7 @@
     return attempt ? { summary: attempt.details || [], valid: attempt.valid !== false, caveat: 'This attempt was flagged as not fully valid.' } : null;
   };
   const baselineAttempt = definitionId => journalAttempt(definitionId) || DS.assessmentAttempt(definitionId);
-  const baselinesComplete = () => DS.ASSESSMENTS.every(meta => baselineAttempt(meta.id));
+  const baselinesComplete = () => DS.ASSESSMENTS.every(meta => baselineAttempt(meta.id)?.valid !== false && baselineAttempt(meta.id));
   const stages = [...document.querySelectorAll('.sp-stage')];
 
   const show = stage => {
@@ -332,26 +333,22 @@
     if (!commitment) return;
 
     const week = buildWeekOne();
-    DS.addRoutine({ title: commitment.title, hint: commitment.hint });
-    DS.activatePlan({
-      goal,
-      goalLabel: DS.GOALS[goal],
-      availableDays: days,
-      direction: (DIRECTIONS[goal] || DIRECTIONS['reduce-scrolling']).map(([title, note]) => ({ title, note })),
-      weekOne: week,
-      commitment: commitment.title
-    });
-
+    if (!journal || !baselinesComplete()) return;
+    const firstRunPlan = {goal, goalLabel:DS.GOALS[goal], availableDays:days, weekOne:week, commitment:commitment.title};
     // The same plan in the personal journal that Home and Roadmap read.
-    if (journal && !journal.plan()) {
+    try {
+    if (!journal.plan()) {
       const typeOf = { 'Depth Practice': 'depth', 'Listening & Recall': 'listening', 'Practical Micro-Challenge': 'practical', 'Protected Work': 'protected-work' };
       const today = new Date();
-      journal.mutate({ type: 'plan.activate', goal, goalLabel: DS.GOALS[goal], lengthDays: DS.get().plan.cycleLength || 28,
+      journal.mutate({ type: 'plan.activate', goal, goalLabel: DS.GOALS[goal], lengthDays: 28, firstRunPlan, commitment,
         direction: (DIRECTIONS[goal] || DIRECTIONS['reduce-scrolling']).map(([title, note]) => ({ title, note })),
         schedule: week.map((entry, offset) => entry.kind === 'practice' ? { date: window.DeepSproutAccount.keyOf(DS.addDays(today, offset)), activityType: typeOf[entry.title] } : null).filter(Boolean) });
-      journal.mutate({ type: 'routine.add', title: commitment.title, hint: commitment.hint || '', days: [0, 1, 2, 3, 4, 5, 6], recurrence: 'weekly' });
+
     }
-    document.getElementById('done-day').textContent = `Day 1 of ${DS.get().plan.cycleLength}`;
+    if (!DS.get().routine.length) DS.addRoutine({title:commitment.title,hint:commitment.hint});
+    DS.update(state => { state.plan = {...firstRunPlan, startDate:DS.dayKey(), cycleLength:28}; state.onboarding.planActivated = true; });
+    } catch (error) { window.DeepSproutPersonal.failure(error.message); return; }
+    document.getElementById('done-day').textContent = 'Day 1 of 28';
     document.getElementById('done-lead').textContent =
       `Your goal is to ${DS.GOALS[goal].toLowerCase()}, with ${week.filter(entry => entry.kind === 'practice').length} practices and "${commitment.title}" this week. Day 1 starts today.`;
     show('done');
@@ -379,5 +376,7 @@
   };
   start();
   // Refresh once the personal journal (where the baselines are recorded) has loaded.
-  window.DeepSproutAccount?.load().then(loaded => { journal = loaded; renderResults(); }, () => {});
+  window.DeepSproutAccount?.load().then(loaded => { journal = loaded; renderResults();
+    const active=journal.plan();
+    if(active){document.getElementById('done-day').textContent=`Day ${active.day} of ${active.lengthDays}`;document.getElementById('done-lead').textContent='Your personal plan is already active.';show('done');} }, () => {});
 })();

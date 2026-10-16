@@ -1,3 +1,5 @@
+const personalSubject = window.DeepSproutPersonal.subject();
+const personalKey = key => `${key}:person:${personalSubject}`;
 /**
  * Activities — focused practices, run in a full-screen focus mode.
  *
@@ -30,12 +32,11 @@ let account = null;
 const TYPE_BY_SESSION = { today: 'depth', depth: 'depth', listening: 'listening', challenge: 'practical', protected: 'protected-work' };
 const SESSION_BY_TYPE = { depth: 'depth', listening: 'listening', practical: 'challenge', 'protected-work': 'protected' };
 const readStored = (key, fallback) => {
-  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-  catch { return fallback; }
+  return window.DeepSproutPersonal.preference(key, fallback, personalSubject);
 };
 const writeStored = (key, value) => {
-  try { localStorage.setItem(key, JSON.stringify(value)); }
-  catch { /* The page still works when local storage is unavailable. */ }
+  try { window.DeepSproutPersonal.assert(personalSubject); window.DeepSproutPersonal.save(personalKey(key), JSON.stringify(value)); }
+  catch (error) { throw error; }
 };
 
 /* --------------------------------------------------------------- progress */
@@ -252,6 +253,7 @@ Account?.load().then(loaded => {
   openRequested();
   window.addEventListener('deepsprout:account', () => { updateProgress(); renderUpNext(); });
 }).catch(() => {
+  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   document.getElementById('weekly-plan-count').textContent = 'Your progress couldn’t be loaded';
   openRequested();
 });

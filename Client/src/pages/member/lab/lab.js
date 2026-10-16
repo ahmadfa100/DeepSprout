@@ -11,6 +11,7 @@
  *  - Practice rounds are open any time and are never stored or compared.
  */
 (() => {
+  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const Account = window.DeepSproutAccount;
   const INSTRUMENTS = window.DeepSproutAssessments;
   if (!Account) return;

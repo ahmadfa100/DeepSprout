@@ -1,0 +1,27 @@
+{
+  "name": "deepsprout",
+  "version": "1.0.0",
+  "description": "DeepSprout helps Individuals manage unintentional short-form scrolling through a personal Recovery Plan, four Meaningful Practice types, Digital Shield, Offline Routine, Garden and source-based Insights. Institutions, independent Coaches, Invited Students, Outdoor Providers and Supervisors also have connected program, initiative and experience workflows. One Platform Admin governs the platform.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahmadfa100/DeepSprout.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ahmadfa100/DeepSprout/issues"
+  },
+  "homepage": "https://github.com/ahmadfa100/DeepSprout#readme",
+  "dependencies": {
+    "playwright": "^1.64.1"
+  }
+}

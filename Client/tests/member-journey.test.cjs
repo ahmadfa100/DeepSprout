@@ -164,7 +164,7 @@ const clearAccountChanges = () => [...store.keys()]
 
 
 
-check('onboarding records the setup answers', () => {
+check('onboarding records the setup answers', async () => {
   const window = load('src/pages/member/onboarding/onboarding.html');
   const document = window.document;
 
@@ -186,6 +186,7 @@ check('onboarding records the setup answers', () => {
     }
   }
 
+  await settled(window);
   const state = window.DeepSprout.get();
   assert.equal(state.onboarding.setupDone, true, 'setup should be marked done');
   assert.equal(state.profile.goal, 'reduce-scrolling', 'first goal option should be stored');

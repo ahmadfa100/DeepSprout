@@ -7,6 +7,7 @@ import * as u from '../../ui.js';
 import {esc,nameOf,pill,head,stats,stat,card,bars,funnel,ring,emptyState,initiativeSwitcher,fmtDate,summary} from './common.js';
 import {seatCap} from '../../initiative-rules.js';
 import {groupMetrics} from '../../commands/initiative.js';
+import {providerReport} from '../../../shared/provider-selectors.js';
 import {initiativeGarden} from '../../../shared/selectors.js';
 
 const inRange = (value, from, to) => { const day = String(value || '').slice(0, 10); return (!from || day >= from) && (!to || day <= to); };
@@ -64,6 +65,12 @@ function reportList(ctx, list, kind) {
   return `<ul class="iw-reports">${list.map(r => `<li><div><strong>${esc(kind === 'coach' ? ctx.s.groups.find(g => g.id === r.groupId)?.name || 'Group' : 'Operational summary')}</strong><small>${esc(nameOf(ctx.s, r.authorId))} · ${esc(fmtDate(r.period.from))} – ${esc(fmtDate(r.period.to))} · submitted ${esc(fmtDate(r.submitted))}</small></div>${u.button('Open original', 'report-open', {id:r.id, kind}, 'button quiet small')}</li>`).join('')}</ul>`;
 }
 
+function providerAggregates(ctx,i){
+ const links=ctx.s.partnerships.filter(p=>p.initiativeId===i.id&&p.status==='Active');
+ const ids=[...new Set(links.map(p=>p.experienceId))];
+ return card('Accepted Provider partnerships',ids.length?u.table(['Provider-owned experience','Confirmed','Held','Queued','Present','Late','Absent','Camp completions'],ids.map(id=>{const d=providerReport(ctx.s,id,{from:ctx.route.query.get('from'),to:ctx.route.query.get('to')});return {cells:[esc(ctx.s.experiences.find(e=>e.id===id)?.title||id),d?.confirmed||0,d?.held||0,d?.queued||0,d?.present||0,d?.late||0,d?.absent||0,d?.completed||0]};}))+provenance('Agreed aggregate participation for the entire linked Provider experience, not just this Initiative’s students. Original Provider bookings remain separate from Initiative admissions, attendance and Group Garden. Date filters select the original booking cohort; no personal records are shared here.'):'<p class="iw-muted">No active, accepted Provider links.</p>');
+}
+
 export function renderRepReports(ctx, initiatives) {
   const {s} = ctx;
   const i = initiatives.find(x => x.id === (ctx.route.query.get('initiative') || ctx.localUI.initiativeId)) || initiatives[0];
@@ -76,6 +83,7 @@ export function renderRepReports(ctx, initiatives) {
     + filters(ctx, i, initiatives)
     + stats([stat(data.accepted, 'Accepted now', {of:seatCap(i)}), stat(data.applied, 'Applications in range'), stat(data.attendance.present + data.attendance.late, 'Attended records', {hint:`${data.attendance.absent} absent`}), stat(data.tasks.approved, 'Tasks approved', {of:data.tasks.expected || 0}), stat(data.completions.completed, 'Completed students', {hint:i.status === 'Completed' ? 'Initiative completed' : 'Recorded on completion'})])
     + sharedSections(ctx, i, data)
+    + providerAggregates(ctx,i)
     + `<div class="iw-split">${card('Supervisor summaries', reportList(ctx, data.summaries, 'summary'), {eyebrow:'SUPERVISOR → YOU'})}${card('Coach reports', reportList(ctx, data.coachReports, 'coach'), {eyebrow:'COACHES → SUPERVISORS → YOU'})}</div>`
     + `<div class="iw-split">${card('Forms & surveys', data.forms.length ? `<ul class="iw-mini-list">${data.forms.map(f => `<li><span>${esc(f.form.title)} · v${esc(f.form.version)}</span><b>${f.responses} identified response(s)</b>${u.link('Responses', `organization/forms/${f.form.id}/responses`, 'text-link')}</li>`).join('')}</ul>` : '<p class="iw-muted">No linked forms.</p>', {eyebrow:'IDENTIFIED RESPONSES'})}
       ${card('Competitions & collective garden', `${data.competitions.length ? `<ul class="iw-mini-list">${data.competitions.map(c => `<li><span>${esc(c.competition.title)}</span><b>${c.entries} entries · ${c.reviewed} reviewed</b></li>`).join('')}</ul>` : '<p class="iw-muted">No linked competitions.</p>'}<p class="iw-muted">Group Garden: ${garden.count} qualifying contribution(s) from ${garden.contributors} student(s) · stage ${garden.stage}/5.</p>${u.link('Open Group Garden', `organization/group-garden?initiative=${i.id}`, 'text-link')}`, {eyebrow:'OUTCOMES'})}</div>`

@@ -12,6 +12,13 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
   const STATE_LABELS = { completed: 'Completed', missed: 'Missed', rest: 'Planned rest day', 'not-due': 'Not due yet', none: 'Nothing scheduled' };
 
+  const paintProviderExperiences=()=>{
+    const r=window.DeepSproutRepo,host=$('provider-outdoors-list');if(!r||!host)return;
+    const items=r.selectors.exploreProviderExperiences(r.read(),r.me()?.id).slice(0,3);$('provider-outdoors').hidden=!items.length;
+    host.innerHTML=items.map(e=>`<a class="event-card" data-experience-id="${esc(e.id)}" href="${r.selectors.providerBookingLink(e.id)}"><img class="event-image" src="${esc(e.image)}" alt=""><div class="event-body"><span class="event-kind">${esc(e.type)}</span><strong>${esc(e.title)}</strong><p>${esc(e.organizer)} · ${esc(e.city)} · ${esc(e.start)}</p><span>${e.canBook?`${e.remaining} places available`:'Booking unavailable'}</span></div></a>`).join('');
+  };
+  window.addEventListener('deepsprout:repo-ready',paintProviderExperiences);window.addEventListener('deepsprout:repo',paintProviderExperiences);paintProviderExperiences();
+
   /* ---------------------------------------------------------- the spaces */
 
   function renderSpaces(account) {
@@ -57,7 +64,7 @@
       const journal = account.practiceGarden();
       const policy = journal.policy;
       const repo = window.DeepSproutRepo, me = repo?.me();
-      const shared = repo && me ? repo.selectors.personalGardenEffects(repo.read(), me.id) : [];
+      const shared = repo && me && repo.selectors.hasPersonalGarden(repo.read(), me.id) ? repo.selectors.personalGardenEffects(repo.read(), me.id) : [];  // Invited Students: Group Garden only until upgrade (D12).
       const trees = journal.types.map(type => {
         const n = type.sources.length + shared.filter(e => e.effect === 'tree' && e.type === type.id).length;
         return { title: type.title, n, stage: policy.treeSteps.filter(step => n >= step).length };

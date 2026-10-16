@@ -24,6 +24,7 @@
   const SCRIPT_URL = document.currentScript?.src
     || document.querySelector('script[src*="js/data/account.js"]')?.src
     || location.href;
+  const access = window.DeepSproutPersonal;
   const STORE_KEY = 'deepsprout-account-choice';
   const ACCOUNTS = {
     demo: 'demo-account.json',
@@ -47,6 +48,23 @@
     'self-reported': { id: 'self-reported', label: 'Self-reported' },
     'organiser-confirmed': { id: 'organiser-confirmed', label: 'Organiser-confirmed' },
     'supervisor-confirmed': { id: 'supervisor-confirmed', label: 'Supervisor-confirmed' }
+  };
+
+  // Phase-1 measurement contracts. These identify demo protocols, not calibrated tests.
+  const ASSESSMENT_CONTRACTS = {
+    'digital-habits': {version:'DH-1.0',protocolVersion:'DH-protocol-1',scoringVersion:'DH-sum-1',variant:'eight-statements-1',difficulty:'self-report',conditions:'untimed-five-point-1'},
+    'sustained-attention': {version:'SA-1.0',protocolVersion:'SA-uninterrupted-2',scoringVersion:'SA-hits-1',variant:'24-random-targets-1',difficulty:'standard',conditions:'visual-space-or-tap-1'},
+    'inhibitory-control': {version:'IC-1.0',protocolVersion:'IC-uninterrupted-2',scoringVersion:'IC-withhold-1',variant:'40-random-go-nogo-1',difficulty:'standard',conditions:'visual-space-or-tap-1'},
+    'depth-challenge': {version:'DC-1.0-a',protocolVersion:'DC-continuous-1',scoringVersion:'DC-five-questions-1',variant:'cost-of-switching-a',difficulty:'Tier 1',conditions:'single-reading-no-return-1'}
+  };
+  const contractFor = id => ({definitionId:id,...ASSESSMENT_CONTRACTS[id]});
+  const validResult = attempt => Boolean(attempt?.official && attempt.valid === true && (attempt.status === 'Completed' || attempt.legacy === true) && /^\d{4}-\d{2}-\d{2}$/.test(attempt.on||'') && Number.isFinite(attempt.score));
+  const matchesContract = (attempt, id) => validResult(attempt) && Object.entries(contractFor(id)).every(([k,v]) => attempt[k] === v);
+  const compatible = (a,b) => {
+    if(!validResult(a)||!validResult(b))return 'Both results must be valid, completed official attempts.';
+    for(const key of ['definitionId','version','protocolVersion','scoringVersion','variant','difficulty','conditions'])if(!a[key]||a[key]!==b[key])return `Comparison unavailable: ${key} differs or was not recorded. Both historical results are retained.`;
+    if(a.on>b.on)return 'Comparison unavailable: result dates are out of order.';
+    return null;
   };
 
   /* ---------------------------------------------------------------- dates */
@@ -110,11 +128,12 @@
    */
   const changesKey = choice => `deepsprout-account-changes-v1:${choice}`;
   const readChanges = choice => {
-    try { const list = JSON.parse(localStorage.getItem(changesKey(choice))); return Array.isArray(list) ? list : []; }
-    catch { return []; }
+    const list = JSON.parse(localStorage.getItem(changesKey(choice)) || '[]');
+    if (!Array.isArray(list)) throw new Error('The personal journal is invalid; its original data has been preserved.');
+    return list;
   };
   const writeChanges = (choice, list) => {
-    try { localStorage.setItem(changesKey(choice), JSON.stringify(list)); } catch { /* kept for this visit */ }
+    access.save(changesKey(choice), JSON.stringify(list));
   };
 
   /** A routine item's schedule as dated versions, so an edit never rewrites the past. */
@@ -123,6 +142,7 @@
     : [{ from: item.createdOn, days: item.days || [], recurrence: item.recurrence || 'weekly', paused: Boolean(item.paused) }]);
 
   const applyChange = (data, event) => {
+    if (event.preferences) data.preferences = {...data.preferences, ...event.preferences};
     const item = event.id ? data.routine.find(entry => entry.id === event.id) : null;
     switch (event.type) {
       case 'routine.add':
@@ -166,9 +186,18 @@
       case 'review.add':
         if (!data.weeklyReviews.some(review => review.week === event.review.week)) data.weeklyReviews.push(event.review);
         break;
-      case 'assessment.add':
+      case 'assessment.start':
+        (data.assessmentRuns ||= []).push(event.run); break;
+      case 'assessment.progress': {
+        const run=(data.assessmentRuns||[]).find(r=>r.id===event.id);if(run){run.answers={...event.answers};run.updatedAt=event.at;}break;
+      }
+      case 'assessment.interrupt': {
+        const run=(data.assessmentRuns||[]).find(r=>r.id===event.id);if(run){run.status='Interrupted';run.reason=event.reason;run.endedAt=event.at;}break;
+      }
+      case 'assessment.add': {
         data.assessmentAttempts.push(event.attempt);
-        break;
+        const run=(data.assessmentRuns||[]).find(r=>r.id===event.attempt.id);if(run){run.status=event.attempt.valid?'Completed':'Invalid';run.endedAt=event.attempt.completedAt;}break;
+      }
       case 'setup.save':
         data.user.goal = event.goal;
         data.user.setup = event.setup;
@@ -194,6 +223,7 @@
         if (data.plan) break;
         data.plan = { cycleNumber: 1, startDate: event.on, lengthDays: event.lengthDays || 28, activatedOn: event.on,
           direction: (event.direction || []).map((entry, index) => ({ week: index + 1, title: entry.title, note: entry.note })) };
+        if (event.commitment) data.routine.push({id:`r-plan-${event.on}`, title:event.commitment.title, hint:event.commitment.hint || '', createdOn:event.on, removedOn:null, checkIns:[], schedule:[{from:event.on,days:[0,1,2,3,4,5,6],recurrence:'weekly',paused:false}]});
         if (event.goal) data.user.goal = { id: event.goal, label: event.goalLabel || '', setOn: event.on };
         (event.schedule || []).forEach((entry, index) => data.scheduledActions.push({ id: `s-${event.on}-${index}`, date: entry.date, kind: 'practice', activityType: entry.activityType, level: 1, minutes: entry.minutes || 5 }));
         break;
@@ -205,11 +235,16 @@
     }
   };
 
-  const createAccount = (seed, choice, catalogue = { listings: [] }) => {
+  const createAccount = (seed, choice, catalogue = { listings: [] }, subject) => {
     const data = JSON.parse(JSON.stringify(seed));
     data.planAdjustments ||= [];
+    data.assessmentRuns ||= [];
+    // Seeded legacy measurements stay historical; missing protocols are never invented.
+    data.assessmentAttempts=data.assessmentAttempts.map(a=>({...a,legacy:!a.status,status:a.status||(a.valid===true?'Completed':'Invalid')}));
     const changes = readChanges(choice);
     changes.forEach(event => applyChange(data, event));
+    const canonical = access.person();
+    if (canonical) { data.user.name = canonical.name; data.user.email = canonical.email; }
     const today = data.account.asOf ? parse(data.account.asOf) : parse(keyOf(new Date()));
     const todayKey = keyOf(today);
     // Listings carry dates relative to the account's today, so every story stays coherent.
@@ -518,8 +553,11 @@
     /* ---- check-ins (assessments) */
 
     const officialAttempts = id => data.assessmentAttempts
-      .filter(entry => entry.definitionId === id && entry.official && entry.valid)
+      .filter(entry => entry.definitionId === id && validResult(entry))
       .sort((a, b) => a.on.localeCompare(b.on));
+
+    const baselineResults = () => data.catalog.assessmentDefinitions.map(meta=>({id:meta.id,attempt:officialAttempts(meta.id).find(a=>a.personId===subject&&a.kind==='baseline'&&matchesContract(a,meta.id))||null}));
+    const baselineComplete = () => baselineResults().every(row=>row.attempt);
 
     /** Which tasks the check-in that closes `cycleNumber` repeats. */
     const checkInTasks = cycleNumber => {
@@ -539,7 +577,7 @@
      */
     const checkInWindow = () => {
       const current = plan();
-      const baselineDone = data.catalog.assessmentDefinitions.every(entry => officialAttempts(entry.id).length);
+      const baselineDone = baselineComplete() || Boolean(data.account.seeded&&data.plan&&data.catalog.assessmentDefinitions.every(entry=>officialAttempts(entry.id).some(a=>a.legacy)));
       if (!baselineDone || !current) {
         return { state: 'baseline-needed', baselineDone, ...checkInTasks(1), opens: null, closes: null, daysUntilOpen: null };
       }
@@ -548,7 +586,7 @@
       const closes = addDays(current.end, policy.windowDays);
       const target = current.cycleNumber + 1;
       const repeated = checkInTasks(current.cycleNumber).tasks;
-      const done = repeated.every(task => data.assessmentAttempts.some(entry => entry.official && entry.definitionId === task.id && entry.cycle === target));
+      const done = repeated.every(task => officialAttempts(task.id).some(entry => entry.cycle === target));
       let state = 'upcoming';
       if (done) state = 'done';
       else if (today > closes) state = 'late';
@@ -574,7 +612,7 @@
     const checkInMode = id => {
       const due = checkInWindow();
       const attempts = officialAttempts(id);
-      if (!attempts.length) {
+      if (!baselineResults().find(row=>row.id===id)?.attempt && !(data.account.seeded&&data.plan&&attempts.some(a=>a.legacy))) {
         return { mode: 'official', kind: 'baseline', cycle: plan()?.cycleNumber || 1, late: false };
       }
       if ((due.state === 'open' || due.state === 'late') && due.tasks.some(task => task.id === id)) {
@@ -617,7 +655,9 @@
         latest: shape(latest),
         lastMeasuredCycle: latest?.cycle || null,
         nextMeasured: nextMeasured(entry.id),
-        comparison: attempts.length > 1 ? { from: shape(baseline), to: shape(latest) } : null
+        history: data.assessmentAttempts.filter(a=>a.definitionId===entry.id).map(shape),
+        comparisonReason:attempts.length>1?compatible(baseline,latest):'No compatible repeat yet. Practice effects can affect task results.',
+        comparison: attempts.length > 1 && !compatible(baseline,latest) ? { from: shape(baseline), to: shape(latest) } : null
       };
     });
 
@@ -923,7 +963,34 @@
      * seeded demo stays coherent with its own clock.
      */
     const mutate = event => {
+      access.assert(subject);
+      if (event.type === 'profile.update' && access.person()) throw new Error('Update your canonical identity through Profile.');
       const full = { ...event, on: event.on || todayKey, at: new Date().toISOString() };
+      if(full.type==='assessment.start'){
+        const r=full.run,allowed=checkInMode(r.definitionId);
+        if(!ASSESSMENT_CONTRACTS[r.definitionId])throw new Error('Unknown assessment.');
+        if(r.mode==='official'&&allowed.mode!=='official')throw new Error('This official assessment is already completed or unavailable.');
+      }
+      if(['assessment.progress','assessment.interrupt'].includes(full.type)){
+        const r=data.assessmentRuns.find(r=>r.id===full.id);if(!r||r.personId!==subject||r.status!=='In progress')throw new Error('This attempt cannot be changed. Reload to continue safely.');
+      }
+      if(full.type==='assessment.add'){
+        const a=full.attempt,run=data.assessmentRuns.find(r=>r.id===a.id),allowed=checkInMode(a.definitionId);
+        if(data.assessmentAttempts.some(x=>x.id===a.id))throw new Error('This original attempt is already recorded.');
+        if(run&&run.status!=='In progress')throw new Error('This timed run was interrupted. Start a new attempt.');
+        if(a.official&&allowed.mode!=='official')throw new Error('This official assessment is already completed or its window is unavailable.');
+        const contract=contractFor(a.definitionId);
+        if(!ASSESSMENT_CONTRACTS[a.definitionId]||a.version!==contract.version)throw new Error('The instrument version is not current. Reload before retrying.');
+        const kind=allowed.kind==='baseline'?'baseline':'weekly';
+        const raw=a.raw||{};let reason=a.valid===false?(a.validityReason||'Task validity checks were not met.'):'';
+        if(a.definitionId==='digital-habits'&&(!raw.answers||Array.from({length:8},(_,i)=>raw.answers['q'+(i+1)]).some(v=>!Number.isInteger(v)||v<0||v>4)))reason='Complete all eight questionnaire answers.';
+        if(a.definitionId==='depth-challenge'&&(!Array.isArray(raw.answers)||raw.answers.length!==5||raw.answers.some(v=>!Number.isInteger(v)||v<0||v>3)))reason='Complete the five comprehension questions in one uninterrupted attempt.';
+        if(['sustained-attention','inhibitory-control'].includes(a.definitionId)){
+          const expected=a.definitionId==='sustained-attention'?24:40;
+          if(raw.goTotal+raw.noGoTotal!==expected||!Array.isArray(raw.hits)||!raw.hits.length||raw.hits.some(v=>!Number.isFinite(v)||v<0)||raw.falseAlarms>Math.max(3,expected*.2)||a.definitionId==='inhibitory-control'&&!raw.noGoTotal)reason='The complete timed protocol and usable responses are required; retry this attempt.';
+        }
+        full.attempt={...a,...contract,personId:subject,kind,cycle:allowed.cycle||1,windowId:allowed.windowId||'baseline',startedAt:run?.startedAt||a.startedAt||full.at,completedAt:full.at,on:todayKey,status:reason?'Invalid':'Completed',valid:!reason,validity:{status:reason?'Invalid':'Valid',reason:reason||'Completed current Phase-1 demo protocol',policyVersion:1}};
+      }
       if (full.type === 'routine.add') {
         full.id = `r-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
       }
@@ -937,12 +1004,26 @@
           : null;
         full.attempt = { id: `a-${Date.now().toString(36)}`, scheduledActionId: due?.id || null, level, on: todayKey, ...full.attempt };
       }
+      applyChange(JSON.parse(JSON.stringify(data)), full);
+      const latest = readChanges(choice);
+      if (JSON.stringify(latest) !== JSON.stringify(changes)) throw new Error('Your journal changed in another tab. Reload before saving.');
+      writeChanges(choice, [...changes, full]);
       applyChange(data, full);
       changes.push(full);
-      writeChanges(choice, changes);
       window.dispatchEvent(new CustomEvent('deepsprout:account', { detail: full }));
       return full;
     };
+
+    const assessmentDraft = id => data.assessmentRuns.filter(r=>r.definitionId===id&&r.personId===subject&&r.status==='In progress'&&Object.entries(contractFor(id)).every(([k,v])=>r[k]===v)).at(-1)||null;
+    const beginAssessment = (id,{practice=false}={}) => {
+      const allowed=practice?{mode:'practice',kind:'practice'}:checkInMode(id);
+      const draft=assessmentDraft(id);
+      if(draft&&id==='digital-habits'&&draft.mode===allowed.mode&&(draft.windowId||'baseline')===(allowed.windowId||'baseline'))return structuredCloneSafe(draft);
+      if(draft)mutate({type:'assessment.interrupt',id:draft.id,reason:'A new attempt replaces an interrupted run; no timed scores are combined.'});
+      const run={...contractFor(id),id:`aa-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,personId:subject,mode:allowed.mode,kind:allowed.kind,cycle:allowed.cycle||1,windowId:allowed.windowId||'baseline',status:'In progress',startedAt:new Date().toISOString(),answers:{}};
+      mutate({type:'assessment.start',run});return structuredCloneSafe(run);
+    };
+    function structuredCloneSafe(value){return JSON.parse(JSON.stringify(value));}
 
     return {
       id: choice,
@@ -984,6 +1065,12 @@
       usageDay,
       phoneScreenTime,
       training,
+      baselineResults,
+      baselineComplete,
+      assessmentDraft: id=>structuredCloneSafe(assessmentDraft(id)),
+      beginAssessment,
+      saveAssessmentProgress:(id,answers)=>mutate({type:'assessment.progress',id,answers}),
+      interruptAssessment:(id,reason)=>mutate({type:'assessment.interrupt',id,reason}),
       checkIns,
       checkInWindow,
       checkInTasks,
@@ -1011,22 +1098,14 @@
    * the shared operational graph. The seeded story stays bound to 'demo'.
    */
   const ECOSYSTEM_KEY = 'deepsprout-ecosystem-demo-v1';
-  const signedInPerson = () => {
-    try {
-      const graph = JSON.parse(localStorage.getItem(ECOSYSTEM_KEY) || 'null');
-      const person = graph?.people?.find(entry => entry.id === graph.session?.personId);
-      return person || null;
-    } catch { return null; }
-  };
-  const journalOf = person => {
-    if (!person) return null;
-    if (person.journal === 'demo') return 'demo';
-    if (person.individual || person.journal) return person.journal || `person:${person.id}`;
-    return null;
-  };
+  const signedInPerson = access.person;
+  const journalOf = access.journal;
   const seedFile = choice => ACCOUNTS[choice] || (String(choice).startsWith('person:') ? ACCOUNTS.empty : null);
 
   const readChoice = () => {
+    access.requireAccess();
+    const canonical = journalOf(signedInPerson());
+    if (canonical) return canonical;
     const requested = params.get('account');
     if (requested && ACCOUNTS[requested]) {
       try { sessionStorage.setItem(STORE_KEY, requested); } catch { /* not persisted */ }
@@ -1042,12 +1121,16 @@
   };
 
   let pending = null;
+  let pendingSubject = access.subject();
 
   /** Fetch and model the chosen account. Resolves to the same object for every caller. */
   const load = (refresh = false) => {
     if (refresh) pending = null;
     if (pending) return pending;
-    const choice = readChoice();
+    const subject = access.subject();
+    pendingSubject = subject;
+    let choice;
+    try { choice = readChoice(); } catch (error) { return Promise.reject(error); }
     const url = new URL(`../../data/${seedFile(choice)}`, SCRIPT_URL);
     const listingsUrl = new URL('../../data/listings.json', SCRIPT_URL);
     const json = target => Promise.resolve()
@@ -1061,7 +1144,13 @@
         // A person journal starts from the empty seed but carries the person's own name.
         const person = String(choice).startsWith('person:') ? signedInPerson() : null;
         if (person && !data.user.name) { data.user.name = person.name; data.user.email = person.email; data.account.label = `${person.name} · personal journal`; }
-        return createAccount(data, choice, catalogue);
+        access.assert(subject);
+        const model = createAccount(data, choice, catalogue, subject);
+        return new Proxy(model, {get(target, prop) {
+          const value = target[prop];
+          if (typeof value !== 'function') { access.assert(subject); return value; }
+          return (...args) => { access.assert(subject); return value(...args); };
+        }});
       });
     return pending;
   };
@@ -1093,6 +1182,8 @@
     applyNames,
     ACCOUNTS: Object.keys(ACCOUNTS),
     NAMES,
+    assessmentContract:contractFor,
+    compatibleAssessments:compatible,
     PROVENANCE,
     format,
     keyOf,
@@ -1105,7 +1196,7 @@
     /** The canonical person this journal belongs to, if someone is signed in. */
     person: signedInPerson,
     /** Forget every change made on top of the seeded record, for this account. */
-    resetChanges: () => { try { localStorage.removeItem(changesKey(readChoice())); } catch { /* ignore */ } },
+    resetChanges: () => { access.assert(pendingSubject); localStorage.removeItem(changesKey(readChoice())); },
     devMode
   };
 })();

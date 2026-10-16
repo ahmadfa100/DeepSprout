@@ -32,10 +32,10 @@ test('A1 · regular Individual answers an identified Initiative form; Representa
 
 test('A1 · competition entry from regular Individual; window, duplicate and published results', () => {
   reset('p-noor');
-  const eid = dispatch('member.competition.enter', {competitionId:'c-create', text:'A short story about a first step.'});
-  assert.match(err(() => dispatch('member.competition.enter', {competitionId:'c-create', text:'again'})), /already submitted/);
-  as('p-omar'); assert.match(err(() => dispatch('member.competition.enter', {competitionId:'c-create', text:'x'})), /accepted participants/);
-  at('2026-11-05T09:00:00+03:00'); as('p-rania'); assert.match(err(() => dispatch('member.competition.enter', {competitionId:'c-create', text:'late'})), /deadline has passed/);
+  const eid = dispatch('member.competition.enter', {competitionId:'c-create', consent:true, text:'A short story about a first step.'});
+  assert.match(err(() => dispatch('member.competition.enter', {competitionId:'c-create', consent:true, text:'again'})), /already submitted/);
+  as('p-omar'); assert.match(err(() => dispatch('member.competition.enter', {competitionId:'c-create', consent:true, text:'x'})), /accepted participants/);
+  at('2026-11-05T09:00:00+03:00'); as('p-rania'); assert.match(err(() => dispatch('member.competition.enter', {competitionId:'c-create', consent:true, text:'late'})), /deadline has passed/);
   at(PIN); as('p-maya');
   dispatch('organization.entry.judge', {id:eid, scores:{'Clarity':4, 'Originality':5, 'Connection to the topic':4}, feedback:'Clear and warm.'});
   let c = myInitiatives(read(), 'p-noor').find(m => m.initiative.id === 'i-today').competitions[0];

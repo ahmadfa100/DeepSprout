@@ -10,6 +10,7 @@
  * anything they already earned is untouched. Deletion is always confirmed.
  */
 (() => {
+  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const Account = window.DeepSproutAccount;
   if (!Account) return;
   const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];

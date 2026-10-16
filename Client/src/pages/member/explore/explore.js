@@ -13,6 +13,7 @@
  *  - the detail sheet growing out of the card that opened it
  */
 (() => {
+  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const Account = window.DeepSproutAccount;
   if (!Account) return;
   const fmt = Account.format;
@@ -53,7 +54,9 @@
     if (!repo) return null;
     const card = repo.selectors.exploreInitiatives(repo.read(), repo.me()?.id).find(item => item.id === id)
       || repo.selectors.myInitiatives(repo.read(), repo.me()?.id).map(entry => entry.initiative).find(item => item.id === id);
-    return card ? toItem(card) : null;
+    if(card)return toItem(card);
+    const provider=repo.selectors.exploreProviderExperiences(repo.read(),repo.me()?.id).find(e=>e.id===id)||repo.selectors.myProviderBookings(repo.read(),repo.me()?.id).find(b=>b.experienceId===id)?.experience;
+    return provider ? providerItem(provider) : null;
   };
   function toItem(card) {
     const start = Account.parse(card.start); const end = Account.parse(card.end);
@@ -64,7 +67,8 @@
       objectives: card.objective ? [card.objective] : [], commitment: card.policies.completion || card.withdrawal || ''
     };
   }
-  const liveItems = () => { const repo = Repo(); if (!repo) return []; return repo.selectors.exploreInitiatives(repo.read(), repo.me()?.id).map(toItem); };
+  const providerItem = e => ({...e,listing:'provider',startDate:e.start,endDate:e.end,start:Account.parse(e.start),end:Account.parse(e.end),startTime:e.sessions[0]?.time||'',mode:e.modes.includes('Hybrid')||e.modes.length>1?'hybrid':e.modes[0]==='Online'?'online':'in-person',past:false});
+  const liveItems = () => { const repo = Repo(); if (!repo) return []; return [...repo.selectors.exploreInitiatives(repo.read(),repo.me()?.id).map(toItem),...repo.selectors.exploreProviderExperiences(repo.read(),repo.me()?.id).map(providerItem)]; };
   const countdown = iso => { const ms = Date.parse(iso) - (Repo()?.nowMs() || Date.now()); if (ms <= 0) return 'expired'; const h = Math.floor(ms / 3600000); const m = Math.floor((ms % 3600000) / 60000); return h ? `${h} h ${m} min left` : `${m} min left`; };
   const qrSvg = code => { try { const qr = window.qrcode(0, 'M'); qr.addData(code); qr.make(); return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); } catch { return ''; } };
 
@@ -89,7 +93,7 @@
   };
   // Live listings come from a verified Institution's published record. Fixture
   // listings are static preview samples and say so, whatever organiser they name.
-  const trust = item => (item.listing === 'live'
+  const trust = item => item.listing==='provider' ? '<span class="ex-trust is-verified is-live">Approved Provider · local demo</span>' : (item.listing === 'live'
     ? `<span class="ex-trust is-verified is-live" title="Published by an Institution verified by DeepSprout">${icon('i-shield-check')}Verified institution</span>`
     : '<span class="ex-trust is-demo" title="Static sample listing in this preview — not a live record">Sample listing</span>');
   const statusChip = status => `<span class="ex-status" data-status="${status}">${icon(STATUS[status].icon)}${STATUS[status].label}</span>`;
@@ -105,8 +109,8 @@
   let cards = new Map();
 
   function cardHtml(item) {
-    const place = item.listing === 'live' ? livePlaces(item) : places(item);
-    const mine = item.listing === 'live' ? null : item.mine;
+    const place = item.listing==='provider' ? {text:!item.canBook?'Booking unavailable':`${item.remaining} places left${!item.remaining&&item.waitlist?' · waiting list':''}`,full:!item.remaining} : item.listing === 'live' ? livePlaces(item) : places(item);
+    const mine = ['live','provider'].includes(item.listing) ? null : item.mine;
     return `${item.image ? `<div class="ex-card-media"><img src="${root}${item.image}" alt="${esc(item.imageAlt || '')}" loading="lazy"></div>` : ''}
       <div class="ex-card-band"><span class="ex-kind">${icon(KIND_ICON[item.kind])}${esc(item.kindLabel)}</span>${trust(item)}</div>
       <div class="ex-card-body">
@@ -117,10 +121,10 @@
           <li>${icon(item.mode === 'online' ? 'i-globe' : item.mode === 'hybrid' ? 'i-compass' : 'i-pin')}<span>${esc(where(item))}</span></li>
           <li>${icon('i-users')}<span class="ex-places${place.full ? ' is-full' : ''}">${esc(place.text)}</span></li>
         </ul>
-        <p class="ex-reveal">${esc(item.summary)}</p>
+        ${item.listing==='provider'?`<p>${esc(costText(item))}</p>`:''}<p class="ex-reveal">${esc(item.summary)}</p>
         <div class="ex-card-foot">
           <button type="button" class="ex-card-link" data-open="${item.id}" aria-label="${esc(`View ${item.title}`)}">View details ${icon('i-arrow')}</button>
-          ${mine ? statusChip(mine.status) : ''}${item.listing === 'live' && item.mine ? appChip(item.mine.status) : ''}
+          ${mine ? statusChip(mine.status) : ''}${['live','provider'].includes(item.listing) && item.mine ? appChip(item.mine.status) : ''}
         </div>
       </div>`;
   }
@@ -154,7 +158,7 @@
     applyFilters(false);
     const registered = account.allRegistrations().filter(entry => entry.status !== 'cancelled').length;
     const live = items.filter(item => item.listing === 'live').length;
-    $('ex-hero-meta').innerHTML = `<span>${icon('i-compass')}${items.length} listings</span><span>${icon('i-shield-check')}${live} live from verified institutions</span>${registered ? `<span>${icon('i-check')}${registered} you’re registered for</span>` : ''}`;
+    $('ex-hero-meta').innerHTML = `<span>${icon('i-compass')}${items.length} listings</span><span>${icon('i-shield-check')}${live} live from approved partners</span>${registered ? `<span>${icon('i-check')}${registered} you’re registered for</span>` : ''}`;
   }
 
   const matches = card => (filters.kind === 'all' || card.dataset.kind === filters.kind)
@@ -224,7 +228,8 @@
     const list = $('ex-mine-list');
     const entries = account.allRegistrations().filter(entry => entry.listing)
       .sort((a, b) => (a.status === 'cancelled') - (b.status === 'cancelled') || a.listing.startDate.localeCompare(b.listing.startDate));
-    if (!entries.length) {
+    const providerEntries=providerRegistrations();
+    if (!entries.length && !providerEntries) {
       list.innerHTML = '<li><p class="ex-mine-empty">You haven’t registered for anything yet. When you do, it appears here with its real status.</p></li>';
       return;
     }
@@ -235,7 +240,7 @@
         <div><strong>${esc(item.title)}</strong><small>${esc(item.kindLabel)} · ${esc(when(item))} · ${esc(where(item))}${entry.reference ? ` · ${esc(entry.reference)}` : ''}${esc(attended)}</small></div>
         <div class="ex-mine-actions">${statusChip(entry.status)}<button type="button" class="ex-card-link" data-open="${item.id}" aria-label="${esc(`View ${item.title}`)}">View</button></div>
       </li>`;
-    }).join('');
+    }).join('')+providerEntries;
   }
 
   /* -------------------------------------------------------------- the sheet */
@@ -284,6 +289,7 @@
     `<li class="${index < stage ? 'is-done' : index === stage ? 'is-now' : ''}"${index === stage ? ' aria-current="step"' : ''}>${label}</li>`).join('')}</ol>`;
 
   function showDetail() {
+    if (current?.listing === 'provider') { showProviderDetail(); return; }
     if (current?.listing === 'live') { showLiveDetail(); return; }
     const item = current;
     const place = places(item);
@@ -472,6 +478,34 @@
     });
   }
 
+  /* Provider views read the same operational records as owner and Supervisor. */
+  function providerRegistrations(){
+    const r=Repo(),me=r?.me();if(!me)return '';
+    return r.selectors.myProviderBookings(r.read(),me.id).map(b=>`<li class="ex-mine-item" data-booking-id="${esc(b.id)}"><div><strong>${esc(b.experience.title)}</strong><small>${esc(b.experience.organizer)} · ${esc(b.id)} · ${esc(b.status)}</small></div><div class="ex-mine-actions">${appChip(b.status)}<button class="ex-card-link" data-open="${esc(b.experienceId)}">View booking</button></div></li>`).join('');
+  }
+  function showProviderDetail(){
+    const r=Repo(),me=r?.me();current=liveById(current.id)||current;
+    const e=current,b=r.selectors.myProviderBookings(r.read(),me?.id).filter(b=>b.experienceId===e.id).at(-1);
+    const needsReconfirmation=b&&['Waitlisted','Seat Offered','Pending Approval'].includes(b.status)&&b.eligibility?.version!==e.version;
+    const registered=b&&!['Cancelled','Rejected','Declined','Offer Expired'].includes(b.status);
+    view(`<div data-provider-view="detail"><h2 id="sheet-title">${esc(e.title)}</h2><p>${esc(e.type)} · ${esc(e.organizer)} · version ${e.version||1}</p><p>${esc(e.description)}</p><dl class="ex-review">${[['Where',[e.venue,e.address,e.city].filter(Boolean).join(' · ')],['When',`${e.startDate} – ${e.endDate} · ${e.timezone||'Asia/Amman'}`],['Participation',e.modes.join(' · ')],['Availability',e.canBook?`${e.remaining} places available${e.waitlist?' · waiting list enabled':''}`:'Booking unavailable'],['Cost',costText(e)],['Eligibility',e.eligibility],['Accessibility',e.accessibility],['Safety',e.safety],['Contact',e.contact],['Consent',e.consent],['Cancellation',e.cancellation],['Completion',`${e.completion} · ${e.completionRule?.kind||'all-required'}${e.completionRule?.kind==='minimum'?` (${e.completionRule.minimum} qualifying sessions)`:''}${e.completionRule?.conditions?` · Review conditions: ${e.completionRule.conditions}`:''}`]].map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v||'Not specified')}</dd></div>`).join('')}</dl><p>Provider Garden policy v1: verified Present/Late session attendance may add a bounded rabbit; verified Camp completion may add a bounded birdhouse. Booking and QR alone earn neither. Corrections update current eligibility while retaining the evidence.</p><h3>Schedule</h3><ul class="ex-parts">${e.sessions.map(ss=>`<li><span>${esc(ss.title)} · ${esc(ss.date)} ${esc(ss.time)}–${esc(ss.endTime)} · ${esc(ss.format)}${ss.needsSupervisor?' · Needs Supervisor':''}</span></li>`).join('')}</ul>
+      ${b?`<section data-provider-booking="${esc(b.id)}"><h3>Your booking</h3><p>${esc(b.id)} · ${esc(b.status)}</p>${b.terms?`<details><summary>Agreed terms · version ${b.terms.version}</summary><p>${esc(b.terms.consent)} · ${esc(b.terms.completion)} · ${esc(b.terms.cancellation)}</p><p>${esc(b.terms.cost?.type==='Paid'?`${b.terms.cost.price} ${b.terms.cost.currency} · simulated payment`:'Free')}</p></details>`:''}${b.offer?.status==='Offered'?`<p>Seat held until ${esc(b.offer.expires)} · <span data-countdown="${esc(b.offer.expires)}">${esc(countdown(b.offer.expires))}</span></p>${e.canBook&&!needsReconfirmation?'<button class="ex-button" data-provider-action="accept">Accept seat offer</button>':''}<button class="ex-button is-quiet" data-provider-action="decline">Decline offer</button>`:''}
+      ${e.canAttend&&['Confirmed','Checked In','Completed'].includes(b.status)?e.sessions.filter(ss=>ss.format!=='Online'&&(b.sessionModes[ss.id]||b.mode)!=='Online').map(ss=>`<div class="ex-credential" data-session-id="${esc(ss.id)}"><strong>${esc(ss.title)}</strong>${qrSvg(`${b.credential}|${ss.id}`)}<p>Booking code: <strong>${esc(b.credential)}</strong> · session ${esc(ss.id)}</p></div>`).join(''):''}
+      ${b.attendance.length?`<ul>${b.attendance.map(a=>`<li>${esc(e.sessions.find(ss=>ss.id===a.sessionId)?.title||a.sessionId)}: ${esc(a.status)} · ${esc(a.method)}</li>`).join('')}</ul>`:''}
+      ${b.completion?`<p>Camp completion: ${esc(b.completion.status)} · ${esc(b.completion.id)}</p>`:''}
+      ${b.canCancel?'<button class="ex-button is-quiet" data-provider-action="cancel">Cancel booking</button>':''}</section>`:''}
+      ${(!registered||needsReconfirmation)&&e.canBook&&me?`<form class="ex-form" data-provider-book><h3>${needsReconfirmation?'Reconfirm updated terms':e.remaining?'Book a place':'Join the waiting list'}</h3><label class="ex-field">Your age<input name="age" type="number" min="1" max="120" required></label><label class="ex-field">Participation mode<select name="mode">${(e.modes.includes('Hybrid')?['In-person','Online']:e.modes).map(m=>`<option>${esc(m)}</option>`).join('')}</select></label>${e.sessions.filter(ss=>ss.format==='Hybrid').map(ss=>`<label class="ex-field">${esc(ss.title)} mode<select name="mode-${esc(ss.id)}"><option>In-person</option><option>Online</option></select></label>`).join('')}${(e.participantForm?.questions||[]).map(q=>`<label class="ex-field">${esc(q.label)}${q.type==='choice'?`<select name="q-${esc(q.id)}" ${q.required?'required':''}><option value="">Choose</option>${q.options.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:`<input name="q-${esc(q.id)}" ${q.required?'required':''}>`}</label>`).join('')}<label class="ex-consent"><input name="consent" type="checkbox" required><span>${esc(e.consent)} · form/consent version ${e.participantForm?.version||1}</span></label>${e.cost?.type==='Paid'?`<label class="ex-consent"><input name="payment" type="checkbox" required><span>I understand the ${esc(costText(e))}.</span></label>`:''}<p class="ex-error" role="alert" hidden></p><button class="ex-button">${needsReconfirmation?'Reconfirm this booking':e.remaining?'Confirm booking':'Join waiting list'}</button></form>`:!me?signInNote():''}<p class="ex-error" data-provider-error role="alert" hidden></p></div>`);
+    body.querySelector('[data-provider-book]')?.addEventListener('submit',event=>{
+      event.preventDefault();const f=event.currentTarget;
+      try{r.run(needsReconfirmation?'member.booking.reconfirm':'member.experience.book',{id:needsReconfirmation?b.id:undefined,experienceId:e.id,version:e.version||1,answers:Object.fromEntries((e.participantForm?.questions||[]).map(q=>[q.id,f.elements[`q-${q.id}`]?.value||''])),sessionModes:Object.fromEntries(e.sessions.filter(ss=>ss.format==='Hybrid').map(ss=>[ss.id,f.elements[`mode-${ss.id}`].value])),age:Number(f.elements.age.value),mode:f.elements.mode.value,consent:f.elements.consent.checked,paymentConfirmed:f.elements.payment?.checked});renderGrid();renderMine();showProviderDetail();}
+      catch(error){const n=f.querySelector('.ex-error');n.textContent=error.message;n.hidden=false;}
+    });
+    body.querySelectorAll('[data-provider-action]').forEach(button=>button.addEventListener('click',()=>{
+      try{const kind=button.dataset.providerAction;r.run(kind==='cancel'?'member.booking.cancel':`member.booking.offer.${kind}`,{id:kind==='cancel'?b.id:b.offer.id});renderGrid();renderMine();showProviderDetail();}
+      catch(error){const n=body.querySelector('[data-provider-error]');n.textContent=error.message;n.hidden=false;}
+    }));
+  }
+
   /* ------------------------------------------- live Institution Initiatives */
 
   const costText = item => item.cost?.type === 'Paid' ? `${item.cost.price} ${item.cost.currency} · payment is simulated in this demo — nothing is charged` : 'Free';
@@ -518,7 +552,7 @@
       <h3>What it’s for</h3><p>${esc(item.objective)}</p>
       ${item.description ? `<p>${esc(item.description)}</p>` : ''}
       ${item.requirements ? `<h3>What it asks of you</h3><p>${esc(item.requirements)}</p>` : ''}
-      <h3>Its parts — each joined separately</h3>
+      ${providerLinks(item)}<h3>Its parts — each joined separately</h3>
       <ul class="ex-parts">${item.components.map(part => `<li><span>${esc(part.title)}<br><small>${esc(part.type)}</small></span></li>`).join('')}${sessions.map(ss => `<li><span>${esc(ss.title)}<br><small>Session · ${esc(ss.format)}</small></span><small>${esc(fmt.date(Account.parse(ss.date), { weekday: true }))} · ${esc(ss.time)}</small></li>`).join('')}</ul>
       <div class="ex-commit"><p><strong>Joining is not booking.</strong> Accepted students register for each session separately. Attendance is confirmed by a Supervisor on the day, and completion follows the published criteria: ${esc(item.policies.completion || 'see the institution’s rules')}.</p></div>
       <details class="ex-policy"><summary>Participation rules &amp; privacy</summary><dl class="ex-review">
@@ -633,14 +667,14 @@
     if (!entry.forms.length) return '';
     return `<h4>Forms &amp; surveys</h4><ul class="ex-form-list">${entry.forms.map(f => `<li class="ex-session"><div class="ex-session-head"><div><strong>${esc(f.title)}</strong><small>${esc(f.purpose)} · version ${f.version} · identified — the institution sees your name with your answers</small></div><div class="ex-mine-actions">${f.response ? `<span class="ex-status" data-status="confirmed">${icon('i-check')}Submitted ${esc(fmtWhen(f.response.submitted))}</span>` : f.canRespond ? `<button type="button" class="ex-button ex-small" data-form-open="${f.id}">Answer</button>` : `<span class="ex-muted">${f.status !== 'Published' ? 'Closed' : f.permitted ? 'Not open' : 'For accepted participants'}</span>`}</div></div>
       ${f.response ? `<details class="ex-policy"><summary>Your answers (version ${f.response.version})</summary><dl class="ex-review">${f.questions.map(q => `<div><dt>${esc(q.label)}</dt><dd>${esc([].concat(f.response.answers[q.id] ?? '—').join(', '))}</dd></div>`).join('')}</dl></details>` : ''}
-      <form class="ex-form ex-inline-form" data-form-respond="${f.id}" hidden>${f.questions.map(q => questionHtml(f.id, q)).join('')}<p class="ex-error" role="alert" hidden></p><div class="ex-sheet-actions"><button class="ex-button ex-small">Submit answers</button><button type="button" class="ex-button is-quiet ex-small" data-form-cancel="${f.id}">Cancel</button></div></form></li>`).join('')}</ul>`;
+      <form class="ex-form ex-inline-form" data-form-respond="${f.id}" data-version="${f.version}" hidden>${f.questions.map(q => questionHtml(f.id, q)).join('')}<p class="ex-error" role="alert" hidden></p><div class="ex-sheet-actions"><button class="ex-button ex-small">Submit answers</button><button type="button" class="ex-button is-quiet ex-small" data-form-cancel="${f.id}">Cancel</button></div></form></li>`).join('')}</ul>`;
   }
   function competitionsBlock(entry) {
     if (!entry.competitions.length) return '';
     return `<h4>Competitions</h4><ul class="ex-form-list">${entry.competitions.map(c => `<li class="ex-session"><div class="ex-session-head"><div><strong>${esc(c.title)}</strong><small>${esc(c.topic || '')} · entries ${esc(fmtWhen(c.open))} – ${esc(fmtWhen(c.deadline))}</small></div><div class="ex-mine-actions">${c.entry ? `<span class="ex-status" data-status="${c.resultsPublished ? 'complete' : 'pending'}">${esc(c.resultsPublished ? 'Results published' : c.entry.status === 'Reviewed' ? 'Reviewed · results pending' : 'Entry submitted')}</span>` : c.canEnter ? `<button type="button" class="ex-button ex-small" data-entry-open="${c.id}">Enter</button>` : `<span class="ex-muted">${!c.windowOpen ? 'Submission window closed' : 'For accepted participants'}</span>`}</div></div>
       <details class="ex-policy"><summary>Rules &amp; judging criteria</summary><p>${esc(c.rules)}</p><p class="ex-muted">${esc(c.eligibility || '')}</p><ul>${c.criteria.map(k => `<li>${esc(k)}</li>`).join('')}</ul></details>
       ${c.entry ? `<div class="ex-excuse"><p><strong>Your entry</strong> · ${esc(fmtWhen(c.entry.created))}</p><p>${esc(c.entry.text)}</p>${c.resultsPublished ? `<p><strong>Feedback:</strong> ${esc(c.entry.feedback || '—')}</p><ul>${Object.entries(c.entry.scores || {}).map(([k, v]) => `<li>${esc(k)}: ${esc(v)}/5</li>`).join('')}</ul>` : '<p class="ex-muted">Scores and feedback appear here when the institution publishes results.</p>'}</div>` : ''}
-      <form class="ex-form ex-inline-form" data-entry-form="${c.id}" hidden><label class="ex-field"><span>Your original entry</span><textarea name="text" rows="5" maxlength="4000" required></textarea><small>No sensitive personal information. Entering is not winning, and it adds nothing to your Garden.</small></label><p class="ex-error" role="alert" hidden></p><div class="ex-sheet-actions"><button class="ex-button ex-small">Submit entry</button><button type="button" class="ex-button is-quiet ex-small" data-entry-cancel="${c.id}">Cancel</button></div></form></li>`).join('')}</ul>`;
+      <form class="ex-form ex-inline-form" data-entry-form="${c.id}" data-version="${c.version || 1}" hidden><label class="ex-field"><span>Your original entry</span><textarea name="text" rows="5" maxlength="4000" required></textarea><small>No sensitive personal information. Entering is not winning, and it adds nothing to your Garden.</small></label><label class="ex-consent"><input type="checkbox" name="consent" required><span>I meet the eligibility conditions and this is my original work.</span></label><p class="ex-error" role="alert" hidden></p><div class="ex-sheet-actions"><button class="ex-button ex-small">Submit entry</button><button type="button" class="ex-button is-quiet ex-small" data-entry-cancel="${c.id}">Cancel</button></div></form></li>`).join('')}</ul>`;
   }
   const sessionWhen = ss => `${fmt.date(Account.parse(ss.date), { weekday: true, year: true })} · ${ss.time}–${ss.endTime} (${ss.timezone || 'Asia/Amman'})`;
   const ATTEND_TONE = { Present: 'confirmed', Late: 'pending', Absent: 'cancelled', 'Excused Absence': 'waitlisted', Registered: 'pending', 'Not registered': 'cancelled' };
@@ -685,6 +719,8 @@
     return `<li class="ex-session"><div class="ex-session-head"><div><strong>${esc(ss.title)}</strong><small>${esc(sessionWhen(ss))} · ${esc(ss.format)}${ss.venue ? ` · ${esc(ss.venue)}` : ''}</small></div><div class="ex-mine-actions">${actions}</div></div>${credential}${excuse}<div class="ex-excuse-slot" data-slot="${ss.attendance?.id || ''}"></div></li>`;
   }
 
+  function providerLinks(item){return item.linkedExperiences?.length?`<h3>Accepted Provider partnerships · booked separately</h3><ul class="ex-parts">${item.linkedExperiences.map(e=>`<li><span>${esc(e.title)} · ${esc(e.organizer)} · ${e.remaining} places</span><button type="button" class="ex-card-link" data-open="${esc(e.id)}">View Provider experience</button></li>`).join('')}</ul>`:'';}
+
   function renderMyInitiatives() {
     const host = $('ex-my-initiatives');
     if (!host) return;
@@ -710,7 +746,7 @@
         <details class="ex-initiative-body" data-details="${a.id}"${open ? ' open' : ''}><summary>Sessions, tasks and history</summary>
           ${entry.sessions.length ? `<h4>Sessions</h4><ol class="ex-session-list">${entry.sessions.map(ss => sessionBlock(entry, ss)).join('')}</ol>` : '<p class="ex-muted">No published sessions yet.</p>'}
           <h4>Coach tasks</h4>${tasks.length ? `<p>${tasks.filter(t => t.status === 'Approved').length} of ${tasks.length} approved · ${tasks.filter(t => ['Assigned', 'In Progress', 'Needs Revision'].includes(t.status)).length} to do. <a class="ex-inline-link" href="${root}src/pages/member/training/training.html#assigned">Open Activities → Assigned</a></p>` : '<p class="ex-muted">No tasks assigned yet.</p>'}
-          ${formsBlock(entry)}${competitionsBlock(entry)}
+          ${providerLinks(item)}${formsBlock(entry)}${competitionsBlock(entry)}
           ${entry.completion ? `<p class="ex-complete">${icon('i-check')} ${entry.completion.status} · ${esc(fmt.date(Account.parse(entry.completion.at.slice(0, 10)), { year: true }))}. Completion is recorded in your history and Insights; it doesn’t add a Garden object.</p>` : ''}
           <h4>Decision history</h4><ol class="ex-history">${a.history.map(h => `<li><span>${esc(fmt.date(Account.parse(String(h.at).slice(0, 10))))}</span><span>${esc(h.to || '')}${h.reason ? ` — ${esc(h.reason)}` : ''}</span></li>`).join('')}</ol>
           ${live ? `<div class="ex-sheet-actions"><button type="button" class="ex-button is-danger ex-small" data-withdraw="${a.id}">Withdraw from this initiative</button></div>` : ''}
@@ -780,9 +816,9 @@
       event.preventDefault();
       const answers = {};
       [...new FormData(form).entries()].forEach(([key, value]) => { const qid = key.slice(2); if (form.querySelectorAll(`[name="${key}"][type=checkbox]`).length) answers[qid] = [...(answers[qid] || []), value]; else answers[qid] = value; });
-      liveAction(form, () => liveRun('member.form.respond', { formId: form.dataset.formRespond, answers }), 'Answers submitted. The institution sees them with your name, pinned to this form version.');
+      liveAction(form, () => liveRun('member.form.respond', { formId: form.dataset.formRespond, version:Number(form.dataset.version), answers }), 'Answers submitted. The institution sees them with your name, pinned to this form version.');
     }
-    if (form.dataset.entryForm) { event.preventDefault(); liveAction(form, () => liveRun('member.competition.enter', { competitionId: form.dataset.entryForm, text: form.elements.text.value }), 'Entry submitted. You will see the outcome here when results are published.'); }
+    if (form.dataset.entryForm) { event.preventDefault(); liveAction(form, () => liveRun('member.competition.enter', { competitionId: form.dataset.entryForm, version:Number(form.dataset.version), consent:form.elements.consent.checked, text: form.elements.text.value }), 'Entry submitted. You will see the outcome here when results are published.'); }
   });
 
   document.addEventListener('click', event => {
@@ -810,15 +846,19 @@
     renderGrid();
     renderMine();
     renderMyInitiatives();
+    const requestedExperience=new URLSearchParams(location.hash.slice(1)).get('experience');
+    if(requestedExperience)openSheet(requestedExperience);
     if (location.hash === '#my-registrations') $('my-registrations').scrollIntoView({ block: 'start' });
     if (location.hash === '#my-initiatives') $('my-initiatives').scrollIntoView({ block: 'start' });
     window.addEventListener('deepsprout:account', () => { renderGrid(); renderMine(); });
     // Another workspace (or tab) changed a shared record: re-read, never cache.
     window.addEventListener('deepsprout:repo', () => {
-      renderGrid(); renderMyInitiatives();
+      renderGrid(); renderMine(); renderMyInitiatives();
+      if(sheet.open&&current?.listing==='provider'&&body.querySelector('[data-provider-view=detail]'))showProviderDetail();
       if (sheet.open && current?.listing === 'live' && body.querySelector('[data-live-view="detail"]')) { current = liveById(current.id) || current; showLiveDetail(); }
     });
-    setInterval(() => document.querySelectorAll('[data-countdown]').forEach(node => { node.textContent = countdown(node.dataset.countdown); }), 30000);
+    const subject=window.DeepSproutPersonal?.subject();
+    setInterval(() => {if(window.DeepSproutPersonal?.subject()!==subject)return;document.querySelectorAll('[data-countdown]').forEach(node=>{const text=countdown(node.dataset.countdown);node.textContent=text;if(text==='expired'&&current?.listing==='provider'){renderMine();showProviderDetail();}});},30000);
   }).catch(() => {
     $('ex-count').textContent = 'Listings couldn’t be loaded, so none are shown.';
   });

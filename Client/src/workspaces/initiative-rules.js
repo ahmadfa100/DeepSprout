@@ -5,7 +5,7 @@
  * three active Supervisors per Initiative). Offer expiry is the interim
  * configurable 24-hour default.
  */
-import {nowMs,clockDay} from './domain.js';
+import {nowMs,clockDay,institutionApproved} from './domain.js';
 
 export const MAX_SEATS = 135;
 export const MAX_SUPERVISORS = 3;
@@ -38,7 +38,7 @@ export const needsSupervisor = (s, session) => Boolean(session?.initiativeId && 
 export const today = s => clockDay(s);
 /** Publication, registration availability and execution are three distinct facts. */
 export function registrationState(s, initiative) {
-  if (!initiative) return 'Unavailable';
+  if (!initiative || !institutionApproved(s,initiative.ownerId)) return 'Unavailable';
   if (initiative.status !== 'Published') return initiative.status === 'Draft' ? 'Not published' : 'Closed';
   if (initiative.registrationState === 'Closed') return 'Closed';
   const day = today(s);
@@ -81,7 +81,13 @@ export const practiceTypeOf = activity => PRACTICE_TYPES.find(t => t.match.test(
  */
 export const TZ_OFFSET = {'Asia/Amman':'+03:00', 'Asia/Riyadh':'+03:00', 'Asia/Dubai':'+04:00', 'Europe/London':'+01:00', 'UTC':'+00:00'};
 export const DEFAULT_CHECKIN = {mode:'window', before:30, after:30};
-const at = (date, time, tz) => Date.parse(`${date}T${time || '00:00'}:00${TZ_OFFSET[tz] || '+03:00'}`);
+export function sessionTimestamp(date,time='00:00',tz='Asia/Amman'){
+  const wall=Date.parse(`${date}T${time}:00Z`);let candidate=wall;
+  const formatter=new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+  for(let n=0;n<3;n++){const parts=Object.fromEntries(formatter.formatToParts(new Date(candidate)).map(p=>[p.type,p.value]));const represented=Date.UTC(Number(parts.year),Number(parts.month)-1,Number(parts.day),Number(parts.hour),Number(parts.minute),Number(parts.second));const next=wall-(represented-candidate);if(next===candidate)break;candidate=next;}
+  return candidate;
+}
+const at=sessionTimestamp;
 export function checkInWindow(s, session, timezone) {
   const policy = {...DEFAULT_CHECKIN, ...(session.checkInPolicy || {})};
   const tz = session.timezone || timezone || 'Asia/Amman';
@@ -90,18 +96,18 @@ export function checkInWindow(s, session, timezone) {
   const state = policy.mode === 'anytime' ? 'open' : t < opens ? 'early' : t > closes ? 'closed' : 'open';
   return {state, policy, start, end, opens, closes, started:t >= start};
 }
-const clock = ms => new Date(ms).toLocaleString('en-GB', {timeZone:'Asia/Amman', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
-export function windowMessage(w) {
+const clock = (ms,timezone='Asia/Amman') => new Date(ms).toLocaleString('en-GB', {timeZone:timezone, day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+export function windowMessage(w,timezone='Asia/Amman') {
   if (w.policy.mode === 'anytime') return 'Check-in is open at any time for this session (explicit session policy).';
-  if (w.state === 'early') return `Check-in has not opened yet. It opens ${clock(w.opens)} (${w.policy.before} min before the start).`;
-  if (w.state === 'closed') return `Check-in closed ${clock(w.closes)} (${w.policy.after} min after the end). Use a reasoned manual exception or a correction.`;
-  return `Check-in open until ${clock(w.closes)}.`;
+  if (w.state === 'early') return `Check-in has not opened yet. It opens ${clock(w.opens,timezone)} (${w.policy.before} min before the start).`;
+  if (w.state === 'closed') return `Check-in closed ${clock(w.closes,timezone)} (${w.policy.after} min after the end). Use a reasoned manual exception or a correction.`;
+  return `Check-in open until ${clock(w.closes,timezone)}.`;
 }
 /** Throws an understandable error unless the method is allowed in the current window state. */
 export function assertWindow(s, session, method, timezone) {
   const w = checkInWindow(s, session, timezone);
-  if (w.state === 'early') throw new Error(windowMessage(w));
-  if (w.state === 'closed' && !['manual','manual-exception','absent','roster'].includes(method)) throw new Error(windowMessage(w));
+  if (w.state === 'early') throw new Error(windowMessage(w,timezone||session.timezone||'Asia/Amman'));
+  if (w.state === 'closed' && !['manual','manual-exception','absent','roster'].includes(method)) throw new Error(windowMessage(w,timezone||session.timezone||'Asia/Amman'));
   return w;
 }
 

@@ -10,6 +10,7 @@
  * unchanged: one camera, one light, focusable buttons over every object.
  */
 (() => {
+  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const Account = window.DeepSproutAccount;
   const canvas = document.getElementById('garden-canvas');
   if (!Account || !canvas) return;
@@ -550,11 +551,19 @@
     rabbit: '<path d="M8 21c-2 0-3-2-3-4 0-3 3-5 7-5s6 2 6 4-1 3-3 3M14 12l1-8m-3 8-1-7"/>',
     birdhouse: '<path d="M5 10 12 4l7 6v8H5Zm7 11v-3"/><circle cx="12" cy="13" r="2"/>'
   };
+  // The practice icons Activities uses (32-unit grid), so a category reads the same on both pages.
+  const KIND_ICONS = {
+    depth: '<path d="M16 7c-4-3-9-3-13-2v19c5-1 10 0 13 3 3-3 8-4 13-3V5c-4-1-9-1-13 2Zm0 0v20"/>',
+    listening: '<path d="M5 18v-3a11 11 0 0 1 22 0v3M5 17h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9Zm22 0h-4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-9Z"/>',
+    practical: '<path d="m6 25 2-7L23 3l6 6-15 15-8 1Zm12-17 6 6M6 25l7-2"/>',
+    'protected-work': '<circle cx="16" cy="18" r="11"/><path d="M16 7V3m-5 0h10m-5 15 4-5m7-4 2-2"/>'
+  };
+  const kindIcon = kind => (KIND_ICONS[kind] ? `<svg viewBox="0 0 32 32">${KIND_ICONS[kind]}</svg>` : `<svg viewBox="0 0 24 24">${ICONS[kind] || ICONS.tree}</svg>`);
 
   Account.load().then(account => {
     const repo = window.DeepSproutRepo;
     const me = repo?.me();
-    const shared = me && repo ? repo.selectors.personalGardenEffects(repo.read(), me.id) : [];
+    const shared = me && repo && repo.selectors.hasPersonalGarden(repo.read(), me.id) ? repo.selectors.personalGardenEffects(repo.read(), me.id) : [];  // Invited Students: Group Garden only until upgrade (D12).
     const journal = account.practiceGarden();
     ({ treeSteps: TREE_STEPS, stageNames: STAGE_NAMES, flowerAt: FLOWER_AT, maxRabbits: MAX_RABBITS } = journal.policy);
     const sourcesFor = type => [...journal.types.find(t => t.id === type)?.sources || [], ...shared.filter(e => e.effect === 'tree' && e.type === type).map(e => ({ key: e.key, on: e.on, title: e.title, detail: e.detail, source: 'Coach-approved task' }))];
@@ -590,17 +599,40 @@
     $('garden-subtitle').textContent = 'Four small trees, one for each kind of practice. They grow only from records — and nothing wilts while you rest.';
     $('garden-hint').textContent = grown ? 'Hover, tap or tab to a tree or decoration to see exactly what grew it.' : 'All four places are ready. A valid practice — or a Coach-approved task — starts the matching tree.';
 
+    // One summary card per practice type. The space between name and stage keeps "Protected Work Sprout (2)" readable as text.
     const next = $('garden-next');
-    next.innerHTML = `<span class="garden-legend">${practice.map(t => `<b>${esc(t.title)}</b> ${esc(STAGE_NAMES[t.stage])} (${t.sources.length})`).join(' · ')}</span>
-      <span>Flowers come from your Offline Routine (${journal.routineDays.length} day${journal.routineDays.length === 1 ? '' : 's'} recorded; at ${FLOWER_AT.join(', ')}). A rabbit appears for Supervisor-confirmed session attendance (up to ${MAX_RABBITS}); a birdhouse for a verified camp completion. Joining, registering, an accepted excuse or completing an initiative add nothing here. Thresholds are demo defaults.</span>`;
+    next.innerHTML = `<ul class="garden-kinds-list">${practice.map(t => `<li class="garden-kind" data-kind="${esc(t.type)}"><span class="garden-kind-icon" aria-hidden="true">${kindIcon(t.type)}</span><span class="garden-kind-text"><b>${esc(t.title)}</b> <span>${esc(STAGE_NAMES[t.stage])} (${t.sources.length})</span></span></li>`).join('')}</ul>`;
 
     const card = $('garden-achievement');
-    const recent = [...practice.flatMap(t => t.sources.map(x => ({ ...x, icon: 'tree', what: `${t.title} tree` }))), ...attended.map(e => ({ ...e, icon: 'rabbit', what: 'Rabbit', source: 'Supervisor-confirmed attendance' })), ...camps.map(e => ({ ...e, icon: 'birdhouse', what: 'Birdhouse', source: 'Provider-verified completion' }))]
+    const catalogTitle = type => journal.types.find(t => t.id === type)?.title;
+    const recent = [...practice.flatMap(t => t.sources.map(x => ({ ...x, kind: t.type, what: t.title, named: x.title !== catalogTitle(t.type) && x.title !== t.title }))), ...attended.map(e => ({ ...e, kind: 'rabbit', what: 'Rabbit', named: true, source: 'Supervisor-confirmed attendance' })), ...camps.map(e => ({ ...e, kind: 'birdhouse', what: 'Birdhouse', named: true, source: 'Provider-verified completion' }))]
       .sort((a, b) => String(b.on).localeCompare(String(a.on))).slice(0, 5);
+    // The meta line keeps the record's own outcome and source; a generic catalog title is not repeated.
+    const metaOf = x => [x.named ? x.title : '', x.detail, x.source].filter((part, index, all) => part && all.indexOf(part) === index).map(esc).join(' · ');
     const groupLinks = repo && me ? repo.selectors.myInitiatives(repo.read(), me.id).filter(m => ['Accepted', 'Completed', 'Suspended'].includes(m.admission.status)) : [];
-    card.innerHTML = `<span class="garden-achievement-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${ICONS[recent[0]?.icon || 'tree']}</svg></span>
-      <div><p class="garden-achievement-eyebrow">Recently grown</p>${recent.length ? `<h2 id="achievement-title">${esc(recent[0].what)} · ${esc(recent[0].title)}</h2><ul class="garden-recent">${recent.map(x => `<li><span>${esc(x.what)} — ${esc(x.title)}</span><small>${esc(fmt.date(x.on, { year: true }))} · ${esc(x.source || '')}</small></li>`).join('')}</ul>` : '<h2 id="achievement-title">Nothing yet</h2><p>Your first valid practice, routine day or Coach-approved task will appear here with its date and source.</p>'}
-      ${groupLinks.length ? `<p class="garden-groups">Group Gardens are shared and separate: ${groupLinks.map(m => `<a href="#group-${esc(m.initiative.id)}" data-group-garden="${esc(m.initiative.id)}">${esc(m.initiative.title)}</a>`).join(', ')}</p><div id="group-garden-panel"></div>` : ''}</div>`;
+    const routineCount = journal.routineDays.length;
+    card.innerHTML = `<header class="garden-achievement-head">
+        <p class="garden-achievement-eyebrow">Recently grown</p>
+        <h2 id="achievement-title">Your latest growth</h2>
+        <p>${recent.length ? 'See the activities that helped your garden grow.' : 'Nothing has grown yet. Each qualifying activity will appear here with its date and source.'}</p>
+      </header>
+      ${recent.length ? `<ul class="garden-recent">${recent.map(x => `<li class="garden-recent-item" data-kind="${esc(x.kind)}">
+        <span class="garden-recent-icon" aria-hidden="true">${kindIcon(x.kind)}</span>
+        <span class="garden-recent-text"><b>${esc(x.what)}</b><span>${metaOf(x)}</span></span>
+        <time datetime="${esc(x.on)}">${esc(fmt.date(x.on, { year: true }))}</time>
+      </li>`).join('')}</ul>` : ''}
+      <footer class="garden-achievement-foot">
+        ${groupLinks.length ? `<p class="garden-groups">Group Gardens are shared and separate: ${groupLinks.map(m => `<a href="#group-${esc(m.initiative.id)}" data-group-garden="${esc(m.initiative.id)}">${esc(m.initiative.title)}</a>`).join(', ')}</p><div id="group-garden-panel"></div>` : ''}
+        <details class="garden-rules">
+          <summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>How flowers, rabbits and birdhouses appear</summary>
+          <ul>
+            <li><b>Flower</b> — your Offline Routine, self-reported. ${routineCount} day${routineCount === 1 ? '' : 's'} recorded; flowers at ${FLOWER_AT.join(', ')} days.</li>
+            <li><b>Rabbit</b> — Supervisor-confirmed session attendance, up to ${MAX_RABBITS}.</li>
+            <li><b>Birdhouse</b> — a verified camp completion.</li>
+          </ul>
+          <p>Joining, registering, an accepted excuse or completing an initiative add nothing here. Thresholds are demo defaults.</p>
+        </details>
+      </footer>`;
     card.querySelectorAll('[data-group-garden]').forEach(link => link.addEventListener('click', event => {
       event.preventDefault();
       const g = repo.selectors.initiativeGarden(repo.read(), link.dataset.groupGarden);
@@ -619,6 +651,7 @@
     reduced.addEventListener?.('change', () => { replay.hidden = reduced.matches; entranceStart = null; draw(); });
   }).catch(error => {
     console.error(error);
+    $('garden-next').setAttribute('role', 'alert');
     $('garden-next').textContent = 'Your garden couldn’t be loaded.';
   });
 })();

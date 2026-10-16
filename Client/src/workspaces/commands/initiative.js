@@ -7,7 +7,7 @@
  * registration, factual attendance, excuse, Coach report and Supervisor
  * summary. Reports, Explore cards and Gardens are derived from these.
  */
-import {id,now,nowMs,clockISO,requireThat,find,textRequired,numberIn,notify} from '../domain.js';
+import {institutionApproved,id,now,nowMs,clockISO,requireThat,find,textRequired,numberIn,notify} from '../domain.js';
 import {displayCode,bookingCode} from '../migrate.js';
 import {MAX_SUPERVISORS,SEATED,REAPPLY_BLOCKED,seatCap,seatsUsed,queue,activeGrantsFor,isActiveSupervisor,isActiveCoach,isRepresentative,representativesOf,registrationState,sessionRegistrationOpen,modeCapacity,confirmedInMode,assignedActiveSupervisors,today} from '../initiative-rules.js';
 import {startTask,submitTask} from './mentorship.js';
@@ -26,7 +26,7 @@ function requireRep(s, initiative, actor) { requireThat(isRepresentative(s, init
 function requireRepOrSupervisor(s, initiative, actor) {
   requireThat(isRepresentative(s, initiative, actor) || isActiveSupervisor(s, initiative.id, actor), 'Only the Representative or an active Supervisor of this initiative can do this.');
 }
-function requireOperational(initiative) { requireThat(!CLOSED_INITIATIVE.includes(initiative.status), `This initiative is ${initiative.status.toLowerCase()}; new operational actions are disabled.`); }
+function requireOperational(initiative, s) { requireThat(institutionApproved(s,initiative.ownerId),'The Institution is not active.'); requireThat(!CLOSED_INITIATIVE.includes(initiative.status), `This initiative is ${initiative.status.toLowerCase()}; new operational actions are disabled.`); }
 function history(record, actor, from, to, reason = '') { (record.history ||= []).push({at:now(), actorId:actor, from, to, reason}); record.updated = now(); }
 const staffAndRep = (s, initiative) => [...new Set([...representativesOf(s, initiative), ...activeGrantsFor(s, initiative.id, 'supervisor').map(g => g.personId)])];
 function noticeAll(s, ids, text, link) { for (const pid of new Set(ids)) notify(s, pid, text, link); }
@@ -34,7 +34,7 @@ const memberLink = 'src/pages/member/explore/explore.html#my-initiatives';
 
 /** Move the next eligible queued applicant to a held Offer while seats allow. */
 export function offerNextSeat(s, initiative) {
-  if (!initiative.policies?.waitlist || initiative.status !== 'Published') return;
+  if (!institutionApproved(s,initiative.ownerId) || registrationState(s,initiative)!=='Open' || !initiative.policies?.waitlist || initiative.status !== 'Published') return;
   while (seatsUsed(s, initiative.id) < seatCap(initiative)) {
     const next = queue(s, initiative.id)[0];
     if (!next) return;
@@ -66,6 +66,7 @@ function eligibleAge(initiative, age) {
 }
 function removeFromGroups(s, initiativeId, personId, actor, action) {
   for (const g of s.groups.filter(x => x.parentType === 'initiative' && x.initiativeId === initiativeId && x.memberIds.includes(personId))) {
+    for(const a of s.assignments.filter(a=>a.groupId===g.id&&(!a.studentId||a.studentId===personId)))a.recipientIds=[...new Set([...(a.recipientIds||[]),personId])];
     g.memberIds = g.memberIds.filter(x => x !== personId);
     (g.memberHistory ||= []).push({personId, action, at:now(), actorId:actor});
   }
@@ -99,7 +100,7 @@ export function initiativeCommand(s, action, p, actor) {
     requireRepOrSupervisor(s, initiative, actor);
     requireThat(a.status !== 'Accepted', 'This application has already been approved. No second seat was used.');
     requireThat(a.status === 'Pending', `Only a pending application can be approved (current: ${a.status}).`);
-    requireOperational(initiative);
+    requireOperational(initiative, s);
     eligibleAge(initiative, a.answers?.age);
     if (seatsUsed(s, initiative.id) >= seatCap(initiative)) {
       requireThat(initiative.policies?.waitlist, `All ${seatCap(initiative)} seats are taken and the waiting list is off.`);
@@ -154,7 +155,7 @@ export function initiativeCommand(s, action, p, actor) {
     requireThat(a.personId === actor, 'This offer belongs to someone else.');
     requireThat(a.status === 'Offered', a.status === 'Expired' ? 'This offer has expired. The seat was released.' : 'There is no open seat offer.');
     requireThat(Date.parse(a.offer.expires) > nowMs(s), 'This offer has expired. The seat was released.');
-    if (action.endsWith('accept')) { requireOperational(initiative); a.offer.status = 'Accepted'; history(a, actor, 'Offered', 'Accepted', 'Accepted the offered seat'); a.status = 'Accepted'; }
+    if (action.endsWith('accept')) { requireOperational(initiative, s); a.offer.status = 'Accepted'; history(a, actor, 'Offered', 'Accepted', 'Accepted the offered seat'); a.status = 'Accepted'; }
     else { a.offer.status = 'Declined'; history(a, actor, 'Offered', 'Declined', 'Declined the offered seat'); a.status = 'Declined'; offerNextSeat(s, initiative); }
     noticeAll(s, staffAndRep(s, initiative), `${personOf(s, actor).name} ${action.endsWith('accept') ? 'accepted' : 'declined'} an offered seat in ${initiative.title}.`, `workspaces.html#/organization/participants?initiative=${initiative.id}`);
     return;
@@ -177,23 +178,10 @@ export function initiativeCommand(s, action, p, actor) {
 
   /* ---- Identified forms and competitions from regular Individual pages (same engines, same records) */
   if (action === 'member.form.respond') {
-    const f = find(s.forms, p.formId), initiative = initiativeOfResource(s, f.id, f.initiativeId);
-    requireThat(initiative, 'This form is not part of an initiative you can access.');
-    requireThat(initiative.status === 'Published' || initiative.status === 'Completed', 'This initiative is not collecting responses.');
-    const a = s.admissions.find(x => x.initiativeId === initiative.id && x.personId === actor && ['Pending','Queued','Offered','Accepted','Completed'].includes(x.status));
-    const registration = /registration/i.test(f.purpose || '');
-    requireThat(a && (['Accepted','Completed'].includes(a.status) || registration), registration ? 'Apply to this initiative first.' : 'This form is for accepted participants of this initiative.');
-    return respondToForm(s, f, p.answers || {}, actor);
+    return respondToForm(s,find(s.forms,p.formId),p.answers||{},actor,p);
   }
   if (action === 'member.competition.enter') {
-    const c = find(s.competitions, p.competitionId), initiative = initiativeOfResource(s, c.id, c.initiativeId);
-    requireThat(initiative && initiative.status === 'Published', 'This initiative is not accepting competition entries.');
-    const a = s.admissions.find(x => x.initiativeId === initiative.id && x.personId === actor && x.status === 'Accepted');
-    requireThat(a, 'Competition entries are for accepted participants of this initiative.');
-    const day = today(s);
-    requireThat(!c.open || day >= c.open, `Entries open on ${c.open}.`);
-    requireThat(!c.deadline || day <= c.deadline, 'The submission deadline has passed.');
-    return enterCompetition(s, c, p.text, actor);
+    return enterCompetition(s,find(s.competitions,p.competitionId),p.text,actor,p);
   }
   /** Restricted evidence: returns the attachment reference only to permitted readers, and audits the access. */
   if (action === 'initiative.excuse.evidence') {
@@ -206,7 +194,7 @@ export function initiativeCommand(s, action, p, actor) {
 
   /* ---- Staff: scoped invitations and grants (no Platform Admin approval) */
   if (action === 'initiative.staff.invite') {
-    const initiative = initiativeOf(s, p.initiativeId); requireRep(s, initiative, actor); requireOperational(initiative);
+    const initiative = initiativeOf(s, p.initiativeId); requireRep(s, initiative, actor); requireOperational(initiative, s);
     requireThat(['supervisor','coach'].includes(p.role), 'Choose Supervisor or Coach.');
     const email = textRequired(p.email, 'Email').toLowerCase();
     requireThat(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), 'Enter a valid email address.');
@@ -241,7 +229,7 @@ export function initiativeCommand(s, action, p, actor) {
     requireThat(me.email.toLowerCase() === invite.email, `This invitation was sent to ${invite.email}. Sign in with that email — a different account cannot accept it.`);
     requireThat(me.verified, 'Verify your email before accepting a staff invitation.');
     if (action === 'initiative.staff.decline') { invite.status = 'Declined'; invite.history.push({at:now(), actorId:actor, change:'Declined'}); noticeAll(s, representativesOf(s, initiative), `${me.name} declined the ${invite.role} invitation for ${initiative.title}.`, `workspaces.html#/organization/team?initiative=${initiative.id}`); return; }
-    requireOperational(initiative);
+    requireOperational(initiative, s);
     if (invite.role === 'supervisor') requireThat(activeGrantsFor(s, initiative.id, 'supervisor').length < MAX_SUPERVISORS, `${initiative.title} already has ${MAX_SUPERVISORS} active Supervisors. The invitation stays pending until a place is free.`);
     requireThat(!activeGrantsFor(s, initiative.id, invite.role).some(g => g.personId === actor), 'You already hold this role in this initiative.');
     const grant = {id:id('grant'), personId:actor, role:invite.role, scopeType:'initiative', scopeId:initiative.id, institutionId:initiative.ownerId, status:'Active', inviteId:invite.id, acceptedAt:now(), revokedAt:null, history:[{at:now(), actorId:actor, change:'Accepted invitation'}]};
@@ -277,7 +265,7 @@ export function initiativeCommand(s, action, p, actor) {
 
   /* ---- Groups: one parent (the Initiative); Rep or active Supervisor */
   if (action === 'initiative.group.save') {
-    const initiative = initiativeOf(s, p.initiativeId); requireRepOrSupervisor(s, initiative, actor); requireOperational(initiative);
+    const initiative = initiativeOf(s, p.initiativeId); requireRepOrSupervisor(s, initiative, actor); requireOperational(initiative, s);
     const name = textRequired(p.name, 'Group name');
     if (p.id) {
       const g = find(s.groups, p.id); requireThat(g.initiativeId === initiative.id, 'This group belongs to another initiative.');
@@ -287,7 +275,7 @@ export function initiativeCommand(s, action, p, actor) {
     s.groups.push(g); return g.id;
   }
   if (action === 'initiative.group.allocate') {
-    const initiative = initiativeOf(s, p.initiativeId); requireRepOrSupervisor(s, initiative, actor); requireOperational(initiative);
+    const initiative = initiativeOf(s, p.initiativeId); requireRepOrSupervisor(s, initiative, actor); requireOperational(initiative, s);
     const a = s.admissions.find(x => x.initiativeId === initiative.id && x.personId === p.personId);
     requireThat(a && a.status === 'Accepted', 'Only an accepted student can be allocated to a group.');
     const from = s.groups.find(g => g.initiativeId === initiative.id && g.parentType === 'initiative' && g.memberIds.includes(p.personId));
@@ -302,7 +290,7 @@ export function initiativeCommand(s, action, p, actor) {
     return;
   }
   if (action === 'initiative.group.coach') {
-    const g = find(s.groups, p.groupId), initiative = initiativeOf(s, g.initiativeId); requireRepOrSupervisor(s, initiative, actor); requireOperational(initiative);
+    const g = find(s.groups, p.groupId), initiative = initiativeOf(s, g.initiativeId); requireRepOrSupervisor(s, initiative, actor); requireOperational(initiative, s);
     if (p.coachId) requireThat(isActiveCoach(s, initiative.id, p.coachId), 'Choose a Coach who has accepted an invitation to this initiative.');
     if (g.coachId === (p.coachId || null)) return;
     const open = (g.coachHistory ||= []).find(h => !h.to); if (open) open.to = now();
@@ -315,7 +303,7 @@ export function initiativeCommand(s, action, p, actor) {
 
   /* ---- Sessions: registration is separate from Initiative membership */
   if (action === 'initiative.session.save') {
-    const initiative = initiativeOf(s, p.initiativeId); requireRep(s, initiative, actor); requireOperational(initiative);
+    const initiative = initiativeOf(s, p.initiativeId); requireRep(s, initiative, actor); requireOperational(initiative, s);
     const title = textRequired(p.title, 'Session title'), speaker = textRequired(p.speaker, 'Host / facilitator');
     requireThat(p.date && p.time && p.endTime && p.endTime > p.time, 'Choose a date and a valid start and end time.');
     requireThat(['Online','In-person','Hybrid'].includes(p.format), 'Choose online, in-person or hybrid.');
@@ -369,7 +357,7 @@ export function initiativeCommand(s, action, p, actor) {
     requireThat(ss.status === 'Published', 'This session is not open for registration.');
     requireThat(p.consent, 'Confirm the session participation terms.');
     if (ss.initiativeId) {
-      const initiative = initiativeOf(s, ss.initiativeId); requireOperational(initiative);
+      const initiative = initiativeOf(s, ss.initiativeId); requireOperational(initiative, s);
       const a = s.admissions.find(x => x.initiativeId === initiative.id && x.personId === actor);
       requireThat(a?.status === 'Accepted', 'Only accepted participants of this initiative can register for its sessions.');
     }
@@ -400,7 +388,7 @@ export function initiativeCommand(s, action, p, actor) {
     requireThat(isActiveSupervisor(s, initiative.id, actor), 'Attendance is confirmed by an active Supervisor of this initiative.');
     requireThat((ss.supervisorIds || []).includes(actor), 'You are not the assigned Supervisor for this session. Ask for the duty to be assigned first.');
     requireThat(ss.status === 'Published', 'Attendance can be recorded only for a published, not cancelled, session.');
-    requireOperational(initiative);
+    requireOperational(initiative, s);
     const method = p.method || (p.code ? 'code' : 'manual');
     assertWindow(s, ss, method);
     let r;

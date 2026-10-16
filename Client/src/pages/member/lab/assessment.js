@@ -8,6 +8,7 @@
  * partial run is discarded (spec 4.4 / 4.5).
  */
 (() => {
+  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const Account = window.DeepSproutAccount;
   let account = null;
   let mode = { mode: 'practice', kind: 'practice' };

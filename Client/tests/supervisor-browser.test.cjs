@@ -29,7 +29,7 @@ async function main() {
   const context = await browser.newContext({viewport:{width:1360, height:950}});
   const page = await context.newPage();
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-  page.on('pageerror', e => errors.push(`PAGEERROR ${e.message}`));
+  page.on('pageerror', e => errors.push(`PAGEERROR ${page.url()} ${e.stack}`));
   page.on('popup', p => p.close().catch(() => {}));
   const step = async (id, title, fn) => {
     try { await fn(); results.push({id, title, status:'Pass'}); console.log(`✔ ${id} ${title}`); }
@@ -62,7 +62,7 @@ async function main() {
   });
   await step('S1b', 'Competition entry from My Initiatives → Representative judges and publishes → Individual sees permitted results', async () => {
     await as('p-rania'); await member('#my-initiatives');
-    await click('[data-entry-open="c-create"]'); await page.fill('[data-entry-form="c-create"] textarea', 'I wrote the first line of a letter I had avoided for months.'); await click('[data-entry-form="c-create"] button.ex-button');
+    await click('[data-entry-open="c-create"]'); await page.fill('[data-entry-form="c-create"] textarea', 'I wrote the first line of a letter I had avoided for months.'); await page.locator('[data-entry-form="c-create"] [name=consent]').check(); await click('[data-entry-form="c-create"] button.ex-button');
     assert.match(await text('#ex-my-initiatives'), /Entry submitted/);
     await as('p-maya'); await ws('organization/competitions/c-create');
     await click('[data-action=entry-judge]');
@@ -118,7 +118,7 @@ async function main() {
     attId = s.sessionAttendance.find(a => a.sessionId === 's-workshop' && a.personId === 'p-noor').id;
   });
   await step('S2d', 'Excuse with a real stored attachment: invalid file refused, PNG saved; Supervisor and Representative open it; Coach cannot', async () => {
-    await as('p-noor'); await member('#my-initiatives');
+    await as('p-noor'); await store(m=>{if(!m.person().individual)m.dispatch('account.upgrade',{consent:true});}); await member('#my-initiatives');
     await click(`[data-excuse="${attId}"]`); await page.fill(`[data-excuse-form="${attId}"] textarea`, 'I had a fever that evening.');
     await page.setInputFiles(`[data-excuse-form="${attId}"] input[name=attachment]`, {name:'virus.exe', mimeType:'application/octet-stream', buffer:Buffer.from('MZ')});
     await click(`[data-excuse-form="${attId}"] button`); assert.match(await text(`[data-excuse-form="${attId}"] .ex-error`), /PDF, JPG or PNG/);
@@ -189,8 +189,10 @@ async function main() {
     assert.ok(rows.some(t => /Noor Khalil/.test(t) && /Present/.test(t)) && rows.some(t => /Omar Saleh/.test(t) && /Late/.test(t)), rows.join(' | '));
     assert.equal(await page.locator('[data-action=attendance-manual]').count(), 0, 'no manual check-in offered for already-recorded people');
     await ws('provider/reports?resource=e-reset');
-    const attended = await page.evaluate(() => [...document.querySelectorAll('main tbody tr')].map(r => [...r.cells].map(c => c.textContent.trim())).filter(c => /Noor Khalil|Omar Saleh/.test(c[0])).map(c => `${c[0]}:${c[2]}`));
+    const attended = await page.evaluate(() => [...document.querySelectorAll('main tbody tr')].map(r => [...r.cells].map(c => c.textContent.trim())).filter(c => /Noor Khalil|Omar Saleh/.test(c[0])).map(c => `${c[0]}:${Number(c[3])+Number(c[4])}`));
     assert.deepEqual(attended.sort(), ['Noor Khalil:1', 'Omar Saleh:1'], 'Late counts as attended in Provider reports');
+    const separated=await page.evaluate(()=>[...document.querySelectorAll('main tbody tr')].map(r=>[...r.cells].map(c=>c.textContent.trim())).filter(c=>/Noor Khalil|Omar Saleh/.test(c[0])).map(c=>`${c[0]}:${c[3]}:${c[4]}`));
+    assert.deepEqual(separated.sort(),['Noor Khalil:1:0','Omar Saleh:0:1'],'Present and Late remain separate factual counts');
   });
   await step('S3e', 'Provider revokes with a reason; Supervisor loses access; history stays attributed', async () => {
     await ws('provider/supervisors'); const ap = (await read()).appointments.find(a => a.personId === lead).id;

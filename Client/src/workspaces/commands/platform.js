@@ -1,4 +1,4 @@
-import {id,now,requireThat,find,textRequired,numberIn,audit,notify} from '../domain.js';
+import {taskBlockReason,id,now,requireThat,find,textRequired,numberIn,audit,notify} from '../domain.js';
 export function platformCommand(s,action,p,actor) {
   if(action==='auth.application.save'||action==='auth.application.submit'){
     const pp=find(s.people,actor);requireThat(pp.verified,'Complete the simulated email verification first.');requireThat(['mentor','organization','provider'].includes(p.type),'Choose a partner category.');
@@ -18,6 +18,8 @@ export function platformCommand(s,action,p,actor) {
     }
     if(a.type==='organization'){const org=s.organizations.find(x=>x.memberIds.includes(a.personId));if(org)org.status=p.status;}
     if(a.type==='provider'){const provider=s.providers.find(x=>x.memberIds.includes(a.personId));if(provider)provider.status=p.status;}
+    const kind=a.type==='mentor'?'Independent Coach':a.type==='organization'?'Institution':'Outdoor Provider';
+    notify(s,a.personId,p.status==='Approved'?`Your ${kind} application was approved. Your workspace is ready.`:`Your ${kind} application: ${p.status}. ${p.reason||''}`.trim(),`workspaces.html#/auth/application-status/${a.id}`,'application');
     audit(s,actor,`Application ${p.status}`,a.name,p.reason||'Demo approval');return;
   }
   if(action==='admin.person.status'){const pp=find(s.people,p.id);requireThat(pp.id!==actor,'You cannot suspend the current Admin identity.');textRequired(p.reason,'Reason');pp.status=p.status==='Active'?'Active':'Suspended';return;}
@@ -28,14 +30,14 @@ export function platformCommand(s,action,p,actor) {
   if(action==='admin.cms.publish'){requireThat(s.cms.draft.heading&&s.cms.draft.alt,'Save a valid draft first.');if(s.cms.published)s.cms.versions.push({id:id('version'),content:structuredClone(s.cms.published),created:now()});s.cms.published={...s.cms.draft,published:now()};return;}
   if(action==='admin.cms.rollback'){const v=find(s.cms.versions,p.id);s.cms.versions.push({id:id('version'),content:structuredClone(s.cms.published),created:now()});s.cms.published=structuredClone(v.content);s.cms.draft=structuredClone(v.content);return;}
   if(action==='admin.entitlement.save'){const e=find(s.entitlements,p.id);e.price='TBD';e.quota=p.quota||'TBD';e.notes=textRequired(p.notes,'Configuration notes');return;}
-  if(action==='admin.system.save'){s.settings.offerMinutes=numberIn(p.offerMinutes,1,120,'Illustrative offer duration');s.settings.template=textRequired(p.template,'Notification template');s.settings.emailNotices=!!p.emailNotices;return;}
+  if(action==='admin.system.save'){s.settings.providerOfferHours=numberIn(p.providerOfferHours??Number(p.offerMinutes)/60,1/60,168,'Provider offer duration (hours)');s.settings.offerMinutes=s.settings.providerOfferHours*60;s.settings.template=textRequired(p.template,'Notification template');s.settings.emailNotices=!!p.emailNotices;return;}
   if(action==='account.save'){const pp=find(s.people,actor);pp.name=textRequired(p.name,'Full name');s.profileNotes[actor]={bio:p.bio||'',notices:!!p.notices};return;}
   if(action==='organization.profile.save'){const o=s.organizations.find(x=>x.memberIds.includes(actor));requireThat(o,'No institution membership.');Object.assign(o,{description:p.description,email:p.email,phone:p.phone,city:p.city});return;}
   if(action==='provider.profile.save'){const o=s.providers.find(x=>x.memberIds.includes(actor));requireThat(o,'No provider membership.');Object.assign(o,{description:p.description,email:p.email,phone:p.phone,city:p.city,safetyContact:p.safetyContact});return;}
-  if(action==='account.upgrade'){const pp=find(s.people,actor);requireThat(p.consent,'Confirm the upgrade handoff.');pp.individualHandoff=true;pp.individual=true;pp.journal||=`person:${pp.id}`;pp.upgradedAt=now();return;}
+  if(action==='account.upgrade'){const pp=find(s.people,actor);requireThat(pp.verified,'Verify your canonical email before upgrading.');requireThat(p.consent,'Confirm the upgrade to a full Individual account.');requireThat(!pp.individual,'This identity already has a full Individual account.');pp.individualHandoff=true;pp.individual=true;pp.journal||=`person:${pp.id}`;pp.upgradedAt=now();(pp.history||=[]).push({at:now(),change:'Upgraded from Invited Student to full Individual · same person ID',from:'student',to:'individual'});return pp.id;}
   if(action==='account.notice.read'){const notice=find(s.notifications,p.id);notice.read=true;return;}
   if(action==='builder.save'){s.builderDrafts[`${actor}:${p.kind}:${p.id||'new'}`]=p.draft;return;}
   if(action==='builder.clear'){delete s.builderDrafts[`${actor}:${p.kind}:${p.id||'new'}`];return;}
-  if(action==='student.focus.save'){s.focus[actor]={...p,updated:now()};return;}
+  if(action==='student.focus.save'){const a=find(s.assignments,p.assignmentId),g=find(s.groups,a.groupId);requireThat(!taskBlockReason(s,a,g,actor),taskBlockReason(s,a,g,actor));s.focus[actor]={...p,updated:now()};return;}
   return false;
 }

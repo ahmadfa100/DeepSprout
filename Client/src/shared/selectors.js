@@ -1,3 +1,5 @@
+import {exploreProviderExperiences} from './provider-selectors.js';
+import {bookingEvidence} from '../workspaces/provider-completion.js';
 /**
  * Read models over the one operational graph. Pure functions: they never
  * write, never copy a record into another store, and every value names the
@@ -5,7 +7,7 @@
  * workspaces and tests all read through these.
  */
 import {initiativeForms,initiativeCompetitions,seatCap,seatsUsed,seatsLeft,registrationState,executionPhase,needsSupervisor,assignedActiveSupervisors,sessionRegistrationOpen,modeCapacity,confirmedInMode,practiceTypeOf,PRACTICE_TYPES,activeGrantsFor,today,queue} from '../workspaces/initiative-rules.js';
-import {nowMs} from '../workspaces/domain.js';
+import {taskBlockReason,institutionApproved,nowMs} from '../workspaces/domain.js';
 
 const nameOf = (s, pid) => s.people.find(p => p.id === pid)?.name || 'Unknown participant';
 const orgOf = (s, orgId) => s.organizations.find(o => o.id === orgId);
@@ -34,12 +36,13 @@ export function initiativeCard(s, initiative, personId) {
     cost:initiative.cost || {type:'Free'}, policies:initiative.policies || {},
     components:(initiative.components || []).map(c => ({type:c.type, title:c.title, description:c.description || '', resourceId:c.resourceId || null})),
     sessions:sessions.map(ss => ({id:ss.id, title:ss.title, date:ss.date, time:ss.time, endTime:ss.endTime, format:ss.format, venue:ss.venue, status:ss.status})),
+    linkedExperiences:(s.partnerships||[]).filter(p=>p.initiativeId===initiative.id&&p.status==='Active').map(p=>exploreProviderExperiences(s,personId).find(e=>e.id===p.experienceId)).filter(Boolean),
     mine
   };
 }
 /** Published Initiatives for regular Explore. Drafts, suspended, cancelled and archived ones never appear. */
 export function exploreInitiatives(s, personId) {
-  return s.initiatives.filter(i => PUBLIC_STATES.includes(i.status)).map(i => initiativeCard(s, i, personId));
+  return s.initiatives.filter(i => PUBLIC_STATES.includes(i.status) && institutionApproved(s,i.ownerId)).map(i => initiativeCard(s, i, personId));
 }
 
 /* ------------------------------------------------------- Participation */
@@ -63,7 +66,7 @@ export function myInitiatives(s, personId) {
       const attendance = registration ? (s.sessionAttendance || []).find(x => x.registrationId === registration.id) || null : null;
       const excuse = attendance ? (s.excuses || []).find(e => e.attendanceId === attendance.id) || null : null;
       return {id:ss.id, title:ss.title, agenda:ss.agenda || '', date:ss.date, time:ss.time, endTime:ss.endTime, timezone:ss.timezone, format:ss.format, venue:ss.venue, meeting:ss.meeting, status:ss.status, cancelReason:ss.cancelReason || '',
-        open:sessionRegistrationOpen(s, ss) && initiative.status === 'Published', seats:{online:Math.max(0, modeCapacity(ss, 'Online') - confirmedInMode(s, ss, 'Online')), inPerson:Math.max(0, modeCapacity(ss, 'In-person') - confirmedInMode(s, ss, 'In-person'))},
+        open:institutionApproved(s,initiative.ownerId) && sessionRegistrationOpen(s, ss) && initiative.status === 'Published', seats:{online:Math.max(0, modeCapacity(ss, 'Online') - confirmedInMode(s, ss, 'Online')), inPerson:Math.max(0, modeCapacity(ss, 'In-person') - confirmedInMode(s, ss, 'In-person'))},
         registration:registration ? {id:registration.id, mode:registration.mode, status:registration.status, code:registration.code} : null,
         attendance:attendance ? {id:attendance.id, status:attendance.status, method:attendance.method, at:attendance.at} : null,
         excuse:excuse ? {id:excuse.id, status:excuse.status, reason:excuse.reason, attachment:excuse.attachment || null, recommendation:excuse.recommendation?.decision || null, recommendationNote:excuse.recommendation?.decision === 'More information' ? excuse.recommendation.note : '', decision:excuse.decision || null, created:excuse.created} : null,
@@ -76,13 +79,13 @@ export function myInitiatives(s, personId) {
       const response = (s.responses || []).filter(r => r.formId === f.id && r.personId === personId).pop() || null;
       const registration = /registration/i.test(f.purpose || '');
       const permitted = memberOk || (registration && ['Pending','Queued','Offered'].includes(a.status));
-      return {id:f.id, title:f.title, purpose:f.purpose, version:f.version, status:f.status, questions:f.questions, permitted, canRespond:permitted && f.status === 'Published' && !response && ['Published','Completed'].includes(initiative.status), response:response ? {id:response.id, version:response.version, submitted:response.submitted, answers:response.answers} : null};
+      return {id:f.id, title:f.title, purpose:f.purpose, version:f.version, status:f.status, questions:f.questions, permitted, canRespond:institutionApproved(s,initiative.ownerId) && permitted && f.status === 'Published' && !response && ['Published','Completed'].includes(initiative.status), response:response ? {id:response.id, version:response.version, submitted:response.submitted, answers:response.answers} : null};
     });
     const competitions = initiativeCompetitions(s, initiative).filter(c => c.status !== 'Draft').map(c => {
       const entry = (s.entries || []).find(x => x.competitionId === c.id && x.personId === personId) || null;
       const windowOpen = (!c.open || day >= c.open) && (!c.deadline || day <= c.deadline);
-      return {id:c.id, title:c.title, topic:c.topic, rules:c.rules, eligibility:c.eligibility, open:c.open, deadline:c.deadline, criteria:c.criteria || [], status:c.status, resultsPublished:Boolean(c.resultsPublished), windowOpen,
-        canEnter:a.status === 'Accepted' && c.status === 'Published' && windowOpen && !entry && initiative.status === 'Published',
+      return {id:c.id, version:c.version||1, title:c.title, topic:c.topic, rules:c.rules, eligibility:c.eligibility, open:c.open, deadline:c.deadline, criteria:c.criteria || [], status:c.status, resultsPublished:Boolean(c.resultsPublished), windowOpen,
+        canEnter:institutionApproved(s,initiative.ownerId) && a.status === 'Accepted' && c.status === 'Published' && windowOpen && !entry && initiative.status === 'Published',
         entry:entry ? {id:entry.id, text:entry.text, status:entry.status, created:entry.created, scores:c.resultsPublished ? entry.scores : null, feedback:c.resultsPublished ? entry.feedback : null} : null};
     });
     return {admission:{id:a.id, code:a.code, status:a.status, created:a.created, history:a.history || [], offer:a.offer || null, completion:a.completion || null, position:a.status === 'Queued' ? queue(s, initiative.id).findIndex(x => x.id === a.id) + 1 : null},
@@ -94,25 +97,30 @@ export function myInitiatives(s, personId) {
 /* -------------------------------------------- Assigned tasks (one engine) */
 
 export function assignedTasks(s, personId) {
-  const groups = s.groups.filter(g => g.memberIds.includes(personId));
-  return s.assignments.filter(a => groups.some(g => g.id === a.groupId) && (!a.studentId || a.studentId === personId) && a.status !== 'Cancelled').map(a => {
+  const groups = s.groups;
+  return s.assignments.filter(a => (!a.studentId || a.studentId === personId) && (groups.some(g=>g.id===a.groupId&&g.memberIds.includes(personId)) || a.recipientIds?.includes(personId) || s.submissions.some(x=>x.assignmentId===a.id&&x.studentId===personId))).map(a => {
     const g = groups.find(x => x.id === a.groupId);
     const submission = s.submissions.find(x => x.assignmentId === a.id && x.studentId === personId) || null;
     const draft = s.taskDrafts?.[`${personId}:${a.id}`];
-    const status = submission ? submission.status : draft ? 'In Progress' : 'Assigned';
+    const status = a.status==='Cancelled' ? 'Cancelled' : submission ? submission.status : draft ? 'In Progress' : 'Assigned';
+    const reason=taskBlockReason(s,a,g,personId);
+    const actionable=!reason&&['Assigned','In Progress','Needs Revision','Rejected'].includes(status);
     const initiative = g.parentType === 'initiative' ? s.initiatives.find(i => i.id === g.initiativeId) : null;
     const program = g.programId ? s.programs.find(p => p.id === g.programId) : null;
     const overdue = !['Approved','Rejected'].includes(status) && status !== 'Submitted' && a.due < today(s);
     return {id:a.id, title:a.title, activity:a.activity, practiceType:a.practiceType || practiceTypeOf(a.activity), instructions:a.instructions, evidence:a.evidence || '', start:a.start || '', due:a.due, required:a.required, review:a.review,
-      status, overdue, groupId:g.id, groupName:g.name, coach:nameOf(s, g.parentType === 'initiative' ? g.coachId : a.ownerId), authorName:nameOf(s, a.ownerId),
+      status, actionable, cancelReason:a.cancelReason||'', overdue, groupId:g.id, groupName:g.name, coach:nameOf(s, g.parentType === 'initiative' ? g.coachId : a.ownerId), authorName:nameOf(s, a.ownerId),
       context:initiative ? {type:'initiative', id:initiative.id, title:initiative.title} : {type:'program', id:program?.id || g.id, title:program?.title || g.name},
       initiativeId:initiative?.id || null,
-      submission:submission ? {id:submission.id, text:submission.text, status:submission.status, feedback:submission.feedback, submitted:submission.submitted, attempt:submission.attempt || 1, history:submission.history || []} : null,
-      locked:initiative ? s.admissions.find(x => x.initiativeId === initiative.id && x.personId === personId)?.status !== 'Accepted' : false};
+      submission:submission ? {id:submission.id, file:submission.file||'', text:submission.text, status:submission.status, feedback:submission.feedback, submitted:submission.submitted, attempt:submission.attempt || 1, history:(submission.history || []).map(({text,status,feedback,decision,created,attempt,assignmentVersion})=>({text,status,feedback,decision,created,attempt,assignmentVersion}))} : null,
+      locked:Boolean(reason), lockedReason:reason};
   }).sort((a, b) => String(a.due).localeCompare(String(b.due)));
 }
 
 /* -------------------------------------------------------------- Gardens */
+
+/** D12 (master §14): an Invited Student sees only their Group Garden until the same-identity upgrade. */
+export const hasPersonalGarden = (s, personId) => { const p = s.people.find(x => x.id === personId); return Boolean(p && (p.individual || !p.workspaces?.includes('student'))); };
 
 /**
  * Personal Garden source effects from the operational graph (master §9.2).
@@ -131,10 +139,11 @@ export function personalGardenEffects(s, personId) {
     const ss = s.sessions.find(x => x.id === att.sessionId);
     effects.push({key:`attendance:${att.id}`, effect:'rabbit', sourceType:'session-attendance', sourceId:att.id, on:String(att.at).slice(0, 10), title:ss?.title || 'Session', detail:`${att.status} · ${att.method} · confirmed by ${nameOf(s, att.actorId)}`});
   }
-  for (const b of (s.bookings || []).filter(x => x.personId === personId && x.status === 'Completed')) {
-    const e = s.experiences.find(x => x.id === b.experienceId);
-    if (e?.type !== 'Camp') continue;
-    effects.push({key:`camp:${b.id}`, effect:'birdhouse', sourceType:'camp-completion', sourceId:b.id, on:String(b.completedAt || b.created).slice(0, 10), title:e.title, detail:'Provider-verified camp completion'});
+  for(const b of s.bookings.filter(b=>b.personId===personId)){
+    const e=s.experiences.find(e=>e.id===b.experienceId);if(!e)continue;
+    for(const a of bookingEvidence(s,b).attendance.filter(a=>['Present','Late'].includes(a.status)))effects.push({key:`provider-attendance:${a.id}`,effect:'rabbit',sourceType:'provider-session-attendance',sourceId:a.id,bookingId:b.id,experienceId:e.id,policyVersion:a.gardenPolicyVersion||1,on:String(a.created).slice(0,10),title:e.title,detail:`${a.status} · ${a.method} · confirmed by ${nameOf(s,a.actorId)}`});
+    const completion=(s.providerCompletions||[]).find(c=>c.bookingId===b.id&&c.status==='Completed');
+    if(e.type==='Camp'&&completion)effects.push({key:`camp:${b.id}`,effect:'birdhouse',sourceType:'camp-completion',sourceId:completion.id,bookingId:b.id,experienceId:e.id,policyVersion:completion.policyVersion,on:String(b.completedAt||completion.updated).slice(0,10),title:e.title,detail:`Published criteria v${completion.resourceVersion} · ${completion.id}`});
   }
   const seen = new Set();
   return effects.filter(x => !seen.has(x.key) && seen.add(x.key)).sort((a, b) => a.on.localeCompare(b.on));
@@ -188,3 +197,7 @@ export function staffFor(s, initiativeId) {
     invites:(s.staffInvites || []).filter(x => x.initiativeId === initiativeId).map(x => ({...x, effectiveStatus:x.status === 'Pending' && Date.parse(x.expires) <= nowMs(s) ? 'Expired' : x.status}))};
 }
 export {PRACTICE_TYPES, seatCap, seatsUsed, seatsLeft, registrationState, executionPhase, needsSupervisor};
+/** Independent Coach Program history for the regular Individual pages (same records as the Coach and limited Student views). */
+export {programHistoryFor} from '../workspaces/coach-rules.js';
+
+export {providerExperience,exploreProviderExperiences,myProviderBookings,providerBookingLink,providerReport} from './provider-selectors.js';

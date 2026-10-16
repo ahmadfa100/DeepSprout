@@ -26,8 +26,8 @@ The application uses multiple browser-local stores (`deepsprout-user-v1`, `deeps
 
 ```sh
 node tests/page-wiring.test.cjs      # element ids, icon symbols and asset paths resolve
-node --test tests/partner-store.test.mjs tests/institution-cycle.test.mjs tests/supervisor-cycle.test.mjs   # partner, Institution and Supervisor command/read-model rules
-BASE_URL=http://127.0.0.1:8765 CHROME_PATH="/path/to/chrome" NODE_PATH=/path/to/node_modules node tests/institution-browser.test.cjs   # real-browser Scenarios A–F (playwright-core); tests/supervisor-browser.test.cjs covers both Supervisor contexts
+node --test tests/partner-store.test.mjs tests/institution-cycle.test.mjs tests/supervisor-cycle.test.mjs tests/coach-cycle.test.mjs   # partner, Institution, Supervisor and Independent Coach command/read-model rules
+BASE_URL=http://127.0.0.1:8765 CHROME_PATH="/path/to/chrome" NODE_PATH=/path/to/node_modules node tests/institution-browser.test.cjs   # real-browser Scenarios A–F (playwright-core); tests/supervisor-browser.test.cjs covers both Supervisor contexts; tests/coach-browser.test.cjs covers the Independent Coach journey (registration → approval → Program → invitation → Student → review → report → completion → upgrade)
 node tests/member-journey.test.cjs   # the whole individual cycle, in jsdom
 python3 tests/not-found-server.test.py # custom 404 responses, nested URLs, HEAD and normal assets
 ```
@@ -41,7 +41,7 @@ The journey test needs `jsdom`; without it the test reports that it was skipped 
 - `src/styles/theme.css` owns the common colors, typography, and design tokens. Each page loads this after its own stylesheet so the shared tokens stay consistent.
 - `src/layouts/member-layout/member-layout.js` renders the shared Home and member navigation and footer, including the responsive menu and illustrated page-transition loader. `member-layout.css` styles them. The former landing page and Pricing retain the public `site-layout`.
 - `assets/` contains runtime media. Illustration prompt notes live in `docs/design/image-prompts/`; original design references live in `references/`, and test captures live in `docs/validation/`.
-- Login and Register use `assets/auth/background.png`, the same DM Sans typography and card styling, and the reusable footer in `src/layouts/auth-footer/`. Register builds on the Login styles with its own form layout. Both forms and their text remain live HTML.
+- Login uses `assets/auth/background.png`. Register has a live botanical/network Canvas environment, Individual/Partner path selection, reactive fields and responsive cards. It reuses DM Sans, the original brand artwork and the auth footer. The same scene continues through Partner registration routes. See [the living registration handoff](docs/experience/living-registration.md). Both forms and their text remain live HTML.
 - `src/styles/page-hero.css` is the shared hero for Roadmap, Activities, Digital Shield, Insights and Community: one fixed-height frame with copy on the left and art on the right.
 - Digital Shield preferences are local browser preview data. The Digital Shield preview does not block apps or provide browser protection.
 

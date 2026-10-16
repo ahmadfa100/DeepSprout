@@ -414,3 +414,30 @@ main[data-route^="supervisor"] .iw-head, main[data-route^="supervisor"] .iw-stat
 .booking-qr svg path, .booking-qr svg rect { stroke: none; }
 .staff-invite-card.is-provider { border-left-color: #8a6a48; }
 .iw-assignments li > .iw-pill { justify-self: start; }
+
+/* ---------------------------------------------------------------------------
+ * Independent Coach workspace (Programs, groups, students, Group Gardens).
+ * Same iw- vocabulary; only a few layout additions.
+ * ------------------------------------------------------------------------- */
+.iw-chain.is-steps { grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 18px; border-radius: var(--iw-radius); background: var(--iw-paper); border: 1px solid var(--iw-line); }
+.iw-program-groups { margin: 0 0 28px; }
+.iw-program-groups > .iw-card-head { margin-bottom: 12px; }
+.iw-program-groups h2 { font: 500 20px/1.2 var(--iw-display); margin: 0; }
+.iw-program-actions { margin: -6px 0 18px; flex-wrap: wrap; }
+.iw-banner > .button { align-self: center; flex: none; }
+.iw-task-history { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.iw-task-history li { padding: 12px 14px; border-radius: var(--iw-radius-sm); background: var(--iw-paper); border: 1px solid var(--iw-line); font-size: 13px; }
+.iw-task-history li strong { color: var(--iw-forest); }
+.iw-task-history li p { margin: 6px 0 0; }
+.iw-badge-done { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--iw-forest); color: var(--iw-ivory); font-size: 12px; letter-spacing: .02em; }
+.iw-badge-done .icon { width: 14px; height: 14px; }
+@media (max-width: 760px) {
+  .iw-chain.is-steps { grid-template-columns: 1fr; gap: 10px; }
+  .iw-banner { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .iw-milestones li.is-done > span { animation: iw-milestone .5s var(--iw-ease) both; }
+}
+@keyframes iw-milestone { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.iw-stats.is-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 900px) { .iw-stats.is-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

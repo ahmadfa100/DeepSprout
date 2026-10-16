@@ -7,6 +7,7 @@
  * "no data", or an empty-state message).
  */
 (() => {
+  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const Account = window.DeepSproutAccount;
   const root = document.body.dataset.root || '../../../../';
   const fmt = Account.format;
@@ -585,6 +586,24 @@
         <ul class="ins-facts">${live.map(entry => `<li>${esc(entry.initiative.title)} · ${esc(entry.initiative.organizer)} · ${esc(entry.admission.status)}</li>`).join('')}</ul>
       </article>`);
     }
+
+    // Independent Coach Programs: the same records the Coach and limited Student views read.
+    const programs = repo && me ? repo.selectors.programHistoryFor(repo.read(), me.id) : [];
+    if (programs.length) {
+      cards.push(`<article class="ins-beyond-card" id="coach-programs">
+        <header><h3>Coach programs</h3><span class="ins-badge">Coach-reviewed</span></header>
+        <div class="ins-counts">
+          <div class="ins-count">${num(programs.length)}<small>joined</small></div>
+          <div class="ins-count">${num(programs.reduce((n, entry) => n + entry.approved, 0))}<small>tasks approved</small></div>
+          <div class="ins-count">${num(programs.filter(entry => entry.completion?.status === 'Completed').length)}<small>completed</small></div>
+        </div>
+        <p>Approved tasks come from your Coach’s reviews. Completing a Program adds history, never a Garden object, and never changes your Lab or Recovery results.</p>
+        <ul class="ins-facts">${programs.map(entry => `<li>${esc(entry.program.title)} · ${esc(entry.program.coach)} · ${esc(entry.completion ? entry.completion.status : entry.program.status)}</li>`).join('')}</ul>
+      </article>`);
+    }
+
+    const providerBookings=repo&&me?repo.selectors.myProviderBookings(repo.read(),me.id):[];
+    if(providerBookings.length)cards.push(`<article class="ins-beyond-card" id="provider-experiences"><header><h3>Provider experiences · original records</h3><span class="ins-badge">Supervisor-confirmed</span></header><div class="ins-counts"><div class="ins-count">${providerBookings.length}<small>booking records</small></div><div class="ins-count">${providerBookings.reduce((n,b)=>n+b.attendance.filter(a=>['Present','Late'].includes(a.status)).length,0)}<small>Present / Late sessions</small></div><div class="ins-count">${providerBookings.filter(b=>b.completion?.status==='Completed').length}<small>criteria completed</small></div></div><ul class="ins-facts">${providerBookings.map(b=>`<li data-booking-id="${esc(b.id)}"><strong>${esc(b.experience.title)}</strong> · ${esc(b.status)} · ${esc(b.id)}<p>${b.attendance.map(a=>`${esc(b.experience.sessions.find(ss=>ss.id===a.sessionId)?.title||a.sessionId)}: ${esc(a.status)} · ${esc(a.id)}`).join('<br>')}</p>${b.completion?`<p>Completion: ${esc(b.completion.status)} · ${esc(b.completion.id)} · published criteria v${b.completion.resourceVersion}</p>`:''}</li>`).join('')}</ul><p>Booking and QR do not award growth. Qualifying attendance and published Camp criteria supply bounded decorations; corrections remain in the original evidence history.</p></article>`);
 
     const experiences = account.experiences();
     cards.push(`<article class="ins-beyond-card">

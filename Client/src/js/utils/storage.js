@@ -10,7 +10,11 @@
  * Exposed as window.DeepSprout. Load with `defer` before the page script.
  */
 (() => {
-  const KEY = 'deepsprout-user-v1';
+  const LEGACY_KEY = 'deepsprout-user-v1';
+  const access = window.DeepSproutPersonal;
+  let owner = access.subject();
+  const key = () => `${LEGACY_KEY}:person:${owner}`;
+  const bind = () => { owner = access.subject(); cache = null; access.rebind(); };
 
   const blank = () => ({
     version: 1,
@@ -68,46 +72,56 @@
   let cache = null;
 
   const read = () => {
+    access.assert(owner);
     if (cache) return cache;
-    let stored = null;
-    try { stored = JSON.parse(localStorage.getItem(KEY)); }
-    catch { stored = null; }
+    let stored = JSON.parse(localStorage.getItem(key()) || 'null');
+    if (!stored) {
+      const raw = localStorage.getItem(LEGACY_KEY);
+      const legacy = JSON.parse(raw || 'null');
+      const person = access.person();
+      // An exact canonical owner or verified email is evidence; a browser session alone is not.
+      const known = legacy && person && (legacy.personId === person.id ||
+        (person.verified && legacy.profile?.email?.toLowerCase() === person.email.toLowerCase()));
+      if (known) {
+        const backup = `${LEGACY_KEY}:backup:before-person-binding`;
+        if (!localStorage.getItem(backup)) access.save(backup, raw);
+        stored = {...legacy, personId: person.id};
+        access.save(key(), JSON.stringify(stored));
+      }
+    }
     cache = withDefaults(stored, blank());
+    const person = access.person();
+    if (person) {
+      cache.profile.name = person.name; cache.profile.email = person.email;
+      const journal = access.journal(person);
+      const changes = JSON.parse(localStorage.getItem(`deepsprout-account-changes-v1:${journal}`) || '[]');
+      for (const event of changes) {
+        if (event.type === 'setup.save') { cache.onboarding.setupDone = true; cache.onboarding.introSeen = true; }
+        if (event.type === 'assessment.add' && event.attempt?.official && event.attempt.cycle === 1) cache.assessments[event.attempt.definitionId] = {...event.attempt, completedAt:event.attempt.at || event.at, summary:event.attempt.details || []};
+        if (event.type === 'plan.activate') { cache.onboarding.planActivated = true; cache.plan = {...event.firstRunPlan, startDate:event.on, cycleLength:event.lengthDays || 28, goalLabel:event.goalLabel}; }
+      }
+    }
     return cache;
   };
 
   const write = state => {
+    access.assert(owner);
+    access.save(key(), JSON.stringify({...state, personId: owner}));
     cache = state;
-    try { localStorage.setItem(KEY, JSON.stringify(state)); }
-    catch { /* The page still works for this visit without persistence. */ }
     return state;
   };
 
-  /**
-   * Apply a mutation to the state and persist it.
-   *
-   * Re-reads from storage first so a write made in another tab (or by another
-   * script on this page) is not clobbered by a stale cached copy.
-   */
   const update = mutate => {
     cache = null;
-    const state = read();
+    const state = JSON.parse(JSON.stringify(read()));
     mutate(state);
     if (!state.createdAt) state.createdAt = new Date().toISOString();
     return write(state);
   };
 
   const reset = () => {
-    try {
-      localStorage.removeItem(KEY);
-      // Clear only the personal first-run page keys the earlier pages wrote
-      // directly. Partner/Institution records, Admin, Community and personal
-      // journals are separate partitions and are never erased from here.
-      const PERSONAL_PAGE_KEYS = ['deepsprout-recovery-focus', 'deepsprout-recovery-settings', 'deepsprout-scroll-reminder', 'deepsprout-training-saved',
-        'deepsprout-shield-time', 'deepsprout-shield-apps', 'deepsprout-shield-custom-apps', 'deepsprout-shield-reminder'];
-      PERSONAL_PAGE_KEYS.forEach(key => localStorage.removeItem(key));
-    } catch { /* ignore */ }
-    cache = null;
+    access.assert(owner);
+    write(blank());
     return read();
   };
 
@@ -458,7 +472,8 @@
   };
 
   window.DeepSprout = {
-    KEY,
+    get KEY() { return key(); },
+    bind,
     ASSESSMENTS,
     GOALS,
     ROUTINE_IDEAS,

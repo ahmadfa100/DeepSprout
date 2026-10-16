@@ -1,0 +1,102 @@
+/* Scoped registration composition; shared by Individual and Partner entry. */
+body.living-register { --reg-ink:var(--color-ink,#173c33);--reg-muted:var(--color-muted,#5d7469);--reg-line:#dce2d2; background:#faf9f2;color:var(--reg-ink);font-family:'DM Sans','Avenir Next',sans-serif; }
+.living-register [hidden] { display:none!important; }
+.registration-world { position:absolute;left:0;top:130px;width:48%;height:670px;pointer-events:none;color:var(--reg-ink); }
+.world-heading { margin:25px auto 0;max-width:400px;padding:0 20px; }
+.world-eyebrow { font-size:10px;font-weight:700;letter-spacing:2.8px;color:#5a7256; }
+.world-heading h2 { margin:20px 0 15px;font:500 clamp(34px,3.25vw,48px)/1.15 'DM Sans','Avenir Next',sans-serif;letter-spacing:-2px; }
+.world-heading p { font-size:14px;line-height:1.7;color:#64765f; }
+.world-art { position:relative;width:100%;height:415px;margin-top:-28px; }
+.world-art canvas { width:100%;height:100%;display:block; }
+.world-label { position:absolute;font-size:8px;letter-spacing:1.8px;color:#667a59; }
+.label-one { left:18%;top:30%; }.label-two { right:12%;bottom:21%; }
+.world-caption { display:flex;justify-content:center;align-items:center;gap:9px;margin-top:-10px; }
+.world-caption>span { width:5px;height:5px;background:#7c9867;border-radius:50%; }
+.world-caption p { margin:0;color:#6a795e;font-size:11px; }
+.living-register::before { content:'';position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse at 15% 48%,#e8eddb 0,transparent 58%),linear-gradient(90deg,#f3f4e8,#fcfbf6 62%);pointer-events:none; }
+.register-header { height:110px;max-width:1400px;margin:auto;padding:30px 5%;display:flex;align-items:center;justify-content:space-between;gap:20px; }
+.register-header .register-brand { flex-direction:row;gap:10px;margin:0;color:var(--reg-ink); }
+.register-header .register-brand img { width:39px;height:39px; }
+.register-header .register-brand span { font-size:23px;letter-spacing:-1px; }
+.register-header>a:last-child { color:#52705b;font-size:13px;text-decoration:none; }
+.register-header>a:last-child strong { margin-left:12px;border-bottom:1px solid #809775;padding-bottom:4px; }
+.register-scene.auth-scene { display:block;min-height:690px;background:none;padding:0 5% 55px; }
+.register-card.login-card { width:min(510px,46%);margin:35px 0 0 52%;padding:37px 38px 28px;border:1px solid #e6e7db;border-radius:26px;background:#fffefa;box-shadow:0 18px 70px #485c3510;color:var(--reg-ink);min-height:0; }
+.entry-kicker { display:flex;align-items:center;gap:9px;color:#5e7158;font-size:9px;letter-spacing:2px;font-weight:700;margin-bottom:20px; }
+.entry-kicker>span { display:grid;place-items:center;width:23px;height:23px;border:1px solid #d8dfce;border-radius:50%;font-size:9px;letter-spacing:0; }
+.living-register .entry-title,.living-register .register-card h1 { font-family:'DM Sans','Avenir Next',sans-serif;font-size:35px;line-height:1.15;letter-spacing:-1.5px;font-weight:500;margin:0 0 15px;text-align:left;color:var(--reg-ink); }
+.entry-title:focus { outline:none; }
+.entry-intro,.living-register .register-intro { font-size:14px;line-height:1.7;color:var(--reg-muted);margin:0 0 25px;text-align:left; }
+.path-options,.partner-paths { display:grid;gap:12px; }
+.path-card { position:relative;display:flex;align-items:center;gap:16px;width:100%;padding:22px 17px;min-height:132px;border:1px solid #e0e4d7;border-radius:17px;background:#fffefa;text-align:left;color:var(--reg-ink);text-decoration:none;transform:perspective(800px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform 220ms,border-color 220ms,box-shadow 220ms,background 220ms; }
+.path-card[aria-pressed=true] { border-color:#91a97c;background:linear-gradient(120deg,#f0f4e5,#f9faf1);box-shadow:0 4px 15px #586b3c09; }
+.path-card:hover { border-color:#8ca77a;box-shadow:0 8px 25px #586b3c0d; }
+.path-card:focus-visible { outline:3px solid #54846d;outline-offset:4px; }
+.path-icon { display:grid;place-items:center;flex:none;width:47px;height:54px;border-radius:30px 30px 14px 14px;background:#eaf0df;color:#5e7c52; }
+.path-icon svg { width:29px;height:29px;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;transition:transform 500ms; }
+.path-card:hover .path-icon svg,.path-card:focus-visible .path-icon svg { transform:rotate(-5deg) translateY(-2px); }
+.path-copy { display:grid;gap:7px;flex:1; }
+.path-copy strong { font-size:16px;line-height:1.3;font-weight:600;letter-spacing:-.4px; }
+.path-copy>span:not(.path-tag) { font-size:12px;line-height:1.65;color:#63725e;max-width:255px; }
+.path-tag { font-size:8px;letter-spacing:1.3px;text-transform:uppercase;color:#5e7158; }
+.path-check { width:17px;height:17px;flex:none;border:1px solid #c7d1bb;border-radius:50%;color:transparent;text-align:center;font-size:11px;align-self:flex-start;margin-top:2px; }
+[aria-pressed=true]>.path-check { background:#6c8758;border-color:#6c8758;color:white; }
+.entry-continue,.living-register .register-submit { width:100%;min-height:51px;display:flex;justify-content:center;align-items:center;gap:20px;border:0;border-radius:12px;background:var(--reg-ink);color:#fffefa;font-size:13px;font-weight:600;margin-top:22px;padding:14px 20px;box-shadow:0 5px 12px #244c3010;transition:background 200ms,box-shadow 200ms; }
+.entry-continue>span { font-size:20px;margin-left:auto; }
+.entry-continue:hover,.living-register .register-submit:hover { background:#315e46;box-shadow:0 7px 20px #244c3022;transform:none; }
+.entry-note { margin:18px 0 0;text-align:center;color:#5e7158;font-size:11px;line-height:1.7; }
+.entry-note a { color:#385e43;text-underline-offset:3px; }
+.entry-back { display:inline-flex;align-items:center;min-height:38px;margin:-10px 0 18px;padding:0;border:0;background:none;color:#59764d;font-size:12px; }
+.partner-path { min-height:103px;padding:18px 15px;gap:12px; }.partner-path .path-copy strong { font-size:14px; }
+.register-choice-content,.register-partner-content,.register-form-content { animation:register-arrive 600ms cubic-bezier(.2,.7,.2,1) both; }
+@keyframes register-arrive { from {opacity:0;transform:translateY(12px)} to {opacity:1;transform:none} }
+.living-register .input-wrap { border-color:#d7dfce;background:#fffefa;border-radius:10px; }
+.living-register .input-wrap input { color:var(--reg-ink);font-size:15px; }
+.living-register .input-wrap input::placeholder { color:#5e7158; }
+.living-register .input-wrap>svg,.living-register .password-toggle { color:#6b8060;stroke:#6b8060; }
+.living-register .input-wrap:focus-within { border-color:#789467;box-shadow:0 0 0 4px #bbcf9a30;transform:none; }
+.living-register .input-wrap:has(input[data-valid=true]) { border-color:#94ae80; }
+.living-register .input-wrap:has(input[aria-invalid=true]) { border-color:#ad6150;box-shadow:0 0 0 3px #f1d1d144; }
+.living-register .form-field label { font-size:12px;font-weight:600;letter-spacing:0; }
+.living-register .agreement,.living-register .signup-line,.living-register .login-divider { color:var(--reg-muted);font-size:12px; }
+.living-register .agreement button,.living-register .signup-line a { color:#38634b; }
+.living-register .social-options button { color:#496145;border-color:#dce2d2;height:43px;font-size:12px; }
+.living-register .login-divider::before,.living-register .login-divider::after { background:#e1e6d8; }
+.living-register .register-submit:disabled { opacity:.65;cursor:wait; }
+.register-preview-note { margin:18px 0 0;color:#5e7158;font-size:11px;line-height:1.65; }
+.living-register .auth-top { margin-bottom:65px; }
+.living-register .auth-top .brand { font-family:'DM Sans','Avenir Next',sans-serif; }
+.living-register .auth-scene:not(.register-scene) { display:none; }
+.living-register .auth-wrap { position:relative;max-width:1400px;padding:32px 5% 45px;margin:0 auto; }
+.living-register .auth-wrap>.auth-intro,.living-register .auth-wrap>.auth-form,.living-register .auth-wrap>.entry-shell { width:46%;max-width:550px;margin:0 0 26px 54%;text-align:left; }
+.living-register .auth-wrap>.auth-intro h1 { font-family:'DM Sans','Avenir Next',sans-serif;font-size:34px;letter-spacing:-1.2px; }
+.living-register .entry-shell { padding:36px;border:1px solid #e6e7db;background:#fffefa;border-radius:26px;box-shadow:0 18px 70px #485c3510; }
+.living-register .auth-wrap>.demo-panel,.living-register .auth-wrap>.auth-foot { margin-left:54%;width:46%; }
+.living-register .auth-form input:focus,.living-register .auth-form textarea:focus { box-shadow:0 0 0 4px #bbcf9a30; }
+.living-register .auth-form .form-grid { grid-template-columns:1fr; }
+@media(min-width:1500px) { .registration-world { left:calc((100% - 1400px)/2);width:620px; } }
+@media(max-width:1000px) and (min-width:761px) { .register-card.login-card { width:51%;margin-left:49%;padding:28px 24px; }.world-heading h2 { font-size:37px; }.world-heading { padding:0 30px; }.path-card { gap:10px;padding:18px 12px; }.path-icon { width:38px; }.living-register .entry-shell { padding:25px; } }
+@media(max-width:760px) {
+ .register-header { height:84px;padding:22px 6%; }.register-header .register-brand span { font-size:20px; }.register-header>a:last-child { font-size:0; }.register-header>a:last-child strong { font-size:12px; }
+ .registration-world { position:relative;top:auto;left:auto;width:100%;height:185px;margin:0 auto;overflow:hidden; }
+ .world-heading { display:none; }.world-art { height:260px;margin-top:-68px; }.world-label { font-size:7px; }.label-one { left:12%;top:45%; }.label-two { right:10%;bottom:20%; }.world-caption { display:none; }
+ .register-scene.auth-scene { min-height:0;padding:0 20px 35px; }
+ .register-card.login-card { width:100%;max-width:510px;margin:0 auto;padding:28px 24px 25px;border-radius:22px; }
+ .living-register .entry-title,.living-register .register-card h1 { font-size:30px; }
+ .entry-intro { font-size:13px;margin-bottom:23px; }.path-card { min-height:121px;padding:18px 14px;gap:12px; }.path-copy strong { font-size:15px; }.path-icon { width:40px; }.path-copy>span:not(.path-tag) { font-size:11px; }
+ .living-register .auth-wrap { padding:0 20px 30px; }.living-register .auth-top { margin:0;padding:22px 0 18px;position:absolute;top:0;left:24px;right:24px;transform:translateY(-265px); }.living-register:has(.auth-wrap) .registration-world { margin-top:95px; }
+ .living-register .auth-top .demo-dot { display:none; }
+ .living-register .auth-wrap>.auth-intro,.living-register .auth-wrap>.auth-form,.living-register .auth-wrap>.entry-shell,.living-register .auth-wrap>.demo-panel,.living-register .auth-wrap>.auth-foot { width:100%;max-width:550px;margin:0 auto 24px; }
+ .living-register .entry-shell { padding:28px 24px; }.living-register .auth-wrap>.auth-intro h1 { font-size:30px; }.partner-path { min-height:95px; }
+}
+@media(prefers-reduced-motion:reduce) { .living-register *, .living-register *::before, .living-register *::after { animation:none!important;transition:none!important; }.living-register .path-card { transform:none!important; } }
+.living-register .auth-form input:invalid:not([aria-invalid=true]),.living-register .auth-form textarea:invalid:not([aria-invalid=true]) { border-color:#d7dfce; }
+.living-register .auth-form input[data-valid=true],.living-register .auth-form textarea[data-valid=true] { border-color:#94ae80; }
+.living-register .auth-form input[aria-invalid=true],.living-register .auth-form textarea[aria-invalid=true] { border-color:#ad6150; }
+.living-register:has(.registration-world[data-attentive=true]) .register-card,.living-register:has(.registration-world[data-attentive=true]) .panel.auth-form { box-shadow:0 15px 65px #73914d18; }
+.living-register .auth-footer,.living-register .auth-footer-column h2 { color:var(--reg-ink); }
+.living-register .auth-footer-about-copy p,.living-register .auth-footer-column a,.living-register .auth-footer-column button,.living-register .auth-footer-bottom { color:var(--reg-muted); }
+.living-register .auth-footer-bottom,.living-register .auth-footer-column,.living-register .auth-footer-signoff { border-color:#dce2d2; }
+@media(max-width:760px) { .world-art { height:215px;margin-top:-20px; }.label-one { top:32%; }.registration-world { height:190px; }.living-register .auth-top { transform:translateY(-270px); } }
+.living-register .auth-wrap:focus { outline:none; }
+@media(max-width:760px) { .living-register .input-wrap input,.living-register .auth-form input,.living-register .auth-form textarea,.living-register .auth-form select { font-size:16px; } }

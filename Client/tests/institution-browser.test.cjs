@@ -29,7 +29,7 @@ async function main() {
   const context = await browser.newContext({viewport:{width:1360, height:950}});
   const page = await context.newPage();
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-  page.on('pageerror', e => errors.push(`PAGEERROR ${e.message}`));
+  page.on('pageerror', e => errors.push(`PAGEERROR ${page.url()} ${e.stack}`));
   page.on('dialog', d => d.dismiss());
 
   const step = async (id, title, fn) => {
@@ -312,24 +312,29 @@ async function main() {
     const reason = page.locator('#dialog-body textarea, #dialog-body [name=reason]').first(); await reason.fill('Verification follow-up');
     await dialogSave();
     assert.equal((await read()).initiatives.find(i => i.id === 'i-today').status, 'Suspended');
-    await as('p-noor'); await member('explore/explore.html');
+    await as('p-ahmad'); await member('explore/explore.html');
     assert.equal(await page.locator('.ex-card[data-id="i-today"]').count(), 0);
   });
   await step('FR', 'First run: new registration → four official baselines → Starting Point shows all four → activation reaches the journal Home reads', async () => {
-    await page.goto(`${BASE}/register.html`); await page.waitForLoadState('networkidle');
+    await page.goto(`${BASE}/register.html`); await page.locator('.register-choice-content:not([hidden]) [data-path=individual]').waitFor();
     if (!page.url().includes('register')) await page.goto(`${BASE}/src/pages/auth/register/register.html`);
+    assert.equal(await page.locator('.register-choice-content:not([hidden]) [data-path]').count(),2);
+    await page.locator('[data-path=individual]').click();
+    await page.locator('[data-entry-continue]').click();
+    await page.locator('#register-form:visible').waitFor();
     await page.fill('#full-name', 'Rami New'); await page.fill('#email', 'rami.new@demo.example'); await page.fill('#password', 'demo-pass-1'); await page.fill('#confirm-password', 'demo-pass-1'); await page.check('#terms');
-    await page.click('#register-form button[type=submit]'); await page.waitForTimeout(400);
+    await page.click('#register-form button[type=submit]'); await page.waitForFunction(()=>JSON.parse(localStorage.getItem('deepsprout-ecosystem-demo-v1'))?.people.some(p=>p.email==='rami.new@demo.example'));
+    await page.waitForURL('**/member/onboarding/onboarding.html');
     const rami = (await read()).people.find(p => p.email === 'rami.new@demo.example');
     assert.ok(rami?.individual, 'one canonical Individual created'); assert.equal((await read()).session.personId, rami.id);
     // The four timed tasks write exactly this event to the personal journal; they are not timed here.
     await page.goto(`${BASE}/src/pages/member/lab/lab.html`); await page.waitForLoadState('networkidle');
     await page.evaluate(async () => { const a = await window.DeepSproutAccount.load(); for (const id of ['digital-habits','sustained-attention','inhibitory-control','depth-challenge']) a.mutate({type:'assessment.add', attempt:{id:`aa-${id}`, definitionId:id, official:true, cycle:1, on:a.todayKey, valid:true, score:50, version:'v1', details:[{label:'Recorded', value:'Yes'}], raw:{}}}); });
-    await page.goto(`${BASE}/src/pages/member/onboarding/starting-point.html`); await page.waitForTimeout(900);
+    await page.goto(`${BASE}/src/pages/member/onboarding/starting-point.html`); await page.waitForFunction(()=>document.querySelectorAll('.sp-result-card dl').length===4);
     assert.equal(await page.locator('.sp-result-card dl').count(), 4, 'all four baselines visible');
     assert.equal(await page.locator('.sp-result-missing').count(), 0);
     await page.click('#to-building'); await page.waitForSelector('[data-stage="preview"]:not([hidden])', {timeout:15000});
-    await page.click('#commitment-grid .choice'); await page.click('#activate'); await page.waitForTimeout(400);
+    await page.click('#commitment-grid .choice'); await page.click('#activate'); await page.locator('[data-stage=done]:visible').waitFor();
     await page.goto(`${BASE}/index.html`); await page.waitForLoadState('networkidle'); await page.reload(); await page.waitForTimeout(700);
     const plan = await page.evaluate(async () => { const a = await window.DeepSproutAccount.load(); const p = a.plan(); return p && {day:p.day, weeks:p.weeks, id:a.id}; });
     assert.ok(plan, 'Home reads an active plan from the same journal'); assert.equal(plan.day, 1); assert.equal(plan.id, `person:${rami.id}`);

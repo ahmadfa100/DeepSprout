@@ -9,8 +9,9 @@
  * exist, so a person's edited or deleted demo data is never resurrected.
  */
 import * as ops from './data/initiative-ops.js';
+import {normalizeProgram, syncProgramGroups} from './coach-rules.js';
 
-const COLLECTIONS = ['staffRequests','grants','staffInvites','admissions','sessionAttendance','excuses','coachReports','supervisorSummaries','initiativeBlocks','completions','notifications','rewards'];
+const COLLECTIONS = ['staffRequests','grants','staffInvites','admissions','sessionAttendance','excuses','coachReports','supervisorSummaries','initiativeBlocks','completions','notifications','rewards','programCompletions','programLinks'];
 const clone = value => JSON.parse(JSON.stringify(value));
 const has = (list, key) => list.some(item => item.id === key);
 
@@ -47,6 +48,7 @@ export function normalizeInitiative(i) {
 export function migrate(s) {
   if (s.schema === ops.SCHEMA) { for (const key of COLLECTIONS) s[key] ||= []; s.clock ||= {offsetMs:0}; return false; }
   if (s.schema === 2) { upgradeTo3(s); return true; }
+  if (s.schema === 3) { upgradeTo4(s); return true; }
   if (s.schema !== 1) return false;
   for (const key of COLLECTIONS) s[key] ||= [];
   s.clock ||= {offsetMs:0};
@@ -113,6 +115,30 @@ function upgradeTo3(s) {
   for (const ap of s.appointments || []) ap.history ||= [];
   for (const a of s.admissions || []) a.flags ||= [];
   s.schema = 3;
+  upgradeTo4(s);
+}
+
+/**
+ * schema 3 → 4 (Independent Coach cycle): every non-Initiative group is a
+ * Program group (`parentType:'program'`). A legacy group already listed by one
+ * of its owner's Programs is attached to it; otherwise it stays without a
+ * parent (no Program is invented) and the Coach must attach one before new
+ * invitations or tasks. Programs, invitations and assignments gain history
+ * and policy defaults. Additive and idempotent.
+ */
+export function upgradeTo4(s) {
+  for (const key of COLLECTIONS) s[key] ||= [];
+  for (const g of s.groups || []) {
+    if (g.parentType === 'initiative') continue;
+    g.parentType = 'program';
+    if (!g.programId || !s.programs.some(p => p.id === g.programId)) g.programId = s.programs.find(p => p.ownerId === g.ownerId && (p.groupIds || []).includes(g.id))?.id || null;
+    g.history ||= [];
+  }
+  for (const pr of s.programs || []) normalizeProgram(pr);
+  syncProgramGroups(s);
+  for (const inv of s.invitations || []) { inv.history ||= []; inv.programId ||= s.groups.find(g => g.id === inv.groupId)?.programId || null; }
+  for (const a of s.assignments || []) { a.version ||= 1; a.history ||= []; }
+  s.schema = 4;
 }
 
 /** Stable, readable display codes derived from an opaque ID. */

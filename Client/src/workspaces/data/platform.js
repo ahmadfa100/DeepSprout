@@ -7,6 +7,6 @@ export const platform = {
   moderation:[{id:'mod-one',type:'Post',text:'Demo reported post: repeated unsolicited advertising.',reason:'Spam',status:'Open',notes:'',appeal:'Not requested'}],
   cms:{draft:{heading:'Meaningful opportunities, together.',text:'Explore sessions, initiatives and experiences from our fictional demo partners.',color:'forest',font:'serif',size:'large',image:'assets/home-redesign/forest-hike.jpg',alt:'People walking along a woodland trail'},published:null,versions:[]},
   entitlements:[{id:'ent-individual',audience:'Individual',tiers:'Free / Plus',price:'TBD',quota:'TBD',notes:'Essential recovery and earned Garden progress remain accessible.'},{id:'ent-mentor',audience:'Mentor',tiers:'Starter / Pro',price:'TBD',quota:'TBD',notes:'Group and student usage limits require product approval.'},{id:'ent-org',audience:'Institution',tiers:'Standard / Enterprise',price:'TBD',quota:'TBD',notes:'Entity-level subscription is separate from staff permissions.'},{id:'ent-provider',audience:'Provider',tiers:'Standard / Pro',price:'TBD',quota:'TBD',notes:'No ticket payments, travel booking or payment gateway.'}],
-  audit:[],notifications:[],settings:{offerMinutes:15,emailNotices:true,template:'Your participation record has changed. Open the workspace to review it.'},
+  audit:[],notifications:[],settings:{providerOfferHours:24,offerMinutes:1440,emailNotices:true,template:'Your participation record has changed. Open the workspace to review it.'},
   profileNotes:{},taskDrafts:{},builderDrafts:{},focus:{},session:{personId:null},schema:1
 };

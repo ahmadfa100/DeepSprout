@@ -242,7 +242,8 @@ test('Migration upgrades a schema-1 graph in place, keeps enrollments as Applica
   for (const key of ['grants','staffInvites','admissions','sessionAttendance','excuses','coachReports','supervisorSummaries','initiativeBlocks','completions']) delete legacy[key];
   legacy.enrollments.push({id:'en-legacy', initiativeId:'i-today', personId:'p-sami', status:'Pending Approval', created:'2026-10-14'});
   assert.equal(migrate(legacy), true);
-  assert.equal(legacy.schema, 3);
+  // 16 Oct 2026 (Independent Coach cycle): the chain now ends at schema 4 (Program-parented groups, completions, links).
+  assert.equal(legacy.schema, 4);
   assert.equal(legacy.admissions.find(a => a.legacyEnrollmentId === 'en-legacy').status, 'Pending');
   const count = legacy.admissions.length;
   assert.equal(migrate(legacy), false); assert.equal(legacy.admissions.length, count);

@@ -324,3 +324,9 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .ex-flash svg { width: 16px; height: 16px; }
 .ex-link-button { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; }
 @media (prefers-reduced-motion: reduce) { .ex-inline-form, .ex-flash { animation: none; } }
+
+/* Provider booking details keep long original references and the close control readable. */
+.ex-sheet [data-provider-view] h2 { padding-right: 44px; overflow-wrap: anywhere; }
+.ex-sheet [data-provider-view] p, .ex-mine-item[data-booking-id] small { overflow-wrap: anywhere; }
+.ex-credential { margin-block: var(--space-18); }
+.ex-credential svg { display: block; width: min(240px, 100%); height: auto; margin-block: var(--space-10); }

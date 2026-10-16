@@ -18,7 +18,7 @@
   const repo = () => window.DeepSproutRepo;
   function card(t) {
     const tone = TONE[t.status] || 'todo';
-    const canSubmit = !t.locked && ['Assigned', 'In Progress', 'Needs Revision', 'Rejected'].includes(t.status);
+    const canSubmit = t.actionable;
     const expanded = open.has(t.id);
     const history = t.submission?.history || [];
     return `<article class="as-card is-${tone}${t.overdue ? ' is-overdue' : ''}" data-task="${esc(t.id)}">
@@ -27,7 +27,7 @@
         <div><p class="as-context">${esc(t.context.type === 'initiative' ? 'Initiative' : 'Coach program')} · ${esc(t.context.title)} · ${esc(t.groupName)}</p><h3>${esc(t.title)}</h3><p class="as-meta">${esc(t.activity)} · Coach ${esc(t.coach)} · due ${esc(fmt(t.due))}${t.required ? '' : ' · optional'}</p></div>
         <span class="as-status">${esc(t.overdue ? `${t.status} · overdue` : t.status)}</span>
       </header>
-      ${t.locked ? '<p class="as-note">Your participation in this initiative is not active, so new submissions are paused. Your history stays available.</p>' : ''}
+      ${t.locked ? `<p class="as-note">${esc(t.cancelReason || t.lockedReason)}</p>` : ''}
       ${t.submission?.feedback && t.submission.status !== 'Submitted' ? `<blockquote class="as-feedback"><strong>Coach feedback</strong>${esc(t.submission.feedback)}</blockquote>` : ''}
       <div class="as-actions">
         <button type="button" class="as-link" data-toggle="${esc(t.id)}" aria-expanded="${expanded}">${expanded ? 'Hide details' : canSubmit ? (t.status === 'Assigned' ? 'Start task' : t.status === 'In Progress' ? 'Continue' : 'Revise & resubmit') : 'Details & history'}</button>
@@ -50,11 +50,11 @@
     if (!me) { section.hidden = true; return; }
     const tasks = r.selectors.assignedTasks(r.read(), me.id);
     section.hidden = !tasks.length && !location.hash.includes('assigned');
-    const active = tasks.filter(t => !['Approved', 'Rejected'].includes(t.status) || open.has(t.id));
+    const active = tasks.filter(t => t.actionable);
     const shown = filter === 'active' ? active : tasks;
-    document.getElementById('assigned-count').textContent = tasks.length ? `${tasks.filter(t => ['Assigned', 'In Progress', 'Needs Revision'].includes(t.status)).length} to do · ${tasks.filter(t => t.status === 'Submitted').length} with your Coach · ${tasks.filter(t => t.status === 'Approved').length} approved` : '';
+    document.getElementById('assigned-count').textContent = tasks.length ? `${tasks.filter(t => t.actionable).length} to do · ${tasks.filter(t => t.status === 'Submitted').length} with your Coach · ${tasks.filter(t => t.status === 'Approved').length} approved` : '';
     document.querySelectorAll('[data-assigned-filter]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.assignedFilter === filter)));
-    host.innerHTML = tasks.length ? (shown.length ? shown.map(card).join('') : '<p class="as-empty">Everything assigned to you is reviewed. Switch to “All” to see your history.</p>')
+    host.innerHTML = tasks.length ? (shown.length ? shown.map(card).join('') : '<p class="as-empty">Everything assigned to you is reviewed. Switch to “Own history” to see earlier work.</p>')
       : '<p class="as-empty">No Coach has assigned you a task yet. When you join an initiative group or a Coach program, tasks appear here.</p>';
   }
   document.addEventListener('click', event => {

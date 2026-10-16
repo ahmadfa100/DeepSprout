@@ -8,6 +8,7 @@
  * Roadmap, Insights and the notification bell all move on together.
  */
 (() => {
+  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const Account = window.DeepSproutAccount;
   if (!Account) return;
   const fmt = Account.format;

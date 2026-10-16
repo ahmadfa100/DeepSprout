@@ -8,19 +8,16 @@
  * cumulative counts live in Insights.
  */
 (() => {
+  const access = window.DeepSproutPersonal;
+  if (access.denied()) { try { access.requireAccess(); } catch {} return; }
+  const subject = access.subject();
+  const preferenceKey = key => `${key}:person:${subject}`;
   const Account = window.DeepSproutAccount;
   if (!Account) return;
 
   const $ = id => document.getElementById(id);
   const fmt = Account.format;
-  const readStored = (key, fallback) => {
-    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-    catch { return fallback; }
-  };
-  const writeStored = (key, value) => {
-    try { localStorage.setItem(key, JSON.stringify(value)); }
-    catch { /* The controls still work for this visit. */ }
-  };
+  const readStored = (key, fallback) => access.preference(key, fallback, subject);
   const reducedMotion = typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const icon = name => `<svg><use href="#rp-${name}"/></svg>`;
@@ -463,16 +460,12 @@
     event.preventDefault();
     const value = name => form.querySelector(`input[name="${name}"]:checked`)?.value;
     const days = value('days');
-    writeStored('deepsprout-recovery-focus', value('focus'));
-    writeStored('deepsprout-recovery-settings', { days, intensity: value('intensity') });
-    writeStored('deepsprout-scroll-reminder', Number(value('reminder')));
-    if (plan) {
-      account.mutate({
-        type: 'plan.adjust',
-        label: `${days === '7' ? 'Every day' : `${days} days a week`}, ${value('intensity')}`,
-        detail: 'Applies from next week; this week stays as planned.'
-      });
-    }
+    try {
+      account.mutate({type:plan?'plan.adjust':'preferences.save',
+        preferences:{'deepsprout-recovery-focus':value('focus'),'deepsprout-recovery-settings':{days,intensity:value('intensity')},'deepsprout-scroll-reminder':Number(value('reminder'))},
+        label:`${days === '7' ? 'Every day' : `${days} days a week`}, ${value('intensity')}`,
+        detail:'Applies from next week; this week stays as planned.'});
+    } catch (error) { $('save-note').textContent=error.message; return; }
     $('reminder-summary').textContent = reminderText(value('reminder'));
     const note = $('save-note');
     const focusName = { depth: 'Depth Practice', stillness: 'Protected Work', offline: 'your offline routine' }[value('focus')];

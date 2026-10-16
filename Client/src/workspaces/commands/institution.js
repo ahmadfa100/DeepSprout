@@ -1,3 +1,5 @@
+import {institutionApproved,providerApproved,clockDay} from '../domain.js';
+import {initiativeOfResource} from '../initiative-rules.js';
 import {id,now,requireThat,find,textRequired,numberIn,dates,audit} from '../domain.js';
 import {normalizeInitiative} from '../migrate.js';
 import {isRepresentative,MAX_SEATS} from '../initiative-rules.js';
@@ -31,24 +33,59 @@ export function institutionCommand(s,action,p,actor) {
   if(action==='organization.competition.results'){const c=own(s.competitions,p.id),entries=s.entries.filter(x=>x.competitionId===c.id);requireThat(entries.length&&entries.every(x=>x.status==='Reviewed'),'Review all submitted entries before publishing results.');c.resultsPublished=true;return;}
   if(action==='organization.team.save'){const old=p.id?find(s.team,p.id):null;requireThat(!old||old.ownerId===org.id,'This team member belongs to another institution.');const record={...p,name:textRequired(p.name,'Name'),email:textRequired(p.email,'Email'),ownerId:org.id,scope:p.scope||org.name,capability:p.capability||'Report Viewer',status:old?.status||'Invited'};if(old)Object.assign(old,record);else s.team.push({...record,id:id('team')});return;}
   if(action==='organization.team.revoke'){const t=find(s.team,p.id);requireThat(t.ownerId===org.id&&t.personId!==actor,'You cannot revoke your own owner access.');t.status='Revoked';return;}
-  if(action==='organization.partnership.request'){own(s.initiatives,p.initiativeId);find(s.providers,p.providerId);s.partnerships.push({...p,id:id('partnership'),ownerId:org.id,purpose:textRequired(p.purpose,'Collaboration purpose'),status:'Requested',experienceId:null,created:now()});return;}
-  if(action==='organization.partnership.end'||action==='provider.partnership.end'){const part=find(s.partnerships,p.id);if(action.startsWith('organization'))requireThat(part.ownerId===org.id,'This partnership belongs to another institution.');else requireThat(s.providers.some(x=>x.id===part.providerId&&x.memberIds.includes(actor)),'This partnership belongs to another provider.');part.status='Ended';return;}
-  if(action==='provider.partnership.accept'||action==='provider.partnership.decline'||action==='provider.partnership.link'){const part=find(s.partnerships,p.id);requireThat(s.providers.some(x=>x.id===part.providerId&&x.memberIds.includes(actor)),'This request is outside your provider.');if(action.endsWith('link')){requireThat(['Accepted','Active'].includes(part.status),'Accept the partnership first.');const e=find(s.experiences,p.experienceId);requireThat(e.ownerId===part.providerId&&['Published','Active'].includes(e.status),'Choose your own published experience.');part.experienceId=e.id;part.status='Active';}else{requireThat(part.status==='Requested','This request has already been processed.');part.status=action.endsWith('accept')?'Accepted':'Declined';}return;}
-  if(action==='participant.form.respond'){return respondToForm(s,find(s.forms,p.formId),p.answers,actor);}
-  if(action==='participant.competition.enter'){return enterCompetition(s,find(s.competitions,p.competitionId),p.text,actor);}
+  if(action==='organization.partnership.request'){
+    const i=own(s.initiatives,p.initiativeId),provider=find(s.providers,p.providerId);requireThat(institutionApproved(s,org.id)&&providerApproved(s,provider.id),'Both partners must be active and approved.');requireThat(!s.partnerships.some(x=>x.initiativeId===i.id&&x.providerId===provider.id&&['Requested','Accepted','Active'].includes(x.status)),'An active request already exists.');
+    const part={id:id('partnership'),ownerId:org.id,initiativeId:i.id,providerId:provider.id,purpose:textRequired(p.purpose,'Collaboration purpose'),proposedComponent:p.proposedComponent||'Linked Outdoor Experience',start:p.start||'',end:p.end||'',role:p.role||'Independent operator',scope:'Aggregate attendance and completion only',status:'Requested',experienceId:null,created:now(),history:[{actorId:actor,at:now(),from:null,to:'Requested',reason:p.purpose}]};s.partnerships.push(part);return part.id;
+  }
+  if(action==='organization.partnership.end'||action==='provider.partnership.end'){
+    const part=find(s.partnerships,p.id);if(action.startsWith('organization'))requireThat(part.ownerId===org.id,'This partnership belongs to another institution.');else requireThat(s.providers.some(x=>x.id===part.providerId&&x.memberIds.includes(actor)),'This partnership belongs to another provider.');requireThat(['Requested','Accepted','Active'].includes(part.status),'This partnership has ended.');(part.history||=[]).push({actorId:actor,at:now(),from:part.status,to:'Ended',experienceId:part.experienceId,reason:p.reason||'Partnership ended by authorized partner'});part.status='Ended';part.endedAt=now();return;
+  }
+  if(action==='provider.partnership.accept'||action==='provider.partnership.decline'||action==='provider.partnership.link'){
+    const part=find(s.partnerships,p.id);requireThat(s.providers.some(x=>x.id===part.providerId&&x.memberIds.includes(actor)),'This request is outside your provider.');const before=part.status,previousExperienceId=part.experienceId;
+    requireThat(providerApproved(s,part.providerId)&&institutionApproved(s,part.ownerId),'Both partners must be active and approved.');
+    if(action.endsWith('link')){requireThat(['Accepted','Active'].includes(part.status),'Accept the partnership first.');const e=find(s.experiences,p.experienceId);requireThat(e.ownerId===part.providerId&&['Published','Active'].includes(e.status)&&e.end>=clockDay(s,e.timezone),'Choose your own active published experience.');part.experienceId=e.id;part.status='Active';}else{requireThat(part.status==='Requested','This request has already been processed.');part.status=action.endsWith('accept')?'Accepted':'Declined';}
+    (part.history||=[]).push({actorId:actor,at:now(),from:before,to:part.status,previousExperienceId,experienceId:part.experienceId,reason:p.reason||'Authorized partnership decision'});return;
+  }
+  if(action==='participant.form.respond'){return respondToForm(s,find(s.forms,p.formId),p.answers,actor,p);}
+  if(action==='participant.competition.enter'){return enterCompetition(s,find(s.competitions,p.competitionId),p.text,actor,p);}
   return false;
 }
 
 /** One identified response engine for partner Participant and regular Individual pages (D41). */
-export function respondToForm(s,f,answers={},actor){
+export function respondToForm(s,f,answers={},actor,p={}){
+  participationGuard(s,f,actor,p,'form');
   requireThat(f.status==='Published','This form is closed.');
   for(const q of f.questions){const answer=answers[q.id];requireThat(!q.required||(Array.isArray(answer)?answer.length:typeof answer==='string'&&answer.trim()),`Answer: ${q.label}`);if(answer&&q.type==='Single choice')requireThat(q.options.includes(answer),'Choose a listed option.');if(answer&&q.type==='Multiple choice')requireThat(Array.isArray(answer)&&answer.every(x=>q.options.includes(x)),'Choose listed options.');if(answer&&q.type==='Rating')numberIn(answer,1,5,q.label);if(answer&&q.type==='Number')requireThat(Number.isFinite(Number(answer)),`${q.label} must be a number.`);if(answer&&q.type==='Date')requireThat(/^\d{4}-\d{2}-\d{2}$/.test(answer),`${q.label} must be a date.`);}
   requireThat(!s.responses.some(x=>x.formId===f.id&&x.personId===actor)||f.allowMultiple,'You already responded to this form version.');
-  const record={id:id('response'),formId:f.id,version:f.version,personId:actor,answers,submitted:now()};s.responses.push(record);return record.id;
+  const record={id:id('response'),formId:f.id,version:f.version,consent:{version:f.version||1,at:now()},personId:actor,answers,submitted:now()};s.responses.push(record);return record.id;
 }
 /** One competition entry engine; the Institution judges the same entry. */
-export function enterCompetition(s,c,text,actor){
+export function enterCompetition(s,c,text,actor,p={}){
+  participationGuard(s,c,actor,p,'competition');
   requireThat(c.status==='Published','This competition is not open.');
   requireThat(!s.entries.some(x=>x.competitionId===c.id&&x.personId===actor),'You already submitted an entry.');
-  const entry={id:id('entry'),competitionId:c.id,personId:actor,text:textRequired(text,'Your entry'),status:'Submitted',created:now(),scores:{},feedback:''};requireThat(entry.text.length<=4000,'Keep your entry under 4,000 characters.');s.entries.push(entry);return entry.id;
+  const entry={id:id('entry'),competitionId:c.id,version:c.version||1,consent:{version:c.version||1,at:now()},personId:actor,text:textRequired(text,'Your entry'),status:'Submitted',created:now(),scores:{},feedback:''};requireThat(entry.text.length<=4000,'Keep your entry under 4,000 characters.');s.entries.push(entry);return entry.id;
+}
+
+function participationGuard(s,r,actor,p,kind){
+  const person=find(s.people,actor), initiative=initiativeOfResource(s,r.id,r.initiativeId);
+  requireThat(person.status==='Active'&&person.verified,'An active verified identity is required.');
+  requireThat(!r.initiativeId||initiative?.id===r.initiativeId,'This resource has a conflicting Initiative scope.');
+  if(initiative){
+    requireThat(institutionApproved(s,initiative.ownerId),'This resource needs an active approved Institution and Initiative.');
+    requireThat(!r.ownerId||r.ownerId===initiative.ownerId,'This resource belongs to another Institution.');
+    requireThat(initiative.status==='Published'||kind==='form'&&initiative.status==='Completed','This Initiative is not accepting participation.');
+    const registration=kind==='form'&&/registration/i.test(r.purpose||'');
+    const admission=s.admissions.find(a=>a.initiativeId===initiative.id&&a.personId===actor&&(['Accepted',...(kind==='form'?['Completed']:[]),...(registration?['Pending','Queued','Offered']:[])].includes(a.status)));
+    requireThat(admission,registration?'Apply to this initiative first.':'This resource is for accepted participants of this initiative.');
+    requireThat(admission.consent?.at&&admission.consent.version,'Participation consent is required.');
+  }else{
+    // The existing builder also publishes independent Institution resources.
+    // They have no admission parent; publication admits active verified participants.
+    requireThat(!r.initiativeId&&institutionApproved(s,r.ownerId),'This resource needs an active approved Institution and Initiative.');
+  }
+  if(p.version!==undefined)requireThat(Number(p.version)===Number(r.version||1),'This resource changed. Reload before responding.');
+  const day=clockDay(s),open=r.open||r.registrationOpen,close=r.deadline||r.close||r.registrationClose;
+  requireThat(!open||day>=open,'This resource is not open yet.');requireThat(!close||day<=close,'The submission deadline has passed.');
+  if(kind==='competition'||r.consentRequired)requireThat(p.consent===true,'Confirm the resource consent before continuing.');
 }
