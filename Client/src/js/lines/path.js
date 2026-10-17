@@ -31,6 +31,27 @@ const OPACITY=Array.from({length:101},(_,i)=>String(i/100)),DASH=Array.from({len
 // Stroke compensation for the zoomed-out stations, so lines keep their on-screen weight (1.00–4.00).
 const STROKE=Array.from({length:301},(_,i)=>String(1+i/100));
 
+// Station 4's subjects: three supported websites, as quiet tiles. Each has a colour face and a
+// line-art face; the station crossfades them, so no filter is recomputed per frame.
+// Drawn on a 48 × 48 box centred on 0,0 (px; never scaled with the layout).
+const SITES=[
+ {id:'instagram',label:'instagram.com',
+  color:`<rect x="-24" y="-24" width="48" height="48" rx="13" fill="url(#ig-face)"/><rect x="-13.5" y="-13.5" width="27" height="27" rx="8" fill="none" stroke="#fff" stroke-width="3.2"/><circle r="6.6" fill="none" stroke="#fff" stroke-width="3.2"/><circle cx="8.6" cy="-8.6" r="2" fill="#fff"/>`,
+  mono:`<rect x="-13.5" y="-13.5" width="27" height="27" rx="8"/><circle r="6.6"/><circle cx="8.6" cy="-8.6" r="1.2"/>`},
+ {id:'tiktok',label:'tiktok.com',
+  color:`<rect x="-24" y="-24" width="48" height="48" rx="13" fill="#121214"/><path d="M3-14v18.5a6 6 0 1 1-6-6" transform="translate(-1.4 -1.2)" fill="none" stroke="#25f4ee" stroke-width="4.4" stroke-linecap="round"/><path d="M3-14c1 5.2 4.4 8 9 8.4" transform="translate(-1.4 -1.2)" fill="none" stroke="#25f4ee" stroke-width="4.4" stroke-linecap="round"/><path d="M3-14v18.5a6 6 0 1 1-6-6" transform="translate(1.4 1.2)" fill="none" stroke="#fe2c55" stroke-width="4.4" stroke-linecap="round"/><path d="M3-14c1 5.2 4.4 8 9 8.4" transform="translate(1.4 1.2)" fill="none" stroke="#fe2c55" stroke-width="4.4" stroke-linecap="round"/><path d="M3-14v18.5a6 6 0 1 1-6-6M3-14c1 5.2 4.4 8 9 8.4" fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round"/>`,
+  mono:`<path d="M3-14v18.5a6 6 0 1 1-6-6M3-14c1 5.2 4.4 8 9 8.4"/>`},
+ {id:'youtube',label:'youtube.com',
+  color:`<rect x="-24" y="-24" width="48" height="48" rx="13" fill="#fff"/><rect x="-16" y="-11" width="32" height="22" rx="7" fill="#ff0033"/><path d="M-4.4-5.6 6.2 0-4.4 5.6Z" fill="#fff"/>`,
+  mono:`<rect x="-16" y="-11" width="32" height="22" rx="7"/><path d="M-4.4-5.6 6.2 0-4.4 5.6Z"/>`},
+];
+// Station 4's story, as positions of the camera across the corridor (pure, so it reverses):
+// the sites arrive in colour, the boundary activates, they lose their colour, then rest protected.
+export function shieldState(camX,g){
+ const z0=g.zone[0],k=g.k;
+ return{arrive:smooth(z0-k*440,z0-k*170,camX),pulse:smooth(z0-k*90,z0+k*190,camX),quiet:smooth(z0+k*90,z0+k*420,camX),settled:smooth(z0+k*330,z0+k*520,camX)};
+}
+
 export function layout(width,mobile){
  // Station spacing compresses on narrow screens; element sizes do not. Weeks compress the most,
  // so the four-week overview still fits at a readable zoom on a phone.
@@ -84,7 +105,7 @@ export function createPath(section,reducedQuery,gardenEntry=()=>null){
  const isReduced=()=>Boolean(reducedQuery?.matches);
  let g,width=0,height=0,top=0,travel=1,target=0,time=0,visible=false,engaged=null,destroyed=false,dirty=true,frames=0,sizeKey='';
  const view={x:0,y:0,zoom:1};let camera,matrix,clipRect,sweepRect,solid=[],gates=[],bars=[],nodes=[],drifters=[],wall={},px=[],pxOffset=0,shownY=-1,handoffShown=-1,shownStroke=-1;
- let lane,fieldGroup,branch,touch,crowd=[],threads,soil,tail,rootlets,entryKey='';
+ let lane,fieldGroup,branch,touch,crowd=[],threads,soil,tail,rootlets,entryKey='',shield=null;
  const weekShown=weekLabels.map(()=>({o:-1,x:null}));
 
  const el=(tag,attrs,parent)=>{const n=document.createElementNS(NS,tag);for(const k in attrs)n.setAttribute(k,attrs[k]);parent?.append(n);return n};
@@ -100,6 +121,27 @@ export function createPath(section,reducedQuery,gardenEntry=()=>null){
   wall.top=el('line',{x1:g.zone[0],x2:g.zone[1],y1:-WALL,y2:-WALL,class:'path-wall'},camera);
   wall.bottom=el('line',{x1:g.zone[0],x2:g.zone[1],y1:WALL,y2:WALL,class:'path-wall'},camera);
   drifters=Array.from({length:DRIFTERS},(_,i)=>{const r=((i*.618)%1),x=g.zone[0]+(i+.5)/DRIFTERS*(g.zone[1]-g.zone[0])+(r-.5)*14;return{x,side:i%2?1:-1,len:38+r*30,lag:r*.25,node:el('line',{x1:x,x2:x,y1:0,y2:0,class:'path-drifter'},camera)}});
+  // Station 4's subjects: three supported websites above the corridor, each a colour tile and a
+  // line-art twin that are crossfaded. Sizes are in px, never scaled with the layout.
+  {const ig=el('linearGradient',{id:'ig-face',x1:'0',y1:'1',x2:'1',y2:'0'},defs);[['0','#feda75'],['.28','#fa7e1e'],['.55','#d62976'],['.8','#962fbf'],['1','#4f5bd5']].forEach(([o,c])=>el('stop',{offset:o,'stop-color':c},ig));
+   const sheen=el('linearGradient',{id:'tile-sheen',x1:'0',y1:'0',x2:'0',y2:'1'},defs);el('stop',{offset:'0','stop-color':'#fff','stop-opacity':'.34'},sheen);el('stop',{offset:'.5','stop-color':'#fff','stop-opacity':'0'},sheen);
+   const span=g.zone[1]-g.zone[0],group=el('g',{class:'path-shield'},camera);
+   const field=el('rect',{x:g.zone[0],y:-WALL,width:span,height:WALL*2,rx:WALL,class:'path-shield-field'},group);
+   const status=el('g',{class:'path-shield-status',transform:`translate(${g.zone[0]+span/2} -226)`},group);
+   // The specification's own state name, marked as a preview: this is an illustration, not live extension state.
+   el('path',{d:'M-88.5-1.5v-3a3.5 3.5 0 0 1 7 0v3M-90-1.5h10v7.5h-10Z',class:'path-shield-lock'},status);
+   const word=el('text',{x:8,y:5,class:'path-shield-word'},status);word.textContent='Protection active · preview';
+   const sites=SITES.map((site,i)=>{
+    const x=g.zone[0]+span*(.2+i*.3),y=-152,node=el('g',{class:'path-site',transform:`translate(${x} ${y})`},group);
+    const color=el('g',{class:'path-site-color'},node);el('rect',{x:-23,y:-20,width:46,height:46,rx:13,class:'path-site-shadow'},color);color.insertAdjacentHTML('beforeend',site.color+'<rect x="-24" y="-24" width="48" height="48" rx="13" fill="url(#tile-sheen)"/>');
+    const mono=el('g',{class:'path-site-mono'},node);el('rect',{x:-24,y:-24,width:48,height:48,rx:13,class:'path-site-plate'},mono);const glyph=el('g',{class:'path-site-glyph'},mono);glyph.insertAdjacentHTML('beforeend',site.mono);
+    const badge=el('g',{class:'path-site-badge',transform:'translate(19 19)'},node);el('circle',{r:9},badge);el('path',{d:'M-2.6-1v-1.6a2.6 2.6 0 0 1 5.2 0V-1M-3.6-1h7.2v5.2h-7.2Z'},badge);
+    const label=el('text',{x:0,y:-36,class:'path-site-label'},node);label.textContent=site.label;
+    // Fragments of the feed that drift off and dissolve as the colour drains.
+    const bits=[0,1,2].map(j=>el('rect',{x:-2,y:-2,width:4,height:4,rx:1,class:'path-site-bit'},node));
+    return{x,y,node,color,mono,badge,bits,i,shown:''};
+   });
+   shield={group,field,status,sites,shown:''};}
   // The path: solid where it is yours and detailed, faint dashes for the weeks that will adapt.
   solid=[{a:g.start,b:g.weeks[0][1],node:el('path',{d:`M${g.start} 0H${g.weeks[0][1]}`,pathLength:1000,class:'path-line'},camera)}];
   // After the weeks: on through stations 4–6 to the turn, then down to the soil (station 7).
@@ -220,7 +262,26 @@ export function createPath(section,reducedQuery,gardenEntry=()=>null){
    d.node.y1.baseVal.value=d.side*(y-d.len/2);d.node.y2.baseVal.value=d.side*(y+d.len/2);
    d.node.style.opacity=OPACITY[Math.round(drift*(1-dissolve)*100)];
   }
+  renderShield(cam.x,rise,dissolve);
   renderCopy(t,cam,head,pathY,zoom);frames++;
+ }
+
+ function renderShield(camX,rise,dissolve){
+  const st=shieldState(camX,g),gone=1-dissolve,key=[st.arrive,st.pulse,st.quiet,st.settled,dissolve].map(v=>Math.round(v*100)).join();
+  if(key===shield.shown)return;shield.shown=key;
+  shield.group.style.opacity=OPACITY[Math.round(st.arrive*gone*100)];
+  // The activation pulse leaves the existing wall and settles as a faint field.
+  const reach=WALL+mix(0,64,st.pulse);shield.field.y.baseVal.value=-reach;shield.field.height.baseVal.value=reach*2;
+  shield.field.style.opacity=OPACITY[Math.round(Math.sin(Math.PI*st.pulse)*.6*rise*100)];
+  shield.status.style.opacity=OPACITY[Math.round(st.settled*100)];
+  for(const site of shield.sites){
+   const bob=(1-st.quiet)*Math.sin(st.arrive*Math.PI*2+site.i*1.7)*3,scale=1-st.quiet*.08;
+   site.node.setAttribute('transform',`translate(${site.x} ${(site.y+(1-st.arrive)*-14+bob).toFixed(1)}) scale(${scale.toFixed(3)})`);
+   site.color.style.opacity=OPACITY[Math.round((1-st.quiet)*100)];site.mono.style.opacity=OPACITY[Math.round(st.quiet*100)];
+   site.badge.style.opacity=OPACITY[Math.round(st.settled*100)];
+   const drift=Math.sin(Math.PI*st.quiet);
+   site.bits.forEach((bit,j)=>{const a=-1.1-j*.55+site.i*.4;bit.x.baseVal.value=-2+Math.cos(a)*(18+st.quiet*20);bit.y.baseVal.value=-2+Math.sin(a)*(18+st.quiet*24);bit.style.opacity=OPACITY[Math.round(drift*.75*100)]});
+  }
  }
 
  function renderCopy(t,cam,head,pathY,zoom){
@@ -246,7 +307,7 @@ export function createPath(section,reducedQuery,gardenEntry=()=>null){
   get state(){const t=shownTime(time),cam=cameraAt(t,g,width),head=headAt(t,cam,g,width),filled=nodes.map(n=>n.fill.r.baseVal.value>4.9);
    return{time:t,station:stationAt(t).name,camera:cam,head,engaged,visible,frames,reduced:isReduced(),layout:{start:g.start,L:g.L,weeks:g.weeks,nodes:g.nodes,gates:g.gates,zone:g.zone},
     filled,unfilled:filled.map((f,i)=>f?-1:i).filter(i=>i>=0),ticks:gates.map(gate=>gate.tick.style.strokeDashoffset==='0'),bars:bars.map(b=>b.node.height.baseVal.value),
-    wall:{height:wall.band.height.baseVal.value,opacity:Number(wall.band.style.opacity)},
+    wall:{height:wall.band.height.baseVal.value,opacity:Number(wall.band.style.opacity)},shield:{...shieldState(cam.x,g),sites:shield.sites.map(s=>({color:Number(s.color.style.opacity||0),mono:Number(s.mono.style.opacity||0)}))},
     branch:{d:branch.getAttribute('d'),drawn:1-Number(branch.style.strokeDashoffset)/1000,node:g.branchNode,touched:touch.r.baseVal.value>g.branchNode.r*.6,ends:g.branch},
     crowd:{groups:crowd.length,lines:lineCount(g.mobile)-1,opacity:crowd.map(c=>Number(c.node.style.opacity||0))},entry:g.root.entry,stroke:Number(camera.style.getPropertyValue('--sw')||1),drifters:drifters.map(d=>({top:Math.min(Math.abs(d.node.y1.baseVal.value),Math.abs(d.node.y2.baseVal.value)),opacity:Number(d.node.style.opacity||0)}))}},
  };

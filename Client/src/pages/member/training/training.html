@@ -21,6 +21,7 @@
   <script src="training.js" defer></script>
   <script src="offline-routine.js" defer></script>
   <script src="assigned.js" defer></script>
+  <script src="../../../js/data/shield-bridge.js" defer></script>
 </head>
 <body data-page="training" data-root="../../../../">
   <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -82,16 +83,18 @@
       </section>
 
       <!-- ------------------------------------------------------------ practice -->
+      <nav class="practice-nav" aria-label="Activities sections"><a href="#for-you">For You</a><a href="#training-types">Browse Practices</a><a href="#assigned">Assigned</a><a href="#history">History</a><a href="#offline-routine">My Offline Routine</a></nav>
+      <section class="block" id="for-you"><h2>For You</h2><p id="practice-suggestion"></p><p>Optional practice: two starts per day by default. Scheduled Recovery work stays free and available. Complete distinct examples across separate days before choosing a higher level.</p><div id="practice-levels"></div></section>
       <section class="block practice-block" id="training-types" aria-labelledby="practice-title">
         <div class="block-head">
           <div><p class="kicker">Focused practice</p><h2 id="practice-title">Train one skill at a time</h2><p>Each practice is short, timed, and logged when you finish it. Pick the one that fits the time you have.</p></div>
-          <button type="button" class="quick-start" data-session="quick"><span><svg><use href="#i-bolt"/></svg></span>Only have 5 minutes?</button>
+          <a class="quick-start" href="#for-you">Find a suitable practice</a>
         </div>
         <div class="practice-grid">
           <article class="practice-card tone-amber" data-card="depth">
             <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-book"/></svg><span class="orbit"></span></div>
             <div class="practice-body">
-              <span class="practice-meta"><svg><use href="#i-clock"/></svg>12–20 min · Reading focus</span>
+              <span class="practice-meta"><svg><use href="#i-clock"/></svg>3–5 min · Reading + questions</span>
               <h3>Depth Practice</h3>
               <p>Read a passage without switching away, then answer a few questions about it.</p>
             </div>
@@ -100,7 +103,7 @@
           <article class="practice-card tone-sky" data-card="listening">
             <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-headphones"/></svg><span class="orbit"></span></div>
             <div class="practice-body">
-              <span class="practice-meta"><svg><use href="#i-clock"/></svg>12 min · Memory</span>
+              <span class="practice-meta"><svg><use href="#i-clock"/></svg>3–5 min · Playback + recall</span>
               <h3>Listening &amp; Recall</h3>
               <p>Listen once, no replays, then write down what you remember.</p>
             </div>
@@ -109,7 +112,7 @@
           <article class="practice-card tone-lilac" data-card="challenge">
             <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-pencil"/></svg><span class="orbit"></span></div>
             <div class="practice-body">
-              <span class="practice-meta"><svg><use href="#i-clock"/></svg>15 min · Doing</span>
+              <span class="practice-meta"><svg><use href="#i-clock"/></svg>4–8 min · Concrete outcome</span>
               <h3>Micro-Challenge</h3>
               <p>One small, concrete task — summarise, organise or make something — with a clear finish line.</p>
             </div>
@@ -118,9 +121,9 @@
           <article class="practice-card tone-peach" data-card="protected">
             <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-timer"/></svg><span class="orbit"></span></div>
             <div class="practice-body">
-              <span class="practice-meta"><svg><use href="#i-clock"/></svg>25 min · Deep work</span>
+              <span class="practice-meta"><svg><use href="#i-clock"/></svg>2–4 min · Local work session</span>
               <h3>Protected Work</h3>
-              <p>Your own real task, in one uninterrupted block. Pair it with Digital Shield if you like.</p>
+              <p>Choose a real task, observe an in-app work session, and record the outcome. Website blocking is not available.</p>
             </div>
             <div class="practice-actions"><button type="button" class="practice-start" data-session="protected">Start <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="protected" aria-pressed="false" aria-label="Save Protected Work"><svg><use href="#i-bookmark"/></svg></button></div>
           </article>
@@ -165,11 +168,12 @@
           <span class="float-app a3"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="m10 9.5 5 2.5-5 2.5Z"/></svg></span>
           <span class="shield-band-shield"><svg><use href="#i-shield"/></svg></span>
         </span>
-        <span class="shield-band-copy"><small>Digital Shield</small><strong id="shield-title">Keep the feeds out of your practice time</strong><span>Choose the apps that pull you in and plan when to put them away.</span></span>
+        <span class="shield-band-copy"><small>Digital Shield</small><strong id="shield-title">Keep the feeds out of your practice time</strong><span><span id="practice-shield-status">Optional extension support · checking connection.</span> Whole-site protection is started separately in Shield.</span></span>
         <span class="shield-band-go">Open Shield <svg><use href="#i-arrow"/></svg></span>
       </a>
 
       <!-- ------------------------------------------------------------ insights -->
+      <section class="block" id="history"><h2>Practice history</h2><p>Personal practice and Coach review retain separate evidence and authority.</p><div id="practice-history"></div></section>
       <a class="insights-link" href="../recovery-plan/recovery-plan.html#history"><svg><use href="#i-chart"/></svg> Your logged practices day by day: Roadmap history <svg><use href="#i-arrow"/></svg></a>
     </div>
   </main>
@@ -192,16 +196,8 @@
       <button type="button" class="focus-close" id="session-close" aria-label="Leave focus mode"><svg><use href="#i-x"/></svg></button>
       <p class="kicker">Focus mode</p>
       <h2 id="session-title">Depth Practice</h2>
-      <p id="session-description">A little focused time can change the feel of your day.</p>
-      <div class="focus-ring">
-        <svg viewBox="0 0 220 220" aria-hidden="true"><circle class="ring-track" cx="110" cy="110" r="96"/><circle class="ring-fill" id="session-ring" cx="110" cy="110" r="96"/></svg>
-        <div class="focus-time" id="session-timer" role="timer">12:00</div>
-      </div>
-      <div class="focus-actions">
-        <button type="button" class="focus-primary" id="timer-toggle"><svg><use href="#i-play"/></svg><span>Start</span></button>
-        <button type="button" class="focus-secondary" id="timer-reset">Reset</button>
-        <button type="button" class="focus-secondary" id="complete-session"><svg><use href="#i-check"/></svg> End session</button>
-      </div>
+      <p id="session-description">Original content, your responses and honest evidence labels.</p>
+      <div id="practice-player"></div>
       <p class="session-feedback" id="session-feedback" aria-live="polite"></p>
     </div>
   </dialog>

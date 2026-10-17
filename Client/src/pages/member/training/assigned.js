@@ -31,10 +31,10 @@
       ${t.submission?.feedback && t.submission.status !== 'Submitted' ? `<blockquote class="as-feedback"><strong>Coach feedback</strong>${esc(t.submission.feedback)}</blockquote>` : ''}
       <div class="as-actions">
         <button type="button" class="as-link" data-toggle="${esc(t.id)}" aria-expanded="${expanded}">${expanded ? 'Hide details' : canSubmit ? (t.status === 'Assigned' ? 'Start task' : t.status === 'In Progress' ? 'Continue' : 'Revise & resubmit') : 'Details & history'}</button>
-        ${PRACTICE_SESSION[t.practiceType] ? `<button type="button" class="as-link is-quiet" data-practice="${PRACTICE_SESSION[t.practiceType]}">Open the matching practice timer</button>` : ''}
+        ${PRACTICE_SESSION[t.practiceType] ? `<button type="button" class="as-link is-quiet" data-practice="${PRACTICE_SESSION[t.practiceType]}">Open a separate personal practice</button>` : ''}
       </div>
       <div class="as-body" ${expanded ? '' : 'hidden'}>
-        <p class="as-instructions">${esc(t.instructions)}</p>
+        <p class="as-meta">${t.activityId?`Original approved definition: ${esc(t.activityId)} · version ${esc(t.activityVersion)} · ${esc(t.contentVersion)}`:"Historical assignment; definition version was not recorded."}</p><p class="as-instructions">${esc(t.instructions)}</p>
         ${t.evidence ? `<p class="as-meta"><strong>Evidence:</strong> ${esc(t.evidence)}</p>` : ''}
         ${canSubmit ? `<form class="as-form" data-submit="${esc(t.id)}"><label><span>${t.status === 'Needs Revision' || t.status === 'Rejected' ? 'Your revised reflection' : 'What did you do, and what did you notice?'}</span><textarea name="text" rows="4" required>${esc(t.status === 'Needs Revision' ? '' : '')}</textarea></label><label class="as-file"><span>Attachment (optional — only its name is kept in this demo)</span><input type="file" name="file"></label><p class="as-error" role="alert" hidden></p><button class="as-button">${t.submission ? 'Resubmit for review' : 'Submit for review'}</button></form>` : ''}
         ${t.status === 'Submitted' ? '<p class="as-note">Submitted. Your Coach reviews it — you’ll see Approved, Needs revision or Rejected here.</p>' : ''}

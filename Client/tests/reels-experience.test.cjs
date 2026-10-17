@@ -18,7 +18,8 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  await normal.waitForFunction(()=>reelsLab.state.visualProgress>.995,{},{timeout:16000});
  const sequence=await normal.evaluate(()=>{sampling=false;return{visited,samples,state:reelsLab.state}});
  assert.deepEqual([...new Set(sequence.visited)],[0,1,2,3,4,5,6]);assert.ok(sequence.samples.every(s=>s.same&&s.active<=5&&s.canvas[0]===700&&s.canvas[1]===860));
- for(let i=1;i<sequence.samples.length;i++)assert.ok(sequence.samples[i].p-sequence.samples[i-1].p<=.0073);
+ // Bounded per-frame travel (ceiling .75/s at the 50 ms frame clamp): a fling never teleports the story.
+ for(let i=1;i<sequence.samples.length;i++)assert.ok(sequence.samples[i].p-sequence.samples[i-1].p<=.04);
  assert.equal(sequence.state.inputs.emotionStage,4);assert.equal(sequence.state.inputs.pointerLookEnabled,false);assert.equal(sequence.state.renderer.media.created,5);
  results.cases.push('Natural intro → fast wheel: seven stages visited; progress capped; persistent 700×860 canvas; ≤5 decoders; scripted gaze');results.metrics.fastSwipe=sequence.samples.filter((_,i)=>i%15===0);
  // Reverse and repeated direction changes use native page position.

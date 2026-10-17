@@ -1,5 +1,6 @@
 import * as THREE from '../../../assets/vendor/three/three.module.min.js';
-import {clamp,mix,smooth} from './story-math.js';
+import {clamp,mix,smooth,CORE,STORM} from './story-math.js';
+import {holeFrame} from './black-hole.js';
 import {planeVertex,vortexVertex,vortexFragment,cardFragment} from './shaders.js';
 import {createMedia} from './media.js';
 import {spiralIn} from './collapse.js';
@@ -23,11 +24,11 @@ export function createVortex(root){
  ['poster-01.png','poster-02.png','poster-03.png','poster-04.png'].forEach((name,i)=>{const image=new Image();image.src=new URL('../../../assets/reels/posters/'+name,import.meta.url).href;image.style.setProperty('--i',i);fallback.append(image)});root.querySelector('.world').append(fallback);
  let width=1440,height=900,quality=innerWidth<700?1:Math.min(devicePixelRatio,1.5),slow=0,verySlow=0,frames=0,disposed=false;
  if(!failed){for(const r of [backRenderer,frontRenderer]){r.setClearColor(0,0);r.outputColorSpace=THREE.SRGBColorSpace}root.dataset.webgl='ready'}
- const uniforms={uProgress:{value:0},uTime:{value:0},uExit:{value:0},uAspect:{value:1.6},uCenter:{value:new THREE.Vector2(.625,.58)}};
+ const uniforms={uProgress:{value:0},uTime:{value:0},uExit:{value:0},uAspect:{value:1.6},uCenter:{value:new THREE.Vector2(.625,.58)},uHole:{value:new THREE.Vector4(.625,.58,0,0)},uDisk:{value:0},uDark:{value:0},uTilt:{value:.24},uSpin:{value:0}};
  const atmosphere=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({vertexShader:vortexVertex,fragmentShader:vortexFragment,uniforms,transparent:true,depthTest:false,depthWrite:false}));atmosphere.frustumCulled=false;atmosphere.renderOrder=-100;back.add(atmosphere);
  const geometry=new THREE.PlaneGeometry(1,1.72),chrome=chromeTexture();
  const cards=Array.from({length:46},(_,i)=>{
-  const uniforms={uMap:{value:media.texture(i,false)},uChrome:{value:chrome},uOpacity:{value:0},uGlow:{value:0},uBlur:{value:0},uCrop:{value:i<5?1:.78+(i%3)*.09}};
+  const uniforms={uMap:{value:media.texture(i,false)},uChrome:{value:chrome},uOpacity:{value:0},uGlow:{value:0},uBlur:{value:0},uCrop:{value:i<5?1:.78+(i%3)*.09},uWarm:{value:0},uShade:{value:1}};
   const material=new THREE.ShaderMaterial({uniforms,vertexShader:planeVertex,fragmentShader:cardFragment,transparent:true,side:THREE.DoubleSide,depthWrite:false});
   const mesh=new THREE.Mesh(geometry,material);back.add(mesh);return{mesh,uniforms};
  });
@@ -40,7 +41,9 @@ export function createVortex(root){
  const dummy=new THREE.Object3D();
  // Perspective ribbon strips follow the same throat as cards. Sparse at first, then wrap the camera.
  const trailGeo=new THREE.BufferGeometry(),trailPositions=new Float32Array(180*6*3);trailGeo.setAttribute('position',new THREE.BufferAttribute(trailPositions,3));
- const trails=Array.from({length:7},(_,i)=>{const mat=new THREE.MeshBasicMaterial({color:[0xc270ff,0xff92f2,0x8376ff,0xffba7a][i%4],transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending});const mesh=new THREE.Mesh(trailGeo.clone(),mat);(i%2?front:back).add(mesh);return mesh});
+ // Ribbons keep their storm colours, then take the disk's light as the hole forms.
+ const ribbonCold=[0xc270ff,0xff92f2,0x8376ff,0xffba7a].map(c=>new THREE.Color(c)),ribbonWarm=[0xffb468,0xffe0b0,0xe58a4a,0xfff0d8].map(c=>new THREE.Color(c)),chipWarm=new THREE.Color(1,.8,.62),white=new THREE.Color(1,1,1);
+ const trails=Array.from({length:7},(_,i)=>{const mat=new THREE.MeshBasicMaterial({color:ribbonCold[i%4].clone(),transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending});const mesh=new THREE.Mesh(trailGeo.clone(),mat);(i%2?front:back).add(mesh);return mesh});
  function resize(){const box=root.querySelector('.world').getBoundingClientRect();width=box.width;height=box.height;camera.aspect=width/height;camera.updateProjectionMatrix();uniforms.uAspect.value=camera.aspect;if(!failed)for(const r of [backRenderer,frontRenderer]){r.setPixelRatio(quality);r.setSize(width,height,false)}}
  const observer=new ResizeObserver(resize);observer.observe(root.querySelector('.world'));resize();
  let visibleCards=0,lastP=0,lastExit=0,cpu=0;
@@ -51,11 +54,14 @@ export function createVortex(root){
   if(failed){fallback.style.opacity=smooth(.245,.34,p);fallback.querySelectorAll('img').forEach((el,i)=>{const pose=spiralIn(.36+i*.16,.20+i*.10,0,1,exit,.04+i*.025,.43+i*.025,.7);el.style.left=`${pose.x*100}%`;el.style.top=`${pose.y*100}%`;el.style.transform=`rotate(${-14+i*9+pose.turn*180/Math.PI}deg) scale(${pose.size})`;el.style.visibility=pose.swallowed?'hidden':'visible'});return;}
   // Nothing behind the expanding void is submitted to WebGL once swallowed.
   if(exit>=.70){visibleCards=0;return}
-  const burst=smooth(.67,.85,p),trap=smooth(.86,1,p),spiral=smooth(.40,.69,p),travel=p*8+(reduced?0:time*.07);
+  const burst=smooth(.67,.85,p),trap=smooth(.86,1,p),spiral=smooth(.40,.69,p),travel=p*8+(reduced?0:time*.07),hole=holeFrame(p,exit);
   atmosphere.visible=p>.50;uniforms.uProgress.value=p;uniforms.uTime.value=reduced?0:time;uniforms.uExit.value=exit;
-  uniforms.uCenter.value.set(mix(.632,.568,trap),mix(.59,.54,trap));
+  // The storm's eye drifts onto the gravitational core; the hole forms inside it.
+  uniforms.uCenter.value.set(mix(STORM.x,CORE.x,trap),1-mix(STORM.y,CORE.y,trap));
+  uniforms.uHole.value.set(uniforms.uCenter.value.x,uniforms.uCenter.value.y,hole.radius,hole.form);
+  uniforms.uDisk.value=hole.disk;uniforms.uDark.value=hole.dark;uniforms.uTilt.value=hole.tilt;uniforms.uSpin.value=hole.spin;
   camera.position.set(0,0,18-burst*.8);camera.rotation.z=burst*.025-trap*.05;
-  const centerX=mix(.632,.568,trap),centerY=mix(.43,.47,trap);
+  const centerX=mix(STORM.x,CORE.x,trap),centerY=mix(STORM.y+.02,CORE.y+.01,trap);
   visibleCards=0;
   cards.forEach(({mesh,uniforms:u},i)=>{
    const appear=i===0?.245:i<3?.275+(i-1)*.025:i<7?.38+(i-3)*.019:i<16?.52+(i-7)*.015:i<32?.70+(i-16)*.006:.87+(i-32)*.006;
@@ -79,6 +85,8 @@ export function createVortex(root){
    x=pulled.x;y=pulled.y;z=pulled.z;size=pulled.size;rotation+=pulled.turn;
    mesh.position.copy(screenPoint(x,y,z));mesh.rotation.set(Math.sin(a*.7)*.18*spiral,Math.cos(a)*.26*spiral,rotation);mesh.scale.setScalar(size*(i===0&&p<.2?1:1));moveToLayer(mesh,z);
    u.uMap.value=media.texture(i,i<5&&p>.205);u.uOpacity.value=opacity;u.uGlow.value=mix(.10,1,smooth(.3,.75,p));u.uBlur.value=smooth(5,9,z)*burst*.9;
+   // Exposure by depth: far cards sink into the dark, near ones stay readable.
+   u.uWarm.value=hole.warm;u.uShade.value=mix(.38,1.06,smooth(-18,5,z));
    mesh.renderOrder=Math.round(z*10);
   });
   chips.forEach((mesh,i)=>{
@@ -88,7 +96,7 @@ export function createVortex(root){
    const a=i*2.4+travel*1.3,rad=.22+(i%3)*.10;
    x=centerX+Math.cos(a)*rad;y=centerY+Math.sin(a)*rad*1.4;z=i%3===0?3:-3;s=2.3+(i%2)*.25;
    if(i===0&&p<.3){const drift=smooth(.10,.23,p),join=smooth(.23,.30,p);x=mix(mix(.95,.927,drift),x,join);y=mix(mix(.265,.276,drift),y,join);z=mix(1,z,join);s=mix(.72,s,join)}
-   const pulled=spiralIn(x,y,z,s,exit,.015+(i%5)*.015,.34+(i%5)*.026,.85);mesh.visible=!pulled.swallowed;
+   const pulled=spiralIn(x,y,z,s,exit,.015+(i%5)*.015,.34+(i%5)*.026,.85);mesh.visible=!pulled.swallowed;mesh.material.color.copy(white).lerp(chipWarm,hole.warm*.85);mesh.material.opacity=alpha*mix(1,.82,hole.warm);
    mesh.position.copy(screenPoint(pulled.x,pulled.y,pulled.z));mesh.scale.setScalar(pulled.size);mesh.rotation.z=Math.sin(i+travel)*.21*(i===0?smooth(.23,.30,p):1)+pulled.turn;moveToLayer(mesh,pulled.z);
   });
   const debris=smooth(.38,.78,p);
@@ -98,7 +106,7 @@ export function createVortex(root){
   leaves.visible=p>.29&&exit<.46;leaves.material.opacity=smooth(.29,.52,p)*.7;leaves.count=Math.round(48*smooth(.28,.7,p));
   for(let i=0;i<leaves.count;i++){const a=i*2.399+travel*1.7,r=.17+(i%7)*.063;const pulled=spiralIn(centerX+Math.cos(a)*r,centerY+Math.sin(a)*r*1.5,(i%5)-2,1,exit,.015+(i%4)*.02,.38+(i%4)*.025,1.1);dummy.position.copy(screenPoint(pulled.x,pulled.y,pulled.z));dummy.rotation.set(a*.8,i,a+pulled.turn);dummy.scale.set(.07*pulled.size,.19*pulled.size,.014*pulled.size);dummy.updateMatrix();leaves.setMatrixAt(i,dummy.matrix)}leaves.instanceMatrix.needsUpdate=true;
   trails.forEach((mesh,k)=>{
-   mesh.visible=p>.26&&exit<.54;mesh.material.opacity=smooth(.26,.34,p)*mix(.19,.75,burst)*(k>2?smooth(.49,.74,p):1);
+   mesh.visible=p>.26&&exit<.54;mesh.material.opacity=smooth(.26,.34,p)*mix(.19,.75,burst)*(k>2?smooth(.49,.74,p):1)*mix(1,.7,hole.warm)*(1-smooth(0,.24,exit));mesh.material.color.copy(ribbonCold[k%4]).lerp(ribbonWarm[k%4],hole.warm);
    const arr=mesh.geometry.attributes.position.array;
    for(let j=0;j<180;j++){
     const points=[];
@@ -118,5 +126,5 @@ export function createVortex(root){
   if(frames===90){if(slow>60&&quality>.8){quality=Math.max(.8,quality-.25);resize()}if(verySlow>40)media.limit(3);frames=0;slow=0;verySlow=0}
  }
  for(const c of [backCanvas,frontCanvas]){c.addEventListener('webglcontextlost',e=>{e.preventDefault();failed=true;root.dataset.webgl='unavailable';media.update(0,true,true)});c.addEventListener('webglcontextrestored',()=>{failed=false;root.dataset.webgl='ready';resize()})}
- return{render,resize,prepareMedia:p=>media.update(p,false,false),quality(value){quality=value;resize()},maxVideos:value=>media.limit(value),get state(){return{cpu,cards:visibleCards,media:media.state,quality,webgl:!failed,progress:lastP,exit:lastExit}},destroy(){disposed=true;observer.disconnect();media.destroy();for(const scene of [front,back])scene.traverse(o=>{o.geometry?.dispose();if(o.material){o.material.map?.dispose();o.material.dispose()}});chrome.dispose();backRenderer?.dispose();frontRenderer?.dispose()}};
+ return{render,resize,prepareMedia:p=>media.update(p,false,false),quality(value){quality=value;resize()},maxVideos:value=>media.limit(value),get state(){const hole=holeFrame(lastP,lastExit);return{cpu,cards:visibleCards,media:media.state,quality,webgl:!failed,progress:lastP,exit:lastExit,hole:{phase:hole.phase,radius:hole.radius,disk:hole.disk}}},destroy(){disposed=true;observer.disconnect();media.destroy();for(const scene of [front,back])scene.traverse(o=>{o.geometry?.dispose();if(o.material){o.material.map?.dispose();o.material.dispose()}});chrome.dispose();backRenderer?.dispose();frontRenderer?.dispose()}};
 }

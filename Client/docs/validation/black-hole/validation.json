@@ -1,0 +1,17 @@
+{
+  "cases": [
+    "holeFrame: zero before the burst, monotonic radius through story and exit, deterministic, disk gone before the void, shadow larger than the frame at EXIT_END; one CORE.",
+    "1440 and 390: exact hero copy, no hero buttons, cue after LIVING_IDLE only, leaves on scroll and returns; void-coloured horizon at CORE with bright, asymmetric disk; Protection colour→mono and back; no overflow."
+  ],
+  "screenshots": [
+    "1440-cue.png",
+    "1440-exit-0.3.png",
+    "1440-exit-0.6.png",
+    "1440-protected.png",
+    "390-cue.png",
+    "390-exit-0.3.png",
+    "390-exit-0.6.png",
+    "390-protected.png"
+  ],
+  "errors": []
+}

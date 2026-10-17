@@ -108,7 +108,7 @@ export function assignedTasks(s, personId) {
     const initiative = g.parentType === 'initiative' ? s.initiatives.find(i => i.id === g.initiativeId) : null;
     const program = g.programId ? s.programs.find(p => p.id === g.programId) : null;
     const overdue = !['Approved','Rejected'].includes(status) && status !== 'Submitted' && a.due < today(s);
-    return {id:a.id, title:a.title, activity:a.activity, practiceType:a.practiceType || practiceTypeOf(a.activity), instructions:a.instructions, evidence:a.evidence || '', start:a.start || '', due:a.due, required:a.required, review:a.review,
+    return {id:a.id, title:a.title, activity:a.activity, practiceType:a.practiceType || practiceTypeOf(a.activity), activityId:a.activityId||null,activityVersion:a.activityVersion||null,contentVersion:a.contentVersion||null,definitionSnapshot:a.definitionSnapshot||null,instructions:a.instructions, evidence:a.evidence || '', start:a.start || '', due:a.due, required:a.required, review:a.review,
       status, actionable, cancelReason:a.cancelReason||'', overdue, groupId:g.id, groupName:g.name, coach:nameOf(s, g.parentType === 'initiative' ? g.coachId : a.ownerId), authorName:nameOf(s, a.ownerId),
       context:initiative ? {type:'initiative', id:initiative.id, title:initiative.title} : {type:'program', id:program?.id || g.id, title:program?.title || g.name},
       initiativeId:initiative?.id || null,

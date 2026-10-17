@@ -1,3 +1,4 @@
+import {assignmentDefinition} from '../activity-contract.js';
 import {taskBlockReason,institutionApproved,id,now,nowMs,clockDay,requireThat,find,textRequired,numberIn,dates,ownGroup,ownProgram,reward,audit,notify} from '../domain.js';
 import {isActiveCoach,practiceTypeOf} from '../initiative-rules.js';
 import {requireIndependentCoach,isProgramGroup,programOf,programGroups,syncProgramGroups,normalizeProgram,invitationStatus,completionStatus,programMetrics,isEmail,PROGRAM_BUILDABLE,DEFAULT_COMPLETION} from '../coach-rules.js';
@@ -37,8 +38,8 @@ export function submitTask(s,p,actor){
   const existing=s.submissions.find(x=>x.assignmentId===a.id&&x.studentId===actor);
   requireThat(!existing||['Needs Revision','Rejected'].includes(existing.status),'This task is already submitted.');
   const text=textRequired(p.text,'Your reflection');
-  if(existing){existing.history.push({text:existing.text,status:existing.status,feedback:existing.feedback,created:existing.submitted,attempt:existing.attempt||1,assignmentVersion:existing.assignmentVersion||1});Object.assign(existing,{text,file:p.file||'',status:'Submitted',submitted:now(),attempt:(existing.attempt||1)+1,assignmentVersion:a.version||1});}
-  else s.submissions.push({id:id('submission'),assignmentId:a.id,studentId:actor,text,file:p.file||'',status:'Submitted',submitted:now(),feedback:'',history:[],attempt:1,assignmentVersion:a.version||1});
+  if(existing){existing.history.push({text:existing.text,status:existing.status,feedback:existing.feedback,created:existing.submitted,attempt:existing.attempt||1,assignmentVersion:existing.assignmentVersion||1,activityReference:structuredClone(existing.activityReference||null),instructionsSnapshot:existing.instructionsSnapshot||a.instructions});Object.assign(existing,{text,file:p.file||'',status:'Submitted',submitted:now(),attempt:(existing.attempt||1)+1,assignmentVersion:a.version||1,activityReference:structuredClone(a.definitionSnapshot||null),instructionsSnapshot:a.instructions});}
+  else s.submissions.push({id:id('submission'),assignmentId:a.id,studentId:actor,text,file:p.file||'',status:'Submitted',submitted:now(),feedback:'',history:[],attempt:1,assignmentVersion:a.version||1,activityReference:structuredClone(a.definitionSnapshot||null),instructionsSnapshot:a.instructions});
   delete s.taskDrafts[`${actor}:${a.id}`];
   const reviewer=g.parentType==='initiative'?g.coachId:(g.ownerId||a.ownerId);
   if(reviewer)notify(s,reviewer,`New submission for “${a.title}”.`,'workspaces.html#/mentor/reviews','review');
@@ -70,7 +71,7 @@ function materialize(s,pr,g){
   for(const stage of pr.stages)for(const activity of pr.activities){
     const key=`${pr.id}:${stage.id}:${activity}:${g.id}`;
     if(s.assignments.some(a=>a.sourceKey===key))continue;
-    s.assignments.push({id:id('assignment'),ownerId:pr.ownerId,groupId:g.id,programId:pr.id,stageId:stage.id,sourceKey:key,recipientIds:[...g.memberIds],title:`${stage.title} · ${activity}`,activity,practiceType:practiceTypeOf(activity),instructions:stage.objective,evidence:'Written reflection; self-reported until Coach review.',start:pr.start,due:stage.date,required:pr.required!==false,review:pr.review||'Coach review',status:'Active',version:1,programVersion:pr.version,created:now(),history:[]});
+    s.assignments.push({id:id('assignment'),ownerId:pr.ownerId,groupId:g.id,programId:pr.id,stageId:stage.id,sourceKey:key,recipientIds:[...g.memberIds],title:`${stage.title} · ${activity}`,...(pr.activityDefinitions?.find(d=>d.title===activity)?.reference||assignmentDefinition(s,activity)),activity,practiceType:practiceTypeOf(activity),instructions:stage.objective,evidence:'Written reflection; self-reported until Coach review.',start:pr.start,due:stage.date,required:pr.required!==false,review:pr.review||'Coach review',status:'Active',version:1,programVersion:pr.version,created:now(),history:[]});
     created++;
   }
   if(created)for(const pid of g.memberIds)notify(s,pid,`${created} new task(s) in “${pr.title}”.`,taskLink(s,pid,''),'task');
@@ -186,6 +187,7 @@ export function mentorshipCommand(s,action,p,actor) {
     requireThat(pr.stages.every(x=>x.title?.trim()&&x.objective?.trim()&&x.date>=pr.start&&x.date<=pr.end),'Each stage needs a title, objective and date within the program.');
     requireThat(pr.activities.every(t=>s.activityCatalog.some(c=>c.title===t&&c.status==='Published')),'Choose only approved, published activities.');
     pr.status='Published';pr.publishedAt=now();history(pr,actor,'Published',{version:pr.version});(pr.history.at(-1)).published=now();
+    pr.activityDefinitions ||= pr.activities.map(title=>({title,reference:assignmentDefinition(s,title)}));
     for(const g of programGroups(s,pr)){if(g.status==='Draft')g.status='Open';materialize(s,pr,g);}
     return;
   }
@@ -251,6 +253,7 @@ export function mentorshipCommand(s,action,p,actor) {
     const copy=structuredClone(pr);
     Object.assign(copy,{id:id('program'),title:`${pr.title} · revision`,status:'Draft',version:pr.version+1,groupIds:[],revisionOf:pr.id,created:now(),history:[{at:now(),actorId:actor,change:`Draft revision of “${pr.title}” · groups stay with the original Program`}]});
     for(const key of ['publishedAt','completedAt','cancelledAt','cancelReason','archivedAt','previousStatus'])delete copy[key];
+    delete copy.activityDefinitions;
     copy.stages=copy.stages.map(st=>({...st,id:id('stage')}));
     s.programs.push(copy);return copy.id;
   }
@@ -265,7 +268,7 @@ export function mentorshipCommand(s,action,p,actor) {
     if(p.start&&p.due)requireThat(p.due>=p.start,'The due date must follow the start date.');
     const record={id:id('assignment'),ownerId:actor,groupId:g.id,studentId:p.studentId||null,
       initiativeId:g.parentType==='initiative'?g.initiativeId:p.initiativeId||null,programId:isProgramGroup(g)?g.programId:p.programId||null,
-      activity:p.activity,practiceType:practiceTypeOf(p.activity),title:textRequired(p.title,'Title'),instructions:textRequired(p.instructions,'Instructions'),
+      ...assignmentDefinition(s,p.activity),activity:p.activity,practiceType:practiceTypeOf(p.activity),title:textRequired(p.title,'Title'),instructions:textRequired(p.instructions,'Instructions'),
       evidence:p.evidence||'',start:p.start||'',due:textRequired(p.due,'Due date'),required:p.required!==false,review:p.review||'Coach review',
       status:'Active',recipientIds:p.studentId?[p.studentId]:[...g.memberIds],created:now(),version:1,history:[]};
     s.assignments.push(record);

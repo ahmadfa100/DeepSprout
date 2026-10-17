@@ -60,10 +60,9 @@ export default f => ({
       spec: ['§13.3', 'D32', 'D33'], scenarios: ['C']
     },
     {
-      id: 'ops-approve', overview: true,
+      id: 'ops-approve',
       title: 'The Coach approves the work',
       summary: 'The resubmission is approved. Approved, eligible work is processed once as evidence for the student’s matching practice tree and for the Initiative’s Group Garden.',
-      brief: 'Approved work counts once, as source-backed evidence.',
       show: ['coach', 'assignment', 'student'],
       edges: ['coach>assignment', 'assignment>student'], flows: ['coach>assignment'], token: 'check',
       status: { assignment: ['Resubmitted', 'Approved'] },
@@ -205,10 +204,9 @@ export default f => ({
       spec: ['§9.1', '§9.2', 'D09'], scenarios: ['B']
     },
     {
-      id: 'ops-excuse', overview: true,
+      id: 'ops-excuse',
       title: 'A student explains an absence',
       summary: 'A student marked Absent submits an excuse for that specific session, with a short explanation and an optional restricted attachment.',
-      brief: 'An absent student submits an excuse for one specific session.',
       show: ['student', 'supervisor', 'rep'],
       at: { student: [200, 420], supervisor: [500, 140], rep: [800, 420] },
       edges: ['student>supervisor', 'supervisor>rep', 'rep>student:under'], flows: ['student>supervisor'], token: 'bubble',

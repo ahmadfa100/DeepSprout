@@ -42,7 +42,7 @@
       <div class="ds-hero-copy">
         <p class="ds-hero-eyebrow" data-name="checkIn">Check-in</p>
         <h1 id="lab-title"><span data-name="checkInPage">Your Check-in</span><br><em>Measured, not chased.</em></h1>
-        <p class="ds-hero-text">Four short measurement tasks. They mark your starting point, and once a cycle show what changed. Never a diagnosis, never one combined score.</p>
+        <p class="ds-hero-text">Four short measurement tasks. They mark your starting point, then a free weekly pair records later measurements. Never a diagnosis, never one combined score.</p>
         <div class="btn-row lab-hero-actions" id="lab-actions"></div>
       </div>
       <figure class="ds-hero-art is-cutout"><img src="../../../../assets/hero-v2/bimo-focus.png" alt="Bimo in a calm, focused pose"></figure>
@@ -59,10 +59,16 @@
         <ol class="ci-timeline" id="ci-timeline"></ol>
       </section>
 
+      <details class="card" id="personal-lab-controls" hidden>
+        <summary>Personal Lab demo controls</summary><p id="personal-lab-source"></p>
+        <form id="personal-clock-form"><label>Personal date (Asia/Amman) <input type="date" name="day" required></label><button type="submit" class="btn btn-ghost">Set personal demo date</button></form>
+        <form id="lab-policy-form"><label>Interim weekly window (1–7 days) <input type="number" name="days" min="1" max="7" required></label><button type="submit" class="btn btn-ghost">Save local window setting</button></form>
+        <p role="alert" id="lab-demo-error"></p>
+      </details>
       <section aria-labelledby="instruments-title">
         <div class="lab-section-head">
           <h2 id="instruments-title">The four tasks</h2>
-          <p>Each records its own result, version and date. Practice rounds are open any time and never counted.</p>
+          <p>Each records its own result, version and date. Time estimates include instructions and untimed answers; actual duration varies. Practice rounds are open any time and never counted.</p>
         </div>
         <div class="lab-grid" id="lab-grid"></div>
       </section>

@@ -52,3 +52,7 @@
  .reels-enhanced .lines-research>:nth-child(1){bottom:calc(9% + 80px)}
  .reels-enhanced .lines-research>:nth-child(2){bottom:calc(9% + 36px)}
 }
+
+/* The section overlaps the hero's last screen, which is already the full void: its stage pins the
+   moment the void closes, so no viewport of empty dark is scrolled through between them. */
+@media(prefers-reduced-motion:no-preference){.reels-enhanced .lines{margin-top:-100svh;background:transparent}}

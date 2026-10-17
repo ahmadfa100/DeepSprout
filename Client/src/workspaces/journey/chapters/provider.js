@@ -36,6 +36,7 @@ export default f => {
         summary: 'On publication the Experience appears in regular Explore with its organizer, dates, venue, mode, capacity, eligibility, safety contact and cancellation policy.',
         brief: 'An approved Provider publishes an Experience to the regular Explore.',
         show: ['provider', 'experience', 'explore'],
+        at: { experience: [500, 270] },
         edges: ['provider>experience', 'experience>explore'], flows: ['experience>explore'], token: 'globe',
         status: { experience: ['Draft', 'Published'] },
         note: { kind: 'event', title: 'Experience published', text: 'Eligible Individuals can now book it. Drafts, suspended or cancelled Experiences cannot be booked.' },
@@ -117,7 +118,7 @@ export default f => {
         show: ['experience', 'individual', 'individual.b', 'individual.c'],
         at: queue,
         edges: ['experience>individual', 'experience>individual.b', 'experience>individual.c'], flows: ['experience>individual.c'], token: 'seat',
-        status: { experience: '1 confirmed · 1 held', individual: 'Confirmed', 'individual.b': '!Cancelled', 'individual.c': ['Queued', 'Offered'] },
+        status: { experience: 'Seat held', individual: 'Confirmed', 'individual.b': '!Cancelled', 'individual.c': ['Queued', 'Offered'] },
         dim: ['individual.b'],
         note: { kind: 'event', title: 'Seat available', text: `A place has opened. The next eligible waitlisted participant receives a time-limited offer (${window} interim default).` },
         details: {

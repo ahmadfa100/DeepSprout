@@ -5,14 +5,17 @@ export const STAGES=['POST HERO CALM','TINY DISTRACTION','TEMPTATION ORBIT','FIR
 export const BOUNDS=[0,.10,.23,.38,.52,.70,.88];
 export const CAPTURES=[.025,.215,.32,.455,.61,.82,.97];
 export const stageAt=p=>BOUNDS.reduce((stage,start,i)=>p>=start?i:stage,0);
-// A rate ceiling gives every narrative beat time to read even after an End-key fling.
-// This controls the artwork, never wheel events or native scrolling.
+// Gravity's centre, in world coordinates (0–1 of the 1672 × 941 artwork). The storm turns around
+// STORM; the trap, the black hole, the exit spirals and the void all share CORE.
+export const CORE={x:.568,y:.46},STORM={x:.632,y:.41};
+// The artwork follows scroll with a short time constant, so it settles promptly when input stops.
+// A ceiling applies only to a large backlog (an End-key fling, or scroll made during the autonomous
+// intro), so the earliest beats still read in order. This controls the artwork, never native scrolling.
 export function follow(current,target,dt,reduced=false){
  if(Math.abs(target-current)<.0001)return target;
- const delta=(target-current)*(1-Math.exp(-dt*(reduced?8:5)));
- // Early-only speed ramp: cue → attention → eyes → NOTICE cannot be skipped by a fling.
- const release=smooth(.25,.38,current);
- return clamp(current+clamp(delta,-dt*(reduced?2:mix(.08,.19,release)),dt*(reduced?2:mix(.06,.145,release))));
+ const delta=(target-current)*(1-Math.exp(-dt*(reduced?14:9)));
+ const ceiling=dt*(reduced?3:mix(.32,.75,smooth(.25,.38,current)));
+ return clamp(current+clamp(delta,-ceiling,ceiling));
 }
 // Stagger existing native channels; all blends are complete before orbit arrives.
 export function noticeBlend(key,p){
@@ -32,7 +35,8 @@ export function stonePose(config,index,p){
  x+=(index%2?-1:1)*fall*(130+index*12);y+=fall*fall*(640-by);r+=fall*fall*(index%2?-125:115);scale-=Math.sin(impact*Math.PI)*.1;
  const capture=smooth(start+.14,start+.26,p),angle=-(p-start)*13+index*1.83;
  const radius=150+index*42;
- x=mix(x,990+Math.cos(angle)*radius,capture);y=mix(y,410+Math.sin(angle)*radius*.76,capture);r+=capture*(p-start)*440;
- const swallowed=smooth(.88,1,p);x=mix(x,955,swallowed*.75);y=mix(y,360,swallowed*.75);scale*=1-swallowed*.74;
+ const ox=(CORE.x+.024)*1672,oy=(CORE.y-.024)*941;
+ x=mix(x,ox+Math.cos(angle)*radius,capture);y=mix(y,oy+Math.sin(angle)*radius*.76,capture);r+=capture*(p-start)*440;
+ const swallowed=smooth(.88,1,p);x=mix(x,(CORE.x+.003)*1672,swallowed*.75);y=mix(y,(CORE.y-.077)*941,swallowed*.75);scale*=1-swallowed*.74;
  return{x,y,width:width*scale,rotation:r,depth:fall>.1&&index%2&&swallowed<.1?7:4};
 }

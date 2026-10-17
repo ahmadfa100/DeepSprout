@@ -97,7 +97,8 @@
       const changes = JSON.parse(localStorage.getItem(`deepsprout-account-changes-v1:${journal}`) || '[]');
       for (const event of changes) {
         if (event.type === 'setup.save') { cache.onboarding.setupDone = true; cache.onboarding.introSeen = true; }
-        if (event.type === 'assessment.add' && event.attempt?.official && event.attempt.cycle === 1) cache.assessments[event.attempt.definitionId] = {...event.attempt, completedAt:event.attempt.at || event.at, summary:event.attempt.details || []};
+        if (event.type === 'assessment.add' && event.attempt?.official && event.attempt.valid===true && event.attempt.status==='Completed' && event.attempt.kind==='baseline') cache.assessments[event.attempt.definitionId] = {...event.attempt, completedAt:event.attempt.at || event.at, summary:event.attempt.details || []};
+        if(event.type==='tour.record')cache.onboarding.tourSeen=true;
         if (event.type === 'plan.activate') { cache.onboarding.planActivated = true; cache.plan = {...event.firstRunPlan, startDate:event.on, cycleLength:event.lengthDays || 28, goalLabel:event.goalLabel}; }
       }
     }
@@ -167,7 +168,7 @@
   ];
 
   /** Days before a completed instrument may be formally retaken. */
-  const RETEST_WINDOW_DAYS = 28;
+  const RETEST_WINDOW_DAYS = 7; // Display compatibility only; the journal owns actual eligibility.
 
   const assessmentAttempt = id => read().assessments[id] || null;
 
@@ -182,22 +183,19 @@
     };
   });
 
+  const validBaseline=(a,id)=>a?.valid===true&&a.status==='Completed'&&a.kind==='baseline'&&a.personId===owner&&Object.entries(window.DeepSproutAccount?.assessmentContract(id)||{}).every(([k,v])=>a[k]===v);
   const assessmentsComplete = () => {
     const stored = read().assessments;
-    return ASSESSMENTS.every(item => stored[item.id]?.completedAt);
+    return ASSESSMENTS.every(item => validBaseline(stored[item.id],item.id));
   };
 
   const nextAssessment = () => {
     const stored = read().assessments;
-    return ASSESSMENTS.find(item => !stored[item.id]?.completedAt) || null;
+    return ASSESSMENTS.find(item => !validBaseline(stored[item.id],item.id)) || null;
   };
 
   /** Completed instruments are retestable once the eligibility window passes. */
-  const retestEligible = id => {
-    const attempt = assessmentAttempt(id);
-    if (!attempt?.completedAt) return false;
-    return daysBetween(attempt.completedAt, new Date()) >= RETEST_WINDOW_DAYS;
-  };
+  const retestEligible = id => {const account=window.DeepSproutAccount?.current();const mode=account?.checkInMode(id);return mode?.mode==='official'&&mode.kind!=='baseline';};
 
   /* ------------------------------------------------------------------ plan */
 
@@ -209,19 +207,22 @@
   };
 
   const goalLabel = () => {
+    const current=window.DeepSproutAccount?.current()?.profile().goal;if(current)return current.label;
     const state = read();
     return state.plan?.goalLabel || GOALS[state.profile.goal] || 'Spend less time on short-video feeds';
   };
 
   /** Day 1..28 of the active cycle, or null when no plan is active. */
   const cycleDay = () => {
+    const current=window.DeepSproutAccount?.current()?.plan();if(current)return current.day;
     const plan = read().plan;
     if (!plan?.startDate) return null;
-    const elapsed = daysBetween(plan.startDate, new Date());
+    const elapsed = daysBetween(plan.startDate, window.DeepSproutAccount?.current()?.today||new Date());
     return Math.min(plan.cycleLength || 28, Math.max(1, elapsed + 1));
   };
 
   const cycleWeek = () => {
+    const current=window.DeepSproutAccount?.current()?.plan();if(current)return current.week;
     const day = cycleDay();
     return day === null ? null : Math.min(4, Math.ceil(day / 7));
   };
@@ -459,7 +460,7 @@
       daysToReview: plan ? Math.max(0, week * 7 - day) : null,
       baselinesDone: baselines.length,
       baselinesTotal: ASSESSMENTS.length,
-      retestOn: firstBaseline ? addDays(new Date(firstBaseline), RETEST_WINDOW_DAYS) : null,
+      retestOn: (()=>{const due=window.DeepSproutAccount?.current()?.checkInWindow();return due?(['done','missed'].includes(due.state)?due.nextOpens:due.opens):null;})(),
       perWeek
     };
   };

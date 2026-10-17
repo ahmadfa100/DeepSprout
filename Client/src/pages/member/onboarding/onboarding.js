@@ -7,6 +7,8 @@
   if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const DS = window.DeepSprout;
   const root = document.body.dataset.root || '../../../../';
+  let journal=null;
+  const nextBaseline=()=>journal?DS.ASSESSMENTS.find(meta=>journal.baselineResults().some(row=>row.id===meta.id&&!row.attempt)):DS.nextAssessment();
   const screens = [...document.querySelectorAll('.ob-screen')];
 
   const show = step => {
@@ -280,14 +282,14 @@
   function renderHandoff() {
     const goal = DS.GOALS[answers.goal] || 'a more intentional relationship with your feeds';
     document.getElementById('handoff-goal').textContent = `We'll build your plan around one goal: ${goal.toLowerCase()}.`;
-    const next = DS.nextAssessment();
+    const next = nextBaseline();
     if (!next) { document.getElementById('handoff-next-title').textContent = 'Your Starting Point'; document.getElementById('handoff-next-note').textContent = 'Your four starting checks are recorded.'; return; }
     document.getElementById('handoff-next-title').textContent = next.title;
     document.getElementById('handoff-next-note').textContent = `${next.kind} · about ${next.minutes} minutes. Your result is recorded on its own — the four assessments are never combined into a single score.`;
   }
 
   document.getElementById('handoff-start').addEventListener('click', () => {
-    const next = DS.nextAssessment();
+    const next = nextBaseline();
     location.href = next ? `${root}src/pages/member/lab/assessment.html?test=${next.id}&flow=onboarding` : 'starting-point.html';
   });
 
@@ -318,6 +320,7 @@
 
   /* ------------------------------------------------- resume where we left off */
 
+  window.DeepSproutAccount.load().then(value=>{journal=value;if(!document.querySelector('[data-step=handoff]').hidden)renderHandoff();},error=>{savedEl.textContent=error.message;});
   const requested = new URLSearchParams(location.search).get('step');
   const onboarding = DS.get().onboarding;
   if (requested && screens.some(screen => screen.dataset.step === requested)) {

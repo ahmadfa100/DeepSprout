@@ -56,6 +56,7 @@ const TONES = {
   clay: ['#e2baa5', '#a86f56'], ochre: ['#e5c98f', '#9c7a3a'], ink: ['#93a0a8', '#3f4c55'], plum: ['#c8b4cf', '#77607f']
 };
 
+const STAGE_MID = 286;
 const FIGURE_TOP = 40;    // attach point above a node's centre (status chips sit above it)
 const SIDE = 38;
 
@@ -67,9 +68,12 @@ const SIDE = 38;
 // Figures grow a little on narrow screens too, so they stay recognisable next to their labels.
 const figOf = k => Math.min(1.55, Math.max(1, k * .66));
 const topOf = k => FIGURE_TOP * figOf(k);
+// A connection arriving from above stops at the status chip, never behind it.
+const entryOf = (node, k) => node.chip ? topOf(k) + 25 * k : topOf(k);
 const labelY = k => 34 * figOf(k) + 13 * k;
 const subY = k => labelY(k) + 14 * k;
-const bottomOf = (node, k) => (node.sub ? subY(k) : labelY(k)) + 9 * k;
+const hasSub = (node, k) => Boolean(node.sub) && !(k > 1.5 && node.crowded);
+const bottomOf = (node, k) => (hasSub(node, k) ? subY(k) : labelY(k)) + 9 * k;
 
 const glyph = (name, parent, size = 24, x = -size / 2, y = -size / 2) => {
   const g = el('g', { class: 'jn-glyph', transform: `translate(${x} ${y}) scale(${size / 24})` }, parent);
@@ -91,7 +95,7 @@ export function route(a, b, shape = 'auto', k = 1) {
     return `M${a.x + s * side} ${a.y} H${b.x - s * side}`;
   }
   const down = dy > 0;
-  const y0 = a.y + (down ? bottomOf(a, k) : -topOf(k)), y1 = b.y + (down ? -topOf(k) : bottomOf(b, k));
+  const y0 = a.y + (down ? bottomOf(a, k) : -entryOf(a, k)), y1 = b.y + (down ? -entryOf(b, k) : bottomOf(b, k));
   if (shape === 'line') return `M${a.x} ${y0} V${y1}`;
   if (shape === 'side') {
     const s = Math.sign(dx) || 1;
@@ -116,7 +120,12 @@ export function createScene(svg, { onEvent = () => {}, reducedMotion = () => fal
   }
   const layers = { edges: el('g', { class: 'jn-edges' }, svg), glows: el('g', { class: 'jn-glows' }, svg), nodes: el('g', { class: 'jn-nodes' }, svg), chips: el('g', { class: 'jn-chips' }, svg), tokens: el('g', { class: 'jn-tokens' }, svg) };
   const nodes = new Map(), edges = new Map(), chips = new Map();
-  let timers = [], frames = [], pending = null, version = 0, k = 1, current = null;
+  let timers = [], frames = [], pending = null, version = 0, k = 1, current = null, raw = null;
+  // Narrow screens enlarge text and chips, so rows spread apart vertically to keep their spacing.
+  const project = scene => {
+    const spread = k > 1.5 ? 1.32 : 1;
+    return spread === 1 ? scene : { ...scene, nodes: scene.nodes.map(n => ({ ...n, y: STAGE_MID + (n.y - STAGE_MID) * spread })) };
+  };
 
   const later = (ms, fn) => { const t = setTimeout(fn, ms); timers.push(t); };
   const cancel = () => { timers.forEach(clearTimeout); frames.forEach(cancelAnimationFrame); timers = []; frames = []; layers.tokens.replaceChildren(); layers.glows.replaceChildren(); };
@@ -153,7 +162,7 @@ export function createScene(svg, { onEvent = () => {}, reducedMotion = () => fal
   function paintLabel(record) {
     const { node } = record;
     record.label.textContent = k > 1.5 && node.short ? node.short : node.label;
-    record.sub.textContent = node.sub || '';
+    record.sub.textContent = k > 1.5 && node.crowded ? '' : node.sub || '';
     record.label.setAttribute('y', labelY(k));
     record.sub.setAttribute('y', subY(k));
     record.fig.setAttribute('transform', `scale(${figOf(k)})`);
@@ -242,7 +251,9 @@ export function createScene(svg, { onEvent = () => {}, reducedMotion = () => fal
    * jumps to the end state; `flows` false (going back) reflows without
    * replaying the event itself.
    */
-  function show(scene, { animate = true, flows = true } = {}) {
+  function show(declared, { animate = true, flows = true } = {}) {
+    raw = declared;
+    const scene = project(declared);
     if (pending) finalize(current || scene);
     cancel();
     const run = ++version;
@@ -323,16 +334,7 @@ export function createScene(svg, { onEvent = () => {}, reducedMotion = () => fal
     if (Math.abs(next - k) < .01) return;
     k = next;
     svg.style.setProperty('--k', k);
-    if (!current) return;
-    finalize(current);
-    nodes.forEach(paintLabel);
-    chips.forEach(placeChip);
-    for (const edge of current.edges) {
-      const a = current.nodes.find(n => n.id === edge.from), b = current.nodes.find(n => n.id === edge.to), record = edges.get(edge.key);
-      if (!record) continue;
-      record.path.setAttribute('d', route(a, b, edge.shape, k));
-      record.path.style.strokeDasharray = `${record.path.getTotalLength()}`;
-    }
+    if (raw) show(raw, { animate: false });
   }
 
   return {

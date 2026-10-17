@@ -1,0 +1,11 @@
+#product-tour { width: min(560px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: clamp(20px, 5vw, 36px); border: 1px solid #dbe3d4; border-radius: 22px; color: #23463a; background: #fcfcf5; font: inherit; overflow-y: auto; }
+#product-tour::backdrop { background: rgb(20 50 38 / .38); }
+#product-tour h2 { font-family: var(--font-display, Georgia, serif); font-size: clamp(26px, 5vw, 34px); line-height: 1.15; margin: 16px 0; }
+#product-tour p { line-height: 1.65; }
+#product-tour > p:first-child { font-size: 12px; letter-spacing: .12em; }
+#product-tour nav, #product-tour .tour-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+#product-tour a { color: inherit; text-underline-offset: 4px; margin-right: 10px; }
+#product-tour button { min-height: 44px; padding: 10px 18px; border: 1px solid #c5d4bf; border-radius: 99px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+#product-tour button:last-child { background: #234e3c; color: #fff; }
+#product-tour :focus-visible { outline: 3px solid #8da77d; outline-offset: 4px; }
+#tour-error { color: #8b3f27; }

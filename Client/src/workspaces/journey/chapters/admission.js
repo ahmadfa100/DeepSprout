@@ -123,10 +123,9 @@ export default f => ({
       spec: ['§15.3', '§23.1', '§25.1 ADMIT-04', 'D26'], scenarios: ['B']
     },
     {
-      id: 'adm-full', overview: true,
+      id: 'adm-full',
       title: 'When every seat is taken',
       summary: `Once ${f.seats} students are accepted, a new applicant can be queued. Queued and pending people never count as seated.`,
-      brief: `At ${f.seats} accepted students the Initiative is full; newcomers can be queued.`,
       show: ['initiative', 'individual', 'applicant'],
       at: { initiative: [500, 130], individual: [300, 420], applicant: [700, 420] },
       labels: { individual: 'Accepted student', applicant: 'New applicant' }, shorts: { individual: 'Accepted', applicant: 'Applicant' },

@@ -1,7 +1,8 @@
-import {clamp,mix,smooth} from './story-math.js';
+import {clamp,mix,smooth,CORE} from './story-math.js';
+import {holeFrame} from './black-hole.js';
 
 // The existing trap's shader core, in world coordinates. All exit layers share it.
-export const CORE={x:.568,y:.46};
+export {CORE};
 export const EXIT_TRAVEL=5;
 // Section 2 ends on the full dark void; the line field (section 3) starts from it.
 export const EXIT_END=.70;
@@ -42,7 +43,7 @@ export function createCollapse({root,world,character}){
   const w=world.getBoundingClientRect(),r=root.getBoundingClientRect();
   const x=w.left-r.left+w.width*CORE.x,y=w.top-r.top+w.height*CORE.y;
   const radius=Math.max(...[[0,0],[r.width,0],[0,r.height],[r.width,r.height]].map(([a,b])=>Math.hypot(a-x,b-y)))+24;
-  geometry={x,y,radius,seed:w.height*.048};
+  geometry={x,y,radius,seed:w.height*.048,unit:w.height};
   wrapper.style.transformOrigin=`${CORE.x*100}% ${CORE.y*100}%`;
  }
  function render(progress,reduced=false){
@@ -53,9 +54,13 @@ export function createCollapse({root,world,character}){
   wrapper.style.visibility=f.bimo>=1?'hidden':'visible';
   if(progress>0){
    if(!decorationStyles)decorationStyles=decorations.map(el=>({transform:el.style.transform,origin:el.style.transformOrigin}));
-   decorations.forEach((el,i)=>{const pull=smooth(.025+i*.01,.40+i*.015,progress);el.style.transformOrigin='56.8% 46%';el.style.transform=`rotate(${pull*110}deg) scale(${Math.pow(1-pull,2)})`});
+   decorations.forEach((el,i)=>{const pull=smooth(.025+i*.01,.40+i*.015,progress);el.style.transformOrigin=`${CORE.x*100}% ${CORE.y*100}%`;el.style.transform=`rotate(${pull*110}deg) scale(${Math.pow(1-pull,2)})`});
   }else if(decorationStyles){decorations.forEach((el,i)=>{el.style.transform=decorationStyles[i].transform;el.style.transformOrigin=decorationStyles[i].origin});decorationStyles=null}
-  voidLayer.style.clipPath=`circle(${progress>0?mix(seed*smooth(.55,.59,progress),radius,f.void):0}px at ${x}px ${y}px)`;
+  // The void is the event horizon itself: once the disk light is gone it tracks the shader's shadow
+  // (same centre, same #05040a), so the dark grows out of the hole with no seam, and it always
+  // closes over the whole frame by EXIT_END, with or without WebGL.
+  const horizon=progress>=.655?holeFrame(1,progress).radius*geometry.unit*.985:0;
+  voidLayer.style.clipPath=`circle(${progress>0?Math.max(horizon,progress>=EXIT_END?radius:0,mix(0,radius,smooth(.68,.70,progress))):0}px at ${x}px ${y}px)`;
   return f;
  }
  resize();

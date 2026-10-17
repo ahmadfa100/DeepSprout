@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {baselines} from './helpers/personal-fixture.mjs';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import fs from 'node:fs';
@@ -27,11 +28,11 @@ function page(storage) {
 test('two canonical people retain separate setup and activation after reload; stale reads/writes fail',async()=>{
   const f=fixture();const a=dispatch('member.register',{name:'A',email:'a@round0.test',consent:true});
   const first=page(f.storage);first.DeepSprout.update(s=>{s.onboarding.setupDone=true;s.onboarding.planActivated=true;s.plan={startDate:'2026-10-16'};});
-  const journal=await first.DeepSproutAccount.load();journal.mutate({type:'setup.save',setup:{protection:'gentle'}});journal.mutate({type:'plan.activate',goal:'a',goalLabel:'A goal',lengthDays:28});
+  const journal=await first.DeepSproutAccount.load();journal.mutate({type:'setup.save',setup:{protection:'gentle'}});baselines(journal);journal.mutate({type:'plan.activate',goal:'reduce-scrolling',goalLabel:'A goal',lengthDays:28,commitment:{title:'A walk'}});
   const before=f.values.get(`deepsprout-account-changes-v1:person:${a}`);
   const b=dispatch('member.register',{name:'B',email:'b@round0.test',consent:true});
   const second=page(f.storage);assert.equal(second.DeepSprout.get().onboarding.setupDone,false);assert.equal(second.DeepSprout.get().onboarding.planActivated,false);
-  const bJournal=await second.DeepSproutAccount.load();assert.equal(bJournal.profile().name,'B');assert.equal(bJournal.plan(),null);bJournal.mutate({type:'plan.activate',goal:'b',goalLabel:'B goal',lengthDays:28});
+  const bJournal=await second.DeepSproutAccount.load();assert.equal(bJournal.profile().name,'B');assert.equal(bJournal.plan(),null);baselines(bJournal);bJournal.mutate({type:'plan.activate',goal:'intentional-phone',goalLabel:'B goal',lengthDays:28,commitment:{title:'B walk'}});
   assert.throws(()=>journal.mutate({type:'routine.add',title:'stale'}),/identity changed/);
   assert.throws(()=>journal.exportRecord(),/identity changed/);
   assert.throws(()=>first.DeepSproutAccount.resetChanges(),/identity changed/);

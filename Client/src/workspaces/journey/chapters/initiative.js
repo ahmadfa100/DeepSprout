@@ -20,7 +20,7 @@ export default f => ({
         what: 'The starting point: an approved Representative for a verified Institution.',
         who: 'Institution Representative.',
         changed: 'Nothing in this step.',
-        visible: 'The Institution workspace: dashboard with seats (of 135 per Initiative), active Supervisors (of 3), applications, sessions and alerts.',
+        visible: `The Institution workspace: dashboard with accepted seats (of ${f.seats} per Initiative), active Supervisors (of ${f.supervisors}), applications, sessions and alerts.`,
         rules: ['The Institution is a governed entity, not a human login (§1.2).', 'Approved Representatives publish ordinary Initiatives without per-Initiative Admin review (D17).', 'Admin keeps later moderation, unpublishing and suspension (§15).'],
         where: ['organization/dashboard', 'organization/settings', 'admin/organizations']
       },

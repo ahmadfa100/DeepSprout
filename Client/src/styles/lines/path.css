@@ -54,3 +54,16 @@
 .path-echo{font-size:clamp(26px,3vw,38px);font-weight:500;letter-spacing:-.02em;line-height:1.15;margin:0}
 .reels-enhanced .path-station.path-together{inset:0;width:auto;transform:none}
 .reels-enhanced .path-echo{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(61% + 20px);width:max-content;white-space:nowrap;text-shadow:0 0 14px var(--path-cream),0 0 3px var(--path-cream)}
+
+/* Station 4's subjects: three supported websites. Colour tiles arrive, then a line-art twin in the
+   path's own ink takes over and a lock badge marks them protected (shape and word, not colour alone). */
+.path-shield-field{fill:var(--path-sage);fill-opacity:.16}
+.path-site-shadow{fill:var(--path-ink);opacity:.09}
+.path-site-plate{fill:var(--path-cream);stroke:var(--path-ink);stroke-opacity:.3;stroke-width:1.2}
+.path-site-glyph *{fill:none;stroke:var(--path-ink);stroke-opacity:.62;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.path-site-badge circle{fill:var(--path-sage-dark)}
+.path-site-badge path{fill:none;stroke:var(--path-cream);stroke-width:1.4;stroke-linejoin:round}
+.path-site-label{font-size:11px;letter-spacing:.01em;text-anchor:middle;fill:var(--path-ink);fill-opacity:.66}
+.path-site-bit{fill:var(--path-ink);fill-opacity:.4}
+.path-shield-lock{fill:none;stroke:var(--path-sage-dark);stroke-width:1.5;stroke-linejoin:round}
+.path-shield-word{font-size:12px;font-weight:500;letter-spacing:.02em;text-anchor:middle;fill:var(--path-sage-dark)}

@@ -47,15 +47,13 @@
       $('space-today-note').textContent = step.title;
     }
 
-    const usage = account.usage(7);
-    if (usage.connected) {
-      $('space-shield-title').textContent = `${plural(usage.sites.length, 'site')} · ${usage.limit}-minute limit`;
-      $('space-shield-note').textContent = usage.overLimitDays
-        ? `Passed it on ${plural(usage.overLimitDays, 'day')} in the last 7. Measured by the extension.`
-        : 'Within your limit every measured day in the last 7.';
+    const usage = account.browserUsage(7);
+    if (usage.available) {
+      $('space-shield-title').textContent = `${plural(usage.sites.length, 'site')} · ${(usage.totalSeconds/60).toFixed(2)} observed minutes`;
+      $('space-shield-note').textContent = 'Browser-observed local records · partial coverage over the last 7 device-calendar days. Open Shield to verify current connection.';
     } else {
-      $('space-shield-title').textContent = 'Not connected yet';
-      $('space-shield-note').textContent = 'Connect the Chrome extension to measure the sites you choose.';
+      $('space-shield-title').textContent = 'No browser usage data available.';
+      $('space-shield-note').textContent = 'Connect the optional extension and choose sites to observe. Missing time is unknown.';
     }
 
     // The same model and policy as My Garden: four small practice-type trees,

@@ -46,7 +46,13 @@ const result={cases:[],runs:{},errors:[]};let browser;
  const fast=await finish('aggressive');
  const timeAt=p=>fast.find(s=>s.p>=p).t;
  result.fastDurationsMs={calm:timeAt(.10)-fast[0].t,tiny:timeAt(.23)-timeAt(.10),cueBeforeHead:timeAt(.155)-timeAt(.10),noticeBeforeCards:timeAt(.245)-timeAt(.22)};
- assert.ok(result.fastDurationsMs.tiny>=2000);assert.ok(result.fastDurationsMs.noticeBeforeCards>=380);
+ // The artwork now follows scroll closely; a bounded ceiling keeps the early beats ordered and visible
+ // under a 7200px fling (no longer a multi-second wait).
+ assert.ok(result.fastDurationsMs.tiny>=350&&result.fastDurationsMs.tiny<=1600,'Tiny distraction stays visible, without making the user wait');
+ assert.ok(result.fastDurationsMs.noticeBeforeCards>=50,'NOTICE completes before the first card');assert.ok(result.fastDurationsMs.cueBeforeHead>0);
+ // When input stops, the story settles promptly where the scroll left it.
+ await reset(.3);const settle=await page.evaluate(async()=>{scrollTo(0,reelsLab.state.distances.story*.42);const t0=performance.now();await new Promise(r=>{(function w(){reelsLab.state.targetProgress>.41&&Math.abs(reelsLab.state.visualProgress-reelsLab.state.targetProgress)<.002?r():requestAnimationFrame(w)})()});return performance.now()-t0});
+ result.settleMs=settle;assert.ok(settle<900,`Settles within 0.9 s of a one-viewport scroll (${Math.round(settle)} ms)`);
  await reset(.34);await sample();await scroll(0);await page.waitForFunction(()=>reelsLab.state.visualProgress<.0001,null,{timeout:12000});await finish('reverse');
  assert.equal(await page.evaluate(()=>reelsLab.state.inputs.emotionStage),1);
  await reset();await sample();

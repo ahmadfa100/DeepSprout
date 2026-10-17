@@ -19,10 +19,10 @@ const COPY={
 };
 (async()=>{
  fs.mkdirSync(out,{recursive:true});
- const {spiralIn,collapseFrame,EXIT_END}=await import(pathToFileURL(path.resolve(__dirname,'../src/js/reels/collapse.js')));
+ const {spiralIn,collapseFrame,EXIT_END,CORE}=await import(pathToFileURL(path.resolve(__dirname,'../src/js/reels/collapse.js')));
  const {SCENES,sceneAt,litCount,yearAt,ROW}=await import(pathToFileURL(path.resolve(__dirname,'../src/js/lines/field.js')));
  assert.deepEqual(spiralIn(.9,.2,4,2,0,.02,.45),{x:.9,y:.2,z:4,size:2,turn:0,swallowed:false});
- let previous=Infinity;for(let q=0;q<=.45;q+=.001){const a=spiralIn(.9,.2,4,2,q,.02,.45),radius=Math.hypot(a.x-.568,(a.y-.46)/1.38);assert.ok(radius<=previous+1e-9);previous=radius;assert.deepEqual(a,spiralIn(.9,.2,4,2,q,.02,.45))}
+ let previous=Infinity;for(let q=0;q<=.45;q+=.001){const a=spiralIn(.9,.2,4,2,q,.02,.45),radius=Math.hypot(a.x-CORE.x,(a.y-CORE.y)/1.38);assert.ok(radius<=previous+1e-9);previous=radius;assert.deepEqual(a,spiralIn(.9,.2,4,2,q,.02,.45))}
  assert.equal(EXIT_END,.70);assert.equal(collapseFrame(EXIT_END).phase,'void');assert.equal(collapseFrame(EXIT_END).void,1);
  assert.equal('light' in collapseFrame(.9),false,'Section 2 ends on the void; the old cream opening is gone');
  report.cases.push('Curved inward paths have decreasing radius/depth/scale; pure scroll evaluation is deterministic and reversible; the exit ends on the full void.');
@@ -52,10 +52,11 @@ const COPY={
   }
   // Native scroll, forward, back and fast: the exit is capped at the void and the same Bimo/stones survive.
   for(const q of [.80,.35,.67,.92,.20,1]){await p.evaluate(q=>{reelsLab.play();const d=reelsLab.state.distances;scrollTo(0,d.story+q*d.exit)},q);await p.waitForTimeout(140);const state=await p.evaluate(()=>reelsLab.state);assert.ok(Math.abs(state.exitProgress-Math.min(q,EXIT_END))<.002);assert.equal(await p.evaluate(()=>document.querySelector('.bimo canvas')===originalBimo&&originalStones.every((s,i)=>document.querySelectorAll('.stone')[i]===s)),true)}
-  // The seam: half void, half line field, both the same dark — no cut, no cream, no gap.
-  await p.evaluate(()=>{reelsLab.play();scrollTo(0,document.querySelector('#not-alone').offsetTop-innerHeight/2)});await p.waitForTimeout(500);
-  const seam=await capture(p,prefix+'-seam');
-  for(const [x,y]of [[5,5],[w-5,h*.25],[w/2,h/2-2],[w/2,h/2+2],[5,h*.75],[w-5,h-5]])assert.deepEqual(pixel(seam,x,y),[5,4,10],'Section 2 hands over to section 3 on the same dark');
+  // The seam: section 3 now overlaps the hero's last screen and pins the instant the void closes.
+  // Just before (hero void, stage hidden) and just after (line field pinned): both the same dark.
+  for(const offset of [-2,.02]){await p.evaluate(o=>{reelsLab.play();const s=document.querySelector('#not-alone');scrollTo(0,s.offsetTop+(o<0?o:o*innerHeight))},offset);await p.waitForTimeout(500);
+  const seam=await capture(p,prefix+(offset<0?'-seam-before':'-seam-after'));
+  for(const [x,y]of [[5,5],[w-5,h*.25],[w/2,h/2-2],[w/2,h/2+2],[5,h*.75],[w-5,h-5]])assert.deepEqual(pixel(seam,x,y),[5,4,10],'Section 2 hands over to section 3 on the same dark')}
   const scenes={};
   for(const s of [['void',.03],['line',.13],['alone',.285],['scale',.39],['trend',.46],['rot',.69],['research',.79],['turn',1]]){
    const state=await lines(p,s[1]);scenes[s[0]]={state,buffer:await capture(p,`${prefix}-lines-${s[0]}`)};
@@ -113,7 +114,8 @@ const COPY={
   const state=await p.evaluate(()=>reelsLab.state);assert.equal(state.offscreen,true);assert.equal(state.renderer.media.playing,0);const time=state.clock;await p.waitForTimeout(200);assert.equal(await p.evaluate(()=>reelsLab.state.clock),time);
   await p.evaluate(()=>{reelsLab.play();scrollTo(0,0)});await p.waitForTimeout(200);assert.equal(await p.evaluate(()=>reelsLab.state.exitProgress),0);assert.equal(await p.evaluate(()=>linesLab.state.visible),false);assert.equal(await p.locator('.bimo-gravity').evaluate(e=>getComputedStyle(e).visibility),'visible');
   // Every statement stays in the accessibility tree while other scenes play.
-  await lines(p,.39,400);const tree=JSON.stringify(await p.accessibility.snapshot({root:await p.$('#not-alone'),interestingOnly:false}));
+  await lines(p,.39,400);// Playwright 1.5x+ removed page.accessibility; the ARIA snapshot is its replacement.
+  const tree=await p.locator('#not-alone').ariaSnapshot();
   for(const copy of Object.values(COPY))for(const line of copy)assert.ok(tree.toLowerCase().includes(line.toLowerCase()),`Accessible while off-scene: "${line}"`);
   // A hidden tab draws nothing; it resumes when visible again.
   await lines(p,.6,300);await p.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'))});

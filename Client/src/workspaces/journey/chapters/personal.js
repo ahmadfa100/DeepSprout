@@ -147,11 +147,11 @@ export default f => ({
       title: 'Insights keep every source labeled',
       summary: 'Insights shows digital usage, plan adherence, practice, Lab results, and offline and experience records, each labeled with its source and period. Missing data reads “No data”, never zero.',
       show: ['practice', 'shield', 'lab', 'insights'],
-      at: { practice: [200, 120], shield: [200, 270], lab: [200, 420], insights: [700, 270] },
+      at: { practice: [200, 140], shield: [500, 140], lab: [800, 140], insights: [500, 420] },
       labels: { practice: 'Practice attempts', shield: 'Browser usage', lab: 'Lab results' },
       shorts: { practice: 'Practice', shield: 'Usage', lab: 'Lab' },
       subs: { practice: 'System-scored', shield: 'Browser-observed', lab: 'Versioned tasks' },
-      edges: ['practice>insights:side', 'shield>insights', 'lab>insights:side'], flows: ['practice>insights', 'shield>insights', 'lab>insights'], token: 'chart',
+      edges: ['practice>insights', 'shield>insights', 'lab>insights'], flows: ['practice>insights', 'shield>insights', 'lab>insights'], token: 'chart',
       note: { kind: 'info', title: 'No invented scores', text: 'There is no recovery percentage and no shared 0–100 axis for unrelated measures. Comparisons appear only when valid matched data exists.' },
       details: {
         what: 'Separate sources feed separate Insights domains.',

@@ -18,7 +18,8 @@
     <script src="../../../../src/js/data/account.js" defer></script>
     <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
     <script src="recovery-plan.js" defer></script>
-  </head>
+    <script src="../../../js/data/shield-bridge.js" defer></script>
+</head>
   <body data-page="recovery" data-root="../../../../">
     <svg class="rp-icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
       <symbol id="rp-sprout" viewBox="0 0 32 32"><path d="M16 28V14m0 5C8 19 5 14 5 6c8 0 11 4 11 13Zm0-5c0-8 4-12 11-12 0 8-3 12-11 12Z"/></symbol>
@@ -90,6 +91,8 @@
             </div>
           </article>
 
+          <section class="rp-card" id="recovery-control" aria-labelledby="recovery-status-title"><h2 id="recovery-status-title">Your continuous Recovery Journey</h2><p id="recovery-status-note"></p><p id="recovery-shield-status">Optional browser support: checking connection…</p><a href="../shield/shield.html">Open Digital Shield →</a><p id="recovery-return-summary"></p><div class="rp-actions"><button type="button" id="return-resume">Resume</button><button type="button" id="return-adjust">Adjust on return</button><a id="weekly-review-link" href="../weekly-review/weekly-review.html">Open Weekly Review</a></div><div id="cycle-evidence" hidden></div><div id="cycle-review-area"><label for="cycle-reflection">What would you keep or change after this cycle?</label><textarea id="cycle-reflection" rows="3" maxlength="2000"></textarea><button type="button" id="review-cycle">Record cycle review</button></div><div id="continuation-preview" hidden></div><div class="rp-actions"><button type="button" id="next-cycle">Start Next Cycle</button><button type="button" id="maintenance-cycle">Enter Maintenance</button><button type="button" id="pause-cycle">Pause cycle</button><button type="button" id="resume-cycle">Resume cycle</button><button type="button" id="archive-cycle">Archive closed cycle</button></div><details><summary>Cancel this personal cycle</summary><label for="cycle-reason">Reason</label><input id="cycle-reason" maxlength="300"><button type="button" id="cancel-cycle">Cancel with reason</button></details><p id="recovery-message" role="status" aria-live="polite"></p><details><summary>Personal demo clock</summary><form id="recovery-clock-form"><label for="recovery-clock">Personal date</label><input type="date" id="recovery-clock" required><button>Set personal demo date</button></form><p>This local planning clock does not change Provider or Institution time or original evidence dates.</p></details></section>
+
           <section class="rp-journey" id="journey" aria-labelledby="journey-title">
             <div class="rp-section-head">
               <div><h2 id="journey-title">Your four weeks</h2><p>Select a week to see what it is for and what you have recorded in it.</p></div>
@@ -122,7 +125,7 @@
             </section>
             <section class="rp-card rp-tools" aria-labelledby="tools-title">
               <div class="rp-section-head"><div><h2 id="tools-title">Support tools</h2><p>For the moments the feed pulls hardest.</p></div></div>
-              <a class="rp-tool" href="../shield/shield.html"><span class="rp-stat-icon rp-violet"><svg><use href="#rp-shield"/></svg></span><span><strong>Digital Shield</strong><small>Plan distraction-free time and pick the apps to keep away.</small></span><svg class="rp-tool-arrow"><use href="#rp-chevron"/></svg></a>
+              <a class="rp-tool" href="../shield/shield.html"><span class="rp-stat-icon rp-violet"><svg><use href="#rp-shield"/></svg></span><span><strong>Digital Shield</strong><small>Prototype preferences only; website blocking is not implemented.</small></span><svg class="rp-tool-arrow"><use href="#rp-chevron"/></svg></a>
               <a class="rp-tool" href="#adjust" data-tab-link="adjust"><span class="rp-stat-icon rp-coral"><svg><use href="#rp-clock"/></svg></span><span><strong>Scrolling reminder</strong><small id="reminder-summary">Choose when you would like a nudge.</small></span><svg class="rp-tool-arrow"><use href="#rp-chevron"/></svg></a>
             </section>
           </div>
@@ -147,54 +150,17 @@
           <form class="rp-adjust" id="adjust-form">
             <div class="rp-section-head"><div><p class="rp-kicker">Adjust your plan</p><h2 id="adjust-title">Make the plan fit your real week</h2><p>Your focus choice decides what Activities suggests on days with nothing scheduled. The other settings are saved as preferences on this device and logged in your history; in this preview they do not rewrite your plan.</p></div></div>
 
-            <fieldset class="rp-fieldset">
-              <legend>What do you want more room for?</legend>
-              <div class="rp-choices">
-                <label class="rp-choice"><input type="radio" name="focus" value="depth"><span class="rp-stat-icon rp-gold"><svg><use href="#rp-book"/></svg></span><span><strong>Deeper focus and reading</strong><small>Suggests Depth Practice on open days.</small></span></label>
-                <label class="rp-choice"><input type="radio" name="focus" value="stillness"><span class="rp-stat-icon rp-sage"><svg><use href="#rp-moon"/></svg></span><span><strong>Fewer reflex pickups</strong><small>Suggests Protected Work on open days.</small></span></label>
-                <label class="rp-choice"><input type="radio" name="focus" value="offline"><span class="rp-stat-icon rp-blue"><svg><use href="#rp-shoe"/></svg></span><span><strong>More time away from screens</strong><small>Points you to your offline routine on open days.</small></span></label>
-              </div>
-            </fieldset>
-
-            <div class="rp-adjust-grid">
-              <fieldset class="rp-fieldset">
-                <legend>Practice days per week</legend>
-                <div class="rp-segment" role="radiogroup">
-                  <label><input type="radio" name="days" value="3"><span>3 days</span></label>
-                  <label><input type="radio" name="days" value="5"><span>5 days</span></label>
-                  <label><input type="radio" name="days" value="7"><span>Every day</span></label>
-                </div>
-              </fieldset>
-              <fieldset class="rp-fieldset">
-                <legend>Intensity</legend>
-                <div class="rp-segment" role="radiogroup">
-                  <label><input type="radio" name="intensity" value="gentle"><span>Gentle</span></label>
-                  <label><input type="radio" name="intensity" value="balanced"><span>Balanced</span></label>
-                  <label><input type="radio" name="intensity" value="focused"><span>Focused</span></label>
-                </div>
-              </fieldset>
-              <fieldset class="rp-fieldset" id="reminder">
-                <legend>Scrolling reminder</legend>
-                <div class="rp-segment" role="radiogroup">
-                  <label><input type="radio" name="reminder" value="15"><span>15 min</span></label>
-                  <label><input type="radio" name="reminder" value="30"><span>30 min</span></label>
-                  <label><input type="radio" name="reminder" value="60"><span>60 min</span></label>
-                  <label><input type="radio" name="reminder" value="0"><span>Off</span></label>
-                </div>
-                <small class="rp-field-note">Saved as a preference. Notifications are not connected in this preview.</small>
-              </fieldset>
-            </div>
-            <div class="rp-adjust-actions">
-              <button type="submit" class="rp-button rp-button-primary" id="save-plan">Save changes <svg><use href="#rp-check"/></svg></button>
-              <p class="rp-save-note" id="save-note" role="status" aria-live="polite"></p>
-            </div>
+            <fieldset class="rp-fieldset"><legend>Preferred focus in this preview</legend><div class="rp-choices"><label class="rp-choice"><input type="radio" name="focus" value="depth"><span>Deeper focus and reading</span></label><label class="rp-choice"><input type="radio" name="focus" value="stillness"><span>Fewer reflex pickups</span></label><label class="rp-choice"><input type="radio" name="focus" value="offline"><span>More time away from screens</span></label></div><p>Save a preview to keep these choices across reloads. Confirm the future revision to change scheduled work.</p></fieldset>
+            <div class="rp-adjust-grid"><label>Goal<select name="goal" id="adjust-goal"><option value="reduce-scrolling">Spend less time scrolling</option><option value="intentional-phone">Use my phone intentionally</option><option value="offline-time">Make room for offline life</option><option value="focus-objective">Focus on meaningful work</option></select></label><label>Practice days per week<select name="days" id="adjust-days"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label><label>Time preference<select name="minutes" id="adjust-minutes"><option>5</option><option>10</option><option>15</option></select> minutes</label><label>Personal offline commitment<input name="commitment" id="adjust-commitment" maxlength="200" required></label><label>Lower one practice difficulty<select name="lowerType" id="adjust-lower"><option value="">Keep current independent levels</option></select></label></div>
+            <fieldset class="rp-fieldset"><legend>Available weekdays</legend><div id="adjust-weekdays"></div></fieldset><fieldset class="rp-fieldset"><legend>Suitable practice mix</legend><div id="adjust-types"></div></fieldset><label>Reason for this future change<input id="adjust-reason" maxlength="300" required></label>
+            <div class="rp-adjust-actions"><button type="submit" class="rp-button rp-button-primary" id="save-plan">Preview future changes</button><button type="button" class="rp-button rp-button-primary" id="confirm-plan" hidden>Confirm future revision</button><p class="rp-save-note" id="save-note" role="status" aria-live="polite"></p></div><ol id="adjust-preview"></ol>
           </form>
         </section>
 
         <!-- ============================================================= History -->
         <section class="rp-panel" role="tabpanel" id="panel-history" aria-labelledby="tab-history" data-panel="history" hidden>
-          <div class="rp-section-head"><div><p class="rp-kicker">History</p><h2>Everything you have recorded</h2><p>Newest first. Practices are scored by the app; routine ticks are your own reports; check-ins are measurement tasks.</p></div></div>
-          <ol class="rp-timeline" id="history-list"></ol>
+          <div class="rp-section-head"><div><p class="rp-kicker">History</p><h2>Everything you have recorded</h2><p>Newest first. Practice evidence keeps its original classification; routine ticks are self-reported; formal Lab results stay separate.</p></div></div>
+          <div id="recovery-history"></div><ol class="rp-timeline" id="history-list"></ol>
           <p class="rp-history-empty" id="history-empty" hidden>Nothing recorded yet. Your first practice, routine tick or review will appear here.</p>
         </section>
       </div>

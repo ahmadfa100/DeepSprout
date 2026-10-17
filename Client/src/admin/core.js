@@ -1,3 +1,4 @@
+import {deprecatedPractice} from '../workspaces/activity-contract.js';
 import {categories,goals,modes,evidenceTypes,mutate,uid} from './store.js';
 import {esc,date,badge,button,section,field,select,textarea,check,table,row,openDialog,confirmAction,toast,contentHeader} from './ui.js';
 const nameOf=(data,id)=>data.users.find(u=>u.id===id)?.name||'Unassigned';
@@ -48,7 +49,7 @@ function groupDetail(data,id) {
 }
 function activities(data) {
   const rows=data.activities.map(a=>row([`<button class="link-button" data-action="activity-preview" data-id="${a.id}">${esc(a.name)}</button><small>${esc(a.description)}</small>`,`${esc(a.category)}<small>${esc(a.goals.join(', '))}</small>`,`${a.minutes} min<small>${esc(a.mode)}</small>`,a.planEligible?'Eligible':'Excluded',badge(a.status),`<div class="table-actions">${button('Edit','activity-edit',a.id)}${button('Preview','activity-preview',a.id)}</div>`],{category:a.category,status:a.status}));
-  return contentHeader('MANAGEMENT','Activities','Manage published resources and the information members see.',button('Create activity','activity-create','','primary'))+section('Activity library',table(['Activity','Category / goals','Duration / mode','Roadmap','Status','Actions'],rows,[{key:'category',label:'Category',options:categories},{key:'status',label:'Publication',options:['draft','published','archived']}]))+`<p class="footnote">Published resources appear in Activities as read-only guides. Built-in timed practices record progress separately; publishing a guide does not add it to a member’s active plan.</p><a class="button" href="training.html" target="_blank" rel="noopener">View member Activities ↗</a>`;
+  return contentHeader('MANAGEMENT','Activities','Manage published resources and the information members see.',button('Create activity','activity-create','','primary'))+section('Activity library',table(['Activity','Category / goals','Duration / mode','Roadmap','Status','Actions'],rows,[{key:'category',label:'Category',options:categories},{key:'status',label:'Publication',options:['draft','published','archived']}]))+`<p class="footnote">Published resources appear in Activities as read-only guides. Versioned practice players record progress separately; publishing a guide does not add it to a member’s active plan.</p><a class="button" href="training.html" target="_blank" rel="noopener">View member Activities ↗</a>`;
 }
 
 function activityEditor(data,id) {
@@ -57,7 +58,7 @@ function activityEditor(data,id) {
     const selected=form.getAll('goals');if(!selected.length){toast('Select at least one supported goal.');return false;}
     const image=String(form.get('image')||'').trim();if(image&&!/^assets\/[a-z0-9/_ .-]+\.(png|jpg|jpeg|webp|svg)$/i.test(image)){toast('Use an existing image under assets/.');return false;}
     const values={name:String(form.get('name')).trim(),description:String(form.get('description')).trim(),instructions:String(form.get('instructions')).trim(),category:form.get('category'),goals:selected,minutes:Number(form.get('minutes')),mode:form.get('mode'),evidence:form.get('evidence'),completion:String(form.get('completion')).trim(),image,alt:String(form.get('alt')||'').trim(),planEligible:form.has('planEligible'),reward:form.has('reward')};
-    if(editing){Object.assign(a,values);mutate(data,'Activity Updated',a.name,'Updated structured activity details.');}
+    if(editing){a.history||=[];a.history.push(JSON.parse(JSON.stringify({...a,history:undefined})));Object.assign(a,values,{version:(a.version||1)+1,kind:'guide'});a.contentVersion=`guide-${a.id}-${a.version}`;mutate(data,'Activity Updated',a.name,'Updated structured activity details.');}
     else {data.activities.push({id:uid('a'),...values,status:'draft'});mutate(data,'Activity Created',values.name,'Saved activity as draft.');}
     toast('Activity saved as '+(editing?a.status:'draft')+'.');window.dispatchEvent(new Event('admin-refresh'));
   },editing?'Save changes':'Save draft');
@@ -76,5 +77,5 @@ export function coreAction(action,id,data) {
   else if(action==='activity-create')activityEditor(data);
   else if(action==='activity-edit')activityEditor(data,id);
   else if(action==='activity-preview')activityPreview(data,id);
-  else if(['activity-publish','activity-archive'].includes(action))confirmAction(`${action==='activity-publish'?'Publish':'Archive'} this activity?`,()=>{const a=data.activities.find(x=>x.id===id);a.status=action==='activity-publish'?'published':'archived';mutate(data,action==='activity-publish'?'Activity Published':'Activity Archived',a.name,`Status set to ${a.status}.`);document.getElementById('editor-dialog').close();toast(`Activity ${a.status}.`);window.dispatchEvent(new Event('admin-refresh'));});
+  else if(['activity-publish','activity-archive'].includes(action))confirmAction(`${action==='activity-publish'?'Publish':'Archive'} this activity?`,()=>{const a=data.activities.find(x=>x.id===id);if(action==='activity-publish'&&deprecatedPractice(a)){toast('Deprecated Stillness content cannot be republished. Use Recovery for Weekly Review.');return;}a.version=(a.version||1)+1;a.contentVersion=`guide-${a.id}-${a.version}`;a.kind='guide';a.status=action==='activity-publish'?'published':'archived';mutate(data,action==='activity-publish'?'Activity Published':'Activity Archived',a.name,`Status set to ${a.status}.`);document.getElementById('editor-dialog').close();toast(`Activity ${a.status}.`);window.dispatchEvent(new Event('admin-refresh'));});
 }

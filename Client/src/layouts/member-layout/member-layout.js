@@ -35,7 +35,7 @@
       <nav class="member-nav" id="member-nav" aria-label="Member navigation">${links}</nav>
       <div class="member-header-actions">
         <div class="member-notifications"><button class="member-icon-button" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="member-notification-panel">${icon('icons/bell.svg')}<span class="member-alert-dot" hidden></span></button><div class="member-popover" id="member-notification-panel" hidden>${notice}</div></div>
-        <details class="member-account"><summary><span class="member-avatar">${initial}</span><span>${displayName}</span>${icon('icons/chevron-down.svg')}</summary><div class="member-account-menu"><a href="${root}index.html">Home</a><a href="${root}src/pages/member/profile/profile.html">Profile &amp; settings</a><a href="${root}src/pages/member/weekly-review/weekly-review.html">Weekly review</a><a href="${root}src/pages/member/explore/explore.html#my-registrations">My registrations</a><a href="${root}src/pages/member/onboarding/onboarding.html">Replay first run</a><a href="${root}login.html">Log in page</a></div></details>
+        <details class="member-account"><summary><span class="member-avatar">${initial}</span><span>${displayName}</span>${icon('icons/chevron-down.svg')}</summary><div class="member-account-menu"><a href="${root}index.html">Home</a><a href="${root}src/pages/member/profile/profile.html">Profile &amp; settings</a><a href="${root}src/pages/member/weekly-review/weekly-review.html">Weekly review</a><a href="${root}src/pages/member/explore/explore.html#my-registrations">My registrations</a><a href="${root}src/pages/member/lab/lab.html">Lab &amp; check-ins</a><a href="#product-guide" data-tour-replay>Help &amp; product guide</a><a href="${root}src/pages/member/onboarding/onboarding.html">Replay first run</a><a href="${root}login.html">Log in page</a></div></details>
         <button class="member-menu-toggle" type="button" aria-label="Open navigation" aria-controls="member-nav" aria-expanded="false">${icon('icons/menu.svg')}</button>
       </div>
     </div>
@@ -111,9 +111,8 @@
     Account.load().then(account => {
       const fmt = Account.format;
       const plan = account.plan();
-      const clock = account.asOf
-        ? `${fmt.date(account.asOf, { weekday: true, year: true })}${plan ? ` · day ${plan.day}` : ''}`
-        : `${fmt.date(account.today, { weekday: true, year: true })} · real date`;
+      const personal=account.personalClock();
+      const clock=`${fmt.date(account.today,{weekday:true,year:true})}${plan?` · day ${plan.day}`:''} · ${personal.source}${personal.seedAsOf?` · original story ${personal.seedAsOf}`:''}`;
       const option = (id, title, note) => `<label class="dev-switch-option"><input type="radio" name="dev-account" value="${id}"${account.id === id ? ' checked' : ''}><span><strong>${title}</strong><small>${note}</small></span></label>`;
       const shell = document.createElement('div');
       shell.className = 'dev-switch';
@@ -191,6 +190,7 @@
     if (!Account) return;
     Account.applyNames(document.querySelector('.member-header') || document);
     showAccountName(Account);
+    if(!document.querySelector('script[src*="data/product-tour.js"]')){const tour=document.createElement('script');tour.src=`${root}src/js/data/product-tour.js`;document.head.append(tour);}
     // Any change on the account (a review saved, a name edited) updates the header too.
     window.addEventListener('deepsprout:account', () => showAccountName(Account));
     mountDevSwitch(Account);

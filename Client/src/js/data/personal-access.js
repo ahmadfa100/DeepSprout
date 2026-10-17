@@ -49,7 +49,7 @@
     requireAccess();
   };
   const save = (key, value) => {
-    try { localStorage.setItem(key, value); }
+    try { localStorage.setItem(key, value); document.getElementById('personal-save-error')?.remove(); }
     catch { const message = 'Your changes could not be saved. Free device storage or allow storage, then try again.'; failure(message); throw new Error(message); }
   };
   const preference = (key, fallback, expected = subject()) => {

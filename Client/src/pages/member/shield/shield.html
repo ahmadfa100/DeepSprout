@@ -18,7 +18,8 @@
   <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
-  <script src="shield.js?v=20261014-1" defer></script>
+  <script src="../../../js/data/shield-bridge.js" defer></script>
+  <script src="shield.js?v=20261017-1" defer></script>
 </head>
 <body data-page="shield" data-root="../../../../">
   <div data-site-header></div>
@@ -27,51 +28,30 @@
       <div class="ds-hero-copy">
         <p class="ds-hero-eyebrow">Digital Shield</p>
         <h1 id="shield-title">Keep the feeds<br><em>out of your focus time.</em></h1>
-        <p class="ds-hero-text">Plan when to step away, choose the apps that pull you in, and start a focus timer when it is time.</p>
+        <p class="ds-hero-text">Optional support for the websites you choose. Connect the Chrome extension to protect focus time or set one shared usage reminder.</p>
       </div>
       <figure class="ds-hero-art" style="--hero-focus: 62% 50%"><img src="../../../../assets/shield/hero-bimo.png" alt="Bimo relaxing on a grassy hill with sunglasses"></figure>
     </header>
-    <section class="shield-measured" id="shield-measured" aria-labelledby="measured-title" hidden></section>
-    <aside class="shield-note" role="note">
-      <span class="note-icon" aria-hidden="true"><img src="../../../../assets/shield/lightbulb.svg" alt=""></span>
-      <div><strong>Client preview</strong><p>These settings are saved in this browser. App blocking, browser protection, and reminders are not connected in this preview.</p></div>
+    <aside class="shield-connection" aria-labelledby="connection-title">
+      <div><p class="eyebrow">Supported browser · Chrome 120+ / Chromium</p><h2 id="connection-title">Connect your browser</h2><p id="connection-state" role="status" aria-live="polite">Checking extension…</p><p id="connection-detail"></p></div>
+      <details id="installation-guide"><summary>Installation Guide</summary><ol><li>Open the repository folder <code>Client/extensions/digital-shield</code>.</li><li>In Chrome, open <code>chrome://extensions</code>, enable Developer mode and choose <strong>Load unpacked</strong>. Select that folder containing manifest.json. Extract any ZIP first.</li><li>Use this site at <code>http://127.0.0.1:8897</code> or <code>http://localhost:8897</code>. Other origins and incognito are unsupported.</li><li>Open the extension popup, create a pairing code and paste it below. Pair only with your own active Individual account.</li></ol><p>After extension update/reload, reload this page. If permissions were removed, restore site access in Chrome extension details. Use Refresh status to retry. Extension removal, other browsers and other devices bypass protection.</p><a href="../../../../extensions/digital-shield/README.md">Setup, privacy and troubleshooting</a></details>
+      <form id="connect-form"><label for="pairing-code">One-use code from your extension popup</label><div class="shield-row"><input id="pairing-code" autocomplete="off" spellcheck="false" maxlength="32" minlength="32" required pattern="[a-f0-9]{32}"><button type="submit">Connect extension</button></div></form>
+      <div class="shield-row"><button type="button" id="refresh-status">Refresh status</button><button type="button" id="disconnect-extension" disabled>Disconnect account</button></div><p id="bridge-message" role="status" aria-live="polite"></p>
+      <details open><summary>Previously saved preview preferences</summary><p>Historical evening preferences are retained locally. They do not schedule a block or send a notification.</p><form id="shield-form"><label for="shield-time">Saved evening time (inactive preview)</label><input id="shield-time" type="time" value="19:00" required><label><input id="shield-reminder" type="checkbox"> Saved preview reminder preference (inactive)</label></form><button form="shield-form" type="submit">Save preferences</button><p id="save-message" role="status"></p></details>
     </aside>
-    <div class="shield-layout">
-      <form class="plan-panel" id="shield-form">
-        <div class="plan-heading">
-          <div><h2>Your evening plan</h2><p>Choose a time and the apps you want to be more mindful of.</p></div>
-          <div class="moon-note" aria-hidden="true"><span>☾</span><p>Disconnect to<br>reconnect with what<br>matters most.</p></div>
-        </div>
-        <div class="plan-content">
-          <section class="focus-card" aria-labelledby="focus-title">
-            <div class="focus-card-top"><h3 id="focus-title">Focus time</h3><p>Set when to step away<br>from distracting apps.</p></div>
-            <div class="focus-ring">
-              <div class="ring-inner">
-                <span class="ring-moon" aria-hidden="true">☾</span>
-                <span class="ring-label">Focus timer</span>
-                <strong id="focus-time-display" role="timer">25:00</strong>
-                <span class="timer-caption" id="timer-caption" aria-live="polite">Ready when you are</span>
-              </div>
-            </div>
-            <div class="timer-controls"><button type="button" id="timer-start">Start focus</button><button type="button" id="timer-reset">Reset</button></div>
-            <label class="schedule-row" for="shield-time"><span><strong>Evening start</strong><small id="focus-time-label">Today, 7:00 PM</small></span><input id="shield-time" type="time" value="19:00" required aria-label="Evening start time"></label>
-            <label class="reminder-control"><span class="reminder-bell" aria-hidden="true"><img src="../../../../assets/home-kit/icons/bell.svg" alt=""></span><span>Remind me before it starts</span><input id="shield-reminder" type="checkbox" checked><span class="toggle-track" aria-hidden="true"></span></label>
-          </section>
-          <section class="apps-section" aria-labelledby="apps-title">
-            <div class="apps-heading"><div><h3 id="apps-title">Apps to keep in mind</h3><p>Select apps or drag them to the basket on the right.</p></div><span class="drag-hint" aria-hidden="true">⠿ &nbsp; Drag &amp; drop&nbsp; →</span></div>
-            <div class="app-grid" id="app-grid"></div>
-            <div class="custom-app"><h3>Add a custom app or website</h3><p>Paste a link to add it to your list.</p><div class="custom-app-row"><label class="custom-input"><span aria-hidden="true">↗</span><input id="custom-app-input" type="text" inputmode="url" placeholder="Paste app or website link (e.g. example.com)" aria-label="Custom app or website link"></label><button id="add-custom-app" type="button"><span aria-hidden="true">＋</span> Add</button></div><p class="input-message" id="input-message" role="status" aria-live="polite"></p></div>
-          </section>
-        </div>
-      </form>
-      <aside class="basket-panel" aria-labelledby="basket-title" id="focus-basket">
-        <div class="basket-heading"><div><h2 id="basket-title">Your focus basket</h2><p>Apps you've selected will be added here. You can also drag and drop them.</p></div><span class="basket-count"><span aria-hidden="true">♧</span><span id="basket-count">3 apps<br>in basket</span></span></div>
-        <div class="basket-art" aria-hidden="true"><img src="../../../../assets/shield/focus-basket.png" alt=""><img class="floating-logo instagram-logo" src="../../../../assets/home-kit/icons/instagram-color.svg" alt=""><img class="floating-logo youtube-logo" src="../../../../assets/home-kit/icons/youtube-color.svg" alt=""><img class="floating-logo tiktok-logo" src="../../../../assets/home-kit/icons/tiktok-color.svg" alt=""></div>
-        <div class="basket-list" id="basket-list" aria-live="polite"></div>
-        <button class="save-button" type="submit" form="shield-form">Save preferences <span aria-hidden="true">→</span></button>
-        <p class="save-message" id="save-message" role="status" aria-live="polite"></p>
-      </aside>
+    <div class="shield-features">
+      <section class="shield-feature" aria-labelledby="protection-title" data-feature="protection">
+        <p class="eyebrow">01 · Optional whole-site blocking</p><h2 id="protection-title">Manual Website Protection</h2><p>Block selected websites and their subdomains in this browser. YouTube means the whole website, including ordinary videos. Instagram means the whole site, including messages.</p>
+        <form id="protection-form"><fieldset id="protection-sites"><legend>Websites to protect</legend></fieldset><label for="protection-duration">Duration in minutes · 1–120</label><input id="protection-duration" type="number" min="1" max="120" value="25" step="1" required><label class="shield-check"><input type="checkbox" id="protection-consent" required> I understand this blocks whole websites in this profile. Early stop is available explicitly; this is not uninstall-proof.</label><p id="protection-scope">Review your selection before starting. Existing open pages must be reloaded; protection blocks subsequent document navigation, not already loaded media.</p><button type="submit" id="start-protection" disabled>Start Protection</button></form>
+        <p id="protection-state" role="status">Connect to verify protection state.</p><p id="protection-countdown" role="timer"></p><button type="button" id="stop-protection" disabled>Stop protection early…</button><p id="protection-message" role="status" aria-live="polite"></p>
+      </section>
+      <section class="shield-feature" aria-labelledby="reminder-title" data-feature="reminder">
+        <p class="eyebrow">02 · One soft reminder across your group</p><h2 id="reminder-title">Shared Website Usage Reminder</h2><p>One chosen threshold adds eligible active time across your selected websites. It does not measure Reels, attention, mobile apps or all screen time.</p>
+        <form id="reminder-form"><fieldset id="reminder-sites"><legend>Websites to observe together</legend></fieldset><label for="reminder-threshold">Shared daily threshold in minutes · 1–240</label><input id="reminder-threshold" type="number" min="1" max="240" step="1" value="30" required><label class="shield-check"><input type="checkbox" id="reminder-enabled" checked> Enable browser observation and the shared reminder</label><button type="submit" id="save-reminder" disabled>Configure reminder</button></form>
+        <p id="reminder-state" role="status">Connect to verify reminder state.</p><p id="reminder-usage">No browser usage data available.</p><p id="reminder-coverage"></p><p id="reminder-message" role="status" aria-live="polite"></p><a href="../insights/insights.html#usage">View Digital Usage in Insights →</a>
+      </section>
     </div>
+    <details class="shield-history"><summary>Local Shield history and measurement limits</summary><p>Only selected-domain identifiers, aggregate eligible seconds, local period/timezone, coverage, configuration and session events are stored. Full URLs, search terms and unrelated browsing history are not retained or shared with partner workspaces. Records are browser-local and editable by the device owner; they are not server-verified.</p><p>Only consecutive observations of an active selected tab, a focused non-minimized window and Chrome’s active idle state count. Suspension, shutdown, unsupported pages and uncertain intervals are excluded. Missing data is unknown, never proof of zero use. A single reminder acknowledgement applies per local day and timezone, even after a threshold change.</p><ul id="shield-history"></ul></details>
   </main>
   <div data-site-footer></div>
 </body>

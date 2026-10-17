@@ -1,0 +1,3 @@
+# Original practice audio
+
+The nine passages and questions in `src/data/practices.json` were written for DeepSprout Round 2B. The local WAV files were synthesized from those exact original passages with the macOS Samantha system voice (`say`, 165 words/minute) and converted locally with `afconvert` to 22.05 kHz, 16-bit PCM. No third-party media was fetched. Text and audio versions are pinned in each definition. These are local demonstration assets; production distribution/voice licensing review and human listening QA remain pending. Transcript mode changes conditions and never claims verified audio recall.

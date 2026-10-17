@@ -2,15 +2,15 @@
  * Runs one check-in task end to end.
  *
  * An attempt is OFFICIAL only when the account allows it: the starting point,
- * or a task repeated inside the end-of-cycle window (or late, after a missed
- * window). Anything else is a PRACTICE ROUND: allowed any time, clearly
- * labelled, and never stored or compared. Only a finished run is saved; a
- * partial run is discarded (spec 4.4 / 4.5).
+ * or a task repeated inside its Person-bound weekly window. Anything else is a PRACTICE ROUND: allowed any time, clearly
+ * labelled, and never stored or compared. Questionnaire drafts persist; interrupted timed measurements require a new run.
  */
 (() => {
   if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const Account = window.DeepSproutAccount;
-  let account = null;
+  let account = null, run = null, runActive = false, interrupted = false, pendingResult = null;
+  const feedback=document.getElementById('assessment-state');
+  const failure=error=>{feedback.hidden=false;feedback.textContent=error.message;};
   let mode = { mode: 'practice', kind: 'practice' };
   const INSTRUMENTS = window.DeepSproutAssessments;
   const params = new URLSearchParams(location.search);
@@ -74,28 +74,43 @@
       banner.dataset.kind = 'official';
       banner.textContent = mode.late
         ? `Official ${names.checkIn.toLowerCase()} — taken after the window closed, so the result will be marked late`
-        : `Official ${names.checkIn.toLowerCase()} — this result is compared with ${names.baseline}`;
+        : `Free official weekly ${names.checkIn.toLowerCase()} — comparisons require compatible valid protocols`;
+    }
+    let draft=mode.mode==='practice'?null:account.assessmentDraft(id);
+    if(draft&&(draft.mode!==mode.mode||draft.windowId!==(allowed.windowId||'baseline'))){account.interruptAssessment(draft.id,'The original official window closed or changed.');draft=null;banner.hidden=false;banner.textContent='The old window is closed. Its incomplete answers do not complete a later official window.';}
+    if(draft&&id!=='digital-habits'){
+      account.interruptAssessment(draft.id,'Page reloaded before the timed measurement completed.');interrupted=true;
+      banner.hidden=false;banner.textContent='Interrupted timed assessment — restart with a new attempt. No partial score counts.';begin.textContent='Restart assessment';
+    }else if(!draft&&id!=='digital-habits'&&account.exportRecord().assessmentRuns.filter(r=>r.definitionId===id).at(-1)?.status==='Interrupted'&&allowed.mode==='official'){interrupted=true;banner.hidden=false;banner.textContent='Interrupted timed assessment — restart with a new attempt. No partial score counts.';begin.textContent='Restart assessment';}
+    else if(draft){banner.hidden=false;banner.textContent='Saved questionnaire answers are ready to resume.';begin.textContent='Resume questionnaire';}
+    if(allowed.mode!=='official'&&(onboardingFlow||params.get('mode')!=='practice')){
+      begin.hidden=true;banner.hidden=false;banner.textContent='This official assessment is already complete or unavailable. Continue an unfinished eligible baseline or return to Lab.';
+      const next=account.baselineResults().find(row=>!row.attempt);const link=document.createElement('a');link.className='btn btn-primary';link.href=next?`assessment.html?test=${next.id}&flow=onboarding`:account.plan()?'lab.html':'../onboarding/starting-point.html';link.textContent=next?'Continue unfinished baseline':account.plan()?'Back to Lab':'Your Starting Point';begin.after(link);
     }
     begin.disabled = false;
-  }).catch(() => {
+  }).catch(error => {
     banner.hidden = false;
-    banner.textContent = 'Your account couldn’t be loaded, so this run is a practice round and will not be recorded.';
-    begin.disabled = false;
+    banner.textContent = 'Your account could not be loaded. Reload to retry; no result has been recorded.';
+    failure(error);begin.disabled = true;
   });
 
   /* --------------------------------------------------------------- quitting */
 
   const quitDialog = document.getElementById('quit-dialog');
   document.getElementById('quit-button').addEventListener('click', () => {
-    pauseTask();
+    if(id!=='digital-habits'&&runActive)interruptMeasurement('The timed assessment was stopped.');
+    document.querySelector('#quit-dialog .ds-dialog-inner p:not(.eyebrow)').textContent=id==='digital-habits'?'Your saved answers will resume. An unfinished questionnaire is not an official result.':'Timed measurements cannot continue safely after interruption. Restart creates a separate attempt; no scores are combined.';
+    quitDialog.querySelector('.btn[data-close-dialog]').textContent=id==='digital-habits'?'Keep going':'Restart assessment';
     quitDialog.showModal();
   });
   quitDialog.querySelectorAll('[data-close-dialog]').forEach(button =>
-    button.addEventListener('click', () => { quitDialog.close(); resumeTask(); }));
+    button.addEventListener('click', () => { quitDialog.close(); if(interrupted&&button.classList.contains('btn'))start(); }));
 
   /* ------------------------------------------------------------------ start */
 
   function start() {
+    try{if(!account)throw new Error('Reload your account before starting.');run=account.beginAssessment(id,{practice:mode.mode==='practice',context:{presentation:window.innerWidth<640?'narrow':'wide'}});runActive=true;interrupted=false;pendingResult=null;feedback.hidden=true;}catch(error){failure(error);return;}
+    clearTimers();trial=0;taskPaused=false;awaitingResponse=false;Object.assign(taskRecord,{hits:[],omissions:0,falseAlarms:0,commissions:0,noGoTotal:0,goTotal:0,inputMethods:[]});quizIndex=0;quizAnswers.length=0;
     if (id === 'digital-habits') startSurvey();
     else if (id === 'depth-challenge') startPassage();
     else startTask();
@@ -106,6 +121,7 @@
   const surveyAnswers = {};
 
   function startSurvey() {
+    Object.keys(surveyAnswers).forEach(k=>delete surveyAnswers[k]);Object.assign(surveyAnswers,run?.answers||{});
     const form = document.getElementById('survey-form');
     form.replaceChildren(...instrument.items.map((item, position) => {
       const wrapper = document.createElement('fieldset');
@@ -126,10 +142,12 @@
         const button = document.createElement('button');
         button.type = 'button';
         button.setAttribute('role', 'radio');
-        button.setAttribute('aria-checked', 'false');
+        button.setAttribute('aria-checked', String(surveyAnswers[item.id]===value));
         button.textContent = label;
         button.addEventListener('click', () => {
-          surveyAnswers[item.id] = value;
+          const answers={...surveyAnswers,[item.id]:value};
+          try{if(mode.mode==='official')account.saveAssessmentProgress(run.id,answers);}catch(error){failure(error);return;}
+          surveyAnswers[item.id] = value;feedback.hidden=true;
           [...scale.children].forEach((sibling, siblingValue) =>
             sibling.setAttribute('aria-checked', String(siblingValue === value)));
           updateSurveyProgress();
@@ -142,7 +160,7 @@
     }));
 
     updateSurveyProgress();
-    showStage('survey', { step: `0 of ${instrument.items.length} answered`, progress: 0 });
+    showStage('survey', { step: `${Object.keys(surveyAnswers).length} of ${instrument.items.length} answered`, progress: Object.keys(surveyAnswers).length/instrument.items.length });
   }
 
   function updateSurveyProgress() {
@@ -181,7 +199,7 @@
   let stimulusKind = null;
   let stimulusShownAt = 0;
   let trial = 0;
-  const taskRecord = { hits: [], omissions: 0, falseAlarms: 0, commissions: 0, noGoTotal: 0, goTotal: 0 };
+  const taskRecord = { hits: [], omissions: 0, falseAlarms: 0, commissions: 0, noGoTotal: 0, goTotal: 0, inputMethods: [] };
 
   const arena = document.getElementById('arena');
   const arenaShape = document.getElementById('arena-shape');
@@ -191,12 +209,14 @@
 
   const later = (fn, delay) => { taskTimers.push(window.setTimeout(fn, delay)); };
   const clearTimers = () => { taskTimers.forEach(window.clearTimeout); taskTimers = []; };
-  const pauseTask = () => { taskPaused = true; clearTimers(); };
-  const resumeTask = () => {
-    if (!taskPaused) return;
-    taskPaused = false;
-    if (!document.querySelector('[data-stage="task"]').hidden) nextTrial();
-  };
+  function interruptMeasurement(reason,render=true){
+    if(!runActive||id==='digital-habits')return;
+    clearTimers();taskPaused=true;awaitingResponse=false;document.removeEventListener('keydown',onKey);runActive=false;interrupted=true;
+    try{if(mode.mode==='official')account.interruptAssessment(run.id,reason);}catch(error){failure(error);}
+    if(render){showStage('intro',{step:'Interrupted — restart required'});banner.hidden=false;banner.textContent=reason+' Start a new attempt; separate timed runs are never combined.';begin.textContent='Restart assessment';}
+  }
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)interruptMeasurement('The page was hidden during a timed measurement.');});
+  window.addEventListener('pagehide',()=>interruptMeasurement('Page closed before the timed measurement completed.',false));
 
   function startTask() {
     document.getElementById('task-title').textContent = instrument.title;
@@ -270,8 +290,9 @@
     }, instrument.stimulusMs);
   }
 
-  function respond() {
+  function respond(method='pointer') {
     if (taskPaused || document.querySelector('[data-stage="task"]').hidden) return;
+    taskRecord.inputMethods.push(method);
     if (!awaitingResponse) {
       // A press with nothing on screen: an early response, not a hit.
       if (trial > 0 && trial <= instrument.trials) {
@@ -306,9 +327,9 @@
     if (event.code !== 'Space') return;
     if (document.querySelector('[data-stage="task"]').hidden) return;
     event.preventDefault();
-    respond();
+    respond('keyboard');
   }
-  arena.addEventListener('click', respond);
+  arena.addEventListener('click',()=>respond('pointer'));
 
   function endTask() {
     clearTimers();
@@ -446,13 +467,14 @@
   /* ----------------------------------------------------------------- finish */
 
   function finish({ summary, raw, lead, caveat, valid = true, score }) {
+    clearTimers();document.removeEventListener('keydown',onKey);
     const official = mode.mode === 'official' && account;
     const names = Account.NAMES;
     if (official) {
-      account.mutate({
+      try{const saved=account.mutate({
         type: 'assessment.add',
         attempt: {
-          id: `aa-${Date.now().toString(36)}`,
+          id: run.id,
           definitionId: id,
           official: true,
           cycle: mode.cycle,
@@ -460,15 +482,16 @@
           late: Boolean(mode.late),
           valid,
           score,
-          version: instrument.version,
+          version: instrument.version,startedAt:run.startedAt,
           details: summary,
           raw
         }
-      });
+      });valid=saved.attempt.valid;if(!valid)caveat=saved.attempt.validity.reason;}catch(error){pendingResult={summary,raw,lead,caveat,valid,score};failure(error);document.getElementById('retry-save').hidden=false;return;}
     }
+    runActive=false;pendingResult=null;feedback.hidden=true;document.getElementById('retry-save').hidden=true;
 
     document.getElementById('result-title').textContent = official
-      ? `${instrument.title} recorded${mode.late ? ' · marked late' : ''}.`
+      ? valid?`${instrument.title} recorded${mode.late ? ' · marked late' : ''}.`:'Invalid attempt recorded — retry required.'
       : 'Practice round finished — not recorded.';
     document.getElementById('result-lead').textContent = official
       ? lead
@@ -494,7 +517,8 @@
     actions.replaceChildren();
     // The next official task still to take, if any (starting point or an open window).
     const next = official ? account.checkIns().find(entry => entry.id !== id && account.checkInMode(entry.id).mode === 'official') : null;
-    if (next) {
+    if(official&&!valid){const retry=document.createElement('a');retry.className='btn btn-primary';retry.href=`assessment.html?test=${id}${onboardingFlow?'&flow=onboarding':''}`;retry.textContent='Retry this official assessment';actions.append(retry);}
+    else if (next) {
       const continueButton = document.createElement('a');
       continueButton.className = 'btn btn-primary';
       continueButton.href = `assessment.html?test=${next.id}${onboardingFlow ? '&flow=onboarding' : ''}`;
@@ -509,7 +533,7 @@
       const results = document.createElement('a');
       results.className = 'btn btn-primary';
       // The four baselines lead to Your Starting Point and plan activation (D04).
-      const baseline = official && (onboardingFlow || mode.cycle === 1);
+      const baseline = official && mode.kind === 'baseline';
       results.href = baseline ? '../onboarding/starting-point.html' : '../insights/insights.html#checkins';
       results.innerHTML = `${baseline ? 'See your starting point' : official ? 'See your results' : 'Your results'} <svg><use href="#i-arrow"/></svg>`;
       actions.append(results);
@@ -520,6 +544,7 @@
       actions.append(back);
     }
 
-    showStage('result', { step: official ? 'Recorded' : 'Practice round · not recorded', progress: 1 });
+    showStage('result', { step: official ? valid?'Recorded':'Invalid attempt · retry required' : 'Practice round · not recorded', progress: 1 });
   }
+  document.getElementById('retry-save').addEventListener('click',()=>{if(pendingResult)finish(pendingResult);});
 })();

@@ -30,7 +30,10 @@ node --test tests/partner-store.test.mjs tests/institution-cycle.test.mjs tests/
 BASE_URL=http://127.0.0.1:8765 CHROME_PATH="/path/to/chrome" NODE_PATH=/path/to/node_modules node tests/institution-browser.test.cjs   # real-browser Scenarios A–F (playwright-core); tests/supervisor-browser.test.cjs covers both Supervisor contexts; tests/coach-browser.test.cjs covers the Independent Coach journey (registration → approval → Program → invitation → Student → review → report → completion → upgrade)
 node tests/member-journey.test.cjs   # the whole individual cycle, in jsdom
 python3 tests/not-found-server.test.py # custom 404 responses, nested URLs, HEAD and normal assets
+REELS_URL=http://127.0.0.1:8792 NODE_PATH=/path/to/node_modules node tests/black-hole.test.cjs   # hero-reels-lab: opening cue, procedural black hole (pixel-tested horizon), Protection station
 ```
+
+`hero-reels-lab.html` is the cinematic story (Bimo's opening → Reels storm → black hole → "You're not alone" → the way back → garden). Its black hole is rendered procedurally in `src/js/reels/shaders.js` from the scroll-driven state in `src/js/reels/black-hole.js`; the gravitational centre is the single `CORE` in `src/js/reels/story-math.js`. The cinematic suites (`reels-*`, `vortex-clarity`, `way-back`, `black-hole`) need a served `Client/` (`REELS_URL`), Playwright and `pngjs`; they write captures into `docs/validation/`.
 
 The journey test needs `jsdom`; without it the test reports that it was skipped and exits cleanly. To run it against a jsdom installed elsewhere: `NODE_PATH=/path/to/node_modules node tests/member-journey.test.cjs`.
 
@@ -72,6 +75,8 @@ A browser regression suite lives at `tests/home-story.test.cjs`. With this folde
 ## Admin demo
 
 The Login page includes the explicitly simulated **Continue as Admin (Demo)** shortcut. It opens a separate, responsive legacy Admin workspace at `admin.html#/dashboard` with all management, recovery operations, Content Studio, community moderation, subscriptions and revenue, settings, and audit screens. Platform analytics live on Dashboard. Admin records persist locally across navigation and refreshes. Published activities appear in Training as previews; published Content Studio regions appear on the public landing page. See [the dated Admin architecture report](docs/architecture/admin-cycle.md) and the [Admin/member IA and integration audit](docs/architecture/admin-member-ia-audit.md).
+
+**System Journey** (`workspaces.html#/admin/system-journey`, partner Admin → System Journey; demo identity Leen) is an illustrative, viewer-paced walkthrough of how every workspace connects: nine chapters and 92 steps, with an Overview and a Detailed mode drawn from one storyboard (`src/workspaces/journey/chapters/`). Each step animates one event on a small SVG scene and offers on-demand details with rules, failure cases, destinations and specification references. It changes no records; seat and Supervisor caps come from `initiative-rules.js` and the offer window from the demo settings. It lives in the partner Admin because §19 names that the migration destination.
 
 ## File organization
 

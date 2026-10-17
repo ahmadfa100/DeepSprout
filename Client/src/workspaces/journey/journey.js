@@ -72,6 +72,7 @@ export function render(ctx) {
   </div>
   <p class="jn-boundary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${GLYPHS.shield}"/></svg><span>Illustrative walkthrough of the approved target system. Nothing on this page sends invitations, approves people, books seats or changes any record. Email, OTP, payment, QR security and the demo clock are simulated in Phase 1.</span></p>
   <p class="sr-only" aria-live="polite" data-jn-live></p>
+  <p class="sr-only" aria-live="polite" data-jn-live-note></p>
   <dialog class="jn-drawer" aria-labelledby="jn-drawer-title"><div class="jn-drawer-body"></div></dialog>
 </section>`;
 }
@@ -83,7 +84,7 @@ export function mount(ctx) {
   const journey = buildJourney(ctx.s);
   const state = journeyState(ctx);
   const $ = selector => root.querySelector(selector);
-  const svg = $('.jn-svg'), note = $('.jn-note'), reopen = $('.jn-note-reopen'), drawer = $('.jn-drawer'), live = $('[data-jn-live]');
+  const svg = $('.jn-svg'), note = $('.jn-note'), reopen = $('.jn-note-reopen'), drawer = $('.jn-drawer'), live = $('[data-jn-live]'), liveNote = $('[data-jn-live-note]');
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const listFor = mode => journey.steps.filter(step => mode === 'detailed' || step.overview);
   let list = listFor(state.mode);
@@ -103,7 +104,8 @@ export function mount(ctx) {
     const narrow = width < 640;
     const box = narrow ? journey.bounds(step.chapter) : { x: 0, w: 1000 };
     const key = `${box.x}:${box.w}`;
-    if (key !== viewKey) { viewKey = key; svg.setAttribute('viewBox', `${box.x} 0 ${box.w} 560`); }
+    // Narrow screens get a little headroom for the larger status chips.
+    if (key !== viewKey) { viewKey = key; svg.setAttribute('viewBox', narrow ? `${box.x} -64 ${box.w} 690` : `${box.x} 0 ${box.w} 560`); }
     scene.setScale(box.w / width);
   }
 
@@ -121,6 +123,8 @@ export function mount(ctx) {
     note.hidden = false;
     reopen.hidden = true;
     note.classList.toggle('is-static', reduced());
+    // The event itself is announced once it happens, after the step title.
+    liveNote.textContent = `${NOTE_LABEL[kind]}: ${step.note.title}. ${step.note.text}`;
   }
 
   /* ---------------------------------------------------------- step view */
@@ -143,8 +147,12 @@ export function mount(ctx) {
     root.querySelectorAll('[data-jn-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.jnMode === state.mode)));
     $('.jn-dots').innerHTML = inChapter.map((s, i) => `<li><button type="button" data-jn-goto="${esc(s.id)}" class="${s === step ? 'is-current' : state.visited.includes(s.id) ? 'is-seen' : ''}" aria-label="Step ${i + 1}: ${esc(s.title)}${state.visited.includes(s.id) ? ' (explored)' : ''}" ${s === step ? 'aria-current="step"' : ''}></button></li>`).join('');
     const prev = $('[data-jn-step="-1"]'), next = $('[data-jn-step="1"]');
+    const focused = document.activeElement;
     prev.disabled = index === 0;
     next.disabled = index === list.length - 1;
+    // A disabled button drops focus to <body>; hand it to the other arrow so arrow keys keep working.
+    if (focused === next && next.disabled) prev.focus();
+    else if (focused === prev && prev.disabled) next.focus();
     prev.setAttribute('aria-label', index ? `Previous step: ${list[index - 1].title}` : 'Previous step');
     next.setAttribute('aria-label', index < list.length - 1 ? `Next step: ${list[index + 1].title}` : 'End of the journey');
   }
@@ -165,6 +173,7 @@ export function mount(ctx) {
     noteDismissed = false;
     note.hidden = true;
     reopen.hidden = true;
+    liveNote.textContent = '';
     persist();
     paint();
     if (chapterChanged) fitView();

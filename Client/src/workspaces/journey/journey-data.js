@@ -70,6 +70,7 @@ export const ACTORS = {
 };
 
 const actorOf = id => ACTORS[id.split('.')[0]];
+const STAGE_MID = 286; // vertical centre of the 560-unit stage, leaving room for status chips above
 
 /** Turn one declared step into the scene the engine draws. */
 function sceneOf(step, chapter) {
@@ -83,6 +84,13 @@ function sceneOf(step, chapter) {
     const label = labels[id] || actor.label;
     return { id, kind: actor.kind, tone: actor.tone, glyph: actor.glyph, label, short: labels[id] ? (step.shorts?.[id] || chapter.shorts?.[id] || label) : actor.short || label, sub: subs[id] || '', x: at[id][0], y: at[id][1], dim: (step.dim || []).includes(id) };
   });
+  // Centre the cast vertically on the stage. Positions alone decide the shift,
+  // so consecutive steps with the same cast keep exactly the same places.
+  const top = Math.min(...nodes.map(n => n.y)) - 40, bottom = Math.max(...nodes.map(n => n.y)) + 62;
+  const shift = Math.round((STAGE_MID - (top + bottom) / 2) / 10) * 10;
+  nodes.forEach(n => { n.y += shift; });
+  // In rows of three or more, narrow screens drop sub-labels so neighbours never collide.
+  nodes.forEach(n => { n.crowded = nodes.filter(m => Math.abs(m.y - n.y) < 30).length >= 3; n.chip = Boolean(step.status?.[n.id]); });
   const edge = text => { const [path, shape] = text.split(':'), [from, to] = path.split('>'); return { key: path, from, to, shape: shape || 'auto' }; };
   const edges = (step.edges || []).map(edge);
   // Flow syntax: "a>b" travels a → b; "<a>b" travels b → a along the same line; "@glyph" sets that flow's token.

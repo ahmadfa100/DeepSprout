@@ -2,7 +2,7 @@
 export const DATA_KEY = 'deepsprout-admin-demo-v1';
 export const SESSION_KEY = 'deepsprout-admin-demo-session';
 export const goals = ['Less scrolling', 'Deeper focus', 'More offline time', 'Calmer routine'];
-export const categories = ['Digital Protection & Habit Control', 'Meaningful Practice', 'Offline Life', 'Stillness & Reflection', 'Community'];
+export const categories = ['Digital Protection & Habit Control', 'Meaningful Practice', 'Offline Life', 'Community'];
 export const modes = ['Assigned', 'On Demand', 'Triggered', 'Scheduled Review'];
 export const evidenceTypes = ['In-platform recorded', 'Self-reported offline', 'None'];
 

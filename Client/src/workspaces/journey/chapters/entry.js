@@ -45,10 +45,9 @@ export default f => ({
       spec: ['§1.3', '§2.2', '§3.3', 'D45'], scenarios: ['A']
     },
     {
-      id: 'entry-partner-paths', overview: true,
+      id: 'entry-partner-paths',
       title: 'Partners choose one of three paths',
       summary: 'A partner applicant applies as an independent Coach, an Institution Representative or an Outdoor Provider. Each submits person and entity evidence for review.',
-      brief: 'Partner applicants apply as an independent Coach, an Institution Representative or an Outdoor Provider.',
       show: ['applicant', 'rep', 'coach', 'provider'],
       at: { applicant: [500, 120], rep: [250, 410], coach: [500, 410], provider: [750, 410] },
       labels: { coach: 'Independent Coach' }, shorts: { coach: 'Coach' },
