@@ -120,6 +120,68 @@
   --dur-slow: .7s;
   /* New and redesigned work animates transform and opacity only. */
 
+  /* ===================================================================
+     Additions — Individual experience system (October 2026).
+     Append-only: no value above changed. Everything below is derived from
+     the measured palette, so existing pages render exactly as before.
+     =================================================================== */
+
+  /* Surfaces and text */
+  --color-ivory: #fffcf6;                 /* warm canvas for hero moments */
+  --color-surface-soft: color-mix(in srgb, var(--color-mint) 38%, var(--color-surface));
+  --color-text-2: #3d5a4f;                /* secondary body text, AA on surface */
+  --color-line-strong: color-mix(in srgb, var(--color-ink) 16%, transparent);
+  --color-focus: #2a7a5a;                 /* focus ring, ≥3:1 on every surface */
+  --color-disabled: color-mix(in srgb, var(--color-ink) 34%, var(--color-surface));
+
+  /* Status — text colours meet AA on their own soft background */
+  --color-success: var(--color-leaf);
+  --color-success-soft: var(--color-mint);
+  --color-warning: #8a5a07;
+  --color-warning-soft: #fbf0d6;
+  --color-error: #a2382f;
+  --color-error-soft: #fbe6e2;
+  --color-info: #2f6f8f;
+  --color-info-soft: #e3f0f5;
+
+  /* Practice families — measured from the Activities practice cards
+     (training.css tone-* rules): ink · tone · soft. Reused by every page. */
+  --practice-depth: #8f5d0b;      --practice-depth-tone: #f6e5bf;      --practice-depth-soft: #fdf6e6;
+  --practice-listening: #2a5f8c;  --practice-listening-tone: #cfe3f3;  --practice-listening-soft: #eef5fb;
+  --practice-practical: #5a4796;  --practice-practical-tone: #e0d8f5;  --practice-practical-soft: #f4f1fb;
+  --practice-protected: #a54a2e;  --practice-protected-tone: #f8d9cd;  --practice-protected-soft: #fdf1ec;
+
+  /* Charts: measured series use leaf/pine; self-reported uses a ring, never a new hue */
+  --chart-1: var(--color-leaf);
+  --chart-2: var(--color-pine);
+  --chart-3: color-mix(in srgb, var(--color-leaf) 45%, var(--color-surface));
+  --chart-track: color-mix(in srgb, var(--color-ink) 7%, transparent);
+  --chart-grid: color-mix(in srgb, var(--color-ink) 9%, transparent);
+
+  /* Type additions */
+  --text-small: .875rem;           /* 14px — supporting text inside components */
+  --text-metric: clamp(2rem, 3.4vw, 2.75rem);
+  --measure: 62ch;                 /* comfortable reading line */
+  --numeric: tabular-nums;
+
+  /* Depth — tinted, single light source from above */
+  --shadow-soft: 0 1px 2px rgb(18 63 52 / .04), 0 8px 24px rgb(18 63 52 / .05);
+  --shadow-float: 0 2px 6px rgb(18 63 52 / .06), 0 24px 56px rgb(18 63 52 / .14);
+
+  /* Motion language */
+  --ease-out: cubic-bezier(.16, 1, .3, 1);        /* entrances, reveals */
+  --ease-in: cubic-bezier(.5, 0, .75, 0);         /* exits */
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);    /* state swaps (tabs, panels) */
+  --dur-instant: .12s;   /* press feedback */
+  --dur-reveal: .6s;     /* section reveal */
+  --dur-page: .32s;      /* cross-page transition */
+  --stagger: 45ms;       /* per-item delay in a revealed group */
+
+  /* Layers */
+  --z-sticky: 50;
+  --z-popover: 300;
+  --z-dialog: 500;
+
   /* ------------------------------------------------------------------ base */
   font-family: var(--font-sans);
   color: var(--color-ink);

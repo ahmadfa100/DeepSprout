@@ -4,37 +4,38 @@ Implemented directly in the existing HTML/CSS/ES-module client. This repository 
 
 ## Entry and architecture
 
-- `register.html` still resolves to `src/pages/auth/register/register.html`. Initial view has exactly two choices. `#individual` opens the existing account form; `#partner` opens Mentor / Coach, Institution Representative and Outdoor Provider, plus the existing institution invitation link.
-- `workspaces.html#/auth/register` and `/auth/register/partner` use the same chooser. Partner account, verification, application and invitation routes retain the world without replacing its canvas during hash navigation.
-- `experience/living-world.js` owns the canvas, stable topology, interpolated identities, pointer response, capped ripple propagation and field activity envelope. Roots and network use the same points and edges, not swapped assets. Signals travel existing Bézier connections. Person, institution and outdoor glyphs emerge at selected nodes.
-- `experience/entry.js` owns reusable chooser markup, pressed-state buttons, keyboard-compatible selection and restrained card depth response.
-- `experience/workspace-entry.js` adapts the existing workspace router and owns route/form listener cleanup. `app.js` adds the lifecycle and submission feedback hooks; `pages/auth.js` reuses the chooser. Business commands are unchanged.
-- `experience/experience.css` scopes styling to registration. Existing brand artwork and typography are retained. Login and operational workspace styling are unaffected.
-- `register.js` preserves existing validation, password visibility, informational dialogs and local account creation. It adds progression, valid-state styling, a submission guard, unavailable-service failure handling and lifecycle cleanup.
+- `register.html` still resolves to `src/pages/auth/register/register.html`. The first view has exactly two choices: Join as Individual and Join as a Partner. `#individual` opens the existing account form; `#partner` opens Mentor / Coach, Institution Representative and Outdoor Provider, plus the existing institution invitation link. Selecting a card never navigates; only Continue does.
+- `workspaces.html#/auth/register` and `/auth/register/partner` use the same chooser. Partner account, verification, application and invitation routes keep the same canvas during hash navigation.
+- `experience/living-world.js` owns the editorial copy, a single white-field network canvas, the Individual ↔ Partner reorganisation and all signal propagation.
+- `experience/glyphs.js` is the one line-icon set shared by the cards (inline SVG) and the network hubs (`Path2D`), so Mentor, Institution and Outdoor hubs use the same marks as the Partner subtype cards.
+- `experience/entry.js` owns the chooser markup, pressed-state buttons, the mode-aware Continue label ("Continue as Individual" / "Continue as Partner") and the note that names the next step.
+- `experience/workspace-entry.js` adapts the workspace router, asks the network to re-measure after each route render and owns listener cleanup. Business commands are unchanged.
+- `experience/experience.css` scopes the composition to `body.living-register`. Login styling, shared tokens and operational workspaces are unaffected.
 
-## Motion and accessibility
+## The network
 
-Focus and typing pass only generic event kinds and field indices to the renderer. It does not inspect field values. Activity is bounded to four traveling signals (at most one per 110 ms), five ripples and a decaying intensity envelope. Pointer coordinates are interpolated; fields never move on focus. The scene uses 13 fixed nodes, with a smaller visible subgraph on small screens. Pixel ratio is capped at two, idle rendering targets 30 fps, and slow frames lower its update rate.
+- **One graph, two layouts.** Every node has a stable identity and two deterministic targets. Individual is a calm constellation: a focal "you" node between the copy and the panel, a few loose clusters and quiet ambient nodes. Partner reorganises the same nodes into communities around icon hubs (Mentors, Institutions, Outdoor experiences, Communities, Workshops, Initiatives — as many as the free space allows), links hubs to each other and to the focal node, and reveals preallocated partner-only nodes that branch out of existing ones. Hubs illustrate the ecosystem; they are not registration roles.
+- **Composition-aware placement.** Layouts are planned from the measured copy, panel and header rectangles: hubs and their labels only occupy open space, nodes are never placed under the panel, and anything crossing copy is veiled to low contrast.
+- **Transformation.** Each node runs its own critically damped spring, started with a delay proportional to its distance from the chosen card, so expansion travels outward (about 1.1 s) and the return gathers from the edges. Reversing mid-transition is continuous; repeated switching allocates nothing new. Copy crossfades between "A little intention. A new beginning." and "Meaningful change grows together."
+- **Signals.** Impulses travel along actual edges from a fixed pool of 44, with a hop limit, branching cap and a per-wave stamp per node (no growing per-node history). Background clicks activate the nearest node and add one small ring; card selection, Continue, field focus and typing emit progressively smaller, rate-limited impulses from the open edge beside the panel. Idle impulses are occasional: personal paths in Individual, hub-to-hub exchange in Partner.
+- **Privacy.** Handlers pass only event kinds, field indices and element geometry. The renderer never reads field values, typed characters or key names.
 
-Reduced motion renders still but distinct identities on demand; no idle frame loop remains. Hidden documents cancel the animation frame. Route exit/pagehide abort listeners, disconnect the resize observer and cancel frames; restored pages recreate one scene. Canvas height is independent of viewport height, preventing a virtual-keyboard resize from reseeding or resetting geometry. Mobile input text is 16 px to avoid automatic input zoom.
+## Motion, performance and accessibility
 
-Buttons expose pressed state and visible focus. Hidden steps leave the tab order. Progression moves focus to the new heading or main landmark. All forms keep labels, error associations and native validation where used. Artwork is decorative and hidden from assistive technology.
+Delta-time simulation; idle drift renders at about 30 fps, transitions and signals at full rate; one requestAnimationFrame chain, cancelled while the document is hidden. Pixel ratio is capped at two. Glows use one pre-rendered sprite. The canvas height only grows for a given width, so a virtual keyboard never reflows or reseeds the scene. Background clicks on links, buttons, fields, labels, the panel and the header are ignored.
 
-## Validation, 16 October 2026
+Reduced motion renders the matching still arrangement for each mode on demand, with no running loop and no impulses. The canvas is `aria-hidden` and ignores pointer events. Cards expose `aria-pressed`, the chooser keeps visible focus rings, the next-step note is announced politely, and progression moves focus to the new heading. Mobile input text is 16 px to avoid automatic zoom.
 
-`tests/register-experience.test.cjs` passed in headless Chrome against the running preview server, with zero page errors. It covers:
+## Validation, 17 October 2026
 
-- Repeated mode reversal on the same canvas; two top-level and three secondary choices.
-- Keyboard selection/progression, background clicks, field focus, rapid typing, password visibility and accessible validation.
-- Missing service retry, local registration, onboarding navigation and duplicate email rejection.
-- Password non-persistence and an input getter trap demonstrating that the environment does not read field contents.
-- Partner scene continuity, invitation entry and animation removal on route exit.
-- Still reduced-motion scenes, stopping/resuming on visibility changes.
-- 320, 390 and 768 px layouts, no horizontal overflow, keyboard-sized viewport stability and touch feedback.
+Run against `python3 Client/serve.py --port 8791` in headless Chrome:
 
-Additional browser checks passed for Partner mobile layout, keyboard focus after route progression and pagehide/pageshow restoration. The existing `page-wiring.test.cjs` passed (14 pages); changed JavaScript passed syntax checks and the diff passed whitespace checks. This static client has no build command.
-
-The unmodified legacy `partner-entry.test.cjs` stops at an outdated Mentor dashboard heading assertion (`Create Your First Group`), outside registration. A temporary run omitting only that copy assertion passed all three account → simulated OTP → application → seven review statuses → approved workspace flows, existing identity reuse, password non-persistence, storage isolation and unique control IDs. This is not a claim that the unmodified legacy suite passes.
+- `tests/register-experience.test.cjs` passed with zero page errors (two paths, rapid reversal on one canvas, keyboard flow, focus/typing signals, field-value trap, validation, unavailable-service recovery, local registration, partner routes, invitation, scene removal, reduced motion, hidden-page pause, 320/390/768 overflow, keyboard-sized viewport stability, touch taps).
+- `tests/partner-browser.test.cjs` (with `SHOTS_DIR` outside the repository), `tests/round0-browser.test.cjs`, `tests/round2a-browser.test.cjs` and `tests/institution-browser.test.cjs` passed.
+- Visual review of captured screenshots at 1920×1080, 1440×900, 1280×800, 1280×640, 820×1180, 768×1024, 844×390, 390×844, 360×740 and 320×640 in both modes, mid-transition frames, rapid switching, background-click propagation, reduced motion, keyboard focus and the workspaces account route at 1440 and 390.
+- A simulated back/forward-cache `pagehide` → `pageshow` (persisted) leaves exactly one canvas and one copy host, and selection works afterwards.
+- Not run: a screen reader pass, and real-GPU or device profiling. Performance figures below come from headless software rendering.
+- Headless CDP measurement at 1440×900, 2× pixel ratio: roughly 30–50 ms of script per second while idle, a JS heap of about 3–6 MB, and an unchanged node count after repeated switching.
 
 Run:
 

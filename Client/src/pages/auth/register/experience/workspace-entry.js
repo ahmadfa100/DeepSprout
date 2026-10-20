@@ -23,6 +23,8 @@ export function syncRegistrationExperience(route) {
   if(shell){shell.querySelector('.register-choice-content').hidden=partner;shell.querySelector('.register-partner-content').hidden=!partner;
     unbind=bindChoices(shell,world,{initial:partner?'partner':'individual',individual:()=>{location.href='src/pages/auth/register/register.html#individual';},partner:()=>{location.hash='/auth/register/partner';},back:()=>{location.hash='/auth/register';}});
   }
+  // Each route renders a new panel; let the network re-measure the open space.
+  world.relayout?.();
 }
 export function registrationFeedback(kind){world?.signal(kind);}
 window.addEventListener('pagehide',()=>{unbind?.();fieldEvents?.abort();world?.destroy();world=null;});

@@ -1109,7 +1109,8 @@
       });
       data.assessmentAttempts.filter(attempt => attempt.official).forEach(attempt => events.push({
         on: attempt.on, kind: 'baseline', title: `${definition(attempt.definitionId)?.title} check`,
-        note: `${attempt.cycle === 1 ? 'Starting point' : `Cycle ${attempt.cycle}`} · measured${attempt.late ? ' · late' : ''}`
+        // Weekly Lab results name their week; the questionnaire is a self-report, never "measured".
+        note: `${attempt.kind === 'weekly' && attempt.week ? `Weekly Lab · week ${attempt.week}` : attempt.cycle === 1 ? 'Starting point' : `Cycle ${attempt.cycle}`} · ${definition(attempt.definitionId)?.provenance === 'self-reported' ? 'self-reported' : 'measured'}${attempt.late ? ' · late' : ''}`
       }));
       return events.sort((a, b) => b.on.localeCompare(a.on));
     };

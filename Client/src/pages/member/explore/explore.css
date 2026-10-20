@@ -330,3 +330,102 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .ex-sheet [data-provider-view] p, .ex-mine-item[data-booking-id] small { overflow-wrap: anywhere; }
 .ex-credential { margin-block: var(--space-18); }
 .ex-credential svg { display: block; width: min(240px, 100%); height: auto; margin-block: var(--space-10); }
+
+/* ======================================================================
+   View Details (Oct 2026): one layout for every listing type — a readable
+   article and a sticky "at a glance" panel holding the single next action.
+   ====================================================================== */
+.ex-sheet-panel { width: min(1040px, 100%); }
+.ex-sheet-body { padding: 0; }
+.ex-sheet-close { top: var(--space-16); right: var(--space-16); background: color-mix(in srgb, var(--color-white) 92%, transparent); backdrop-filter: blur(6px); }
+.exd-hero { position: relative; height: clamp(150px, 26vh, 260px); overflow: hidden; background: radial-gradient(120% 140% at 85% 0%, color-mix(in srgb, var(--color-mint) 90%, var(--color-surface)), var(--color-surface) 70%); }
+.exd-hero img { width: 100%; height: 100%; object-fit: cover; }
+.exd-hero.has-media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgb(11 47 40 / .18)); }
+.exd-hero:not(.has-media) { height: 120px; }
+.exd-hero-glyph { position: absolute; right: 8%; bottom: -26px; display: grid; place-items: center; width: 120px; height: 120px; border-radius: 36px; background: var(--color-white); color: var(--color-leaf); box-shadow: var(--shadow-soft); transform: rotate(-6deg); }
+.exd-hero-glyph svg { width: 54px; height: 54px; stroke-width: 1.4; }
+.exd-head { position: relative; padding: var(--space-26) clamp(20px, 4vw, 44px) 0; }
+.exd-tags { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-10); padding-right: 52px; }
+.ex-sheet .exd-head h2 { max-width: 22ch; margin: var(--space-12) 0 var(--space-8); font-size: clamp(1.9rem, 3.6vw, 2.75rem); line-height: 1.04; letter-spacing: -.03em; text-wrap: balance; }
+.exd-by { margin: 0 !important; color: var(--color-muted) !important; font-size: var(--text-body); }
+.exd-by strong { color: var(--color-ink); }
+.exd-grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: clamp(24px, 4vw, 48px); padding: var(--space-24) clamp(20px, 4vw, 44px) var(--space-34); align-items: start; }
+.exd-main { min-width: 0; }
+.ex-sheet .exd-lead { max-width: 60ch; margin: 0 0 var(--space-24); font-size: 1.15rem; line-height: 1.6; color: var(--color-text-2); }
+.exd-section { padding: var(--space-20) 0; border-top: 1px solid var(--color-line); }
+.ex-sheet .exd-section h3 { display: flex; align-items: center; gap: var(--space-8); margin: 0 0 var(--space-12); }
+.exd-section p { max-width: 62ch; }
+.exd-list { display: grid; gap: var(--space-8); padding: 0 !important; list-style: none; }
+.exd-list li { position: relative; padding-left: 22px; line-height: 1.55; }
+.exd-list li::before { content: ''; position: absolute; left: 4px; top: .62em; width: 7px; height: 7px; border-radius: 50%; background: var(--color-leaf); }
+.exd-timeline { position: relative; display: grid; gap: 0; margin: 0; padding: 0 !important; list-style: none; }
+.exd-timeline li { position: relative; display: grid; gap: 2px; padding: 0 0 var(--space-16) 26px; }
+.exd-timeline li::before { content: ''; position: absolute; left: 5px; top: 7px; width: 10px; height: 10px; border: 2px solid var(--color-leaf); border-radius: 50%; background: var(--color-surface); }
+.exd-timeline li::after { content: ''; position: absolute; left: 10px; top: 21px; bottom: 2px; width: 1.5px; background: var(--color-line); }
+.exd-timeline li:last-child { padding-bottom: 0; }
+.exd-timeline li:last-child::after { display: none; }
+.exd-when { color: var(--color-leaf); font-size: var(--text-caption); font-weight: var(--weight-bold); letter-spacing: .04em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.exd-timeline strong { font-size: 1.02rem; }
+.exd-timeline small { color: var(--color-muted); font-size: var(--text-caption); }
+.exd-commit { margin: var(--space-20) 0; }
+.exd-safety { margin: var(--space-20) 0; padding: var(--space-18) var(--space-20); border-radius: var(--radius-card); background: var(--color-warning-soft); }
+.ex-sheet .exd-safety h3 { display: flex; align-items: center; gap: var(--space-8); margin: 0 0 var(--space-8); color: var(--color-warning); }
+.exd-safety h3 svg { width: 18px; height: 18px; }
+.exd-safety p { margin-bottom: var(--space-6); }
+.exd-terms-list { margin-top: var(--space-8); }
+.exd-terms-list dt { display: flex; align-items: center; gap: 6px; }
+.ex-sheet .ex-policy { margin-top: var(--space-20); }
+.ex-sheet .ex-policy .ex-review { margin-top: var(--space-6); }
+.ex-sheet .exd-foot { margin: var(--space-26) 0 0; color: var(--color-muted); font-size: var(--text-caption); }
+
+.exd-aside { position: sticky; top: var(--space-20); display: grid; gap: var(--space-14); padding: var(--space-20); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-white); box-shadow: var(--shadow-soft); }
+.exd-facts { display: grid; gap: 0; margin: 0; }
+.exd-facts div { display: grid; gap: 2px; padding: var(--space-10) 0; border-top: 1px solid var(--color-line); }
+.exd-facts div:first-child { border-top: 0; padding-top: 0; }
+.exd-facts dt { display: flex; align-items: center; gap: 7px; color: var(--color-muted); font-size: var(--text-caption); font-weight: var(--weight-bold); letter-spacing: .04em; text-transform: uppercase; }
+.exd-facts dt svg { width: 14px; height: 14px; }
+.exd-facts dd { margin: 0; font-weight: var(--weight-bold); line-height: 1.4; }
+.ex-sheet .ex-sheet-actions.exd-action { position: static; display: grid; gap: var(--space-10); margin: 0; padding: var(--space-14) 0 0; border-top: 1px solid var(--color-line); background: none; backdrop-filter: none; }
+.exd-action-row { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-10); }
+.exd-action .ex-button { justify-content: center; width: 100%; }
+.exd-action .ex-muted { margin: 0; font-size: var(--text-caption); line-height: 1.5; }
+.exd-action .ex-form { margin-top: 0; gap: var(--space-12); }
+.exd-action .ex-form h3 { margin: 0; }
+.exd-booking { display: grid; gap: var(--space-8); }
+.exd-booking-head { display: flex; justify-content: space-between; align-items: center; margin: 0 !important; padding: var(--space-10) var(--space-12); border-radius: var(--radius-tile); background: var(--color-surface-soft); font-weight: var(--weight-heavy); color: var(--color-pine); }
+.exd-booking-head span { color: var(--color-muted); font-size: var(--text-caption); font-weight: var(--weight-bold); letter-spacing: .06em; text-transform: uppercase; }
+.exd-ref-line { margin: 0 !important; font-size: var(--text-caption) !important; color: var(--color-muted) !important; }
+.exd-offer { display: grid; gap: var(--space-8); padding: var(--space-12); border: 1.5px solid var(--color-leaf); border-radius: var(--radius-tile); }
+.exd-terms summary { cursor: pointer; font-size: var(--text-caption); font-weight: var(--weight-bold); }
+.exd-booking .ex-credential { padding: var(--space-12); border: 1px solid var(--color-line); border-radius: var(--radius-tile); text-align: center; }
+.exd-booking .ex-credential svg { max-width: 180px; margin: var(--space-8) auto; }
+
+@media (max-width: 900px) {
+  .exd-grid { grid-template-columns: 1fr; }
+  .exd-aside { position: static; }
+}
+@media (max-width: 600px) {
+  .exd-head { padding-top: var(--space-20); }
+  .exd-hero-glyph { width: 88px; height: 88px; bottom: -18px; border-radius: 26px; }
+  .exd-hero-glyph svg { width: 40px; height: 40px; }
+}
+.exd-action-row > .ex-status, .exd-booking > .ex-status { align-self: flex-start; width: auto; }
+.exd-hero:not(.has-media) { height: 140px; }
+.exd-hero-glyph { top: 50%; bottom: auto; width: 92px; height: 92px; border-radius: 28px; transform: translateY(-50%) rotate(-6deg); }
+.exd-hero-glyph svg { width: 42px; height: 42px; }
+
+/* Hidden must win over component display rules (inline forms, panels). */
+.ex [hidden], .ex-sheet [hidden] { display: none !important; }
+/* Action rows inside My Initiatives are ordinary rows, not the sheet's sticky footer. */
+.ex-mine .ex-sheet-actions { position: static; margin: var(--space-14) 0 0; padding: 0; border: 0; background: none; backdrop-filter: none; }
+
+/* Art panel for listings without an approved photo */
+.ex-card-media.is-art { display: grid; place-items: center; --art: var(--color-mint); --art-ink: var(--color-leaf); background: radial-gradient(70% 90% at 50% 120%, color-mix(in srgb, var(--art) 85%, var(--color-white)) 0 48%, transparent 48.5%), radial-gradient(40% 50% at 82% 20%, color-mix(in srgb, var(--art) 55%, transparent), transparent 70%), color-mix(in srgb, var(--art) 35%, var(--color-surface)); }
+.ex-card-media.is-art span { display: grid; place-items: center; width: 74px; height: 74px; border-radius: 24px; background: var(--color-white); color: var(--art-ink); box-shadow: 0 10px 26px rgb(18 63 52 / .1); transform: rotate(-5deg); transition: transform var(--dur-slow) var(--ease-out); }
+.ex-card-media.is-art svg { width: 34px; height: 34px; stroke-width: 1.5; }
+.ex-card:hover .ex-card-media.is-art span { transform: rotate(0) scale(1.06); }
+.ex-card-media.is-art[data-kind=session] { --art: var(--practice-listening-tone); --art-ink: var(--practice-listening); }
+.ex-card-media.is-art[data-kind=experience] { --art: var(--practice-depth-tone); --art-ink: var(--practice-depth); }
+.ex-card-media.is-art[data-kind=competition] { --art: var(--practice-practical-tone); --art-ink: var(--practice-practical); }
+@media (prefers-reduced-motion: reduce) { .ex-card-media.is-art span { transition: none; } }
+.ex-head-note { display: inline-flex; align-items: center; gap: 6px; color: var(--color-muted); }

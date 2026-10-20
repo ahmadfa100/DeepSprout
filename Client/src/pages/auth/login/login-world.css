@@ -1,0 +1,9 @@
+/* Login on the Individual registration field. login.css stays untouched
+   (Register imports it); these rules only apply to the login page and are
+   limited to what the shared field requires. */
+.login-world .register-card.login-card { align-self: start; }
+/* The brand lives in the header here, as on Register; the card keeps its link for no-CSS reading. */
+.login-world .register-card > .login-brand { display: none; }
+/* Readability on the white field: the legacy blue subtitle (#6280b4, ~4:1 on white) moves to the field's AA sage text. */
+.login-world .login-subtitle { color: var(--reg-muted, #566a62); }
+.login-world .login-subtitle { text-align: left; }

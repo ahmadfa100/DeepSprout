@@ -111,7 +111,8 @@
   function cardHtml(item) {
     const place = item.listing==='provider' ? {text:!item.canBook?'Booking unavailable':`${item.remaining} places left${!item.remaining&&item.waitlist?' · waiting list':''}`,full:!item.remaining} : item.listing === 'live' ? livePlaces(item) : places(item);
     const mine = ['live','provider'].includes(item.listing) ? null : item.mine;
-    return `${item.image ? `<div class="ex-card-media"><img src="${root}${item.image}" alt="${esc(item.imageAlt || '')}" loading="lazy"></div>` : ''}
+    // Listings without an approved photo get a calm kind-tinted art panel, never a stock image.
+    return `${item.image ? `<div class="ex-card-media"><img src="${root}${item.image}" alt="${esc(item.imageAlt || '')}" loading="lazy"></div>` : `<div class="ex-card-media is-art" data-kind="${esc(item.kind)}" aria-hidden="true"><span>${icon(KIND_ICON[item.kind])}</span></div>`}
       <div class="ex-card-band"><span class="ex-kind">${icon(KIND_ICON[item.kind])}${esc(item.kindLabel)}</span>${trust(item)}</div>
       <div class="ex-card-body">
         <h3>${esc(item.title)}</h3>
@@ -120,8 +121,9 @@
           <li>${icon('i-calendar')}<span>${esc(when(item))}</span></li>
           <li>${icon(item.mode === 'online' ? 'i-globe' : item.mode === 'hybrid' ? 'i-compass' : 'i-pin')}<span>${esc(where(item))}</span></li>
           <li>${icon('i-users')}<span class="ex-places${place.full ? ' is-full' : ''}">${esc(place.text)}</span></li>
+          ${item.listing==='provider'?`<li>${icon('i-ticket')}<span>${esc(item.cost?.type==='Paid'?`${item.cost.price} ${item.cost.currency}`:'Free')}</span></li>`:''}
         </ul>
-        ${item.listing==='provider'?`<p>${esc(costText(item))}</p>`:''}<p class="ex-reveal">${esc(item.summary)}</p>
+        <p class="ex-reveal">${esc(item.summary)}</p>
         <div class="ex-card-foot">
           <button type="button" class="ex-card-link" data-open="${item.id}" aria-label="${esc(`View ${item.title}`)}">View details ${icon('i-arrow')}</button>
           ${mine ? statusChip(mine.status) : ''}${['live','provider'].includes(item.listing) && item.mine ? appChip(item.mine.status) : ''}
@@ -285,6 +287,35 @@
     body.innerHTML = `<div class="ex-view">${html}</div>`;
     body.scrollTop = 0;
   };
+  /**
+   * One detail layout for every kind of listing: a readable article on the
+   * left and a short "at a glance" panel with the single next action on the
+   * right (stacked on narrow screens). Only presentation lives here.
+   */
+  const fmtDay = key => key ? fmt.date(Account.parse(key), { weekday: true }) : '';
+  const dateRange = (from, to) => !from ? '' : !to || to === from ? fmt.date(Account.parse(from), { weekday: true, year: true }) : `${fmt.date(Account.parse(from))} – ${fmt.date(Account.parse(to), { year: true })}`;
+  const tip = (label, text) => window.DeepSproutUI ? window.DeepSproutUI.help(label, text) : '';
+  const frame = ({ wrap, media, kind, badge, title, by, lead, facts, action, sections, foot }) => `<div ${wrap}>
+      <header class="exd-hero${media ? ' has-media' : ''}">${media ? `<img src="${media.src}" alt="${esc(media.alt || '')}">` : `<span class="exd-hero-glyph" aria-hidden="true">${icon(kind.icon)}</span>`}</header>
+      <div class="exd-head">
+        <div class="exd-tags"><span class="ex-kind">${icon(kind.icon)}${esc(kind.label)}</span>${badge || ''}</div>
+        <h2 id="sheet-title">${esc(title)}</h2>
+        <p class="exd-by">${by}</p>
+      </div>
+      <div class="exd-grid">
+        <div class="exd-main">
+          ${lead ? `<p class="exd-lead">${esc(lead)}</p>` : ''}
+          ${sections.filter(Boolean).join('')}
+          ${foot ? `<p class="exd-foot">${foot}</p>` : ''}
+        </div>
+        <aside class="exd-aside" aria-label="At a glance">
+          <dl class="exd-facts">${facts.filter(([, v]) => v).map(([k, v, i]) => `<div><dt>${i ? icon(i) : ''}${esc(k)}</dt><dd>${v}</dd></div>`).join('')}</dl>
+          <div class="ex-sheet-actions exd-action">${action}</div>
+        </aside>
+      </div>
+    </div>`;
+  const section = (heading, html, extra = '') => html ? `<section class="exd-section"><h3>${esc(heading)}${extra}</h3>${html}</section>` : '';
+
   const steps = stage => `<ol class="ex-steps" aria-label="Registration steps">${['Your details', 'Review', 'Done'].map((label, index) =>
     `<li class="${index < stage ? 'is-done' : index === stage ? 'is-now' : ''}"${index === stage ? ' aria-current="step"' : ''}>${label}</li>`).join('')}</ol>`;
 
@@ -310,24 +341,29 @@
       action = `<button type="button" class="ex-button" data-act="start">${esc(label)} ${icon('i-arrow')}</button>
         <span class="ex-muted">${outcome === 'waitlisted' ? 'No place is held until one opens.' : outcome === 'pending' ? 'The organiser confirms places.' : 'Confirmed straight away.'}</span>`;
     }
-    view(`${item.image ? `<div class="ex-sheet-media"><img src="${root}${item.image}" alt="${esc(item.imageAlt || '')}"></div>` : '<div style="height:var(--space-22)"></div>'}
-      <div class="ex-card-band" style="padding:0">${`<span class="ex-kind">${icon(KIND_ICON[item.kind])}${esc(item.kindLabel)}</span>`}${trust(item)}</div>
-      <h2 id="sheet-title">${esc(item.title)}</h2>
-      <p class="ex-muted">Run by ${esc(item.organizer)}${item.listing === 'verified' ? ' · organiser verified by DeepSprout' : ' · sample listing in this preview'}</p>
-      <p>${esc(item.summary)}</p>
-      <ul class="ex-detail-grid">
-        <li><b>When</b><span>${esc(when(item))}</span></li>
-        <li><b>Time zone</b><span>${esc(item.timezone)}</span></li>
-        <li><b>Where</b><span>${esc(item.mode === 'online' ? 'Online — link on your registration' : item.mode === 'hybrid' ? `${item.venue}, or online` : item.venue)}</span></li>
-        <li><b>Places</b><span>${esc(place.text)}</span></li>
-        <li><b>Who can join</b><span>${esc(item.eligibility)}</span></li>
-        <li><b>Confirmation</b><span>${item.approval === 'organiser' ? 'The organiser approves places' : 'Automatic'}</span></li>
-      </ul>
-      <h3>What it’s for</h3>
-      <ul>${item.objectives.map(objective => `<li>${esc(objective)}</li>`).join('')}</ul>
-      ${parts}
-      <div class="ex-commit"><p><strong>What registering commits you to.</strong> ${esc(item.commitment)}</p></div>
-      <div class="ex-sheet-actions">${action}</div>`);
+    view(frame({
+      wrap: 'data-listing-view="detail"',
+      media: item.image ? { src: `${root}${item.image}`, alt: item.imageAlt } : null,
+      kind: { icon: KIND_ICON[item.kind], label: item.kindLabel },
+      badge: trust(item),
+      title: item.title,
+      by: `Run by <strong>${esc(item.organizer)}</strong>${item.listing === 'verified' ? ' · organiser verified by DeepSprout' : ' · sample listing in this preview'}`,
+      lead: item.summary,
+      facts: [
+        ['When', esc(when(item)), 'i-calendar'],
+        ['Where', esc(item.mode === 'online' ? 'Online — link on your registration' : item.mode === 'hybrid' ? `${item.venue}, or online` : item.venue), item.mode === 'online' ? 'i-globe' : 'i-pin'],
+        ['Places', esc(place.text), 'i-users'],
+        ['Confirmation', item.approval === 'organiser' ? 'The organiser approves places' : 'Automatic', 'i-check']
+      ],
+      action: `<div class="exd-action-row">${action}</div>`,
+      sections: [
+        section('What it’s for', `<ul class="exd-list">${item.objectives.map(objective => `<li>${esc(objective)}</li>`).join('')}</ul>`),
+        section('Who can join', `<p>${esc(item.eligibility)}</p>`),
+        item.components.length ? section('Its parts', `<ol class="exd-timeline">${item.components.map(part => `<li><span class="exd-when">${esc(fmtDay(part.date))}</span><strong>${esc(part.title)}</strong><small>${esc(part.type)}</small></li>`).join('')}</ol>`, tip('parts', 'Each part is registered separately, with its own date and places.')) : '',
+        `<div class="ex-commit exd-commit"><p><strong>What registering commits you to.</strong> ${esc(item.commitment)}</p></div>`
+      ],
+      foot: `Times in ${esc(item.timezone)}`
+    }));
     body.querySelector('[data-act="start"]')?.addEventListener('click', showForm);
     const cancel = body.querySelector('[data-act="cancel"]');
     cancel?.addEventListener('click', () => {
@@ -488,13 +524,38 @@
     const e=current,b=r.selectors.myProviderBookings(r.read(),me?.id).filter(b=>b.experienceId===e.id).at(-1);
     const needsReconfirmation=b&&['Waitlisted','Seat Offered','Pending Approval'].includes(b.status)&&b.eligibility?.version!==e.version;
     const registered=b&&!['Cancelled','Rejected','Declined','Offer Expired'].includes(b.status);
-    view(`<div data-provider-view="detail"><h2 id="sheet-title">${esc(e.title)}</h2><p>${esc(e.type)} · ${esc(e.organizer)} · version ${e.version||1}</p><p>${esc(e.description)}</p><dl class="ex-review">${[['Where',[e.venue,e.address,e.city].filter(Boolean).join(' · ')],['When',`${e.startDate} – ${e.endDate} · ${e.timezone||'Asia/Amman'}`],['Participation',e.modes.join(' · ')],['Availability',e.canBook?`${e.remaining} places available${e.waitlist?' · waiting list enabled':''}`:'Booking unavailable'],['Cost',costText(e)],['Eligibility',e.eligibility],['Accessibility',e.accessibility],['Safety',e.safety],['Contact',e.contact],['Consent',e.consent],['Cancellation',e.cancellation],['Completion',`${e.completion} · ${e.completionRule?.kind||'all-required'}${e.completionRule?.kind==='minimum'?` (${e.completionRule.minimum} qualifying sessions)`:''}${e.completionRule?.conditions?` · Review conditions: ${e.completionRule.conditions}`:''}`]].map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v||'Not specified')}</dd></div>`).join('')}</dl><p>Provider Garden policy v1: verified Present/Late session attendance may add a bounded rabbit; verified Camp completion may add a bounded birdhouse. Booking and QR alone earn neither. Corrections update current eligibility while retaining the evidence.</p><h3>Schedule</h3><ul class="ex-parts">${e.sessions.map(ss=>`<li><span>${esc(ss.title)} · ${esc(ss.date)} ${esc(ss.time)}–${esc(ss.endTime)} · ${esc(ss.format)}${ss.needsSupervisor?' · Needs Supervisor':''}</span></li>`).join('')}</ul>
-      ${b?`<section data-provider-booking="${esc(b.id)}"><h3>Your booking</h3><p>${esc(b.id)} · ${esc(b.status)}</p>${b.terms?`<details><summary>Agreed terms · version ${b.terms.version}</summary><p>${esc(b.terms.consent)} · ${esc(b.terms.completion)} · ${esc(b.terms.cancellation)}</p><p>${esc(b.terms.cost?.type==='Paid'?`${b.terms.cost.price} ${b.terms.cost.currency} · simulated payment`:'Free')}</p></details>`:''}${b.offer?.status==='Offered'?`<p>Seat held until ${esc(b.offer.expires)} · <span data-countdown="${esc(b.offer.expires)}">${esc(countdown(b.offer.expires))}</span></p>${e.canBook&&!needsReconfirmation?'<button class="ex-button" data-provider-action="accept">Accept seat offer</button>':''}<button class="ex-button is-quiet" data-provider-action="decline">Decline offer</button>`:''}
+    const bookingHtml=b?`<section class="exd-booking" data-provider-booking="${esc(b.id)}"><p class="exd-booking-head"><span>Your booking</span>${esc(b.status)}</p><p class="exd-ref-line">Booking reference <strong class="ex-code">${esc(b.id)}</strong></p>${b.terms?`<details class="exd-terms"><summary>Agreed terms · version ${b.terms.version}</summary><p>${esc(b.terms.consent)} · ${esc(b.terms.completion)} · ${esc(b.terms.cancellation)}</p><p>${esc(b.terms.cost?.type==='Paid'?`${b.terms.cost.price} ${b.terms.cost.currency} · simulated payment`:'Free')}</p></details>`:''}${b.offer?.status==='Offered'?`<div class="exd-offer"><p>A seat is held for you until ${esc(b.offer.expires)} · <span data-countdown="${esc(b.offer.expires)}">${esc(countdown(b.offer.expires))}</span></p>${e.canBook&&!needsReconfirmation?'<button class="ex-button" data-provider-action="accept">Accept seat offer</button>':''}<button class="ex-button is-quiet" data-provider-action="decline">Decline offer</button></div>`:''}
+      ${b.status==='Waitlisted'?'<p class="ex-muted">You are on the waiting list. No place is held until one opens; you are then offered it in order.</p>':''}
       ${e.canAttend&&['Confirmed','Checked In','Completed'].includes(b.status)?e.sessions.filter(ss=>ss.format!=='Online'&&(b.sessionModes[ss.id]||b.mode)!=='Online').map(ss=>`<div class="ex-credential" data-session-id="${esc(ss.id)}"><strong>${esc(ss.title)}</strong>${qrSvg(`${b.credential}|${ss.id}`)}<p>Booking code: <strong>${esc(b.credential)}</strong> · session ${esc(ss.id)}</p></div>`).join(''):''}
-      ${b.attendance.length?`<ul>${b.attendance.map(a=>`<li>${esc(e.sessions.find(ss=>ss.id===a.sessionId)?.title||a.sessionId)}: ${esc(a.status)} · ${esc(a.method)}</li>`).join('')}</ul>`:''}
+      ${b.attendance.length?`<ul class="exd-list">${b.attendance.map(a=>`<li>${esc(e.sessions.find(ss=>ss.id===a.sessionId)?.title||a.sessionId)}: ${esc(a.status)} · ${esc(a.method)}</li>`).join('')}</ul>`:''}
       ${b.completion?`<p>Camp completion: ${esc(b.completion.status)} · ${esc(b.completion.id)}</p>`:''}
-      ${b.canCancel?'<button class="ex-button is-quiet" data-provider-action="cancel">Cancel booking</button>':''}</section>`:''}
-      ${(!registered||needsReconfirmation)&&e.canBook&&me?`<form class="ex-form" data-provider-book><h3>${needsReconfirmation?'Reconfirm updated terms':e.remaining?'Book a place':'Join the waiting list'}</h3><label class="ex-field">Your age<input name="age" type="number" min="1" max="120" required></label><label class="ex-field">Participation mode<select name="mode">${(e.modes.includes('Hybrid')?['In-person','Online']:e.modes).map(m=>`<option>${esc(m)}</option>`).join('')}</select></label>${e.sessions.filter(ss=>ss.format==='Hybrid').map(ss=>`<label class="ex-field">${esc(ss.title)} mode<select name="mode-${esc(ss.id)}"><option>In-person</option><option>Online</option></select></label>`).join('')}${(e.participantForm?.questions||[]).map(q=>`<label class="ex-field">${esc(q.label)}${q.type==='choice'?`<select name="q-${esc(q.id)}" ${q.required?'required':''}><option value="">Choose</option>${q.options.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:`<input name="q-${esc(q.id)}" ${q.required?'required':''}>`}</label>`).join('')}<label class="ex-consent"><input name="consent" type="checkbox" required><span>${esc(e.consent)} · form/consent version ${e.participantForm?.version||1}</span></label>${e.cost?.type==='Paid'?`<label class="ex-consent"><input name="payment" type="checkbox" required><span>I understand the ${esc(costText(e))}.</span></label>`:''}<p class="ex-error" role="alert" hidden></p><button class="ex-button">${needsReconfirmation?'Reconfirm this booking':e.remaining?'Confirm booking':'Join waiting list'}</button></form>`:!me?signInNote():''}<p class="ex-error" data-provider-error role="alert" hidden></p></div>`);
+      ${b.canCancel?'<button class="ex-button is-quiet" data-provider-action="cancel">Cancel booking</button>':''}</section>`:'';
+    const formHtml=(!registered||needsReconfirmation)&&e.canBook&&me?`<form class="ex-form" data-provider-book><h3>${needsReconfirmation?'Reconfirm updated terms':e.remaining?'Book a place':'Join the waiting list'}</h3><label class="ex-field">Your age<input name="age" type="number" min="1" max="120" required></label><label class="ex-field">Participation mode<select name="mode">${(e.modes.includes('Hybrid')?['In-person','Online']:e.modes).map(m=>`<option>${esc(m)}</option>`).join('')}</select></label>${e.sessions.filter(ss=>ss.format==='Hybrid').map(ss=>`<label class="ex-field">${esc(ss.title)} mode<select name="mode-${esc(ss.id)}"><option>In-person</option><option>Online</option></select></label>`).join('')}${(e.participantForm?.questions||[]).map(q=>`<label class="ex-field">${esc(q.label)}${q.type==='choice'?`<select name="q-${esc(q.id)}" ${q.required?'required':''}><option value="">Choose</option>${q.options.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:`<input name="q-${esc(q.id)}" ${q.required?'required':''}>`}</label>`).join('')}<label class="ex-consent"><input name="consent" type="checkbox" required><span>${esc(e.consent)} · form/consent version ${e.participantForm?.version||1}</span></label>${e.cost?.type==='Paid'?`<label class="ex-consent"><input name="payment" type="checkbox" required><span>I understand the ${esc(costText(e))}.</span></label>`:''}<p class="ex-error" role="alert" hidden></p><button class="ex-button">${needsReconfirmation?'Reconfirm this booking':e.remaining?'Confirm booking':'Join waiting list'}</button></form>`:!me?signInNote():'';
+    const completion=`${e.completion}${e.completionRule?.kind==='minimum'?` · at least ${e.completionRule.minimum} qualifying sessions`:''}${e.completionRule?.conditions?` · ${e.completionRule.conditions}`:''}`;
+    view(frame({
+      wrap:'data-provider-view="detail"',
+      media:e.image?{src:`${root}${e.image}`,alt:e.imageAlt}:null,
+      kind:{icon:'i-tent',label:e.type||'Experience'},
+      badge:trust(e),
+      title:e.title,
+      by:`Run by <strong>${esc(e.organizer)}</strong>`,
+      lead:e.description,
+      facts:[
+        ['When',esc(dateRange(e.startDate,e.endDate)),'i-calendar'],
+        ['Where',esc([e.venue,e.city].filter(Boolean).join(' · ')),'i-pin'],
+        ['How',esc(e.modes.join(' · ')),'i-globe'],
+        ['Places',e.canBook?`${e.remaining?`${esc(e.remaining)} ${e.remaining===1?'place':'places'} left`:'Full'}${e.waitlist?' · waiting list open':''}`:'Booking unavailable','i-users'],
+        ['Cost',esc(costText(e)),'i-ticket']
+      ],
+      action:`${bookingHtml}${formHtml}<p class="ex-error" data-provider-error role="alert" hidden></p>`,
+      sections:[
+        section('Schedule',`<ol class="exd-timeline">${e.sessions.map(ss=>`<li><span class="exd-when">${esc(fmtDay(ss.date))} · ${esc(ss.time)}–${esc(ss.endTime)}</span><strong>${esc(ss.title)}</strong><small>${esc(ss.format)}${ss.needsSupervisor?' · Supervisor attends':''}</small></li>`).join('')}</ol>`),
+        section('Who can join',`<p>${esc(e.eligibility||'Not specified')}</p>${e.accessibility?`<p class="ex-muted">Accessibility: ${esc(e.accessibility)}</p>`:''}`),
+        `<div class="exd-safety"><h3>${icon('i-shield-check')}Safety and consent</h3><p>${esc(e.safety||'Not specified')}</p><p><strong>You agree:</strong> ${esc(e.consent||'Not specified')}</p>${e.contact?`<p class="ex-muted">Contact: ${esc(e.contact)}</p>`:''}</div>`,
+        `<dl class="ex-review exd-terms-list"><div><dt>Address</dt><dd>${esc([e.venue,e.address,e.city].filter(Boolean).join(' · ')||'Not specified')}</dd></div><div><dt>Cancellation</dt><dd>${esc(e.cancellation||'Not specified')}</dd></div><div><dt>Completion ${tip('Garden growth from this experience','Verified Present or Late attendance may add one bounded rabbit to your Garden; verified Camp completion may add one bounded birdhouse. Booking and the QR code alone earn neither. Corrections update eligibility while keeping the original evidence.')}</dt><dd>${esc(completion)}</dd></div></dl>`
+      ],
+      foot:`Times in ${esc(e.timezone||'Asia/Amman')} · listing version ${e.version||1}`
+    }));
     body.querySelector('[data-provider-book]')?.addEventListener('submit',event=>{
       event.preventDefault();const f=event.currentTarget;
       try{r.run(needsReconfirmation?'member.booking.reconfirm':'member.experience.book',{id:needsReconfirmation?b.id:undefined,experienceId:e.id,version:e.version||1,answers:Object.fromEntries((e.participantForm?.questions||[]).map(q=>[q.id,f.elements[`q-${q.id}`]?.value||''])),sessionModes:Object.fromEntries(e.sessions.filter(ss=>ss.format==='Hybrid').map(ss=>[ss.id,f.elements[`mode-${ss.id}`].value])),age:Number(f.elements.age.value),mode:f.elements.mode.value,consent:f.elements.consent.checked,paymentConfirmed:f.elements.payment?.checked});renderGrid();renderMine();showProviderDetail();}
@@ -533,32 +594,35 @@
       if (mine) action += `<span class="ex-muted">Your previous application ${esc(mine.code)} is ${esc(APP_STATUS[mine.status]?.label.toLowerCase() || mine.status)}.</span>`;
     }
     const sessions = item.sessions.filter(ss => ss.status === 'Published');
-    view(`<div data-live-view="detail">${item.image ? `<div class="ex-sheet-media"><img src="${root}${item.image}" alt="${esc(item.imageAlt || '')}"></div>` : '<div style="height:var(--space-22)"></div>'}
-      <div class="ex-card-band" style="padding:0"><span class="ex-kind">${icon('i-flag')}Initiative · ${esc(item.topic)}</span>${trust(item)}</div>
-      <h2 id="sheet-title">${esc(item.title)}</h2>
-      <p class="ex-muted">Run by ${esc(item.organizer)} · Institution verified by DeepSprout · version ${item.version}</p>
-      <p class="ex-lead-text">${esc(item.summary)}</p>
-      <ul class="ex-detail-grid">
-        <li><b>When</b><span>${esc(when(item))}</span></li>
-        <li><b>Time zone</b><span>${esc(item.timezone)}</span></li>
-        <li><b>How</b><span>${esc(modesText(item))}</span></li>
-        <li><b>Where</b><span>${esc([item.venue, item.modes.includes('Online') ? 'online' : ''].filter(Boolean).join(' · ') || 'Online')}</span></li>
-        <li><b>Who can join</b><span>${esc(item.eligibility)}</span></li>
-        <li><b>Eligible area</b><span>${esc(item.coverage || item.country)}</span></li>
-        <li><b>Seats</b><span>${esc(place.text)}</span></li>
-        <li><b>Cost</b><span>${esc(costText(item))}</span></li>
-        <li><b>Applications</b><span>${esc(item.registration)}${item.registrationClose ? ` · close ${esc(fmt.date(Account.parse(item.registrationClose)))}` : ''}</span></li>
-      </ul>
-      <h3>What it’s for</h3><p>${esc(item.objective)}</p>
-      ${item.description ? `<p>${esc(item.description)}</p>` : ''}
-      ${item.requirements ? `<h3>What it asks of you</h3><p>${esc(item.requirements)}</p>` : ''}
-      ${providerLinks(item)}<h3>Its parts — each joined separately</h3>
-      <ul class="ex-parts">${item.components.map(part => `<li><span>${esc(part.title)}<br><small>${esc(part.type)}</small></span></li>`).join('')}${sessions.map(ss => `<li><span>${esc(ss.title)}<br><small>Session · ${esc(ss.format)}</small></span><small>${esc(fmt.date(Account.parse(ss.date), { weekday: true }))} · ${esc(ss.time)}</small></li>`).join('')}</ul>
-      <div class="ex-commit"><p><strong>Joining is not booking.</strong> Accepted students register for each session separately. Attendance is confirmed by a Supervisor on the day, and completion follows the published criteria: ${esc(item.policies.completion || 'see the institution’s rules')}.</p></div>
-      <details class="ex-policy"><summary>Participation rules &amp; privacy</summary><dl class="ex-review">
-        ${[['Admission', item.policies.admission], ['Waiting list', item.waitlist ? `Seats are offered in order and held for ${item.offerHours} hours (configurable demo default).` : 'No waiting list.'], ['Withdrawal', item.withdrawal], ['Attendance', item.policies.attendance], ['Excuses', item.policies.excuse], ['Conduct', item.policies.discipline], ['Privacy', item.policies.privacy], ['Notices', item.policies.notifications]].filter(([, v]) => v).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}
-      </dl></details>
-      <div class="ex-sheet-actions">${action}</div></div>`);
+    const policies = [['Admission', item.policies.admission], ['Waiting list', item.waitlist ? `Seats are offered in order and held for ${item.offerHours} hours (configurable demo default).` : 'No waiting list.'], ['Withdrawal', item.withdrawal], ['Attendance', item.policies.attendance], ['Excuses', item.policies.excuse], ['Conduct', item.policies.discipline], ['Privacy', item.policies.privacy], ['Notices', item.policies.notifications]].filter(([, v]) => v);
+    view(frame({
+      wrap: 'data-live-view="detail"',
+      media: item.image ? { src: `${root}${item.image}`, alt: item.imageAlt } : null,
+      kind: { icon: 'i-flag', label: `Initiative · ${item.topic}` },
+      badge: trust(item),
+      title: item.title,
+      by: `Run by <strong>${esc(item.organizer)}</strong> · institution verified by DeepSprout`,
+      lead: item.summary,
+      facts: [
+        ['When', esc(when(item)), 'i-calendar'],
+        ['How', esc(modesText(item)), 'i-globe'],
+        ['Where', esc([item.venue, item.modes.includes('Online') ? 'online' : ''].filter(Boolean).join(' · ') || 'Online'), 'i-pin'],
+        ['Seats', esc(place.text), 'i-users'],
+        ['Cost', esc(costText(item)), 'i-ticket'],
+        ['Applications', `${esc(item.registration)}${item.registrationClose ? ` · close ${esc(fmt.date(Account.parse(item.registrationClose)))}` : ''}`, 'i-clock']
+      ],
+      action: `<div class="exd-action-row">${action}</div>`,
+      sections: [
+        section('What it’s for', `<p>${esc(item.objective)}</p>${item.description ? `<p>${esc(item.description)}</p>` : ''}`),
+        section('Who can join', `<p>${esc(item.eligibility)}</p><p class="ex-muted">Eligible area: ${esc(item.coverage || item.country)}</p>`),
+        item.requirements ? section('What it asks of you', `<p>${esc(item.requirements)}</p>`) : '',
+        section('Its parts', `<ol class="exd-timeline">${item.components.map(part => `<li><span class="exd-when">Anytime</span><strong>${esc(part.title)}</strong><small>${esc(part.type)}</small></li>`).join('')}${sessions.map(ss => `<li><span class="exd-when">${esc(fmtDay(ss.date))} · ${esc(ss.time)}</span><strong>${esc(ss.title)}</strong><small>Session · ${esc(ss.format)}</small></li>`).join('')}</ol>`, tip('initiative parts', 'Joining is not booking. Accepted students register for each session separately.')),
+        providerLinks(item),
+        `<div class="ex-commit exd-commit"><p><strong>Joining is not booking.</strong> Attendance is confirmed by a Supervisor on the day, and completion follows the published criteria: ${esc(item.policies.completion || 'see the institution’s rules')}.</p></div>`,
+        `<details class="ex-policy ds-disclosure"><summary>Participation rules &amp; privacy</summary><dl class="ex-review">${policies.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></details>`
+      ],
+      foot: `Times in ${esc(item.timezone)} · listing version ${esc(item.version)}`
+    }));
     body.querySelector('[data-act="apply"]')?.addEventListener('click', showLiveForm);
     body.querySelector('[data-act="my-initiatives"]')?.addEventListener('click', () => { closeSheet(); setTimeout(() => $('my-initiatives').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }), 220); });
   }

@@ -102,3 +102,23 @@
 .member-notices li small { color: var(--color-muted, #5d7469); font-size: .72rem; }
 .member-notices-read { justify-self: start; border: 0; background: none; color: var(--color-leaf, #168557); font: inherit; font-weight: 700; cursor: pointer; padding: 0; }
 .member-notices-note { margin: 0; font-size: .72rem; color: var(--color-muted, #5d7469); }
+
+/* Page-to-page motion (Individual pages only) ---------------------------
+   Progressive enhancement with cross-document View Transitions: ordinary
+   links, history, fragments and forms are untouched. Browsers without
+   support navigate normally. The header holds still; content settles in. */
+@view-transition { navigation: auto; }
+.member-header { view-transition-name: ds-header; }
+::view-transition-group(ds-header) { animation-duration: 0s; }
+::view-transition-old(root) { animation: ds-page-out var(--dur-fast, .2s) var(--ease-in, ease-in) both; }
+::view-transition-new(root) { animation: ds-page-in var(--dur-page, .32s) var(--ease-out, ease-out) both; }
+@keyframes ds-page-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes ds-page-in { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}
+
+/* Demo chip: compact, but always visibly says it is demo data. */
+.dev-switch-pill { gap: 6px; height: 30px; padding: 0 4px 0 10px; }
+.dev-switch-pill > span:not(.dev-switch-dot) { font-weight: 700; }
+.dev-switch { left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }

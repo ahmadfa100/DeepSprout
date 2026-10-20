@@ -114,16 +114,18 @@
       const personal=account.personalClock();
       const clock=`${fmt.date(account.today,{weekday:true,year:true})}${plan?` · day ${plan.day}`:''} · ${personal.source}${personal.seedAsOf?` · original story ${personal.seedAsOf}`:''}`;
       const option = (id, title, note) => `<label class="dev-switch-option"><input type="radio" name="dev-account" value="${id}"${account.id === id ? ' checked' : ''}><span><strong>${title}</strong><small>${note}</small></span></label>`;
+      // A journal produced by the presenter's scenario builder is synthetic too.
+      const scenario = (() => { try { return JSON.parse(localStorage.getItem('deepsprout-demo-scenarios-v1') || '{}')[Account.person()?.id] || null; } catch { return null; } })();
       const shell = document.createElement('div');
       shell.className = 'dev-switch';
-      shell.innerHTML = `<button class="dev-switch-pill" type="button" aria-expanded="false" aria-controls="dev-switch-panel"><span class="dev-switch-dot" aria-hidden="true"></span><span>Demo data</span><b>${account.seeded ? 'Seeded' : 'Empty'}</b></button>
+      shell.innerHTML = `<button class="dev-switch-pill" type="button" aria-expanded="false" aria-controls="dev-switch-panel"><span class="dev-switch-dot" aria-hidden="true"></span><span>Demo</span><b>${account.seeded ? 'Seeded' : scenario ? 'Scenario' : 'Empty'}</b></button>
         <div class="dev-switch-panel" id="dev-switch-panel" role="group" aria-label="Demo data" hidden>
           <p class="dev-switch-eyebrow">Dev only · demo data</p>
           <fieldset class="dev-switch-options" data-active="${account.id}"><legend class="visually-hidden">Account</legend><span class="dev-switch-thumb" aria-hidden="true"></span>
             ${option('demo', 'Ahmad', 'Seeded story')}${option('empty', 'New account', 'Nothing recorded')}
           </fieldset>
           <p class="dev-switch-clock"><span>Clock</span>${clock}</p>
-          <p class="dev-switch-note">${account.asOfNote}</p>
+          <p class="dev-switch-note">${scenario ? `Synthetic presentation scenario, built ${fmt.date(scenario.builtAt.slice(0, 10), {year: true})} through the real engines. Restore it from the presenter page.` : account.asOfNote}</p>
           <button type="button" class="dev-switch-reset" hidden>Reset demo changes</button>
         </div>`;
       document.body.append(shell);

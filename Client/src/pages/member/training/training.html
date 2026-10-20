@@ -13,11 +13,13 @@
   <link rel="stylesheet" href="../../../../src/styles/style.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
   <link rel="stylesheet" href="../../../../src/styles/page-hero.css">
+  <link rel="stylesheet" href="../../../../src/styles/individual-ui.css">
   <link rel="stylesheet" href="training.css">
   <script type="module" src="../../../../src/shared/member-bridge.js"></script>
   <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
+  <script src="../../../../src/js/ui/individual-ui.js" defer></script>
   <script src="training.js" defer></script>
   <script src="offline-routine.js" defer></script>
   <script src="assigned.js" defer></script>
@@ -76,7 +78,7 @@
       <!-- ------------------------------------------------------------ assigned -->
       <section class="block assigned-block" id="assigned" aria-labelledby="assigned-title" hidden>
         <div class="block-head">
-          <div><p class="kicker">Assigned</p><h2 id="assigned-title">From your Coach</h2><p>Tasks from your initiative group or Coach program. Your Coach reviews what you submit; approved work grows the matching tree in your Garden once.</p><p class="as-summary" id="assigned-count" aria-live="polite"></p></div>
+          <div><p class="kicker">Assigned</p><h2 id="assigned-title">From your Coach <button type="button" class="ds-help" aria-expanded="false" aria-label="About assigned tasks" data-help="Tasks from your initiative group or Coach program. Your Coach reviews what you submit; approved work grows the matching tree in your Garden once."><span aria-hidden="true">?</span></button></h2><p class="as-summary" id="assigned-count" aria-live="polite"></p></div>
           <div class="as-filters" role="group" aria-label="Show"><button type="button" data-assigned-filter="active" aria-pressed="true">To do</button><button type="button" data-assigned-filter="all" aria-pressed="false">Own history</button></div>
         </div>
         <div class="as-list" id="assigned-list"></div>
@@ -84,11 +86,21 @@
 
       <!-- ------------------------------------------------------------ practice -->
       <nav class="practice-nav" aria-label="Activities sections"><a href="#for-you">For You</a><a href="#training-types">Browse Practices</a><a href="#assigned">Assigned</a><a href="#history">History</a><a href="#offline-routine">My Offline Routine</a></nav>
-      <section class="block" id="for-you"><h2>For You</h2><p id="practice-suggestion"></p><p>Optional practice: two starts per day by default. Scheduled Recovery work stays free and available. Complete distinct examples across separate days before choosing a higher level.</p><div id="practice-levels"></div></section>
+      <section class="block foryou" id="for-you" aria-labelledby="for-you-title">
+        <div class="block-head"><div><p class="kicker">For you</p><h2 id="for-you-title">Your next good step</h2></div></div>
+        <p class="visually-hidden" id="practice-suggestion" aria-live="polite"></p>
+        <div class="foryou-grid">
+          <article class="foryou-pick" id="foryou-pick" aria-labelledby="for-you-title"></article>
+          <div class="foryou-levels">
+            <div class="foryou-levels-head"><h3>Your levels</h3><button type="button" class="ds-help" aria-expanded="false" aria-label="About practice levels" data-help="Each practice type has its own level, 1 to 3. To move up, complete 3 different examples at your current level on 3 separate days. You always choose: try the next level, stay, or step down — with no penalty. Optional practice is limited to two starts a day; scheduled Recovery work is always available."><span aria-hidden="true">?</span></button></div>
+            <div id="practice-levels"></div>
+          </div>
+        </div>
+      </section>
       <section class="block practice-block" id="training-types" aria-labelledby="practice-title">
         <div class="block-head">
-          <div><p class="kicker">Focused practice</p><h2 id="practice-title">Train one skill at a time</h2><p>Each practice is short, timed, and logged when you finish it. Pick the one that fits the time you have.</p></div>
-          <a class="quick-start" href="#for-you">Find a suitable practice</a>
+          <div><p class="kicker">Browse practices</p><h2 id="practice-title">Four ways to train attention</h2><p>Short, original exercises. Each is saved with its own evidence when you finish.</p></div>
+          <a class="quick-start" href="#for-you">See what fits today</a>
         </div>
         <div class="practice-grid">
           <article class="practice-card tone-amber" data-card="depth">
@@ -123,7 +135,7 @@
             <div class="practice-body">
               <span class="practice-meta"><svg><use href="#i-clock"/></svg>2–4 min · Local work session</span>
               <h3>Protected Work</h3>
-              <p>Choose a real task, observe an in-app work session, and record the outcome. Website blocking is not available.</p>
+              <p>Name a real task, work on it under an in-app timer, then record what you got done.</p>
             </div>
             <div class="practice-actions"><button type="button" class="practice-start" data-session="protected">Start <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="protected" aria-pressed="false" aria-label="Save Protected Work"><svg><use href="#i-bookmark"/></svg></button></div>
           </article>
@@ -173,7 +185,7 @@
       </a>
 
       <!-- ------------------------------------------------------------ insights -->
-      <section class="block" id="history"><h2>Practice history</h2><p>Personal practice and Coach review retain separate evidence and authority.</p><div id="practice-history"></div></section>
+      <section class="block history-block" id="history" aria-labelledby="history-title"><div class="block-head"><div><p class="kicker">History</p><h2 id="history-title">Practice history <button type="button" class="ds-help" aria-expanded="false" aria-label="About practice history" data-help="Every attempt keeps its original content, responses and evidence label — including invalid and interrupted ones. Personal practice and Coach reviews keep separate evidence and authority."><span aria-hidden="true">?</span></button></h2></div></div><div id="practice-history"></div></section>
       <a class="insights-link" href="../recovery-plan/recovery-plan.html#history"><svg><use href="#i-chart"/></svg> Your logged practices day by day: Roadmap history <svg><use href="#i-arrow"/></svg></a>
     </div>
   </main>

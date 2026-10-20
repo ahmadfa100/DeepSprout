@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../../src/styles/style.css">
+  <link rel="stylesheet" href="../../../../src/styles/individual-ui.css">
   <link rel="stylesheet" href="explore.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
   <script type="module" src="../../../../src/shared/member-bridge.js"></script>
@@ -18,6 +19,7 @@
   <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
+  <script src="../../../../src/js/ui/individual-ui.js" defer></script>
   <script src="explore.js" defer></script>
 </head>
 <body data-page="explore" data-root="../../../../">
@@ -88,7 +90,7 @@
       <section class="ex-mine ex-my-initiatives" id="my-initiatives" aria-labelledby="my-initiatives-title">
         <div class="ex-section-head">
           <div><p class="ex-eyebrow">Your participation</p><h2 id="my-initiatives-title">My Initiatives</h2><p class="ex-muted" id="my-initiatives-who"></p></div>
-          <p>Applying is not joining, joining is not booking a session, and attending is not completing. Each step is recorded separately.</p>
+          <p class="ex-head-note">Each step is recorded separately <button type="button" class="ds-help" aria-expanded="false" aria-label="About participation steps" data-help="Applying is not joining, joining is not booking a session, and attending is not completing. The institution sees the same records you see here."><span aria-hidden="true">?</span></button></p>
         </div>
         <div class="ex-initiative-list" id="ex-my-initiatives" aria-live="polite"></div>
       </section>
@@ -97,7 +99,7 @@
       <section class="ex-mine" id="my-registrations" aria-labelledby="mine-title">
         <div class="ex-section-head">
           <div><p class="ex-eyebrow">Your registrations</p><h2 id="mine-title">My registrations</h2></div>
-          <p>Registering is not attending, and attending is not completing — the organiser confirms each.</p>
+          <p class="ex-head-note">Confirmed by the organiser <button type="button" class="ds-help" aria-expanded="false" aria-label="About registrations" data-help="Registering is not attending, and attending is not completing — the organiser confirms each step."><span aria-hidden="true">?</span></button></p>
         </div>
         <ol class="ex-mine-list" id="ex-mine-list"></ol>
       </section>

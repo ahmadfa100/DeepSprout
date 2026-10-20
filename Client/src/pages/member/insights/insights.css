@@ -405,3 +405,50 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round
   .ins-grid { grid-template-columns: 30px repeat(var(--weeks, 4), 36px); gap: var(--space-6); }
   .ins-cell { width: 36px; height: 36px; }
 }
+
+/* ======================================================================
+   Restoration pass (Oct 2026): concise labels, details behind toggletips.
+   ====================================================================== */
+.ins .ds-help { margin-left: var(--space-6); }
+.ins-coverage { gap: var(--space-8); font-size: var(--text-small); }
+.ins-coverage .ins-coverage-ticks i { width: 3px; height: 14px; border-radius: 1px; }
+.ins-head-meta .ds-chip svg { width: 13px; height: 13px; }
+
+/* Website time: heatmap + summary column */
+.ins-browser-usage { align-items: start; }
+.ins-usage-lines li.ins-sites-li { gap: var(--space-8); }
+.ins-sites { display: grid; gap: var(--space-10); margin: 0; padding: 0; list-style: none; }
+.ins-site { display: grid; grid-template-columns: 1fr auto; gap: var(--space-4) var(--space-12); font-size: var(--text-small); }
+.ins-site .ds-meter-track { grid-column: 1 / -1; height: 6px; }
+.ins-site .ins-num { font-size: var(--text-small); }
+.ins-usage-details { margin-top: var(--space-24); }
+.ins-usage-details p { max-width: var(--measure); }
+.ins-table-wrap { overflow-x: auto; margin-top: var(--space-12); }
+.ins-usage-table { width: 100%; border-collapse: collapse; font-size: var(--text-caption); }
+.ins-usage-table caption { padding-bottom: var(--space-8); text-align: left; color: var(--color-muted); }
+.ins-usage-table th, .ins-usage-table td { padding: var(--space-10) var(--space-12); border-top: 1px solid var(--color-line); text-align: left; vertical-align: top; }
+
+/* Legacy Lab result: a number, a short label, and the reason on demand */
+.ins-axis-legacy { display: flex; align-items: center; gap: var(--space-12); min-height: 48px; padding: var(--space-10) var(--space-16); border: 1px dashed var(--color-line); border-radius: var(--radius-tile); }
+.ins-axis-legacy .ins-num { font-size: var(--text-h2-panel); }
+.ins-axis-legacy span { display: inline-flex; align-items: center; color: var(--color-muted); font-size: var(--text-small); }
+
+/* Beyond the screen: one quiet source line instead of paragraphs */
+.ins-card-note { display: flex; align-items: center; margin: var(--space-14) 0 0; color: var(--color-muted); font-size: var(--text-caption); font-weight: var(--weight-bold); letter-spacing: .01em; }
+.ins-ref { color: var(--color-muted); font-size: var(--text-caption); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ins-facts p { margin: var(--space-4) 0 0; font-size: var(--text-caption); color: var(--color-muted); }
+
+/* Calendar heatmap: weekdays across, one row per week */
+.ins-cal { grid-template-columns: 46px repeat(7, minmax(26px, 46px)); gap: 6px; }
+.ins-cal .ins-cell { width: 100%; height: auto; aspect-ratio: 1; }
+.ins-cal .ins-grid-rowhead b { font-weight: var(--weight-bold); color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.ins-card-note { font-weight: var(--weight-medium); }
+@media (max-width: 760px) {
+  .ins-cal { grid-template-columns: 40px repeat(7, minmax(0, 1fr)); gap: 5px; }
+  .ins-grid-wrap { overflow: visible; }
+}
+.ins-glance-top { flex-wrap: wrap; row-gap: var(--space-6); }
+.ins-glance-label { white-space: nowrap; }
+.ins-skill-head small { display: inline-flex; align-items: center; }
+.ins-training-grid:has(> .ds-empty) { display: block; }
+.ins-demo-chip { margin-left: var(--space-6); }

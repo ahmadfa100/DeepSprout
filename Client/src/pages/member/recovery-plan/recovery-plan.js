@@ -467,7 +467,7 @@
   }
   form.addEventListener('change',event=>{if(event.target.name==='focus'){const focus=event.target.value,type={depth:'depth',stillness:'protected-work',offline:'practical'}[focus];form.querySelectorAll('[name=mix]').forEach(b=>b.checked=b.value===type);$('adjust-reason').value=`Prefer ${focus==='offline'?'offline activity':focus==='stillness'?'fewer reflex pickups':'deeper focus'} in eligible future practice`;}});
   form.oninput=()=>{adjustment=null;$('confirm-plan').hidden=true;$('adjust-preview').textContent='Preview again before confirming changed inputs.';};
-  form.addEventListener('submit',event=>{event.preventDefault();try{if(!$('adjust-reason').value.trim())throw new Error('Explain this future change.');const input=selection();account.saveRecoveryPreview(input,$('adjust-reason').value,form.querySelector('[name=focus]:checked')?.value);adjustment=account.adjustmentPreview(input);$('adjust-preview').innerHTML=`<li>Effective ${escape(adjustment.effectiveOn)} · ${adjustment.supersededIds.length} future unstarted records replaced. Past work stays intact.</li>`+adjustment.actions.filter(a=>a.kind!=='routine').map(a=>`<li>${escape(a.date)} · ${escape(a.kind==='practice'?a.activityType+' · Level '+a.level:a.kind)}</li>`).join('');$('confirm-plan').hidden=false;$('save-note').textContent='Saved preview. Confirm the future revision to apply it; the schedule is unchanged.';}catch(e){$('save-note').textContent=e.message;}});
+  form.addEventListener('submit',event=>{event.preventDefault();try{if(!$('adjust-reason').value.trim())throw new Error('Explain this future change.');const input=selection();account.saveRecoveryPreview(input,$('adjust-reason').value,form.querySelector('[name=focus]:checked')?.value);adjustment=account.adjustmentPreview(input);$('adjust-preview').innerHTML=`<li class="rp-preview-head"><strong>Effective ${escape(adjustment.effectiveOn)}</strong><span>${adjustment.supersededIds.length} future unstarted ${adjustment.supersededIds.length===1?'day':'days'} replaced · past work stays intact</span></li>`+adjustment.actions.filter(a=>a.kind!=='routine').map(a=>`<li class="rp-preview-day is-${a.kind}" data-type="${escape(a.activityType||a.kind)}"><span class="rp-preview-date">${escape(fmt.date(a.date,{weekday:true}))}</span><strong>${escape(a.kind==='practice'?(account.training().find(t=>t.id===a.activityType)?.title||a.activityType):a.kind==='rest'?'Rest day':a.kind==='review'?'Weekly review':a.kind)}</strong>${a.kind==='practice'?`<small>Level ${a.level}</small>`:''}</li>`).join('');$('confirm-plan').hidden=false;$('save-note').textContent='Saved preview. Confirm the future revision to apply it; the schedule is unchanged.';}catch(e){$('save-note').textContent=e.message;}});
   $('confirm-plan').onclick=()=>{if(!adjustment)return;try{account.adjustRecovery({...adjustment.preferences,lowerType:adjustment.lowerType},$('adjust-reason').value,adjustment.sourceRevision);adjustment=null;$('confirm-plan').hidden=true;$('save-note').textContent='Future revision saved. Original attempts, past missed work and external obligations were preserved.';renderAdjustment();}catch(e){$('save-note').textContent=e.message;}};
   const recoveryAction=fn=>{try{fn();$('recovery-message').textContent='Saved to your original personal journey.';}catch(e){$('recovery-message').textContent=e.message;}};
   $('return-resume').onclick=()=>recoveryAction(()=>account.decideReturn('Resume'));
@@ -480,7 +480,8 @@
   function renderRecovery(){
     const r=account.recovery();$('recovery-control').hidden=!r;if(!r)return;
     $('recovery-status-title').textContent=`${r.status} · Cycle ${r.current.cycleNumber}${r.current.mode==='Maintenance'?' · lighter maintenance':''}`;
-    $('recovery-status-note').textContent=`${r.evidence.completed}/${r.evidence.due} due practices completed this week. Elapsed calendar days and completed practices are reported separately. Your history continues across cycles.`;
+    $('recovery-status-note').innerHTML=`${r.evidence.due?`${r.evidence.completed} of ${r.evidence.due} due practices done this week`:'Nothing due yet this week'}${window.DeepSproutUI?window.DeepSproutUI.help('this count','Completed practices and elapsed calendar days are reported separately — time passing is never counted as progress. Your history continues across cycles.'):''}`;
+    $('recovery-control').dataset.status=r.status;
     const pending=r.returnNotice?.pending;$('recovery-return-summary').textContent=pending?`Welcome back. Since ${r.returnNotice.from}: ${r.returnNotice.completed} completed, ${r.returnNotice.missed} missed scheduled practices. Other days remain unknown. Resume or adjust; no backlog is assigned.`:'';
     $('return-resume').hidden=$('return-adjust').hidden=!pending;
     $('cycle-evidence').hidden=!['Cycle Review Due','Reviewed'].includes(r.status);if(!$('cycle-evidence').hidden){const evidence=r.current.cycleReview?.evidence||r.cycleEvidence;$('cycle-evidence').innerHTML='<h3>This cycle, from recorded sources</h3><ul>'+evidence.map(e=>`<li>Week ${e.week}: ${e.completed}/${e.due} due practices completed · ${e.missed} missed · ${e.routine.done} routine days self-reported${e.scheduled?'':' · No reliable scheduled practice data'}</li>`).join('')+'</ul><p>Lab remains independently eligible. Missing browser evidence is unknown, and the end date is not a recovery result.</p>'; }
@@ -500,13 +501,23 @@
     $('history-empty').hidden = events.length > 0;
     let lastDay = '';
     const glyph = { plan: 'flag', adjust: 'sliders', review: 'flag', practice: 'book', invalid: 'book', routine: 'shoe', skipped: 'shoe', removed: 'shoe', baseline: 'chart' };
+    // The latest eight days are shown; earlier days stay one click away.
+    let days = 0;
     list.innerHTML = events.slice(0, 80).map((event, index) => {
+      if (event.on !== lastDay) days += 1;
+      const older = days > 8 ? ' rp-older' : '';
       const header = event.on !== lastDay
-        ? `<li class="rp-timeline-day">${escape(fmt.date(event.on, { weekday: true, year: true }))}</li>`
+        ? `<li class="rp-timeline-day${older}">${escape(fmt.date(event.on, { weekday: true, year: true }))}</li>`
         : '';
       lastDay = event.on;
-      return `${header}<li class="rp-event is-${event.kind}" style="--i:${Math.min(index, 12)}"><span class="rp-event-dot">${icon(glyph[event.kind] || 'flag')}</span><div><strong>${escape(event.title)}</strong><small>${escape(event.note)}</small></div></li>`;
+      return `${header}<li class="rp-event is-${event.kind}${older}" style="--i:${Math.min(index, 12)}"><span class="rp-event-dot">${icon(glyph[event.kind] || 'flag')}</span><div><strong>${escape(event.title)}</strong><small>${escape(event.note)}</small></div></li>`;
     }).join('');
+    list.classList.remove('is-expanded');
+    let more = $('history-more');
+    if (days > 8) {
+      if (!more) { more = document.createElement('button'); more.type = 'button'; more.id = 'history-more'; more.className = 'ds-link rp-history-more'; list.after(more); more.onclick = () => { const open = !list.classList.toggle('is-expanded') ? false : true; more.setAttribute('aria-expanded', String(open)); more.textContent = open ? 'Show fewer days' : `Show ${days - 8} earlier days`; }; }
+      more.hidden = false; more.setAttribute('aria-expanded', 'false'); more.textContent = `Show ${days - 8} earlier days`;
+    } else if (more) more.hidden = true;
   }
 
   /* ------------------------------------------------------------- lifecycle */
@@ -547,6 +558,6 @@
     empty.querySelector('h2').textContent = 'Your roadmap couldn’t be loaded';
     empty.querySelector('p').textContent = 'Nothing is shown rather than made-up progress. If you opened this file directly, serve the Client folder locally and reload.';
   });
-  const renderShield=()=>{const v=window.DeepSproutShield?.view();$('recovery-shield-status').textContent=`Optional browser support: ${v?.state||'Unverified'}. Shield is separate from scheduled practices and does not prove scrolling reduction.`;};
+  const renderShield=()=>{const v=window.DeepSproutShield?.view();$('recovery-shield-status').innerHTML=`Optional browser support: <strong>${escape(v?.state||'Unverified')}</strong>${window.DeepSproutUI?window.DeepSproutUI.help('browser support','Digital Shield is separate from your scheduled practices. It never completes a practice and does not prove scrolling went down.'):''}`;};
   window.addEventListener('deepsprout:shield',renderShield);renderShield();
 })();
