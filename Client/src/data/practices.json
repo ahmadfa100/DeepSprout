@@ -1,0 +1,1967 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "version": 1,
+    "maxLevel": 3,
+    "distinctToAdvance": 3,
+    "minDaysToAdvance": 3,
+    "scoreToAdvance": 0.75,
+    "optionalDaily": 2,
+    "rewardCooldownDays": 7
+  },
+  "definitions": [
+    {
+      "id": "practice-depth-l1-a",
+      "practiceType": "depth",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-depth-l1-a-text-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "The shared shelf",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 3,
+      "instructions": "Read the complete passage, then answer each question. You may consult the passage.",
+      "content": "At a neighborhood workshop, Lina placed a box of spare pencils beside the door. Visitors could take one and leave another when they had a spare. On the first day, the box emptied before lunch. Lina moved it beside the sign-in desk and added a note asking people to return unused pencils. By Friday, there were enough pencils for the next workshop. The note did not ask for money; it made the shared arrangement easier to understand.",
+      "questions": [
+        {
+          "prompt": "What was shared?",
+          "options": [
+            "Pencils",
+            "Money",
+            "Books",
+            "Lunch"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "Why move the box?",
+          "options": [
+            "To hide it",
+            "To make the arrangement visible at sign-in",
+            "To sell it",
+            "To close the workshop"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What did the note request?",
+          "options": [
+            "Pay for every pencil",
+            "Bring lunch",
+            "Return unused pencils",
+            "Stop visiting"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What best explains the improvement?",
+          "options": [
+            "A larger room",
+            "A prize",
+            "Fewer workshops",
+            "A clearer shared arrangement"
+          ],
+          "answer": 3
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": null,
+      "audioVersion": null
+    },
+    {
+      "id": "practice-listening-l1-a",
+      "practiceType": "listening",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-listening-l1-a-text-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "The shared shelf",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 3,
+      "instructions": "Listen once from start to finish without seeking. Pause is allowed; one playback per attempt. Use transcript mode if needed; it is labelled separately and is not verified audio recall.",
+      "content": "At a neighborhood workshop, Lina placed a box of spare pencils beside the door. Visitors could take one and leave another when they had a spare. On the first day, the box emptied before lunch. Lina moved it beside the sign-in desk and added a note asking people to return unused pencils. By Friday, there were enough pencils for the next workshop. The note did not ask for money; it made the shared arrangement easier to understand.",
+      "questions": [
+        {
+          "prompt": "What was shared?",
+          "options": [
+            "Pencils",
+            "Money",
+            "Books",
+            "Lunch"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "Why move the box?",
+          "options": [
+            "To hide it",
+            "To make the arrangement visible at sign-in",
+            "To sell it",
+            "To close the workshop"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What did the note request?",
+          "options": [
+            "Pay for every pencil",
+            "Bring lunch",
+            "Return unused pencils",
+            "Stop visiting"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What best explains the improvement?",
+          "options": [
+            "A larger room",
+            "A prize",
+            "Fewer workshops",
+            "A clearer shared arrangement"
+          ],
+          "answer": 3
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard",
+        "transcript"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": "assets/practices/practice-listening-l1-a.wav",
+      "audioVersion": "practice-listening-l1-a-audio-1",
+      "audioDurationSeconds": 24.005714285714287
+    },
+    {
+      "id": "practice-depth-l1-b",
+      "practiceType": "depth",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-depth-l1-b-text-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "A cooler courtyard",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 3,
+      "instructions": "Read the complete passage, then answer each question. You may consult the passage.",
+      "content": "A school courtyard became very hot at midday. Amir suggested planting trees, but trees would need years to provide shade. The team first installed a removable cloth canopy. They checked temperatures in two equally sunny corners at noon for a week, covering only one corner. The covered corner stayed cooler. They kept the canopy for the summer and planted trees nearby for future shade. The quick solution and the slower solution served different time scales.",
+      "questions": [
+        {
+          "prompt": "What was the immediate problem?",
+          "options": [
+            "Noise",
+            "Midday heat",
+            "Flooding",
+            "Traffic"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What provided quick shade?",
+          "options": [
+            "New trees",
+            "Paint",
+            "A cloth canopy",
+            "A fountain"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "Why compare equally sunny corners?",
+          "options": [
+            "To sell plants",
+            "To count students",
+            "To shorten summer",
+            "To make the comparison fairer"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why keep both solutions?",
+          "options": [
+            "They help at different time scales",
+            "They are identical",
+            "Trees grow overnight",
+            "The canopy never needs care"
+          ],
+          "answer": 0
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": null,
+      "audioVersion": null
+    },
+    {
+      "id": "practice-listening-l1-b",
+      "practiceType": "listening",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-listening-l1-b-text-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "A cooler courtyard",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 3,
+      "instructions": "Listen once from start to finish without seeking. Pause is allowed; one playback per attempt. Use transcript mode if needed; it is labelled separately and is not verified audio recall.",
+      "content": "A school courtyard became very hot at midday. Amir suggested planting trees, but trees would need years to provide shade. The team first installed a removable cloth canopy. They checked temperatures in two equally sunny corners at noon for a week, covering only one corner. The covered corner stayed cooler. They kept the canopy for the summer and planted trees nearby for future shade. The quick solution and the slower solution served different time scales.",
+      "questions": [
+        {
+          "prompt": "What was the immediate problem?",
+          "options": [
+            "Noise",
+            "Midday heat",
+            "Flooding",
+            "Traffic"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What provided quick shade?",
+          "options": [
+            "New trees",
+            "Paint",
+            "A cloth canopy",
+            "A fountain"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "Why compare equally sunny corners?",
+          "options": [
+            "To sell plants",
+            "To count students",
+            "To shorten summer",
+            "To make the comparison fairer"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why keep both solutions?",
+          "options": [
+            "They help at different time scales",
+            "They are identical",
+            "Trees grow overnight",
+            "The canopy never needs care"
+          ],
+          "answer": 0
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard",
+        "transcript"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": "assets/practices/practice-listening-l1-b.wav",
+      "audioVersion": "practice-listening-l1-b-audio-1",
+      "audioDurationSeconds": 25.60829931972789
+    },
+    {
+      "id": "practice-depth-l1-c",
+      "practiceType": "depth",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-depth-l1-c-text-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "The repair notebook",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 3,
+      "instructions": "Read the complete passage, then answer each question. You may consult the passage.",
+      "content": "At a small repair cafe, volunteers often solved the same lamp fault more than once. Sara started a notebook with a symptom, the test used, and the repair that worked. She left space for cases where a repair failed. A later volunteer discovered that two lamps with the same symptom needed different repairs. Instead of replacing the first entry, he added the second case. The notebook became useful because it kept both the successful repairs and the limits of each explanation.",
+      "questions": [
+        {
+          "prompt": "What did volunteers repair?",
+          "options": [
+            "Shoes",
+            "Bicycles",
+            "Lamps",
+            "Roofs"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What three things were recorded?",
+          "options": [
+            "Price, color, owner",
+            "Day, weather, room",
+            "Name, age, address",
+            "Symptom, test, repair"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why retain failed cases?",
+          "options": [
+            "They show limits of an explanation",
+            "They guarantee every repair",
+            "They replace tests",
+            "They erase earlier work"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "What did the second lamp show?",
+          "options": [
+            "All lamps are identical",
+            "One symptom may have different causes",
+            "Notebooks prevent faults",
+            "Tests are unnecessary"
+          ],
+          "answer": 1
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": null,
+      "audioVersion": null
+    },
+    {
+      "id": "practice-listening-l1-c",
+      "practiceType": "listening",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-listening-l1-c-text-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "The repair notebook",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 3,
+      "instructions": "Listen once from start to finish without seeking. Pause is allowed; one playback per attempt. Use transcript mode if needed; it is labelled separately and is not verified audio recall.",
+      "content": "At a small repair cafe, volunteers often solved the same lamp fault more than once. Sara started a notebook with a symptom, the test used, and the repair that worked. She left space for cases where a repair failed. A later volunteer discovered that two lamps with the same symptom needed different repairs. Instead of replacing the first entry, he added the second case. The notebook became useful because it kept both the successful repairs and the limits of each explanation.",
+      "questions": [
+        {
+          "prompt": "What did volunteers repair?",
+          "options": [
+            "Shoes",
+            "Bicycles",
+            "Lamps",
+            "Roofs"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What three things were recorded?",
+          "options": [
+            "Price, color, owner",
+            "Day, weather, room",
+            "Name, age, address",
+            "Symptom, test, repair"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why retain failed cases?",
+          "options": [
+            "They show limits of an explanation",
+            "They guarantee every repair",
+            "They replace tests",
+            "They erase earlier work"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "What did the second lamp show?",
+          "options": [
+            "All lamps are identical",
+            "One symptom may have different causes",
+            "Notebooks prevent faults",
+            "Tests are unnecessary"
+          ],
+          "answer": 1
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard",
+        "transcript"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": "assets/practices/practice-listening-l1-c.wav",
+      "audioVersion": "practice-listening-l1-c-audio-1",
+      "audioDurationSeconds": 27.047528344671203
+    },
+    {
+      "id": "practice-practical-l1-a",
+      "practiceType": "practical",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "micro-1-0-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "A usable next step",
+      "goalTags": [
+        "offline-time",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Choose one postponed real task. Write its intended outcome and three ordered steps. Carry out the first step, then record what you actually did.",
+      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
+      "responseMethod": "artifact-description",
+      "validationVersion": "self-report-fields-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-practical-l1-b",
+      "practiceType": "practical",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "micro-1-1-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "A findable space",
+      "goalTags": [
+        "offline-time",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Choose a small physical workspace or folder. Define three categories, place at least three items, and record one item that is easier to find now.",
+      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
+      "responseMethod": "artifact-description",
+      "validationVersion": "self-report-fields-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-practical-l1-c",
+      "practiceType": "practical",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "micro-1-2-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "A clear explanation",
+      "goalTags": [
+        "offline-time",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Choose a familiar everyday process. Write instructions for a beginner, test one step yourself, and revise one sentence that could be misunderstood.",
+      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
+      "responseMethod": "artifact-description",
+      "validationVersion": "self-report-fields-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-protected-work-l1-a",
+      "practiceType": "protected-work",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "work-1-0-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "Begin a meaningful piece of work",
+      "goalTags": [
+        "focus-objective",
+        "intentional-phone"
+      ],
+      "estimatedMinutes": 2,
+      "sessionSeconds": 120,
+      "instructions": "Begin a meaningful piece of work. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
+      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
+      "responseMethod": "intention-timer-outcome",
+      "validationVersion": "observed-time-self-report-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-protected-work-l1-b",
+      "practiceType": "protected-work",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "work-1-1-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "Continue an unfinished task",
+      "goalTags": [
+        "focus-objective",
+        "intentional-phone"
+      ],
+      "estimatedMinutes": 2,
+      "sessionSeconds": 120,
+      "instructions": "Continue an unfinished task. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
+      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
+      "responseMethod": "intention-timer-outcome",
+      "validationVersion": "observed-time-self-report-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-protected-work-l1-c",
+      "practiceType": "protected-work",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "work-1-2-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "Finish and check one small deliverable",
+      "goalTags": [
+        "focus-objective",
+        "intentional-phone"
+      ],
+      "estimatedMinutes": 2,
+      "sessionSeconds": 120,
+      "instructions": "Finish and check one small deliverable. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
+      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
+      "responseMethod": "intention-timer-outcome",
+      "validationVersion": "observed-time-self-report-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-depth-l2-a",
+      "practiceType": "depth",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-depth-l2-a-text-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "The shared shelf",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Read the complete passage, then answer each question. You may consult the passage.",
+      "content": "At a neighborhood workshop, Lina placed a box of spare pencils beside the door. Visitors could take one and leave another when they had a spare. On the first day, the box emptied before lunch. Lina moved it beside the sign-in desk and added a note asking people to return unused pencils. By Friday, there were enough pencils for the next workshop. The note did not ask for money; it made the shared arrangement easier to understand. The team also recorded what they had changed and what they had left unchanged. This made later discussion more specific, although one observation alone could not prove that the change would work everywhere.",
+      "questions": [
+        {
+          "prompt": "What was shared?",
+          "options": [
+            "Pencils",
+            "Money",
+            "Books",
+            "Lunch"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "Why move the box?",
+          "options": [
+            "To hide it",
+            "To make the arrangement visible at sign-in",
+            "To sell it",
+            "To close the workshop"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What did the note request?",
+          "options": [
+            "Pay for every pencil",
+            "Bring lunch",
+            "Return unused pencils",
+            "Stop visiting"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What best explains the improvement?",
+          "options": [
+            "A larger room",
+            "A prize",
+            "Fewer workshops",
+            "A clearer shared arrangement"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": null,
+      "audioVersion": null
+    },
+    {
+      "id": "practice-listening-l2-a",
+      "practiceType": "listening",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-listening-l2-a-text-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "The shared shelf",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Listen once from start to finish without seeking. Pause is allowed; one playback per attempt. Use transcript mode if needed; it is labelled separately and is not verified audio recall.",
+      "content": "At a neighborhood workshop, Lina placed a box of spare pencils beside the door. Visitors could take one and leave another when they had a spare. On the first day, the box emptied before lunch. Lina moved it beside the sign-in desk and added a note asking people to return unused pencils. By Friday, there were enough pencils for the next workshop. The note did not ask for money; it made the shared arrangement easier to understand. The team also recorded what they had changed and what they had left unchanged. This made later discussion more specific, although one observation alone could not prove that the change would work everywhere.",
+      "questions": [
+        {
+          "prompt": "What was shared?",
+          "options": [
+            "Pencils",
+            "Money",
+            "Books",
+            "Lunch"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "Why move the box?",
+          "options": [
+            "To hide it",
+            "To make the arrangement visible at sign-in",
+            "To sell it",
+            "To close the workshop"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What did the note request?",
+          "options": [
+            "Pay for every pencil",
+            "Bring lunch",
+            "Return unused pencils",
+            "Stop visiting"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What best explains the improvement?",
+          "options": [
+            "A larger room",
+            "A prize",
+            "Fewer workshops",
+            "A clearer shared arrangement"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard",
+        "transcript"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": "assets/practices/practice-listening-l2-a.wav",
+      "audioVersion": "practice-listening-l2-a-audio-1",
+      "audioDurationSeconds": 34.64045351473923
+    },
+    {
+      "id": "practice-depth-l2-b",
+      "practiceType": "depth",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-depth-l2-b-text-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "A cooler courtyard",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Read the complete passage, then answer each question. You may consult the passage.",
+      "content": "A school courtyard became very hot at midday. Amir suggested planting trees, but trees would need years to provide shade. The team first installed a removable cloth canopy. They checked temperatures in two equally sunny corners at noon for a week, covering only one corner. The covered corner stayed cooler. They kept the canopy for the summer and planted trees nearby for future shade. The quick solution and the slower solution served different time scales. The team also recorded what they had changed and what they had left unchanged. This made later discussion more specific, although one observation alone could not prove that the change would work everywhere.",
+      "questions": [
+        {
+          "prompt": "What was the immediate problem?",
+          "options": [
+            "Noise",
+            "Midday heat",
+            "Flooding",
+            "Traffic"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What provided quick shade?",
+          "options": [
+            "New trees",
+            "Paint",
+            "A cloth canopy",
+            "A fountain"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "Why compare equally sunny corners?",
+          "options": [
+            "To sell plants",
+            "To count students",
+            "To shorten summer",
+            "To make the comparison fairer"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why keep both solutions?",
+          "options": [
+            "They help at different time scales",
+            "They are identical",
+            "Trees grow overnight",
+            "The canopy never needs care"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": null,
+      "audioVersion": null
+    },
+    {
+      "id": "practice-listening-l2-b",
+      "practiceType": "listening",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-listening-l2-b-text-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "A cooler courtyard",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Listen once from start to finish without seeking. Pause is allowed; one playback per attempt. Use transcript mode if needed; it is labelled separately and is not verified audio recall.",
+      "content": "A school courtyard became very hot at midday. Amir suggested planting trees, but trees would need years to provide shade. The team first installed a removable cloth canopy. They checked temperatures in two equally sunny corners at noon for a week, covering only one corner. The covered corner stayed cooler. They kept the canopy for the summer and planted trees nearby for future shade. The quick solution and the slower solution served different time scales. The team also recorded what they had changed and what they had left unchanged. This made later discussion more specific, although one observation alone could not prove that the change would work everywhere.",
+      "questions": [
+        {
+          "prompt": "What was the immediate problem?",
+          "options": [
+            "Noise",
+            "Midday heat",
+            "Flooding",
+            "Traffic"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What provided quick shade?",
+          "options": [
+            "New trees",
+            "Paint",
+            "A cloth canopy",
+            "A fountain"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "Why compare equally sunny corners?",
+          "options": [
+            "To sell plants",
+            "To count students",
+            "To shorten summer",
+            "To make the comparison fairer"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why keep both solutions?",
+          "options": [
+            "They help at different time scales",
+            "They are identical",
+            "Trees grow overnight",
+            "The canopy never needs care"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard",
+        "transcript"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": "assets/practices/practice-listening-l2-b.wav",
+      "audioVersion": "practice-listening-l2-b-audio-1",
+      "audioDurationSeconds": 36.23142857142857
+    },
+    {
+      "id": "practice-depth-l2-c",
+      "practiceType": "depth",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-depth-l2-c-text-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "The repair notebook",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Read the complete passage, then answer each question. You may consult the passage.",
+      "content": "At a small repair cafe, volunteers often solved the same lamp fault more than once. Sara started a notebook with a symptom, the test used, and the repair that worked. She left space for cases where a repair failed. A later volunteer discovered that two lamps with the same symptom needed different repairs. Instead of replacing the first entry, he added the second case. The notebook became useful because it kept both the successful repairs and the limits of each explanation. The team also recorded what they had changed and what they had left unchanged. This made later discussion more specific, although one observation alone could not prove that the change would work everywhere.",
+      "questions": [
+        {
+          "prompt": "What did volunteers repair?",
+          "options": [
+            "Shoes",
+            "Bicycles",
+            "Lamps",
+            "Roofs"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What three things were recorded?",
+          "options": [
+            "Price, color, owner",
+            "Day, weather, room",
+            "Name, age, address",
+            "Symptom, test, repair"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why retain failed cases?",
+          "options": [
+            "They show limits of an explanation",
+            "They guarantee every repair",
+            "They replace tests",
+            "They erase earlier work"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "What did the second lamp show?",
+          "options": [
+            "All lamps are identical",
+            "One symptom may have different causes",
+            "Notebooks prevent faults",
+            "Tests are unnecessary"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": null,
+      "audioVersion": null
+    },
+    {
+      "id": "practice-listening-l2-c",
+      "practiceType": "listening",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-listening-l2-c-text-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "The repair notebook",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Listen once from start to finish without seeking. Pause is allowed; one playback per attempt. Use transcript mode if needed; it is labelled separately and is not verified audio recall.",
+      "content": "At a small repair cafe, volunteers often solved the same lamp fault more than once. Sara started a notebook with a symptom, the test used, and the repair that worked. She left space for cases where a repair failed. A later volunteer discovered that two lamps with the same symptom needed different repairs. Instead of replacing the first entry, he added the second case. The notebook became useful because it kept both the successful repairs and the limits of each explanation. The team also recorded what they had changed and what they had left unchanged. This made later discussion more specific, although one observation alone could not prove that the change would work everywhere.",
+      "questions": [
+        {
+          "prompt": "What did volunteers repair?",
+          "options": [
+            "Shoes",
+            "Bicycles",
+            "Lamps",
+            "Roofs"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What three things were recorded?",
+          "options": [
+            "Price, color, owner",
+            "Day, weather, room",
+            "Name, age, address",
+            "Symptom, test, repair"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why retain failed cases?",
+          "options": [
+            "They show limits of an explanation",
+            "They guarantee every repair",
+            "They replace tests",
+            "They erase earlier work"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "What did the second lamp show?",
+          "options": [
+            "All lamps are identical",
+            "One symptom may have different causes",
+            "Notebooks prevent faults",
+            "Tests are unnecessary"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard",
+        "transcript"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": "assets/practices/practice-listening-l2-c.wav",
+      "audioVersion": "practice-listening-l2-c-audio-1",
+      "audioDurationSeconds": 37.682267573696144
+    },
+    {
+      "id": "practice-practical-l2-a",
+      "practiceType": "practical",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "micro-2-0-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "A usable next step",
+      "goalTags": [
+        "offline-time",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 6,
+      "instructions": "Choose one postponed real task. Write its intended outcome and three ordered steps. Carry out the first step, then record what you actually did. Include one constraint and how you handled it.",
+      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
+      "responseMethod": "artifact-description",
+      "validationVersion": "self-report-fields-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-practical-l2-b",
+      "practiceType": "practical",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "micro-2-1-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "A findable space",
+      "goalTags": [
+        "offline-time",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 6,
+      "instructions": "Choose a small physical workspace or folder. Define three categories, place at least three items, and record one item that is easier to find now. Include one constraint and how you handled it.",
+      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
+      "responseMethod": "artifact-description",
+      "validationVersion": "self-report-fields-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-practical-l2-c",
+      "practiceType": "practical",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "micro-2-2-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "A clear explanation",
+      "goalTags": [
+        "offline-time",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 6,
+      "instructions": "Choose a familiar everyday process. Write instructions for a beginner, test one step yourself, and revise one sentence that could be misunderstood. Include one constraint and how you handled it.",
+      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
+      "responseMethod": "artifact-description",
+      "validationVersion": "self-report-fields-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-protected-work-l2-a",
+      "practiceType": "protected-work",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "work-2-0-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "Begin a meaningful piece of work",
+      "goalTags": [
+        "focus-objective",
+        "intentional-phone"
+      ],
+      "estimatedMinutes": 3,
+      "sessionSeconds": 180,
+      "instructions": "Begin a meaningful piece of work. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
+      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
+      "responseMethod": "intention-timer-outcome",
+      "validationVersion": "observed-time-self-report-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-protected-work-l2-b",
+      "practiceType": "protected-work",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "work-2-1-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "Continue an unfinished task",
+      "goalTags": [
+        "focus-objective",
+        "intentional-phone"
+      ],
+      "estimatedMinutes": 3,
+      "sessionSeconds": 180,
+      "instructions": "Continue an unfinished task. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
+      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
+      "responseMethod": "intention-timer-outcome",
+      "validationVersion": "observed-time-self-report-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-protected-work-l2-c",
+      "practiceType": "protected-work",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "work-2-2-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "Finish and check one small deliverable",
+      "goalTags": [
+        "focus-objective",
+        "intentional-phone"
+      ],
+      "estimatedMinutes": 3,
+      "sessionSeconds": 180,
+      "instructions": "Finish and check one small deliverable. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
+      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
+      "responseMethod": "intention-timer-outcome",
+      "validationVersion": "observed-time-self-report-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-depth-l3-a",
+      "practiceType": "depth",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-depth-l3-a-text-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "The shared shelf",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Read the complete passage, then answer each question. You may consult the passage.",
+      "content": "At a neighborhood workshop, Lina placed a box of spare pencils beside the door. Visitors could take one and leave another when they had a spare. On the first day, the box emptied before lunch. Lina moved it beside the sign-in desk and added a note asking people to return unused pencils. By Friday, there were enough pencils for the next workshop. The note did not ask for money; it made the shared arrangement easier to understand. They distinguished an observation from an explanation: the recorded change was real, but its cause could involve other conditions. A follow-up comparison would need to keep those conditions similar. They therefore described their conclusion as a useful local result, rather than a universal rule.",
+      "questions": [
+        {
+          "prompt": "What was shared?",
+          "options": [
+            "Pencils",
+            "Money",
+            "Books",
+            "Lunch"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "Why move the box?",
+          "options": [
+            "To hide it",
+            "To make the arrangement visible at sign-in",
+            "To sell it",
+            "To close the workshop"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What did the note request?",
+          "options": [
+            "Pay for every pencil",
+            "Bring lunch",
+            "Return unused pencils",
+            "Stop visiting"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What best explains the improvement?",
+          "options": [
+            "A larger room",
+            "A prize",
+            "Fewer workshops",
+            "A clearer shared arrangement"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What would strengthen a follow-up comparison?",
+          "options": [
+            "Changing every condition",
+            "Removing the records",
+            "Keeping other conditions similar",
+            "Ignoring failed cases"
+          ],
+          "answer": 2
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": null,
+      "audioVersion": null
+    },
+    {
+      "id": "practice-listening-l3-a",
+      "practiceType": "listening",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-listening-l3-a-text-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "The shared shelf",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Listen once from start to finish without seeking. Pause is allowed; one playback per attempt. Use transcript mode if needed; it is labelled separately and is not verified audio recall.",
+      "content": "At a neighborhood workshop, Lina placed a box of spare pencils beside the door. Visitors could take one and leave another when they had a spare. On the first day, the box emptied before lunch. Lina moved it beside the sign-in desk and added a note asking people to return unused pencils. By Friday, there were enough pencils for the next workshop. The note did not ask for money; it made the shared arrangement easier to understand. They distinguished an observation from an explanation: the recorded change was real, but its cause could involve other conditions. A follow-up comparison would need to keep those conditions similar. They therefore described their conclusion as a useful local result, rather than a universal rule.",
+      "questions": [
+        {
+          "prompt": "What was shared?",
+          "options": [
+            "Pencils",
+            "Money",
+            "Books",
+            "Lunch"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "Why move the box?",
+          "options": [
+            "To hide it",
+            "To make the arrangement visible at sign-in",
+            "To sell it",
+            "To close the workshop"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What did the note request?",
+          "options": [
+            "Pay for every pencil",
+            "Bring lunch",
+            "Return unused pencils",
+            "Stop visiting"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What best explains the improvement?",
+          "options": [
+            "A larger room",
+            "A prize",
+            "Fewer workshops",
+            "A clearer shared arrangement"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What would strengthen a follow-up comparison?",
+          "options": [
+            "Changing every condition",
+            "Removing the records",
+            "Keeping other conditions similar",
+            "Ignoring failed cases"
+          ],
+          "answer": 2
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard",
+        "transcript"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": "assets/practices/practice-listening-l3-a.wav",
+      "audioVersion": "practice-listening-l3-a-audio-1",
+      "audioDurationSeconds": 40.35256235827664
+    },
+    {
+      "id": "practice-depth-l3-b",
+      "practiceType": "depth",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-depth-l3-b-text-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "A cooler courtyard",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Read the complete passage, then answer each question. You may consult the passage.",
+      "content": "A school courtyard became very hot at midday. Amir suggested planting trees, but trees would need years to provide shade. The team first installed a removable cloth canopy. They checked temperatures in two equally sunny corners at noon for a week, covering only one corner. The covered corner stayed cooler. They kept the canopy for the summer and planted trees nearby for future shade. The quick solution and the slower solution served different time scales. They distinguished an observation from an explanation: the recorded change was real, but its cause could involve other conditions. A follow-up comparison would need to keep those conditions similar. They therefore described their conclusion as a useful local result, rather than a universal rule.",
+      "questions": [
+        {
+          "prompt": "What was the immediate problem?",
+          "options": [
+            "Noise",
+            "Midday heat",
+            "Flooding",
+            "Traffic"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What provided quick shade?",
+          "options": [
+            "New trees",
+            "Paint",
+            "A cloth canopy",
+            "A fountain"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "Why compare equally sunny corners?",
+          "options": [
+            "To sell plants",
+            "To count students",
+            "To shorten summer",
+            "To make the comparison fairer"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why keep both solutions?",
+          "options": [
+            "They help at different time scales",
+            "They are identical",
+            "Trees grow overnight",
+            "The canopy never needs care"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What would strengthen a follow-up comparison?",
+          "options": [
+            "Changing every condition",
+            "Removing the records",
+            "Keeping other conditions similar",
+            "Ignoring failed cases"
+          ],
+          "answer": 2
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": null,
+      "audioVersion": null
+    },
+    {
+      "id": "practice-listening-l3-b",
+      "practiceType": "listening",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-listening-l3-b-text-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "A cooler courtyard",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Listen once from start to finish without seeking. Pause is allowed; one playback per attempt. Use transcript mode if needed; it is labelled separately and is not verified audio recall.",
+      "content": "A school courtyard became very hot at midday. Amir suggested planting trees, but trees would need years to provide shade. The team first installed a removable cloth canopy. They checked temperatures in two equally sunny corners at noon for a week, covering only one corner. The covered corner stayed cooler. They kept the canopy for the summer and planted trees nearby for future shade. The quick solution and the slower solution served different time scales. They distinguished an observation from an explanation: the recorded change was real, but its cause could involve other conditions. A follow-up comparison would need to keep those conditions similar. They therefore described their conclusion as a useful local result, rather than a universal rule.",
+      "questions": [
+        {
+          "prompt": "What was the immediate problem?",
+          "options": [
+            "Noise",
+            "Midday heat",
+            "Flooding",
+            "Traffic"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What provided quick shade?",
+          "options": [
+            "New trees",
+            "Paint",
+            "A cloth canopy",
+            "A fountain"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "Why compare equally sunny corners?",
+          "options": [
+            "To sell plants",
+            "To count students",
+            "To shorten summer",
+            "To make the comparison fairer"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why keep both solutions?",
+          "options": [
+            "They help at different time scales",
+            "They are identical",
+            "Trees grow overnight",
+            "The canopy never needs care"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What would strengthen a follow-up comparison?",
+          "options": [
+            "Changing every condition",
+            "Removing the records",
+            "Keeping other conditions similar",
+            "Ignoring failed cases"
+          ],
+          "answer": 2
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard",
+        "transcript"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": "assets/practices/practice-listening-l3-b.wav",
+      "audioVersion": "practice-listening-l3-b-audio-1",
+      "audioDurationSeconds": 41.94353741496599
+    },
+    {
+      "id": "practice-depth-l3-c",
+      "practiceType": "depth",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-depth-l3-c-text-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "The repair notebook",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Read the complete passage, then answer each question. You may consult the passage.",
+      "content": "At a small repair cafe, volunteers often solved the same lamp fault more than once. Sara started a notebook with a symptom, the test used, and the repair that worked. She left space for cases where a repair failed. A later volunteer discovered that two lamps with the same symptom needed different repairs. Instead of replacing the first entry, he added the second case. The notebook became useful because it kept both the successful repairs and the limits of each explanation. They distinguished an observation from an explanation: the recorded change was real, but its cause could involve other conditions. A follow-up comparison would need to keep those conditions similar. They therefore described their conclusion as a useful local result, rather than a universal rule.",
+      "questions": [
+        {
+          "prompt": "What did volunteers repair?",
+          "options": [
+            "Shoes",
+            "Bicycles",
+            "Lamps",
+            "Roofs"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What three things were recorded?",
+          "options": [
+            "Price, color, owner",
+            "Day, weather, room",
+            "Name, age, address",
+            "Symptom, test, repair"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why retain failed cases?",
+          "options": [
+            "They show limits of an explanation",
+            "They guarantee every repair",
+            "They replace tests",
+            "They erase earlier work"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "What did the second lamp show?",
+          "options": [
+            "All lamps are identical",
+            "One symptom may have different causes",
+            "Notebooks prevent faults",
+            "Tests are unnecessary"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What would strengthen a follow-up comparison?",
+          "options": [
+            "Changing every condition",
+            "Removing the records",
+            "Keeping other conditions similar",
+            "Ignoring failed cases"
+          ],
+          "answer": 2
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": null,
+      "audioVersion": null
+    },
+    {
+      "id": "practice-listening-l3-c",
+      "practiceType": "listening",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-listening-l3-c-text-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "The repair notebook",
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Listen once from start to finish without seeking. Pause is allowed; one playback per attempt. Use transcript mode if needed; it is labelled separately and is not verified audio recall.",
+      "content": "At a small repair cafe, volunteers often solved the same lamp fault more than once. Sara started a notebook with a symptom, the test used, and the repair that worked. She left space for cases where a repair failed. A later volunteer discovered that two lamps with the same symptom needed different repairs. Instead of replacing the first entry, he added the second case. The notebook became useful because it kept both the successful repairs and the limits of each explanation. They distinguished an observation from an explanation: the recorded change was real, but its cause could involve other conditions. A follow-up comparison would need to keep those conditions similar. They therefore described their conclusion as a useful local result, rather than a universal rule.",
+      "questions": [
+        {
+          "prompt": "What did volunteers repair?",
+          "options": [
+            "Shoes",
+            "Bicycles",
+            "Lamps",
+            "Roofs"
+          ],
+          "answer": 2
+        },
+        {
+          "prompt": "What three things were recorded?",
+          "options": [
+            "Price, color, owner",
+            "Day, weather, room",
+            "Name, age, address",
+            "Symptom, test, repair"
+          ],
+          "answer": 3
+        },
+        {
+          "prompt": "Why retain failed cases?",
+          "options": [
+            "They show limits of an explanation",
+            "They guarantee every repair",
+            "They replace tests",
+            "They erase earlier work"
+          ],
+          "answer": 0
+        },
+        {
+          "prompt": "What did the second lamp show?",
+          "options": [
+            "All lamps are identical",
+            "One symptom may have different causes",
+            "Notebooks prevent faults",
+            "Tests are unnecessary"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What limitation should guide use of this example?",
+          "options": [
+            "It proves a universal rule",
+            "A local observation may not generalize",
+            "No records are useful",
+            "Only duration matters"
+          ],
+          "answer": 1
+        },
+        {
+          "prompt": "What would strengthen a follow-up comparison?",
+          "options": [
+            "Changing every condition",
+            "Removing the records",
+            "Keeping other conditions similar",
+            "Ignoring failed cases"
+          ],
+          "answer": 2
+        }
+      ],
+      "responseMethod": "choice-questions",
+      "validationVersion": "questions-1",
+      "accessibilityModes": [
+        "standard",
+        "transcript"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1,
+      "audio": "assets/practices/practice-listening-l3-c.wav",
+      "audioVersion": "practice-listening-l3-c-audio-1",
+      "audioDurationSeconds": 43.39437641723356
+    },
+    {
+      "id": "practice-practical-l3-a",
+      "practiceType": "practical",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "micro-3-0-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "A usable next step",
+      "goalTags": [
+        "offline-time",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 8,
+      "instructions": "Choose one postponed real task. Write its intended outcome and three ordered steps. Carry out the first step, then record what you actually did. Include one constraint and how you handled it. Compare two approaches and explain why you chose one.",
+      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
+      "responseMethod": "artifact-description",
+      "validationVersion": "self-report-fields-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-practical-l3-b",
+      "practiceType": "practical",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "micro-3-1-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "A findable space",
+      "goalTags": [
+        "offline-time",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 8,
+      "instructions": "Choose a small physical workspace or folder. Define three categories, place at least three items, and record one item that is easier to find now. Include one constraint and how you handled it. Compare two approaches and explain why you chose one.",
+      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
+      "responseMethod": "artifact-description",
+      "validationVersion": "self-report-fields-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-practical-l3-c",
+      "practiceType": "practical",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "micro-3-2-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "A clear explanation",
+      "goalTags": [
+        "offline-time",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 8,
+      "instructions": "Choose a familiar everyday process. Write instructions for a beginner, test one step yourself, and revise one sentence that could be misunderstood. Include one constraint and how you handled it. Compare two approaches and explain why you chose one.",
+      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
+      "responseMethod": "artifact-description",
+      "validationVersion": "self-report-fields-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-protected-work-l3-a",
+      "practiceType": "protected-work",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "work-3-0-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "Begin a meaningful piece of work",
+      "goalTags": [
+        "focus-objective",
+        "intentional-phone"
+      ],
+      "estimatedMinutes": 4,
+      "sessionSeconds": 240,
+      "instructions": "Begin a meaningful piece of work. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
+      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
+      "responseMethod": "intention-timer-outcome",
+      "validationVersion": "observed-time-self-report-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-protected-work-l3-b",
+      "practiceType": "protected-work",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "work-3-1-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "Continue an unfinished task",
+      "goalTags": [
+        "focus-objective",
+        "intentional-phone"
+      ],
+      "estimatedMinutes": 4,
+      "sessionSeconds": 240,
+      "instructions": "Continue an unfinished task. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
+      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
+      "responseMethod": "intention-timer-outcome",
+      "validationVersion": "observed-time-self-report-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-protected-work-l3-c",
+      "practiceType": "protected-work",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "work-3-2-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "Finish and check one small deliverable",
+      "goalTags": [
+        "focus-objective",
+        "intentional-phone"
+      ],
+      "estimatedMinutes": 4,
+      "sessionSeconds": 240,
+      "instructions": "Finish and check one small deliverable. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
+      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
+      "responseMethod": "intention-timer-outcome",
+      "validationVersion": "observed-time-self-report-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    }
+  ]
+}

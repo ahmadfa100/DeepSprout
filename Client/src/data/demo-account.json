@@ -47,7 +47,7 @@
         "title": "Digital Habits",
         "kind": "Self-report questionnaire",
         "provenance": "self-reported",
-        "minutes": 2,
+        "minutes": 4,
         "scale": { "min": 0, "max": 32, "unit": "", "direction": "lower" }
       },
       {
@@ -55,7 +55,7 @@
         "title": "Sustained Attention",
         "kind": "Timed response task",
         "provenance": "measured",
-        "minutes": 3,
+        "minutes": 4,
         "scale": { "min": 0, "max": 100, "unit": "%", "direction": "higher" }
       },
       {
@@ -71,7 +71,7 @@
         "title": "Depth Challenge",
         "kind": "Reading comprehension",
         "provenance": "measured",
-        "minutes": 5,
+        "minutes": 6,
         "scale": { "min": 0, "max": 5, "unit": "", "direction": "higher" }
       }
     ],

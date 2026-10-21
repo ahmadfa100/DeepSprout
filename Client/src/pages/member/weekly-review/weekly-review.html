@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="../../../../src/styles/member-page.css">
   <link rel="stylesheet" href="weekly-review.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
+  <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
   <script src="weekly-review.js" defer></script>
@@ -90,6 +91,8 @@
                 <ul class="wr-rec-why" id="rec-why"></ul>
               </div>
               <div class="wr-options" id="outcome-options"></div>
+              <div id="review-adjustment" hidden><label>Practice days<select id="review-days"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label><label>Time preference<select id="review-minutes"><option>5</option><option>10</option><option>15</option></select> minutes</label><label>Preferred type<select id="review-mix"><option value="depth">Depth Practice</option><option value="listening">Listening &amp; Recall</option><option value="practical">Practical Micro-Challenge</option><option value="protected-work">Protected Work</option></select></label></div>
+              <h3>Future schedule preview</h3><ol id="next-week-preview"></ol>
               <p class="card-note">Nothing increases on its own. Whatever you pick is saved as a plan revision with the reason, and your history is kept either way.</p>
             </section>
           </div>
@@ -101,7 +104,7 @@
               <button class="btn btn-primary wr-save" type="button" id="save-review" disabled>Save my review <svg><use href="#i-arrow"/></svg></button>
               <p class="wr-save-note" id="save-note">Answer both questions to continue.</p>
               <a class="btn btn-quiet wr-skip" href="../../../../index.html">Skip for now</a>
-              <p class="wr-skip-note">Skipping keeps your current pace. Nothing gets harder, and nothing is marked as failed.</p>
+              <p class="wr-skip-note">If you return after skipping, a conservative current week can continue. The skipped review stays uncompleted, and no missed backlog is added.</p>
             </div>
           </aside>
         </div>

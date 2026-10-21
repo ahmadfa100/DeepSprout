@@ -4,21 +4,28 @@
   <link rel="icon" type="image/png" href="../../../../assets/brand/logo.png">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#fffefa">
+  <meta name="theme-color" content="#ffffff">
   <meta name="description" content="Log in to your DeepSprout account and continue growing at your own pace.">
   <title>Log in — DeepSprout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="login.css">
+  <link rel="stylesheet" href="../register/experience/experience.css">
+  <link rel="stylesheet" href="login-world.css">
   <link rel="stylesheet" href="../../../../src/layouts/auth-footer/auth-footer.css">
+  <script type="module" src="../../../../src/shared/member-bridge.js"></script>
+  <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/utils/storage.js" defer></script>
   <script src="../../../../src/layouts/auth-footer/auth-footer.js" defer></script>
+  <script src="../../../js/data/account.js" defer></script>
   <script src="login.js" defer></script>
+  <script type="module" src="login-world.js"></script>
 </head>
-<body data-page="login" data-root="../../../../">
-  <main class="auth-scene" id="main">
-    <section class="login-card" aria-labelledby="login-title">
+<body class="living-register login-world" data-page="login" data-root="../../../../">
+  <header class="register-header"><a class="login-brand register-brand" href="../../../../index.html" aria-label="DeepSprout home"><img src="../../../../assets/brand/floral-mark.png" alt="" width="39" height="39"><span>DeepSprout</span></a><a class="register-login" href="../../../../register.html"><span>New to DeepSprout?</span><strong>Create account<svg viewBox="0 0 34 34" aria-hidden="true" focusable="false"><path d="M6 17h22m-8-8 8 8-8 8"/></svg></strong></a></header>
+  <main class="auth-scene register-scene" id="main">
+    <section class="login-card register-card" aria-labelledby="login-title">
       <a class="login-brand" href="../../../../index.html" aria-label="DeepSprout home">
         <img src="../../../../assets/brand/floral-mark.png" alt="" width="70" height="70">
         <span>DeepSprout</span>

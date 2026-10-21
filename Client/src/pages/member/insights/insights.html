@@ -5,17 +5,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#faf8f3">
-  <meta name="description" content="Your DeepSprout progress: plan adherence, measured browser usage, training levels and check-in results, each with its source.">
+  <meta name="description" content="Your DeepSprout progress: plan adherence, browser-observed website time, practice levels and check-in results, each with its source.">
   <title>Insights — DeepSprout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../../src/styles/style.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
+  <link rel="stylesheet" href="../../../../src/styles/individual-ui.css">
   <link rel="stylesheet" href="insights.css">
+  <script type="module" src="../../../../src/shared/member-bridge.js"></script>
+  <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
+  <script src="../../../../src/js/ui/individual-ui.js" defer></script>
   <script src="insights.js" defer></script>
+  <script src="../../../js/data/shield-bridge.js" defer></script>
 </head>
 <body data-page="insights" data-root="../../../../">
   <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -115,7 +120,7 @@
       </div>
       <div id="checkins-window"></div>
       <div class="ins-ranges" id="checkins-body"></div>
-      <p class="ins-caveat"><svg aria-hidden="true"><use href="#i-info"/></svg><span>These are measurement tasks, not a diagnosis. Repeating a test can raise the score through practice alone.</span></p>
+      <p class="ins-caveat"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Measurement tasks, not a diagnosis. Repeating a test can raise a score through practice alone.</span></p>
     </section>
 
     <!-- 7 · Beyond the screen --------------------------------------------->

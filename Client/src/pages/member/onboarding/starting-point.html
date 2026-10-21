@@ -13,8 +13,11 @@
   <link rel="stylesheet" href="../../../../src/styles/style.css">
   <link rel="stylesheet" href="../../../../src/styles/member-page.css">
   <link rel="stylesheet" href="starting-point.css">
+  <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/utils/storage.js" defer></script>
+  <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../lab/assessment-data.js" defer></script>
+  <script src="../../../js/data/product-tour.js" defer></script>
   <script src="starting-point.js" defer></script>
 </head>
 <body data-page="onboarding" data-root="../../../../">
@@ -156,7 +159,8 @@
           <aside class="sp-preview-aside">
             <div class="card sp-summary">
               <p class="eyebrow">Your plan at a glance</p>
-              <dl id="plan-summary"></dl>
+              <dl id="plan-summary"></dl><p class="card-note" id="preview-reason"></p>
+              <div class="field"><label for="plan-minutes">Minutes per practice</label><select id="plan-minutes"><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option></select></div>
               <div class="field sp-days-field">
                 <label for="plan-days">Days you can give it</label>
                 <select id="plan-days">
@@ -184,19 +188,7 @@
         <h1 id="done-title">Your plan is active.</h1>
         <p class="sp-lead" id="done-lead"></p>
 
-        <div class="card sp-tour">
-          <p class="eyebrow">A very short tour</p>
-          <ul class="sp-tour-list">
-            <li><span class="badge-icon"><svg><use href="#i-target"/></svg></span><span><strong>Home</strong><small>One next action, chosen from where you actually are.</small></span></li>
-            <li><span class="badge-icon sky"><svg><use href="#i-compass"/></svg></span><span><strong>Roadmap</strong><small>Your roadmap, this week, adjustments and history.</small></span></li>
-            <li><span class="badge-icon gold"><svg><use href="#i-book"/></svg></span><span><strong>Activities</strong><small>Where practices actually run, plus your offline routine.</small></span></li>
-            <li><span class="badge-icon lilac"><svg><use href="#i-shield"/></svg></span><span><strong>Digital Shield</strong><small>Two tools: protect a site, or get a reminder at your own limit.</small></span></li>
-            <li><span class="badge-icon"><svg><use href="#i-sprout"/></svg></span><span><strong>Garden</strong><small>What you have actually earned. It does not reset.</small></span></li>
-            <li><span class="badge-icon sky"><svg><use href="#i-chart"/></svg></span><span><strong>Insights &amp; <span data-name="checkIn">Check-in</span></strong><small>What was measured, where it came from, and what it cannot tell you.</small></span></li>
-          </ul>
-          <p class="card-note">You can replay this from your profile at any time.</p>
-        </div>
-
+        <div class="card sp-tour"><h2>Your short product guide</h2><p>See where to find your next action, plan, practices, Lab and opportunities. You can skip or replay it.</p><button type="button" class="btn btn-ghost" data-tour-replay>Replay product guide</button></div>
         <div class="btn-row sp-done-actions">
           <a class="btn btn-primary" href="../../../../index.html">Go to my home <svg><use href="#i-arrow"/></svg></a>
           <a class="btn btn-ghost" href="../recovery-plan/recovery-plan.html">Open my plan</a>

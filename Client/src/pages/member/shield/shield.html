@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f8fcf9">
-  <meta name="description" content="Plan focused, distraction-free time with DeepSprout Digital Shield.">
+  <meta name="description" content="Block chosen websites for a set time, or set one shared usage reminder, with the DeepSprout Chrome extension.">
   <title>Digital Shield — DeepSprout</title>
   <link rel="icon" type="image/svg+xml" href="../../../../assets/home-kit/icons/brand-sprout-logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,11 +13,15 @@
   <link rel="stylesheet" href="../../../../src/styles/style.css">
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
   <link rel="stylesheet" href="../../../../src/styles/page-hero.css?v=20261014-1">
-  <link rel="stylesheet" href="shield.css?v=20261014-1">
+  <link rel="stylesheet" href="../../../../src/styles/individual-ui.css">
+  <link rel="stylesheet" href="shield.css?v=20261017-2">
   
+  <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
-  <script src="shield.js?v=20261014-1" defer></script>
+  <script src="../../../js/data/shield-bridge.js" defer></script>
+  <script src="../../../../src/js/ui/individual-ui.js" defer></script>
+  <script src="shield.js?v=20261017-2" defer></script>
 </head>
 <body data-page="shield" data-root="../../../../">
   <div data-site-header></div>
@@ -26,50 +30,79 @@
       <div class="ds-hero-copy">
         <p class="ds-hero-eyebrow">Digital Shield</p>
         <h1 id="shield-title">Keep the feeds<br><em>out of your focus time.</em></h1>
-        <p class="ds-hero-text">Plan when to step away, choose the apps that pull you in, and start a focus timer when it is time.</p>
+        <p class="ds-hero-text">Optional support for the websites you choose. Connect the Chrome extension to protect focus time or set one shared usage reminder.</p>
       </div>
       <figure class="ds-hero-art" style="--hero-focus: 62% 50%"><img src="../../../../assets/shield/hero-bimo.png" alt="Bimo relaxing on a grassy hill with sunglasses"></figure>
     </header>
-    <section class="shield-measured" id="shield-measured" aria-labelledby="measured-title" hidden></section>
-    <aside class="shield-note" role="note">
-      <span class="note-icon" aria-hidden="true"><img src="../../../../assets/shield/lightbulb.svg" alt=""></span>
-      <div><strong>Client preview</strong><p>These settings are saved in this browser. App blocking, browser protection, and reminders are not connected in this preview.</p></div>
-    </aside>
-    <div class="shield-layout">
-      <form class="plan-panel" id="shield-form">
-        <div class="plan-heading">
-          <div><h2>Your evening plan</h2><p>Choose a time and the apps you want to be more mindful of.</p></div>
-          <div class="moon-note" aria-hidden="true"><span>☾</span><p>Disconnect to<br>reconnect with what<br>matters most.</p></div>
+    <svg class="sh-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="sh-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.3 2.9 8 7 9.5 4.1-1.5 7-5.2 7-9.5V6l-7-3Z"/></symbol>
+      <symbol id="sh-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+      <symbol id="sh-plug" viewBox="0 0 24 24"><path d="M9 3v5m6-5v5M7 8h10v3a5 5 0 0 1-10 0V8Zm5 8v5"/></symbol>
+      <symbol id="sh-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></symbol>
+      <symbol id="sh-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20a2 2 0 0 0 4 0"/></symbol>
+      <symbol id="sh-alert" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4Z"/><path d="M12 10v4m0 3v.5"/></symbol>
+      <symbol id="sh-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    </svg>
+
+    <section class="sh-status" id="shield-status" aria-labelledby="connection-title" data-state="checking">
+      <div class="sh-status-main">
+        <span class="sh-status-orb" aria-hidden="true"><svg><use href="#sh-shield"/></svg></span>
+        <div class="sh-status-copy">
+          <p class="sh-kicker" id="connection-title">Browser connection</p>
+          <p class="sh-state" id="connection-state" role="status" aria-live="polite">Checking extension…</p>
+          <p class="sh-detail" id="connection-detail"></p>
         </div>
-        <div class="plan-content">
-          <section class="focus-card" aria-labelledby="focus-title">
-            <div class="focus-card-top"><h3 id="focus-title">Focus time</h3><p>Set when to step away<br>from distracting apps.</p></div>
-            <div class="focus-ring">
-              <div class="ring-inner">
-                <span class="ring-moon" aria-hidden="true">☾</span>
-                <span class="ring-label">Focus timer</span>
-                <strong id="focus-time-display" role="timer">25:00</strong>
-                <span class="timer-caption" id="timer-caption" aria-live="polite">Ready when you are</span>
-              </div>
-            </div>
-            <div class="timer-controls"><button type="button" id="timer-start">Start focus</button><button type="button" id="timer-reset">Reset</button></div>
-            <label class="schedule-row" for="shield-time"><span><strong>Evening start</strong><small id="focus-time-label">Today, 7:00 PM</small></span><input id="shield-time" type="time" value="19:00" required aria-label="Evening start time"></label>
-            <label class="reminder-control"><span class="reminder-bell" aria-hidden="true"><img src="../../../../assets/home-kit/icons/bell.svg" alt=""></span><span>Remind me before it starts</span><input id="shield-reminder" type="checkbox" checked><span class="toggle-track" aria-hidden="true"></span></label>
-          </section>
-          <section class="apps-section" aria-labelledby="apps-title">
-            <div class="apps-heading"><div><h3 id="apps-title">Apps to keep in mind</h3><p>Select apps or drag them to the basket on the right.</p></div><span class="drag-hint" aria-hidden="true">⠿ &nbsp; Drag &amp; drop&nbsp; →</span></div>
-            <div class="app-grid" id="app-grid"></div>
-            <div class="custom-app"><h3>Add a custom app or website</h3><p>Paste a link to add it to your list.</p><div class="custom-app-row"><label class="custom-input"><span aria-hidden="true">↗</span><input id="custom-app-input" type="text" inputmode="url" placeholder="Paste app or website link (e.g. example.com)" aria-label="Custom app or website link"></label><button id="add-custom-app" type="button"><span aria-hidden="true">＋</span> Add</button></div><p class="input-message" id="input-message" role="status" aria-live="polite"></p></div>
-          </section>
+        <div class="sh-status-actions"><button type="button" class="sh-quiet" id="refresh-status">Refresh status</button><button type="button" class="sh-quiet" id="disconnect-extension" disabled>Disconnect account</button></div>
+      </div>
+      <ol class="sh-steps" aria-label="Setup">
+        <li data-step="install"><span><svg aria-hidden="true"><use href="#sh-check"/></svg></span>Install the extension</li>
+        <li data-step="pair"><span><svg aria-hidden="true"><use href="#sh-check"/></svg></span>Pair it with your account</li>
+        <li data-step="use"><span><svg aria-hidden="true"><use href="#sh-check"/></svg></span>Protect or set a reminder</li>
+      </ol>
+      <div class="sh-setup" id="shield-setup">
+        <details id="installation-guide" class="sh-guide"><summary>Installation guide · Chrome 120+</summary><ol><li>Open the repository folder <code>Client/extensions/digital-shield</code>.</li><li>In Chrome, open <code>chrome://extensions</code>, enable Developer mode and choose <strong>Load unpacked</strong>. Select that folder containing manifest.json. Extract any ZIP first.</li><li>Use this site at <code>http://127.0.0.1:8897</code> or <code>http://localhost:8897</code>. Other origins and incognito are unsupported.</li><li>Open the extension popup, create a pairing code and paste it below. Pair only with your own active Individual account.</li></ol><p>After an extension update or reload, reload this page. If permissions were removed, restore site access in Chrome’s extension details, then use Refresh status. Removing the extension, other browsers and other devices bypass protection.</p><a href="../../../../extensions/digital-shield/README.md">Setup, privacy and troubleshooting</a></details>
+        <form id="connect-form" class="sh-pair"><label for="pairing-code">Pairing code from the extension popup</label><div class="shield-row"><input id="pairing-code" autocomplete="off" spellcheck="false" maxlength="32" minlength="32" required pattern="[a-f0-9]{32}" placeholder="32-character code"><button type="submit" class="ds-btn">Connect extension</button></div></form>
+      </div>
+      <p class="sh-message" id="bridge-message" role="status" aria-live="polite"></p>
+    </section>
+
+    <div class="shield-features">
+      <section class="shield-feature sh-card" aria-labelledby="protection-title" data-feature="protection" id="protection-card">
+        <header class="sh-card-head"><span class="sh-card-icon" aria-hidden="true"><svg><use href="#sh-lock"/></svg></span><div><p class="sh-kicker">01 · Manual protection</p><h2 id="protection-title">Manual Website Protection</h2><p class="sh-lede">Block whole websites in this browser for a time you choose.</p></div></header>
+        <div class="sh-live" id="protection-live" hidden>
+          <div class="sh-ring" aria-hidden="true"><svg viewBox="0 0 120 120"><circle class="sh-ring-track" cx="60" cy="60" r="52"/><circle class="sh-ring-fill" id="protection-ring" cx="60" cy="60" r="52"/></svg></div>
+          <div class="sh-live-copy"><p class="sh-live-label"><span class="ds-dot" aria-hidden="true"></span>Protection active</p><p id="protection-countdown" role="timer"></p><p class="sh-live-sites" id="protection-live-sites"></p></div>
         </div>
-      </form>
-      <aside class="basket-panel" aria-labelledby="basket-title" id="focus-basket">
-        <div class="basket-heading"><div><h2 id="basket-title">Your focus basket</h2><p>Apps you've selected will be added here. You can also drag and drop them.</p></div><span class="basket-count"><span aria-hidden="true">♧</span><span id="basket-count">3 apps<br>in basket</span></span></div>
-        <div class="basket-art" aria-hidden="true"><img src="../../../../assets/shield/focus-basket.png" alt=""><img class="floating-logo instagram-logo" src="../../../../assets/home-kit/icons/instagram-color.svg" alt=""><img class="floating-logo youtube-logo" src="../../../../assets/home-kit/icons/youtube-color.svg" alt=""><img class="floating-logo tiktok-logo" src="../../../../assets/home-kit/icons/tiktok-color.svg" alt=""></div>
-        <div class="basket-list" id="basket-list" aria-live="polite"></div>
-        <button class="save-button" type="submit" form="shield-form">Save preferences <span aria-hidden="true">→</span></button>
-        <p class="save-message" id="save-message" role="status" aria-live="polite"></p>
-      </aside>
+        <form id="protection-form">
+          <fieldset id="protection-sites" class="sh-sites"><legend><span class="sh-step">1</span>Choose websites</legend></fieldset>
+          <div class="sh-field"><label for="protection-duration"><span class="sh-step">2</span>Duration <span class="sh-unit">minutes · 1–120</span></label>
+            <div class="sh-presets" role="group" aria-label="Quick durations"><button type="button" data-duration="15">15</button><button type="button" data-duration="25">25</button><button type="button" data-duration="45">45</button><button type="button" data-duration="60">60</button><input id="protection-duration" type="number" min="1" max="120" value="25" step="1" required aria-describedby="protection-scope"></div></div>
+          <div class="sh-review"><p class="sh-review-title"><span class="sh-step">3</span>Review</p><p id="protection-summary" class="sh-summary"></p>
+            <p id="protection-scope" class="sh-fine">Whole sites are blocked, including ordinary YouTube videos and Instagram messages. Pages already open must be reloaded. <button type="button" class="ds-help" aria-expanded="false" aria-label="About what protection covers" data-help="Protection blocks new page loads on the selected websites and all their subdomains in this Chrome profile. Media already loaded keeps playing until you reload. You can stop early at any time; it is not uninstall-proof."><span aria-hidden="true">?</span></button></p>
+            <label class="shield-check sh-consent"><input type="checkbox" id="protection-consent" required> I understand this blocks the whole websites above in this browser profile.</label></div>
+          <button type="submit" class="ds-btn sh-start" id="start-protection" disabled>Start Protection <svg aria-hidden="true"><use href="#sh-arrow"/></svg></button>
+        </form>
+        <p class="sh-state-line" id="protection-state" role="status">Connect to verify protection state.</p>
+        <button type="button" class="ds-btn sh-stop" data-variant="secondary" data-size="sm" id="stop-protection" disabled>Stop protection early…</button><p class="sh-message" id="protection-message" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="shield-feature sh-card" aria-labelledby="reminder-title" data-feature="reminder" id="reminder-card">
+        <header class="sh-card-head"><span class="sh-card-icon" aria-hidden="true"><svg><use href="#sh-bell"/></svg></span><div><p class="sh-kicker">02 · One shared reminder</p><h2 id="reminder-title">Shared Website Usage Reminder</h2><p class="sh-lede">One gentle nudge when your time across the chosen sites adds up.</p></div></header>
+        <div class="sh-today"><p class="sh-today-label">Today on these sites <button type="button" class="ds-help" aria-expanded="false" aria-label="About how time is counted" data-help="Time adds up across all the websites you select, counted only while a selected site is the active tab in a focused Chrome window and you are not idle. It does not measure Reels, attention, phone apps or all screen time. Missing time is unknown, never zero."><span aria-hidden="true">?</span></button></p><p id="reminder-usage">No browser usage data available.</p><div class="ds-meter-track sh-today-meter" aria-hidden="true"><span class="ds-meter-fill" id="reminder-meter" style="--value:0"></span></div><p id="reminder-coverage" class="sh-fine"></p></div>
+        <form id="reminder-form">
+          <fieldset id="reminder-sites" class="sh-sites"><legend><span class="sh-step">1</span>Websites to count together</legend></fieldset>
+          <div class="sh-field"><label for="reminder-threshold"><span class="sh-step">2</span>Remind me after <span class="sh-unit">minutes a day · 1–240</span></label>
+            <div class="sh-presets" role="group" aria-label="Quick thresholds"><button type="button" data-threshold="15">15</button><button type="button" data-threshold="30">30</button><button type="button" data-threshold="60">60</button><input id="reminder-threshold" type="number" min="1" max="240" step="1" value="30" required></div></div>
+          <label class="shield-check sh-toggle"><input type="checkbox" id="reminder-enabled" checked><span class="sh-switch" aria-hidden="true"></span> Observe these sites and show the reminder</label>
+          <button type="submit" class="ds-btn sh-start" id="save-reminder" disabled>Configure reminder <svg aria-hidden="true"><use href="#sh-arrow"/></svg></button>
+        </form>
+        <p class="sh-state-line" id="reminder-state" role="status">Connect to verify reminder state.</p><p class="sh-message" id="reminder-message" role="status" aria-live="polite"></p><a class="ds-link" href="../insights/insights.html#usage">See your website time in Insights <svg aria-hidden="true"><use href="#sh-arrow"/></svg></a>
+      </section>
+    </div>
+
+    <div class="sh-more">
+      <details class="shield-history ds-disclosure"><summary>Privacy, measurement limits and local history</summary><div class="ds-disclosure-body"><p>Only selected-domain identifiers, aggregate eligible seconds, local period/timezone, coverage, configuration and session events are stored. Full URLs, search terms and unrelated browsing history are not retained or shared with partner workspaces. Records are browser-local and editable by the device owner; they are not server-verified.</p><p>Only consecutive observations of an active selected tab, a focused non-minimized window and Chrome’s active idle state count. Suspension, shutdown, unsupported pages and uncertain intervals are excluded. Missing data is unknown, never proof of zero use. A single reminder acknowledgement applies per local day and timezone, even after a threshold change.</p><ul id="shield-history"></ul></div></details>
+      <section class="sh-legacy" aria-labelledby="legacy-title"><h2 id="legacy-title">Saved evening preference</h2><p>Kept from the earlier preview. It does not schedule a block or send a notification.</p><form id="shield-form"><label for="shield-time">Evening time (saved only)</label><input id="shield-time" type="time" value="19:00" required><label class="shield-check"><input id="shield-reminder" type="checkbox"> Saved reminder preference (inactive)</label></form><button form="shield-form" type="submit" class="ds-btn" data-variant="secondary" data-size="sm">Save preferences</button><p class="sh-message" id="save-message" role="status"></p></section>
     </div>
   </main>
   <div data-site-footer></div>

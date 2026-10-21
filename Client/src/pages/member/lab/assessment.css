@@ -226,3 +226,8 @@ body { background: #fbfdf8; }
 }
 .as-mode[data-kind="official"] { border-style: solid; border-color: var(--color-leaf); background: var(--color-mint); }
 .as-mode[hidden] { display: none; }
+
+/* Hidden integrity controls must override the shared button display style. */
+#begin-button[hidden], #retry-save[hidden], #assessment-state[hidden] { display: none; }
+#assessment-state { max-width: 760px; margin: 16px auto; padding: 16px; }
+#retry-save { margin: 16px; }

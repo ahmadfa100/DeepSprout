@@ -1,11 +1,15 @@
 /** Profile and settings, read from the account record, plus demo controls. */
 (() => {
+  const access = window.DeepSproutPersonal;
+  if (access.denied()) { try { access.requireAccess(); } catch {} return; }
+  const subject = access.subject();
+  const preferenceKey = key => `${key}:person:${subject}`;
   const Account = window.DeepSproutAccount;
   const root = document.body.dataset.root || '../../../../';
   let account = null;
   const PREFS_KEY = 'deepsprout-preferences';
-  const readPrefs = () => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch { return {}; } };
-  const writePrefs = value => { try { localStorage.setItem(PREFS_KEY, JSON.stringify(value)); } catch { /* this visit only */ } };
+  const readPrefs = () => { try { return JSON.parse(localStorage.getItem(preferenceKey(PREFS_KEY))) || {}; } catch { return {}; } };
+  const writePrefs = value => { access.assert(subject); access.save(preferenceKey(PREFS_KEY), JSON.stringify(value)); };
 
   /* ---------------------------------------------------------------- account */
 
@@ -13,7 +17,10 @@
     const profile = account.profile();
     const plan = account.plan();
     document.getElementById('name').value = profile.name || '';
-    document.getElementById('email').value = profile.email || '';
+    const canonical = access.person();
+    document.getElementById('email').value = canonical?.email || profile.email || '';
+    document.getElementById('email').readOnly = Boolean(canonical);
+    document.getElementById('email').title = canonical ? 'Verified email. Email changes require verification and are unavailable in this demo.' : '';
     document.getElementById('profile-name').textContent = profile.name || 'Your account';
     document.getElementById('avatar').textContent = (profile.name || 'Y').trim().charAt(0).toUpperCase();
     document.getElementById('profile-state').textContent = plan
@@ -22,12 +29,17 @@
   }
 
   document.getElementById('save-account').addEventListener('click', () => {
-    account.mutate({
-      type: 'profile.update',
-      name: document.getElementById('name').value.trim(),
-      email: document.getElementById('email').value.trim()
-    });
-    renderAccount();
+    try {
+      access.assert(subject);
+      const canonical = access.person();
+      const name = document.getElementById('name').value.trim();
+      if (canonical) {
+        window.DeepSproutRepo.run('member.profile.update', {name});
+        account = null;
+        Account.load(true).then(loaded => { account = loaded; renderAccount(); });
+      } else account.mutate({type:'profile.update', name, email:document.getElementById('email').value.trim()});
+    } catch (error) { document.getElementById('account-saved').textContent = error.message; return; }
+    if (account) renderAccount();
     const saved = document.getElementById('account-saved');
     saved.textContent = 'Saved to this account.';
     window.setTimeout(() => { saved.textContent = ''; }, 3000);

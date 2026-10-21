@@ -7,6 +7,7 @@
  * "no data", or an empty-state message).
  */
 (() => {
+  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const Account = window.DeepSproutAccount;
   const root = document.body.dataset.root || '../../../../';
   const fmt = Account.format;
@@ -34,6 +35,12 @@
   const empty = (message, action) =>
     `<div class="ins-empty"><p>${message}</p>${action || ''}</div>`;
 
+  // Secondary explanations live behind an accessible "?" toggletip, never in the main copy.
+  const help = (label, text, title = '') => window.DeepSproutUI ? window.DeepSproutUI.help(label, text, title) : '';
+  /** A compact empty state: icon, one line, one action. */
+  const compactEmpty = (iconName, title, line, action = '') =>
+    `<div class="ds-empty"><span class="ds-empty-icon">${icon(iconName)}</span><p class="ds-empty-copy"><strong>${title}</strong><span>${line}</span></p>${action}</div>`;
+
   const TYPE_ICONS = { depth: 'i-book', listening: 'i-headphones', practical: 'i-pencil', 'protected-work': 'i-shield' };
   const DAY_STATE_LABELS = {
     completed: 'Completed',
@@ -49,19 +56,13 @@
   /* ------------------------------------------------------------ periods */
 
   /** 7 and 14 are the last N days; 28 is the plan cycle (or the last 28 days without one). */
-  const usageFor = days => (days === 28 ? account.usageCycle() || account.usage(28) : account.usage(days));
+  const usageFor = days => account.browserUsage(days);
 
   const renderCoverage = () => {
-    const usage = usageFor(period);
-    const target = $('ins-coverage');
-    if (!usage.connected) {
-      target.innerHTML = 'No browser data yet · the Chrome extension isn’t connected';
-      return;
-    }
-    const future = usage.days.filter(day => day.state === 'future').length;
-    const ticks = usage.days.map(day => `<i data-state="${day.state}"></i>`).join('');
-    target.innerHTML = `<span class="ins-coverage-ticks" aria-hidden="true">${ticks}</span>
-      <span>Browser data available for <strong>${usage.covered} of ${usage.total} days</strong>${future ? ` · ${future} not reached yet` : ''}</span>`;
+    const usage=usageFor(period);
+    $('ins-coverage').innerHTML=usage.available
+      ?`<span class="ins-coverage-ticks" aria-hidden="true">${usageDays(usage).map(day=>`<i data-state="${day.seconds===null?'no-data':'measured'}"></i>`).join('')}</span><span>Browser data on <strong>${usage.periods.length} of ${period}</strong> days</span>${help('browser data coverage',`Partially observed browser periods, ${usage.from} – ${usage.to}, on this device’s calendar (separate from the planning demo clock). ${usage.coverage}`)}`
+      :`<span>No browser data yet</span>${help('browser data coverage','No browser usage data available. The Digital Shield extension has not observed the sites you chose in this period. Missing observations are unknown, never zero.')}`;
   };
 
   const setPeriod = days => {
@@ -72,7 +73,7 @@
       if (selected) item.parentElement.style.setProperty('--index', index);
     });
     renderCoverage();
-    updateUsagePeriod();
+    renderUsage();
   };
 
   /* ---------------------------------------------------------- at a glance */
@@ -137,9 +138,10 @@
   const renderAdherence = () => {
     const plan = account.plan();
     if (!plan) {
-      $('adherence-body').innerHTML = empty(
-        `Your plan starts after your first ${NAMES.checkIn.toLowerCase()}. Until then there is nothing scheduled, so nothing is counted.`,
-        button(`Go to ${NAMES.checkIn}`, href('src/pages/member/lab/lab.html')));
+      // Current first-run contract: setup → four starting-point checks → activation.
+      $('adherence-body').innerHTML = compactEmpty('i-flag', 'No active Recovery Plan yet',
+        'Your week appears here once your plan is active. Until then nothing is scheduled, so nothing is counted.',
+        `<a class="ds-btn" data-size="sm" href="${href('src/pages/member/onboarding/onboarding.html')}">Continue setup${icon('i-arrow')}</a>`);
       return;
     }
     const days = account.schedule();
@@ -190,110 +192,70 @@
 
   let usageCells = [];
 
-  const describeDay = (day, limit, methodLabel) => {
-    const when = `${fmt.date(day.date, { weekday: true })}${day.partial ? ' · so far today' : ''}`;
-    if (day.state === 'measured') {
-      const position = day.overBy
-        ? `${day.overBy} min over your limit`
-        : `${limit - day.minutes} min under your limit`;
-      return { title: when, body: `${fmt.duration(day.minutes)} on selected sites · ${position} · ${methodLabel}` };
-    }
-    if (day.state === 'future') return { title: when, body: 'Not reached yet' };
-    return { title: when, body: day.reason || 'No browser data' };
+  /** One entry per device-calendar day of the period; unobserved days stay null (unknown, not zero). */
+  const usageDays = usage => {
+    const byDay = new Map(usage.periods.map(p => [p.day, p]));
+    const from = Account.parse(usage.from), days = Account.daysBetween(from, Account.parse(usage.to)) + 1;
+    return Array.from({ length: days }, (_, index) => {
+      const date = Account.addDays(from, index), key = Account.keyOf(date), p = byDay.get(key);
+      return { date, key, period: p || null, seconds: p ? Object.values(p.seconds).reduce((a, b) => a + b, 0) : null, isToday: index === days - 1 };
+    });
   };
+  const minutes = seconds => seconds < 60 ? `${Math.round(seconds)}s` : fmt.duration(seconds / 60);
 
   const renderUsage = () => {
-    const usage = account.usageCycle() || account.usage(28);
-    if (!usage.connected) {
-      $('usage-body').innerHTML = empty(
-        'No browser data yet. The Chrome extension isn’t connected, so nothing has been measured — and nothing is shown as zero.',
-        button('Connect the extension', href('src/pages/member/shield/shield.html')));
-      $('usage-meta').innerHTML = '';
-      renderPhone();
-      return;
+    const usage=usageFor(period),live=window.DeepSproutShield?.view();
+    const threshold=usage.thresholdSeconds===null?null:usage.thresholdSeconds<60?`${usage.thresholdSeconds} seconds (short demo interval)`:`${usage.thresholdSeconds/60} min`;
+    usageCells=[];renderCoverage();
+    $('usage-meta').innerHTML=`<span class="ds-chip" data-tone="quiet">${icon('i-globe')}Browser-observed</span>${help('how website time is measured',`${usage.source}. Active time on the selected websites in this browser only — not phone apps, not Reels counts, not attention.`)}`;
+    if(!usage.available){
+      $('usage-body').innerHTML=compactEmpty('i-globe','No browser usage data available','Connect the Digital Shield extension to see time on the sites you choose. Days without data stay unknown — never zero.',`<a class="ds-btn" data-size="sm" href="${href('src/pages/member/shield/shield.html')}">Set up Digital Shield${icon('i-arrow')}</a>`);
+      renderPhone();return;
     }
-    $('usage-meta').innerHTML = badge(usage.provenance);
-    const weeks = Math.ceil(usage.days.length / 7);
-    const start = usage.days[0].date;
-
-    let grid = '<span aria-hidden="true"></span>';
-    for (let week = 0; week < weeks; week++) {
-      const from = usage.days[week * 7].date;
-      const to = usage.days[Math.min(usage.days.length, week * 7 + 7) - 1].date;
-      grid += `<span class="ins-grid-colhead" aria-hidden="true"><b>W${week + 1}</b>${from.getDate()}–${to.getDate()}</span>`;
-    }
-    for (let row = 0; row < 7; row++) {
-      grid += `<span class="ins-grid-rowhead" aria-hidden="true">${fmt.weekday(Account.addDays(start, row))}</span>`;
-      for (let week = 0; week < weeks; week++) {
-        const day = usage.days[week * 7 + row];
-        if (!day) { grid += '<span></span>'; continue; }
-        const text = describeDay(day, usage.limit, usage.methodLabel);
-        grid += `<button type="button" class="ins-cell${day.isToday ? ' is-today' : ''}" tabindex="-1"
-          data-key="${day.key}" data-state="${day.state}"${day.band ? ` data-band="${day.band}"` : ''}
-          style="--i:${week * 3 + row}" aria-label="${esc(`${text.title} — ${text.body}`)}"
-          data-title="${esc(text.title)}" data-body="${esc(text.body)}"></button>`;
+    const days=usageDays(usage),observed=days.filter(d=>d.seconds!==null),max=Math.max(...observed.map(d=>d.seconds),1);
+    const band=sec=>{const r=usage.thresholdSeconds?sec/usage.thresholdSeconds:sec/max;return usage.thresholdSeconds&&r>1?'over':r<.4?'under':r<.8?'within':'near';};
+    const weeks=Math.ceil(days.length/7);
+    // Calendar orientation: seven weekday columns, one row per week of the period.
+    let grid='<span aria-hidden="true"></span>'+Array.from({length:7},(_,c)=>`<span class="ins-grid-colhead" aria-hidden="true">${fmt.weekday(Account.addDays(days[0].date,c))}</span>`).join('');
+    for(let week=0;week<weeks;week++){
+      const a=days[week*7].date,b=days[Math.min(days.length,week*7+7)-1].date;
+      grid+=`<span class="ins-grid-rowhead" aria-hidden="true"><b>${a.getDate()}–${b.getDate()}</b></span>`;
+      for(let col=0;col<7;col++){
+        const day=days[week*7+col];if(!day){grid+='<span></span>';continue;}
+        const title=fmt.date(day.date,{weekday:true});
+        const body=day.seconds===null?'No browser data — unknown, not zero':`${minutes(day.seconds)} on selected sites${usage.thresholdSeconds?` · ${day.seconds>usage.thresholdSeconds?'over':'within'} your shared reminder`:''}`;
+        grid+=`<button type="button" class="ins-cell${day.isToday?' is-today':''}" tabindex="-1" data-key="${day.key}" data-state="${day.seconds===null?'no-data':'measured'}"${day.seconds===null?'':` data-band="${band(day.seconds)}"`} style="--i:${week*7+col}" aria-label="${esc(`${title} — ${body}`)}" data-title="${esc(title)}" data-body="${esc(body)}"></button>`;
       }
     }
-
-    const tableRows = usage.days.map(day => {
-      const text = describeDay(day, usage.limit, usage.methodLabel);
-      return `<tr><th scope="row">${esc(text.title)}</th><td>${day.state === 'measured' ? esc(fmt.duration(day.minutes)) : 'No data'}</td><td>${esc(text.body)}</td></tr>`;
-    }).join('');
-
-    const ramp = ['under', 'within', 'near'].map(band => `<i class="ins-cell" data-band="${band}" data-state="measured"></i>`).join('');
-    $('usage-body').innerHTML = `
-      <div class="ins-usage">
+    const perSite=usage.sites.map(site=>[site,usage.periods.reduce((n,p)=>n+(p.seconds[site]||0),0)]).sort((a,b)=>b[1]-a[1]);
+    const siteBars=perSite.map(([site,sec])=>`<li class="ins-site"><span>${esc(site)}</span><b class="ins-num">${minutes(sec)}</b><span class="ds-meter-track" aria-hidden="true"><span class="ds-meter-fill" style="--value:${(sec/Math.max(usage.totalSeconds,1)).toFixed(3)}"></span></span></li>`).join('');
+    const ramp=['under','within','near'].map(b=>`<i class="ins-cell" data-band="${b}" data-state="measured"></i>`).join('');
+    const rows=usage.periods.map(p=>`<tr><th scope="row">${esc(p.day)}<br><small>${esc(p.timezone)}</small></th><td>${(p.observedSeconds/60).toFixed(2)} min</td><td>${Object.entries(p.seconds).map(([site,seconds])=>`${esc(site)}: ${(seconds/60).toFixed(2)} min`).join('<br>')}</td><td>Partial · ${p.samples} eligible intervals · ${p.gaps} excluded / uncertain gaps<br>${esc(p.reminderState)} · ${p.configVersions.length} configuration version(s)<br>${Object.entries(p.gapReasons||{}).map(([reason,count])=>`${esc(reason)}: ${count}`).join('; ')}<br>Observed endpoints ${esc(new Date(p.firstObservation).toLocaleTimeString())} – ${esc(new Date(p.lastObservation).toLocaleTimeString())}; unavailable durations are unknown.</td></tr>`).join('');
+    $('usage-body').innerHTML=`<div class="ins-usage ins-browser-usage">
         <div>
-          <div class="ins-grid-wrap">
-            <div class="ins-grid" id="usage-grid" role="group" aria-label="Daily time on selected sites, one square per day of the cycle. Use arrow keys to move between days." style="--weeks:${weeks}">${grid}</div>
-          </div>
+          <div class="ins-grid-wrap"><div class="ins-grid ins-cal" id="usage-grid" role="group" aria-label="Observed time on selected sites, one square per day. Use arrow keys to move between days." style="--weeks:7">${grid}</div></div>
           <div class="ins-scale">
-            <div class="ins-scale-row"><strong>Lighter is better.</strong><span class="ins-scale-ramp" aria-hidden="true">less ←${ramp}→ more</span></div>
-            <div class="ins-scale-row">
-              <span>Your limit: ${usage.limit} minutes</span>
-              <span class="ins-key"><i class="ins-cell" data-band="over" data-state="measured" aria-hidden="true"></i>Over your limit</span>
-              <span class="ins-key"><i class="ins-cell" data-state="no-data" aria-hidden="true"></i>No data</span>
-              <span class="ins-key"><i class="ins-cell" data-state="future" aria-hidden="true"></i>Not yet reached</span>
-            </div>
+            <div class="ins-scale-row"><strong>Lighter is less time.</strong><span class="ins-scale-ramp" aria-hidden="true">less ${ramp} more</span></div>
+            <div class="ins-scale-row">${usage.thresholdSeconds?`<span class="ins-key"><i class="ins-cell" data-band="over" data-state="measured" aria-hidden="true"></i>Over your reminder</span>`:''}<span class="ins-key"><i class="ins-cell" data-state="no-data" aria-hidden="true"></i>No data</span></div>
           </div>
         </div>
-        <ul class="ins-usage-lines" id="usage-lines"></ul>
+        <ul class="ins-usage-lines">
+          <li><span class="ins-big"><span class="ins-num">${minutes(usage.totalSeconds)}</span> observed</span><span class="ins-caption">across ${observed.length} ${plural(observed.length,'day')} with browser data</span></li>
+          <li class="ins-sites-li"><span class="ins-caption">By website</span><ul class="ins-sites">${siteBars}</ul></li>
+          <li><span class="ins-caption">Shared reminder</span><span>${threshold?`${esc(threshold)} across ${esc(usage.configuredSites.join(', ')||'no sites')}`:'Not set'}</span></li>
+          <li class="ins-scope"><a href="${href('src/pages/member/shield/shield.html')}">Digital Shield settings →</a></li>
+        </ul>
       </div>
-      <div class="ins-visually-hidden"><table>
-        <caption>Minutes on selected sites per day, ${fmt.date(usage.days[0].date)} to ${fmt.date(usage.days[usage.days.length - 1].date)}</caption>
-        <thead><tr><th scope="col">Day</th><th scope="col">Time</th><th scope="col">Detail</th></tr></thead>
-        <tbody>${tableRows}</tbody>
-      </table></div>`;
-
-    usageCells = [...document.querySelectorAll('#usage-grid .ins-cell')];
-    const firstMeasured = usageCells.findIndex(cell => cell.classList.contains('is-today'));
-    (usageCells[firstMeasured] || usageCells[0]).tabIndex = 0;
+      <details class="ds-disclosure ins-usage-details"><summary>How this was measured</summary><div class="ds-disclosure-body">
+        <p>${esc(usage.coverage)}</p>
+        <p>Current connection: ${esc(live?.state||'Unverified')} · last successful journal sync ${esc(usage.lastSync||'unknown')} · last observation ${esc(new Date(usage.lastObservation).toLocaleString())}. Historical observations remain available when disconnected. Threshold changes keep their attributed history.</p>
+        <p>${esc(usage.comparisonReason)} Domain activity is not Reels consumption, attention, phone Screen Time, Lab improvement or a recovery percentage. Records are local and not server-verified.</p>
+        <div class="ins-table-wrap"><table class="ins-usage-table"><caption>Selected-domain browser observations · device calendar</caption><thead><tr><th scope="col">Period</th><th scope="col">Observed</th><th scope="col">Sites</th><th scope="col">Coverage / reminder</th></tr></thead><tbody>${rows}</tbody></table></div>
+      </div></details>`;
+    usageCells=[...document.querySelectorAll('#usage-grid .ins-cell')];
+    (usageCells.find(c=>c.classList.contains('is-today'))||usageCells[0]).tabIndex=0;
     bindGrid();
     renderPhone();
-    renderUsageLines(usage);
-    updateUsagePeriod();
-  };
-
-  /**
-   * The period selector drives the coverage line and dims grid squares outside
-   * the period. The three summary lines describe the grid itself — the whole
-   * cycle — so they always match what the 28 squares show.
-   */
-  const updateUsagePeriod = () => {
-    if (!usageCells.length) return;
-    const inPeriod = new Set(usageFor(period).days.map(day => day.key));
-    usageCells.forEach(cell => cell.classList.toggle('is-out', !inPeriod.has(cell.dataset.key)));
-  };
-
-  const renderUsageLines = usage => {
-    // A scope note, not a data display: the domains in one quiet line.
-    const sites = usage.sites.map(esc).join(' · ');
-    const average = usage.averageMinutes === null
-      ? `<li><span class="ins-big">No measured days yet</span><small>Nothing is averaged without data.</small></li>`
-      : `<li><span class="ins-big">Average ${num(fmt.duration(usage.averageMinutes))} per day</span><small>across ${usage.covered} covered ${plural(usage.covered, 'day')} of ${usage.total}</small></li>`;
-    $('usage-lines').innerHTML = `${average}
-      <li><span class="ins-big">You passed your limit (${usage.limit} min) on ${num(usage.overLimitDays)} ${plural(usage.overLimitDays, 'day')}</span><small>${usage.start ? 'this cycle so far' : `in the last ${usage.total} days`}</small></li>
-      <li class="ins-scope">Measuring ${sites} — <a href="${href('src/pages/member/shield/shield.html')}">Edit →</a></li>`;
   };
 
   const renderPhone = () => {
@@ -303,7 +265,7 @@
     box.hidden = false;
     box.innerHTML = `${icon('i-phone')}
       <div><span class="ins-caption">Phone screen time</span><div>${num(fmt.duration(phone.minutesPerDay))} <span class="ins-caption">a day</span></div></div>
-      <p>You entered this yourself on ${fmt.date(phone.on)} — not combined with the above; the two are measured differently.</p>
+      <p>Entered by you on ${fmt.date(phone.on)}${help('phone screen time','You entered this yourself. It is never added to the browser figures above — the two are measured differently.')}</p>
       ${badge(phone.provenance)}`;
   };
 
@@ -354,10 +316,22 @@
 
   /* ------------------------------------------------------------- training */
 
+  /** A short, human label for why a level is what it is; the full reason sits in a toggletip. */
+  const levelLabel = type => {
+    const reason = type.levelReason || '';
+    if (/accepted the next/i.test(reason)) return 'You moved up';
+    if (/lower difficulty|step(ped)? down/i.test(reason)) return 'You chose a lighter level';
+    if (/stay/i.test(reason)) return 'You chose to stay';
+    if (/placed|placement/i.test(reason)) return 'Placed from your starting point';
+    if (/introductory|starting level|everyone starts/i.test(reason)) return 'Starting level';
+    if (/chose level|preference/i.test(reason)) return 'Your chosen level';
+    return reason.length > 42 ? 'Current level' : reason;
+  };
+
   const renderTraining = () => {
     const types = account.training();
     if (!types.some(type => type.level)) {
-      $('training-body').innerHTML = empty(`Training levels are set after your first ${NAMES.checkIn.toLowerCase()}. No level is shown until one is earned or chosen.`);
+      $('training-body').innerHTML = compactEmpty('i-book', 'Levels start with your plan', 'Each practice type gets its own level when your plan is active. No level is shown until one is earned or chosen.');
       $('training-note').textContent = '';
       return;
     }
@@ -381,7 +355,7 @@
       return `<article class="ins-skill">
         <div class="ins-skill-head">
           <span class="ins-skill-icon">${icon(TYPE_ICONS[type.id] || 'i-book')}</span>
-          <div><h3>${esc(type.title)}</h3><small>${esc(type.levelReason)}</small></div>
+          <div><h3>${esc(type.title)}</h3><small>${esc(levelLabel(type))}${type.levelReason ? help(`${type.title} level`, type.levelReason) : ''}</small></div>
         </div>
         <div class="ins-level-line"><span>Level ${num(type.level)} <span class="ins-caption">of ${type.maxLevel}</span></span></div>
         <div class="ins-notches" role="img" aria-label="Level ${type.level} of ${type.maxLevel}">${notches.join('')}</div>
@@ -407,6 +381,7 @@
   };
 
   const axis = instrument => {
+    if(!instrument.scaleCompatible)return `<div class="ins-axis-legacy"><b class="ins-num">${esc(instrument.latest.score)}</b><span>Earlier version${help(`${instrument.title} result`,`Historical raw result ${instrument.latest.score} · ${instrument.latest.version||'version not recorded'}. The current measurement scale does not apply to this protocol, so no position is drawn.`)}</span></div>`;
     const { scale } = instrument;
     const step = tickStep(scale);
     const ticks = [];
@@ -421,6 +396,11 @@
       const to = instrument.comparison.to;
       const a = position(from.score, scale);
       const b = position(to.score, scale);
+      if (from.score === to.score) {
+        // Same value twice: one mark, both dates, so labels never collide.
+        marks.push(`<span class="ins-axis-mark is-latest" style="left:${b}%"><b class="ins-num">${esc(scaleValue(to.score, scale))}</b><small>${fmt.date(from.on)} &amp; ${fmt.date(to.on)} · same</small></span>`);
+        return axisMarkup(instrument, scale, ticks, marks, lower);
+      }
       marks.push(`<span class="ins-axis-bar" style="left:${Math.min(a, b)}%;width:${Math.abs(b - a)}%"></span>`);
       // Labels open away from each other so close values never collide.
       const baseSide = a <= b ? 'is-left' : 'is-right';
@@ -430,6 +410,9 @@
     } else if (instrument.latest) {
       marks.push(`<span class="ins-axis-mark is-latest" style="left:${position(instrument.latest.score, scale)}%"><b class="ins-num">${esc(scaleValue(instrument.latest.score, scale))}</b></span>`);
     }
+    return axisMarkup(instrument, scale, ticks, marks, lower);
+  };
+  const axisMarkup = (instrument, scale, ticks, marks, lower) => {
     const label = instrument.comparison
       ? `${instrument.title}: ${NAMES.baseline} ${scaleValue(instrument.comparison.from.score, scale)} on ${fmt.date(instrument.comparison.from.on, { year: true })}, latest ${scaleValue(instrument.comparison.to.score, scale)} on ${fmt.date(instrument.comparison.to.on, { year: true })}, on a scale from ${scaleValue(scale.min, scale)} to ${scaleValue(scale.max, scale)}, ${scale.direction} is better.`
       : `${instrument.title}: ${scaleValue(instrument.latest.score, scale)} on a scale from ${scaleValue(scale.min, scale)} to ${scaleValue(scale.max, scale)}, ${scale.direction} is better.`;
@@ -440,6 +423,10 @@
       <p class="ins-axis-better">${lower ? '← lower is better' : 'higher is better →'}</p>
     </div>`;
   };
+
+  /** Results produced by the presenter's scenario builder are visibly labelled as demo data. */
+  const synthetic = attempt => Boolean(attempt && (attempt.measurementContext?.presentation === 'demo-scenario' || attempt.details?.some(d => d.value === 'Synthetic presentation scenario')));
+  const demoChip = '<span class="ds-chip ins-demo-chip" data-tone="warning">Demo scenario</span>';
 
   const renderCheckIns = () => {
     const instruments = account.checkIns();
@@ -459,7 +446,8 @@
     }
 
     const baselineDate = instruments.find(item => item.baseline)?.baseline.on;
-    $('checkins-meta').innerHTML = baselineDate ? `<span class="ins-caption">${NAMES.baseline[0].toUpperCase()}${NAMES.baseline.slice(1)} · ${fmt.date(baselineDate, { year: true })}</span>` : '';
+    const anySynthetic = instruments.some(item => item.history.some(synthetic));
+    $('checkins-meta').innerHTML = `${anySynthetic ? `${demoChip}${help('demo scenario results', 'These results were created by the presentation scenario builder through the real instrument checks. They are synthetic demonstration data, not a real person’s measurements, and they are not evidence of improvement.')}` : ''}${baselineDate ? `<span class="ins-caption">${NAMES.baseline[0].toUpperCase()}${NAMES.baseline.slice(1)} · ${fmt.date(baselineDate, { year: true })}</span>` : ''}`;
 
     const tasks = due.tasks.map(task => task.title).join(' and ');
     const kind = due.kind === 'full' ? 'full check' : 'short check';
@@ -479,13 +467,15 @@
           <p class="ins-window-tasks">You can still take it — ${esc(tasks)}, about ${due.minutes} minutes. The result will be marked late.</p></div>
           ${button(`Start ${NAMES.checkIn.toLowerCase()}`, href('src/pages/member/lab/lab.html'))}
         </div>`,
-      done: `<div class="ins-window"><p>This cycle’s ${NAMES.checkIn.toLowerCase()} is done.</p></div>`
+      done: `<div class="ins-window"><p>This weekly ${NAMES.checkIn.toLowerCase()} is done. Next window: ${fmt.date(due.nextOpens)}.</p></div>`,
+      missed: `<div class="ins-window"><p>The weekly window closed ${fmt.date(due.closes)}. No late backfill under the interim rule. Next free pair opens ${fmt.date(due.nextOpens)}.</p></div>`
     }[due.state] || '';
     $('checkins-window').innerHTML = windowHtml;
 
     $('checkins-body').innerHTML = instruments.map(item => {
       if (!item.latest) {
-        return `<article class="ins-range"><div class="ins-range-meta"><h3>${esc(item.title)}</h3><small>${esc(item.kind)}</small></div>
+        if(!item.comparison&&item.history.filter(a=>a.valid===true).length>1)status=item.comparisonReason;
+      return `<article class="ins-range"><div class="ins-range-meta"><h3>${esc(item.title)}</h3><small>${esc(item.kind)}</small></div>
           <p class="ins-range-status">Not measured yet.</p></article>`;
       }
       let status;
@@ -494,7 +484,7 @@
         status = `${NAMES.baseline[0].toUpperCase()}${NAMES.baseline.slice(1)} (${baseShape}) ${fmt.date(item.comparison.from.on, { year: true })} · ${NAMES.latest} (${latestShape}) ${fmt.date(item.comparison.to.on, { year: true })}${item.comparison.to.late ? ' · taken late' : ''}`;
       } else if (anyComparison) {
         const dueNow = (due.state === 'open' || due.state === 'late') && due.tasks.some(task => task.id === item.id);
-        status = `Last measured: cycle ${item.lastMeasuredCycle}${dueNow ? ' · repeated in the check-in that is open now' : item.nextMeasured ? ` · next at the end of cycle ${item.nextMeasured.cycle}` : ''}`;
+        status = `Latest valid result: ${fmt.date(item.latest.on,{year:true})}${dueNow?' · included in this weekly window':item.nextMeasured?` · next in week ${item.nextMeasured.week}`:''}`;
       } else if (item.nextMeasured) {
         const opens = fmt.date(item.nextMeasured.opens, { year: true });
         const inNextCheck = due.opens && item.nextMeasured.opens.getTime() === due.opens.getTime();
@@ -503,15 +493,16 @@
           ? 'No comparison yet — this task is repeated in the check-in that is open now'
           : inNextCheck
           ? `No comparison yet — first re-check available ${opens}`
-          : `No comparison yet — measured again at the end of cycle ${item.nextMeasured.cycle}, from ${opens}`;
+          : `No comparison yet — measured again in week ${item.nextMeasured.week}, from ${opens}`;
       } else {
         status = 'No comparison yet.';
       }
+      if(!item.comparison&&item.history.filter(a=>a.valid===true).length>1)status=item.comparisonReason;
       return `<article class="ins-range">
         <div class="ins-range-meta">
           <h3>${esc(item.title)}</h3>
           <small>${esc(item.kind)}</small>
-          <div>${badge(item.provenance)}</div>
+          <div>${badge(item.provenance)}${[item.baseline, item.latest].some(synthetic) ? demoChip : ''}</div>
         </div>
         <div class="ins-range-axis">${axis(item)}<p class="ins-range-status">${status}</p></div>
       </article>`;
@@ -548,6 +539,9 @@
         ${empty('No routine yet.', button('Add a routine item', href('src/pages/member/training/training.html#offline-routine'), { quiet: true }))}</article>`);
     }
 
+    // Verified Institution initiatives: read from the shared records, never copied.
+    const repo = window.DeepSproutRepo, me = repo?.me();
+    const live = repo && me ? repo.selectors.myInitiatives(repo.read(), me.id) : [];
     const initiatives = account.initiatives();
     if (initiatives.registered) {
       const items = initiatives.items.map(item => `<li>${esc(item.opportunity?.title)} · ${esc(item.opportunity?.organizer)}${item.opportunity?.verified ? '' : ' · <em>demo listing</em>'}</li>`).join('');
@@ -558,17 +552,56 @@
           <div class="ins-count">${num(initiatives.attended)}<small>attended</small></div>
           <div class="ins-count">${num(initiatives.completed)}<small>completed</small></div>
         </div>
-        <p>Registering is not attending, and attending is not completing. The organiser confirms the last two.</p>
         <ul class="ins-facts">${items}</ul>
+        <p class="ins-card-note">Organiser-confirmed${help('initiative counts','Registering is not attending, and attending is not completing. The organiser confirms the last two.')}</p>
       </article>`);
-    } else {
+    } else if (!live.length) {
       cards.push(`<article class="ins-beyond-card"><header><h3>Initiatives</h3></header>
         ${empty('You haven’t joined an initiative yet.', button('Browse initiatives', href('src/pages/member/explore/explore.html'), { quiet: true }))}</article>`);
     }
 
+    if (live.length) {
+      const sessions = live.flatMap(entry => entry.sessions);
+      const attended = sessions.filter(ss => ss.attendance && ss.attendance.status !== 'Absent').length;
+      const absent = sessions.filter(ss => ss.attendance?.status === 'Absent').length;
+      const excused = sessions.filter(ss => ss.display === 'Excused Absence').length;
+      cards.push(`<article class="ins-beyond-card">
+        <header><h3>Institution initiatives</h3><span class="ins-badge">Supervisor-confirmed</span></header>
+        <div class="ins-counts">
+          <div class="ins-count">${num(live.filter(entry => ['Accepted', 'Suspended', 'Completed'].includes(entry.admission.status)).length)}<small>joined</small></div>
+          <div class="ins-count">${num(attended)}<small>sessions attended</small></div>
+          <div class="ins-count">${num(live.filter(entry => entry.admission.status === 'Completed').length)}<small>completed</small></div>
+        </div>
+        <ul class="ins-facts">${live.map(entry => `<li>${esc(entry.initiative.title)} · ${esc(entry.initiative.organizer)} · ${esc(entry.admission.status)}</li>`).join('')}</ul>
+        <p class="ins-card-note">${absent ? `${absent} recorded ${plural(absent, 'absence')}${excused ? ` · ${excused} excused` : ''}` : 'Attendance by the initiative’s Supervisor'}${help('initiative attendance','Attendance is recorded by the initiative’s Supervisor. An excused absence is a separate decision and never counts as attendance. Completion adds history, not a Garden object, and never changes your Lab or Recovery results.')}</p>
+      </article>`);
+    }
+
+    // Independent Coach Programs: the same records the Coach and limited Student views read.
+    const programs = repo && me ? repo.selectors.programHistoryFor(repo.read(), me.id) : [];
+    if (programs.length) {
+      cards.push(`<article class="ins-beyond-card" id="coach-programs">
+        <header><h3>Coach programs</h3><span class="ins-badge">Coach-reviewed</span></header>
+        <div class="ins-counts">
+          <div class="ins-count">${num(programs.length)}<small>joined</small></div>
+          <div class="ins-count">${num(programs.reduce((n, entry) => n + entry.approved, 0))}<small>tasks approved</small></div>
+          <div class="ins-count">${num(programs.filter(entry => entry.completion?.status === 'Completed').length)}<small>completed</small></div>
+        </div>
+        <ul class="ins-facts">${programs.map(entry => `<li>${esc(entry.program.title)} · ${esc(entry.program.coach)} · ${esc(entry.completion ? entry.completion.status : entry.program.status)}</li>`).join('')}</ul>
+        <p class="ins-card-note">From your Coach’s reviews${help('Coach programs','Approved tasks come from your Coach’s reviews. Completing a Program adds history, never a Garden object, and never changes your Lab or Recovery results.')}</p>
+      </article>`);
+    }
+
+    const providerBookings=repo&&me?repo.selectors.myProviderBookings(repo.read(),me.id):[];
+    if(providerBookings.length)cards.push(`<article class="ins-beyond-card" id="provider-experiences">
+      <header><h3>Outdoor experiences</h3><span class="ins-badge">Supervisor-confirmed</span></header>
+      <div class="ins-counts"><div class="ins-count">${num(providerBookings.length)}<small>${plural(providerBookings.length,'booking')}</small></div><div class="ins-count">${num(providerBookings.reduce((n,b)=>n+b.attendance.filter(a=>['Present','Late'].includes(a.status)).length,0))}<small>sessions attended</small></div><div class="ins-count">${num(providerBookings.filter(b=>b.completion?.status==='Completed').length)}<small>completed</small></div></div>
+      <ul class="ins-facts">${providerBookings.map(b=>`<li data-booking-id="${esc(b.id)}"><strong>${esc(b.experience.title)}</strong> · ${esc(b.status)} <span class="ins-ref">Ref ${esc(b.id)}</span>${b.attendance.length?`<p>${b.attendance.map(a=>`${esc(b.experience.sessions.find(ss=>ss.id===a.sessionId)?.title||a.sessionId)}: ${esc(a.status)} <span class="ins-ref">${esc(a.id)}</span>`).join('<br>')}</p>`:''}${b.completion?`<p>Completion: ${esc(b.completion.status)} <span class="ins-ref">${esc(b.completion.id)} · criteria v${b.completion.resourceVersion}</span></p>`:''}</li>`).join('')}</ul>
+      <p class="ins-card-note">Original Provider records${help('outdoor experience records','Booking and QR check-in do not award growth. Qualifying attendance and the published Camp criteria supply bounded Garden decorations; corrections stay in the original evidence history.')}</p></article>`);
+
     const experiences = account.experiences();
-    cards.push(`<article class="ins-beyond-card">
-      <header><h3>Outdoor experiences</h3>${experiences.registered ? badge(experiences.provenance) : ''}</header>
+    if (!providerBookings.length || experiences.registered) cards.push(`<article class="ins-beyond-card">
+      <header><h3>${providerBookings.length ? 'Sample listings' : 'Outdoor experiences'}</h3>${experiences.registered ? badge(experiences.provenance) : ''}</header>
       ${experiences.registered
         ? `<div class="ins-counts"><div class="ins-count">${num(experiences.registered)}<small>registered</small></div><div class="ins-count">${num(experiences.attended)}<small>attended</small></div><div class="ins-count">${num(experiences.completed)}<small>completed</small></div></div>`
         : `<p>None yet.</p>${button('Find an experience', href('src/pages/member/explore/explore.html'), { quiet: true, iconName: 'i-compass' })}`}
@@ -624,4 +657,5 @@
     error.textContent = 'We couldn’t load your data, so nothing is shown rather than zeros. If you opened this file directly from disk, serve the Client folder locally (see README) and reload.';
     document.querySelectorAll('.ins-section').forEach(section => { section.hidden = true; });
   });
+  window.addEventListener('deepsprout:shield',()=>{if(account)renderUsage();});
 })();

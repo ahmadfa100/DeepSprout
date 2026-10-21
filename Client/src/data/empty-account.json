@@ -29,10 +29,10 @@
       "note": "Levels are independent per practice type. Only valid attempts at the current level count."
     },
     "assessmentDefinitions": [
-      { "id": "digital-habits", "title": "Digital Habits", "kind": "Self-report questionnaire", "provenance": "self-reported", "minutes": 2, "scale": { "min": 0, "max": 32, "unit": "", "direction": "lower" } },
-      { "id": "sustained-attention", "title": "Sustained Attention", "kind": "Timed response task", "provenance": "measured", "minutes": 3, "scale": { "min": 0, "max": 100, "unit": "%", "direction": "higher" } },
+      { "id": "digital-habits", "title": "Digital Habits", "kind": "Self-report questionnaire", "provenance": "self-reported", "minutes": 4, "scale": { "min": 0, "max": 32, "unit": "", "direction": "lower" } },
+      { "id": "sustained-attention", "title": "Sustained Attention", "kind": "Timed response task", "provenance": "measured", "minutes": 4, "scale": { "min": 0, "max": 100, "unit": "%", "direction": "higher" } },
       { "id": "inhibitory-control", "title": "Inhibitory Control", "kind": "Go / no-go task", "provenance": "measured", "minutes": 3, "scale": { "min": 0, "max": 100, "unit": "%", "direction": "higher" } },
-      { "id": "depth-challenge", "title": "Depth Challenge", "kind": "Reading comprehension", "provenance": "measured", "minutes": 5, "scale": { "min": 0, "max": 5, "unit": "", "direction": "higher" } }
+      { "id": "depth-challenge", "title": "Depth Challenge", "kind": "Reading comprehension", "provenance": "measured", "minutes": 6, "scale": { "min": 0, "max": 5, "unit": "", "direction": "higher" } }
     ],
     "gardenPolicy": {
       "version": "GP-1.1",

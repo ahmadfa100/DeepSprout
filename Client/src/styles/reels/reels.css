@@ -48,3 +48,42 @@ html:not(.reels-enhanced) .hero-track{height:100svh}
 .hero[data-exit-phase=void] .motion-control{visibility:hidden}
 @media(max-width:700px){.reels-enhanced .hero-track{height:1200svh}}
 @media(prefers-reduced-motion:reduce){.reels-enhanced .hero-track{height:900svh}.bimo-gravity{will-change:auto}.vortex-transition{display:none}}
+
+/* Opening refinement (this page only; hero.css is shared with hero-lab-v2).
+   One headline, one supporting line, set to the scene: the copy sits in the open sky left of
+   Bimo, clear of the stone column, with no promotional buttons in the composition. */
+.hero .copy{top:22%;width:auto;max-width:none}
+/* A morning-mist scrim, not a panel: it lifts the hills behind the supporting line. */
+.hero .copy::before{content:'';position:absolute;z-index:-1;inset:-16% -22% -34% -16%;background:radial-gradient(closest-side,rgba(251,253,246,.66),rgba(251,253,246,.28) 62%,rgba(251,253,246,0));pointer-events:none}
+.hero .lead{margin-top:clamp(18px,1.55vw,28px);font-size:clamp(18px,1.8vw,31px);line-height:1.3;letter-spacing:-.02em;color:#2b4c74;font-weight:400;text-wrap:balance}
+@media(max-width:1100px) and (min-width:701px){.hero .copy{top:23%}.hero .lead{font-size:max(17px,1.9vw)}}
+@media(max-width:700px){.hero .copy::before{display:none}.hero .copy{top:clamp(48px,9svh,88px);left:24px;right:24px;width:auto}.hero .copy h1{margin-bottom:0}.hero .lead{font-size:17px;line-height:1.45;margin-top:14px;max-width:none}}
+@media(max-height:700px) and (min-width:701px){.hero .copy{top:18%}}
+
+/* Scroll cue: shown by the experience only after LIVING_IDLE. A mouse outline with a wheel
+   marker; a swipe track on touch devices; a still mark when motion is reduced. */
+.hero .scroll-cue{bottom:clamp(18px,3.4svh,34px);flex-direction:column;gap:9px;font-size:13px;font-weight:500;letter-spacing:0;text-transform:none;color:#173c33;opacity:0;visibility:hidden;transition:opacity .45s cubic-bezier(.4,0,.2,1),visibility 0s linear .45s,transform .45s cubic-bezier(.4,0,.2,1);transform:translate(-50%,6px)}
+.hero .scroll-cue[data-show=true]{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .9s cubic-bezier(.22,.61,.36,1) .15s,visibility 0s,transform .9s cubic-bezier(.22,.61,.36,1) .15s}
+.hero .scroll-cue::before{content:'';position:absolute;inset:-14px -26px -10px;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,#fbfdf2d9,#fbfdf200);pointer-events:none}
+.cue-mark{position:relative;display:block;border:1.5px solid #173c33b3}
+.cue-mouse{width:21px;height:32px;border-radius:11px}
+.cue-mouse i{position:absolute;left:50%;top:6px;width:2px;height:6px;margin-left:-1px;border-radius:1px;background:#173c33;animation:cue-wheel 2.2s cubic-bezier(.45,0,.2,1) infinite}
+.cue-swipe{display:none;width:14px;height:34px;border-radius:7px}
+.cue-swipe i{position:absolute;left:50%;bottom:4px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:#173c33;animation:cue-swipe 2.2s cubic-bezier(.45,0,.2,1) infinite}
+.cue-text-touch{display:none}
+@keyframes cue-wheel{0%{transform:translateY(0);opacity:0}18%{opacity:1}62%{transform:translateY(9px);opacity:0}100%{transform:translateY(9px);opacity:0}}
+@keyframes cue-swipe{0%{transform:translateY(0);opacity:0}18%{opacity:1}66%{transform:translateY(-16px);opacity:0}100%{transform:translateY(-16px);opacity:0}}
+@media(hover:none) and (pointer:coarse){.cue-mouse,.cue-text-pointer{display:none}.cue-swipe{display:block}.cue-text-touch{display:inline}}
+@media(prefers-reduced-motion:reduce){.cue-mark i{animation:none;opacity:1}.cue-swipe i{transform:translateY(-8px)}}
+
+/* The black hole on a phone: the GL world is a band at the bottom of the hero, so the sky above
+   it darkens toward the void as the hole forms, and the band's top edge dissolves into it. */
+@media(max-width:700px){
+ .hero:before{background:linear-gradient(rgba(5,4,10,var(--hole-dark,0)),rgba(5,4,10,var(--hole-dark,0))),radial-gradient(ellipse at 50% 80%,#612d8f,#170b2b 80%)}
+ .vortex-back,.vortex-front,.atmosphere{-webkit-mask-image:linear-gradient(to bottom,transparent,#000 16%);mask-image:linear-gradient(to bottom,transparent,#000 16%)}
+ .environment,.environment-part,.cloud-layers,.lake-motion{opacity:calc(1 - var(--hole-dark,0))}
+}
+
+/* Without WebGL only: a still event horizon behind Bimo, darkening with the scroll-driven
+   --hole-dark, so the fallback still shows where everything is falling. Never the primary scene. */
+.hero[data-webgl=unavailable] .vortex-fallback{background:radial-gradient(circle at 56.8% 46%,rgba(5,4,10,var(--hole-dark,0)) 0,rgba(5,4,10,var(--hole-dark,0)) 19vmin,rgba(255,196,128,calc(var(--hole-dark,0)*.55)) 19.6vmin,rgba(120,60,30,0) 24vmin),radial-gradient(ellipse at 63% 45%,transparent 15%,#271044aa 90%)}

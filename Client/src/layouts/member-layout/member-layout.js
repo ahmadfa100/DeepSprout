@@ -35,7 +35,7 @@
       <nav class="member-nav" id="member-nav" aria-label="Member navigation">${links}</nav>
       <div class="member-header-actions">
         <div class="member-notifications"><button class="member-icon-button" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="member-notification-panel">${icon('icons/bell.svg')}<span class="member-alert-dot" hidden></span></button><div class="member-popover" id="member-notification-panel" hidden>${notice}</div></div>
-        <details class="member-account"><summary><span class="member-avatar">${initial}</span><span>${displayName}</span>${icon('icons/chevron-down.svg')}</summary><div class="member-account-menu"><a href="${root}index.html">Home</a><a href="${root}src/pages/member/profile/profile.html">Profile &amp; settings</a><a href="${root}src/pages/member/weekly-review/weekly-review.html">Weekly review</a><a href="${root}src/pages/member/explore/explore.html#my-registrations">My registrations</a><a href="${root}src/pages/member/onboarding/onboarding.html">Replay first run</a><a href="${root}login.html">Log in page</a></div></details>
+        <details class="member-account"><summary><span class="member-avatar">${initial}</span><span>${displayName}</span>${icon('icons/chevron-down.svg')}</summary><div class="member-account-menu"><a href="${root}index.html">Home</a><a href="${root}src/pages/member/profile/profile.html">Profile &amp; settings</a><a href="${root}src/pages/member/weekly-review/weekly-review.html">Weekly review</a><a href="${root}src/pages/member/explore/explore.html#my-registrations">My registrations</a><a href="${root}src/pages/member/lab/lab.html">Lab &amp; check-ins</a><a href="#product-guide" data-tour-replay>Help &amp; product guide</a><a href="${root}src/pages/member/onboarding/onboarding.html">Replay first run</a><a href="${root}login.html">Log in page</a></div></details>
         <button class="member-menu-toggle" type="button" aria-label="Open navigation" aria-controls="member-nav" aria-expanded="false">${icon('icons/menu.svg')}</button>
       </div>
     </div>
@@ -111,20 +111,21 @@
     Account.load().then(account => {
       const fmt = Account.format;
       const plan = account.plan();
-      const clock = account.asOf
-        ? `${fmt.date(account.asOf, { weekday: true, year: true })}${plan ? ` · day ${plan.day}` : ''}`
-        : `${fmt.date(account.today, { weekday: true, year: true })} · real date`;
+      const personal=account.personalClock();
+      const clock=`${fmt.date(account.today,{weekday:true,year:true})}${plan?` · day ${plan.day}`:''} · ${personal.source}${personal.seedAsOf?` · original story ${personal.seedAsOf}`:''}`;
       const option = (id, title, note) => `<label class="dev-switch-option"><input type="radio" name="dev-account" value="${id}"${account.id === id ? ' checked' : ''}><span><strong>${title}</strong><small>${note}</small></span></label>`;
+      // A journal produced by the presenter's scenario builder is synthetic too.
+      const scenario = (() => { try { return JSON.parse(localStorage.getItem('deepsprout-demo-scenarios-v1') || '{}')[Account.person()?.id] || null; } catch { return null; } })();
       const shell = document.createElement('div');
       shell.className = 'dev-switch';
-      shell.innerHTML = `<button class="dev-switch-pill" type="button" aria-expanded="false" aria-controls="dev-switch-panel"><span class="dev-switch-dot" aria-hidden="true"></span><span>Demo data</span><b>${account.seeded ? 'Seeded' : 'Empty'}</b></button>
+      shell.innerHTML = `<button class="dev-switch-pill" type="button" aria-expanded="false" aria-controls="dev-switch-panel"><span class="dev-switch-dot" aria-hidden="true"></span><span>Demo</span><b>${account.seeded ? 'Seeded' : scenario ? 'Scenario' : 'Empty'}</b></button>
         <div class="dev-switch-panel" id="dev-switch-panel" role="group" aria-label="Demo data" hidden>
           <p class="dev-switch-eyebrow">Dev only · demo data</p>
           <fieldset class="dev-switch-options" data-active="${account.id}"><legend class="visually-hidden">Account</legend><span class="dev-switch-thumb" aria-hidden="true"></span>
             ${option('demo', 'Ahmad', 'Seeded story')}${option('empty', 'New account', 'Nothing recorded')}
           </fieldset>
           <p class="dev-switch-clock"><span>Clock</span>${clock}</p>
-          <p class="dev-switch-note">${account.asOfNote}</p>
+          <p class="dev-switch-note">${scenario ? `Synthetic presentation scenario, built ${fmt.date(scenario.builtAt.slice(0, 10), {year: true})} through the real engines. Restore it from the presenter page.` : account.asOfNote}</p>
           <button type="button" class="dev-switch-reset" hidden>Reset demo changes</button>
         </div>`;
       document.body.append(shell);
@@ -191,10 +192,79 @@
     if (!Account) return;
     Account.applyNames(document.querySelector('.member-header') || document);
     showAccountName(Account);
+    if(!document.querySelector('script[src*="data/product-tour.js"]')){const tour=document.createElement('script');tour.src=`${root}src/js/data/product-tour.js`;document.head.append(tour);}
     // Any change on the account (a review saved, a name edited) updates the header too.
     window.addEventListener('deepsprout:account', () => showAccountName(Account));
     mountDevSwitch(Account);
   };
+
+  /* ------------------------------------------------ one identity, one bell
+     The canonical person (shared with the partner workspaces) and their
+     operational notices: application decisions, tasks, reviews, sessions,
+     excuses. Notices are local and visible only; no email is sent. */
+  const withRepo = callback => {
+    if (window.DeepSproutRepo) { callback(window.DeepSproutRepo); return; }
+    window.addEventListener('deepsprout:repo-ready', () => callback(window.DeepSproutRepo), { once: true });
+    if (!document.querySelector('script[src*="shared/member-bridge.js"]')) {
+      const bridge = document.createElement('script');
+      bridge.type = 'module';
+      bridge.src = `${root}src/shared/member-bridge.js`;
+      document.head.append(bridge);
+    }
+  };
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+  const linkFor = href => (href ? (/^(https?:|#)/.test(href) ? href : `${root}${href}`) : '');
+  const paintIdentity = repo => {
+    const me = repo.me();
+    const menu = document.querySelector('.member-account-menu');
+    const summary = document.querySelector('.member-account summary');
+    if (!menu || !summary) return;
+    menu.querySelector('.member-identity')?.remove();
+    const block = document.createElement('div');
+    block.className = 'member-identity';
+    const people = repo.individuals();
+    const links = repo.workspaceLinks();
+    block.innerHTML = `${me ? `<p class="member-identity-who"><small>Signed in as</small><strong>${escapeHtml(me.name)}</strong><span>${escapeHtml(me.email)}</span></p>` : '<p class="member-identity-who"><strong>Not signed in</strong></p>'}
+      <a href="${root}src/pages/member/explore/explore.html#my-initiatives">My Initiatives</a><a href="${root}src/pages/member/training/training.html#assigned">Assigned tasks</a>
+      ${links.map(link => `<a href="${root}${link.href}">${escapeHtml(link.label)} workspace</a>`).join('')}
+      <details class="member-identity-switch"><summary>Switch person (demo)</summary><div>${people.map(p => `<button type="button" data-person="${escapeHtml(p.id)}"${me?.id === p.id ? ' aria-current="true"' : ''}>${escapeHtml(p.name)}</button>`).join('')}<button type="button" data-signout>Sign out on this device</button></div><small>Local demonstration identities — not real authentication.</small></details>`;
+    menu.prepend(block);
+    if (me) { summary.querySelector('.member-avatar').textContent = me.name.charAt(0).toUpperCase(); summary.querySelector('.member-avatar + span').textContent = me.name.split(' ')[0]; }
+    block.querySelectorAll('[data-person]').forEach(button => button.addEventListener('click', () => {
+      repo.signInAs(button.dataset.person);
+      try { sessionStorage.removeItem('deepsprout-account-choice'); } catch { /* ignore */ }
+      location.reload();
+    }));
+    block.querySelector('[data-signout]')?.addEventListener('click', () => {
+      repo.signOut();
+      try { sessionStorage.setItem('deepsprout-account-choice', 'empty'); } catch { /* ignore */ }
+      location.reload();
+    });
+  };
+  const paintNotices = repo => {
+    const panel = document.querySelector('#member-notification-panel');
+    const dot = document.querySelector('.member-alert-dot');
+    if (!panel) return;
+    panel.querySelector('.member-notices')?.remove();
+    const notices = repo.notifications().slice(0, 6);
+    if (!notices.length) return;
+    const unread = notices.filter(n => !n.read);
+    const list = document.createElement('div');
+    list.className = 'member-notices';
+    list.innerHTML = `<strong>Updates${unread.length ? ` · ${unread.length} new` : ''}</strong><ul>${notices.map(n => `<li class="${n.read ? '' : 'is-unread'}">${n.link ? `<a href="${escapeHtml(linkFor(n.link))}">${escapeHtml(n.text)}</a>` : `<span>${escapeHtml(n.text)}</span>`}<small>${escapeHtml(new Date(n.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }))}</small></li>`).join('')}</ul>${unread.length ? '<button type="button" class="member-notices-read">Mark all as read</button>' : ''}<p class="member-notices-note">Shown in DeepSprout only — no email is sent in this demo.</p>`;
+    panel.prepend(list);
+    if (dot && unread.length) dot.hidden = false;
+    list.querySelector('.member-notices-read')?.addEventListener('click', () => { unread.forEach(n => { try { repo.run('member.notice.read', { id: n.id }); } catch { /* not mine */ } }); paintNotices(repo); });
+  };
+  withRepo(repo => {
+    const paint = () => { paintIdentity(repo); paintNotices(repo); };
+    paint();
+    window.addEventListener('deepsprout:repo', paint);
+    window.addEventListener('deepsprout:account', () => setTimeout(paint, 0));
+    // The personal next-step bell repaints after the journal loads; paint again on top of it.
+    const later = () => window.DeepSproutAccount?.load().then(() => setTimeout(paint, 0), () => {});
+    if (window.DeepSproutAccount) later(); else setTimeout(later, 300);
+  });
 
   // Pages that read account data load account.js themselves, BEFORE this
   // layout script. Only inject it when no copy is on the page at all.

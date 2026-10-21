@@ -10,7 +10,11 @@
  * Exposed as window.DeepSprout. Load with `defer` before the page script.
  */
 (() => {
-  const KEY = 'deepsprout-user-v1';
+  const LEGACY_KEY = 'deepsprout-user-v1';
+  const access = window.DeepSproutPersonal;
+  let owner = access.subject();
+  const key = () => `${LEGACY_KEY}:person:${owner}`;
+  const bind = () => { owner = access.subject(); cache = null; access.rebind(); };
 
   const blank = () => ({
     version: 1,
@@ -68,44 +72,57 @@
   let cache = null;
 
   const read = () => {
+    access.assert(owner);
     if (cache) return cache;
-    let stored = null;
-    try { stored = JSON.parse(localStorage.getItem(KEY)); }
-    catch { stored = null; }
+    let stored = JSON.parse(localStorage.getItem(key()) || 'null');
+    if (!stored) {
+      const raw = localStorage.getItem(LEGACY_KEY);
+      const legacy = JSON.parse(raw || 'null');
+      const person = access.person();
+      // An exact canonical owner or verified email is evidence; a browser session alone is not.
+      const known = legacy && person && (legacy.personId === person.id ||
+        (person.verified && legacy.profile?.email?.toLowerCase() === person.email.toLowerCase()));
+      if (known) {
+        const backup = `${LEGACY_KEY}:backup:before-person-binding`;
+        if (!localStorage.getItem(backup)) access.save(backup, raw);
+        stored = {...legacy, personId: person.id};
+        access.save(key(), JSON.stringify(stored));
+      }
+    }
     cache = withDefaults(stored, blank());
+    const person = access.person();
+    if (person) {
+      cache.profile.name = person.name; cache.profile.email = person.email;
+      const journal = access.journal(person);
+      const changes = JSON.parse(localStorage.getItem(`deepsprout-account-changes-v1:${journal}`) || '[]');
+      for (const event of changes) {
+        if (event.type === 'setup.save') { cache.onboarding.setupDone = true; cache.onboarding.introSeen = true; }
+        if (event.type === 'assessment.add' && event.attempt?.official && event.attempt.valid===true && event.attempt.status==='Completed' && event.attempt.kind==='baseline') cache.assessments[event.attempt.definitionId] = {...event.attempt, completedAt:event.attempt.at || event.at, summary:event.attempt.details || []};
+        if(event.type==='tour.record')cache.onboarding.tourSeen=true;
+        if (event.type === 'plan.activate') { cache.onboarding.planActivated = true; cache.plan = {...event.firstRunPlan, startDate:event.on, cycleLength:event.lengthDays || 28, goalLabel:event.goalLabel}; }
+      }
+    }
     return cache;
   };
 
   const write = state => {
+    access.assert(owner);
+    access.save(key(), JSON.stringify({...state, personId: owner}));
     cache = state;
-    try { localStorage.setItem(KEY, JSON.stringify(state)); }
-    catch { /* The page still works for this visit without persistence. */ }
     return state;
   };
 
-  /**
-   * Apply a mutation to the state and persist it.
-   *
-   * Re-reads from storage first so a write made in another tab (or by another
-   * script on this page) is not clobbered by a stale cached copy.
-   */
   const update = mutate => {
     cache = null;
-    const state = read();
+    const state = JSON.parse(JSON.stringify(read()));
     mutate(state);
     if (!state.createdAt) state.createdAt = new Date().toISOString();
     return write(state);
   };
 
   const reset = () => {
-    try {
-      localStorage.removeItem(KEY);
-      // Clear the per-page keys the earlier pages wrote directly.
-      Object.keys(localStorage)
-        .filter(key => key.startsWith('deepsprout-'))
-        .forEach(key => localStorage.removeItem(key));
-    } catch { /* ignore */ }
-    cache = null;
+    access.assert(owner);
+    write(blank());
     return read();
   };
 
@@ -151,7 +168,7 @@
   ];
 
   /** Days before a completed instrument may be formally retaken. */
-  const RETEST_WINDOW_DAYS = 28;
+  const RETEST_WINDOW_DAYS = 7; // Display compatibility only; the journal owns actual eligibility.
 
   const assessmentAttempt = id => read().assessments[id] || null;
 
@@ -166,22 +183,19 @@
     };
   });
 
+  const validBaseline=(a,id)=>a?.valid===true&&a.status==='Completed'&&a.kind==='baseline'&&a.personId===owner&&Object.entries(window.DeepSproutAccount?.assessmentContract(id)||{}).every(([k,v])=>a[k]===v);
   const assessmentsComplete = () => {
     const stored = read().assessments;
-    return ASSESSMENTS.every(item => stored[item.id]?.completedAt);
+    return ASSESSMENTS.every(item => validBaseline(stored[item.id],item.id));
   };
 
   const nextAssessment = () => {
     const stored = read().assessments;
-    return ASSESSMENTS.find(item => !stored[item.id]?.completedAt) || null;
+    return ASSESSMENTS.find(item => !validBaseline(stored[item.id],item.id)) || null;
   };
 
   /** Completed instruments are retestable once the eligibility window passes. */
-  const retestEligible = id => {
-    const attempt = assessmentAttempt(id);
-    if (!attempt?.completedAt) return false;
-    return daysBetween(attempt.completedAt, new Date()) >= RETEST_WINDOW_DAYS;
-  };
+  const retestEligible = id => {const account=window.DeepSproutAccount?.current();const mode=account?.checkInMode(id);return mode?.mode==='official'&&mode.kind!=='baseline';};
 
   /* ------------------------------------------------------------------ plan */
 
@@ -193,19 +207,22 @@
   };
 
   const goalLabel = () => {
+    const current=window.DeepSproutAccount?.current()?.profile().goal;if(current)return current.label;
     const state = read();
     return state.plan?.goalLabel || GOALS[state.profile.goal] || 'Spend less time on short-video feeds';
   };
 
   /** Day 1..28 of the active cycle, or null when no plan is active. */
   const cycleDay = () => {
+    const current=window.DeepSproutAccount?.current()?.plan();if(current)return current.day;
     const plan = read().plan;
     if (!plan?.startDate) return null;
-    const elapsed = daysBetween(plan.startDate, new Date());
+    const elapsed = daysBetween(plan.startDate, window.DeepSproutAccount?.current()?.today||new Date());
     return Math.min(plan.cycleLength || 28, Math.max(1, elapsed + 1));
   };
 
   const cycleWeek = () => {
+    const current=window.DeepSproutAccount?.current()?.plan();if(current)return current.week;
     const day = cycleDay();
     return day === null ? null : Math.min(4, Math.ceil(day / 7));
   };
@@ -443,7 +460,7 @@
       daysToReview: plan ? Math.max(0, week * 7 - day) : null,
       baselinesDone: baselines.length,
       baselinesTotal: ASSESSMENTS.length,
-      retestOn: firstBaseline ? addDays(new Date(firstBaseline), RETEST_WINDOW_DAYS) : null,
+      retestOn: (()=>{const due=window.DeepSproutAccount?.current()?.checkInWindow();return due?(['done','missed'].includes(due.state)?due.nextOpens:due.opens):null;})(),
       perWeek
     };
   };
@@ -456,7 +473,8 @@
   };
 
   window.DeepSprout = {
-    KEY,
+    get KEY() { return key(); },
+    bind,
     ASSESSMENTS,
     GOALS,
     ROUTINE_IDEAS,

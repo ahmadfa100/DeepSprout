@@ -8,19 +8,16 @@
  * cumulative counts live in Insights.
  */
 (() => {
+  const access = window.DeepSproutPersonal;
+  if (access.denied()) { try { access.requireAccess(); } catch {} return; }
+  const subject = access.subject();
+  const preferenceKey = key => `${key}:person:${subject}`;
   const Account = window.DeepSproutAccount;
   if (!Account) return;
 
   const $ = id => document.getElementById(id);
   const fmt = Account.format;
-  const readStored = (key, fallback) => {
-    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-    catch { return fallback; }
-  };
-  const writeStored = (key, value) => {
-    try { localStorage.setItem(key, JSON.stringify(value)); }
-    catch { /* The controls still work for this visit. */ }
-  };
+  const readStored = (key, fallback) => access.preference(key, fallback, subject);
   const reducedMotion = typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const icon = name => `<svg><use href="#rp-${name}"/></svg>`;
@@ -30,7 +27,7 @@
 
   /** Activity type → the session the Activities page runs for it, and its icon. */
   const SESSION = { depth: ['depth', 'book'], listening: ['listening', 'headphones'], practical: ['challenge', 'pencil'], 'protected-work': ['protected', 'timer'] };
-  const STATE_LABELS = { completed: 'Completed', missed: 'Missed', rest: 'Planned rest day', 'not-due': 'Not due yet', none: 'Nothing scheduled' };
+  const STATE_LABELS = { due:'Due',upcoming:'Upcoming','in-progress':'In Progress',partial:'Partial',unknown:'No reliable scheduled data',cancelled:'Cancelled',paused:'Paused',rescheduled:'Rescheduled', completed: 'Completed', missed: 'Missed', rest: 'Planned rest day', 'not-due': 'Not due yet', none: 'Nothing scheduled' };
   const PREVIEW_WEEKS = [
     { week: 1, title: 'Notice the pattern', note: 'Build a picture of when feeds pull you in, without changing much yet.' },
     { week: 2, title: 'Add one alternative', note: 'Put something in the gap the scrolling currently fills.' },
@@ -130,6 +127,8 @@
   function renderHero() {
     if (!plan) return;
     $('cycle-day').textContent = `Day ${plan.day} of ${plan.lengthDays}`;
+    $('hero-title').innerHTML=`${({2:'Two',3:'Three',4:'Four'})[plan.weeks]||plan.weeks} weeks.<br><em>One clear direction.</em>`;
+    $('journey-title').textContent=`Your ${{2:'two',3:'three',4:'four'}[plan.weeks]||plan.weeks} weeks`;
     document.querySelector('.rp-hero-description').textContent =
       `A ${plan.lengthDays}-day plan built around one goal: ${plan.goalLabel.toLowerCase()}. One focus per week; the next week is written after your review.`;
     const chip = $('hero-week-chip');
@@ -155,7 +154,7 @@
     if (today?.action?.kind === 'practice') {
       const [session] = SESSION[today.action.activityType] || ['quick'];
       $('today-title').textContent = today.action.type?.title || 'Practice';
-      $('today-note').textContent = `${today.action.minutes} minutes · level ${today.action.level}. Scheduled for today.`;
+      $('today-note').textContent = `${today.action.minutes} minute budget · level ${today.action.level}. Scheduled for today.`;
       action.href = `../training/training.html?session=${session}`;
       action.innerHTML = today.state === 'completed' ? `Practise again ${icon('arrow')}` : `Start practice ${icon('arrow')}`;
       if (today.state === 'completed') status.innerHTML = `${icon('check')} Done today · ${escape(today.attempt.outcome)}`;
@@ -195,7 +194,7 @@
 
   const weekState = number => {
     if (!plan) return 'preview';
-    if (number < plan.week) return 'done';
+    if (number < plan.week) return 'historical';
     if (number === plan.week) return 'current';
     return 'upcoming';
   };
@@ -205,16 +204,20 @@
     document.querySelectorAll('[data-week]').forEach(button => {
       const number = Number(button.dataset.week);
       const kind = weekState(number);
+      button.hidden=number>list.length;if(button.hidden)return;
       button.querySelector('span:not(.rp-week-icon)').textContent = list[number - 1].title;
-      button.querySelector('.rp-week-icon').innerHTML = icon({ done: 'check', current: 'sprout', upcoming: 'lock', preview: 'sprout' }[kind]);
-      button.className = `rp-week is-${kind}${number === selectedWeek ? ' is-selected' : ''}`;
+      button.querySelector('.rp-week-icon').innerHTML = icon({ done: 'check', current: 'sprout', upcoming: 'lock', preview: 'sprout',historical:'clock' }[kind]);
+      // Legacy consumers used is-done for an elapsed period. Visible outcome remains factual.
+      button.className = `rp-week is-${kind}${kind==='historical'&&account.recovery()?.current?.legacy?' is-done':''}${number === selectedWeek ? ' is-selected' : ''}`;
+      button.dataset.period=kind;
+      if(kind==='historical'){const a=account.adherence(number);button.dataset.outcome=!a.due?'no-reliable-data':a.completed===a.due?'all-due-practices-completed':a.completed?'partial':'missed';}
       button.setAttribute('aria-pressed', String(number === selectedWeek));
       if (kind === 'current') button.setAttribute('aria-current', 'step');
       else button.removeAttribute('aria-current');
       let label = 'Example focus';
-      if (kind === 'done') {
+      if (kind === 'historical') {
         const adherence = account.adherence(number);
-        label = `Complete · ${adherence.completed} of ${adherence.due} practices`;
+        label = `Past week · ${adherence.completed} of ${adherence.due} due practices completed`;
       } else if (kind === 'current') label = `Now · day ${plan.day}`;
       else if (kind === 'upcoming') label = `Opens ${fmt.date(account.weekDates(number)[0])}`;
       button.querySelector('.rp-week-state').textContent = label;
@@ -242,7 +245,7 @@
       const reviewed = account.reviews().history.some(review => review.week === number);
       const reviewDue = account.reviews().nextDue;
       facts = `<ul class="rp-detail-facts">
-          <li><strong>${adherence.completed} of ${adherence.due}</strong><span>due practices · measured</span></li>
+          <li><strong>${adherence.completed} of ${adherence.due}</strong><span>due practices · original evidence</span></li>
           <li><strong>${routine.done} of ${routine.scheduled}</strong><span>routine days · self-reported</span></li>
           <li><strong>${reviewed ? 'Done' : kind === 'current' && reviewDue ? fmt.relativeDays(Account.daysBetween(account.today, reviewDue)).replace(/^./, c => c.toUpperCase()) : 'Not done'}</strong><span>${reviewed ? 'week reviewed' : kind === 'current' ? 'review is due' : 'not reviewed'}</span></li>
         </ul>`;
@@ -406,19 +409,20 @@
       const kind = day.action.kind;
       const [session, glyph] = kind === 'practice' ? (SESSION[day.action.activityType] || ['quick', 'book']) : [null, kind === 'review' ? 'flag' : 'moon'];
       const title = kind === 'practice' ? day.action.type?.title : kind === 'review' ? 'Weekly review' : 'Rest day';
-      const note = kind === 'practice' ? `${day.action.minutes} minutes · level ${day.action.level} · ${STATE_LABELS[day.state].toLowerCase()}`
+      const note = kind === 'practice' ? `${day.action.minutes} minute budget · level ${day.action.level} · ${STATE_LABELS[day.state].toLowerCase()}`
         : kind === 'review' ? `A few short questions · ${STATE_LABELS[day.state].toLowerCase()}`
           : 'A day off is part of the plan, not a gap in it.';
-      const cta = kind === 'practice' && day.isToday && day.state !== 'completed'
+      const cta = kind === 'practice' && day.isToday && !['completed','cancelled','rescheduled','paused'].includes(day.state) && ['Active','Maintenance'].includes(plan.status||'Active')
         ? `<a class="rp-button rp-button-primary rp-button-small" href="../training/training.html?session=${session}">Start ${icon('arrow')}</a>`
-        : kind === 'review' && !future && day.state !== 'completed'
+        : kind === 'review' && !future && day.state !== 'completed' && ['Active','Maintenance'].includes(plan.status||'Active')
           ? `<a class="rp-button rp-button-primary rp-button-small" href="../weekly-review/weekly-review.html">Open review ${icon('arrow')}</a>`
           : '';
       planned = `<div class="rp-planned is-${kind}">
         <span class="rp-stat-icon ${kind === 'practice' ? 'rp-gold' : 'rp-sage'}">${icon(glyph)}</span>
-        <div><small>${kind === 'practice' ? 'Planned practice' : kind === 'review' ? 'Planned' : 'Rest day'}</small><h4>${escape(title)}</h4><p>${escape(note)}</p></div>${cta}</div>`;
+        <div><small>${kind === 'practice' ? 'Required personal practice' : kind === 'review' ? 'Planned' : 'Rest day'}</small><h4>${escape(title)}</h4><p>${escape(note)}</p></div>${cta}</div>`;
     }
 
+    const additionalReview=day.actions?.find(a=>a.kind==='review'&&day.action?.kind!=='review');if(additionalReview)planned+=`<p>Also scheduled: Weekly Review · ${escape(additionalReview.dueOn||day.key)}. <a href="../weekly-review/weekly-review.html?week=${additionalReview.week}">Open review</a></p>`;
     const attempts = account.attemptsOn(day.date).map(attempt =>
       `<li class="is-${attempt.valid ? 'done' : 'open'}"><span>${escape(attempt.type?.title || attempt.title || 'Practice')}</span><b>${attempt.valid ? escape(attempt.outcome) : 'Not counted'}</b></li>`).join('');
     const routineRows = account.routine().items.concat([])
@@ -426,16 +430,21 @@
       .map(item => {
         const status = account.routineStatusOn(item, day.date);
         const label = status === 'done' ? 'Done' : status === 'skipped' ? 'Skipped' : future ? 'Planned' : 'Not logged';
-        return `<li class="is-${status || (future ? 'planned' : 'open')}"><span>${escape(item.title)}</span><b>${label}</b></li>`;
+        return `<li class="is-${status || (future ? 'planned' : 'open')}"><span>${escape(account.routineTitleOn(item,day.date))}</span><b>${label}</b></li>`;
       }).join('');
 
     detail.innerHTML = `
       <header><h3>${day.isToday ? 'Today' : day.date.toLocaleDateString('en-GB', { weekday: 'long' })}</h3><span>${day.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}</span></header>
       ${planned}
       <div class="rp-day-columns">
-        <section><h4>Practices · measured</h4>${attempts ? `<ul class="rp-day-list">${attempts}</ul>` : `<p class="rp-detail-hint">${future ? 'Nothing yet — this day has not happened.' : 'None recorded.'}</p>`}</section>
+        <section><h4>Practices · original evidence</h4>${attempts ? `<ul class="rp-day-list">${attempts}</ul>` : `<p class="rp-detail-hint">${future ? 'Nothing yet — this day has not happened.' : 'None recorded.'}</p>`}</section>
         <section><h4>Offline routine · self-reported</h4>${routineRows ? `<ul class="rp-day-list">${routineRows}</ul>` : '<p class="rp-detail-hint">Nothing on your routine for this day.</p>'}</section>
       </div>`;
+    if(day.action?.kind==='practice'&&future&&['Active','Maintenance'].includes(plan.status||'Active')&&!day.action.started&&!['Rescheduled','Cancelled'].includes(day.action.status)){
+      const host=document.createElement('form');host.className='rp-reschedule';host.dataset.reschedule=day.action.id;
+      host.innerHTML=`<h4>Move this future personal practice</h4><label>New date<input name="date" type="date" min="${Account.keyOf(Account.addDays(account.today,1))}" max="${Account.keyOf(plan.end)}" required></label><label>Alternative<select name="type">${Object.keys(SESSION).map(t=>`<option value="${t}" ${t===day.action.activityType?'selected':''}>${escape(t)}</option>`).join('')}</select></label><label>Reason<input name="reason" maxlength="300" required></label><button>Preview reschedule</button><p role="status"></p>`;
+      host.onsubmit=event=>{event.preventDefault();const values={date:host.elements.date.value,type:host.elements.type.value,reason:host.elements.reason.value};host.querySelector('p').textContent=`Preview: ${day.key} → ${values.date}, ${values.type}. Original ID stays in history.`;let b=host.querySelector('[data-confirm-reschedule]');if(!b){b=document.createElement('button');b.type='button';b.dataset.confirmReschedule='';b.textContent='Confirm reschedule';host.append(b);}b.onclick=()=>{try{account.rescheduleRecovery(day.action.id,values.date,values.type,values.reason);}catch(e){host.querySelector('p').textContent=e.message;}};};detail.append(host);
+    }
     detail.classList.remove('is-entering');
     void detail.offsetWidth;
     detail.classList.add('is-entering');
@@ -446,41 +455,43 @@
 
   /* ---------------------------------------------------------------- adjust */
 
-  const form = $('adjust-form');
-  const settings = readStored('deepsprout-recovery-settings', {});
-  const setRadio = (name, value, fallback) => {
-    const input = form.querySelector(`input[name="${name}"][value="${value}"]`)
-      || form.querySelector(`input[name="${name}"][value="${fallback}"]`);
-    if (input) input.checked = true;
-  };
-  setRadio('focus', readStored('deepsprout-recovery-focus', 'depth'), 'depth');
-  setRadio('days', settings?.days, '5');
-  setRadio('intensity', settings?.intensity, 'gentle');
-  setRadio('reminder', readStored('deepsprout-scroll-reminder', 30), '30');
-  $('reminder-summary').textContent = reminderText(readStored('deepsprout-scroll-reminder', 30));
-
-  form.addEventListener('submit', event => {
-    event.preventDefault();
-    const value = name => form.querySelector(`input[name="${name}"]:checked`)?.value;
-    const days = value('days');
-    writeStored('deepsprout-recovery-focus', value('focus'));
-    writeStored('deepsprout-recovery-settings', { days, intensity: value('intensity') });
-    writeStored('deepsprout-scroll-reminder', Number(value('reminder')));
-    if (plan) {
-      account.mutate({
-        type: 'plan.adjust',
-        label: `${days === '7' ? 'Every day' : `${days} days a week`}, ${value('intensity')}`,
-        detail: 'Applies from next week; this week stays as planned.'
-      });
-    }
-    $('reminder-summary').textContent = reminderText(value('reminder'));
-    const note = $('save-note');
-    const focusName = { depth: 'Depth Practice', stillness: 'Protected Work', offline: 'your offline routine' }[value('focus')];
-    note.textContent = `Saved. On open days, Activities will suggest ${focusName}.${plan ? ' Recorded in your history.' : ''}`;
-    note.classList.remove('is-visible');
-    void note.offsetWidth;
-    note.classList.add('is-visible');
-  });
+  const form=$('adjust-form');let adjustment=null;
+  const selection=()=>({goal:$('adjust-goal').value,days:Number($('adjust-days').value),minutes:Number($('adjust-minutes').value),commitment:$('adjust-commitment').value,weekdays:[...form.querySelectorAll('[name=weekday]:checked')].map(b=>Number(b.value)),mix:[...form.querySelectorAll('[name=mix]:checked')].map(b=>b.value),lowerType:$('adjust-lower').value||null});
+  function renderAdjustment(){
+    const r=account.recovery();if(!r)return;const p=r.adjustmentDraft?.preferences||r.preferences;const focus=r.adjustmentDraft?.focus||readStored('deepsprout-recovery-focus','depth');const radio=form.querySelector(`[name=focus][value="${focus}"]`);if(radio)radio.checked=true;if(r.adjustmentDraft)$('adjust-reason').value=r.adjustmentDraft.reason;
+    if(!$('adjust-goal').querySelector(`option[value="${p.goal}"]`)){const o=document.createElement('option');o.value=p.goal;o.textContent=p.goalLabel;$('adjust-goal').append(o);}
+    $('adjust-goal').value=p.goal;$('adjust-days').value=p.days;$('adjust-minutes').value=p.minutes;$('adjust-commitment').value=p.commitment;
+    $('adjust-weekdays').innerHTML=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d,n)=>`<label><input type="checkbox" name="weekday" value="${n}" ${p.weekdays.includes(n)?'checked':''}>${d}</label>`).join('');
+    $('adjust-types').innerHTML=account.training().map(t=>`<label><input type="checkbox" name="mix" value="${t.id}" ${p.mix.includes(t.id)?'checked':''}>${escape(t.title)}</label>`).join('');
+    $('adjust-lower').innerHTML='<option value="">Keep current independent levels</option>'+account.training().filter(t=>t.level>1).map(t=>`<option value="${t.id}">${escape(t.title)}: ${t.level} → ${t.level-1}</option>`).join('');
+  }
+  form.addEventListener('change',event=>{if(event.target.name==='focus'){const focus=event.target.value,type={depth:'depth',stillness:'protected-work',offline:'practical'}[focus];form.querySelectorAll('[name=mix]').forEach(b=>b.checked=b.value===type);$('adjust-reason').value=`Prefer ${focus==='offline'?'offline activity':focus==='stillness'?'fewer reflex pickups':'deeper focus'} in eligible future practice`;}});
+  form.oninput=()=>{adjustment=null;$('confirm-plan').hidden=true;$('adjust-preview').textContent='Preview again before confirming changed inputs.';};
+  form.addEventListener('submit',event=>{event.preventDefault();try{if(!$('adjust-reason').value.trim())throw new Error('Explain this future change.');const input=selection();account.saveRecoveryPreview(input,$('adjust-reason').value,form.querySelector('[name=focus]:checked')?.value);adjustment=account.adjustmentPreview(input);$('adjust-preview').innerHTML=`<li class="rp-preview-head"><strong>Effective ${escape(adjustment.effectiveOn)}</strong><span>${adjustment.supersededIds.length} future unstarted ${adjustment.supersededIds.length===1?'day':'days'} replaced · past work stays intact</span></li>`+adjustment.actions.filter(a=>a.kind!=='routine').map(a=>`<li class="rp-preview-day is-${a.kind}" data-type="${escape(a.activityType||a.kind)}"><span class="rp-preview-date">${escape(fmt.date(a.date,{weekday:true}))}</span><strong>${escape(a.kind==='practice'?(account.training().find(t=>t.id===a.activityType)?.title||a.activityType):a.kind==='rest'?'Rest day':a.kind==='review'?'Weekly review':a.kind)}</strong>${a.kind==='practice'?`<small>Level ${a.level}</small>`:''}</li>`).join('');$('confirm-plan').hidden=false;$('save-note').textContent='Saved preview. Confirm the future revision to apply it; the schedule is unchanged.';}catch(e){$('save-note').textContent=e.message;}});
+  $('confirm-plan').onclick=()=>{if(!adjustment)return;try{account.adjustRecovery({...adjustment.preferences,lowerType:adjustment.lowerType},$('adjust-reason').value,adjustment.sourceRevision);adjustment=null;$('confirm-plan').hidden=true;$('save-note').textContent='Future revision saved. Original attempts, past missed work and external obligations were preserved.';renderAdjustment();}catch(e){$('save-note').textContent=e.message;}};
+  const recoveryAction=fn=>{try{fn();$('recovery-message').textContent='Saved to your original personal journey.';}catch(e){$('recovery-message').textContent=e.message;}};
+  $('return-resume').onclick=()=>recoveryAction(()=>account.decideReturn('Resume'));
+  $('return-adjust').onclick=()=>recoveryAction(()=>{account.decideReturn('Adjust');activate('adjust');});
+  $('review-cycle').onclick=()=>recoveryAction(()=>account.reviewCycle($('cycle-reflection').value));
+  $('next-cycle').onclick=()=>recoveryAction(()=>{account.continueRecovery('next');renderAdjustment();});
+  $('maintenance-cycle').onclick=()=>recoveryAction(()=>{account.continueRecovery('maintenance');renderAdjustment();});
+  for(const [id,choice]of [['pause-cycle','pause'],['resume-cycle','resume'],['cancel-cycle','cancel'],['archive-cycle','archive']])$(id).onclick=()=>recoveryAction(()=>account.recoveryLifecycle(choice,$('cycle-reason').value));
+  $('recovery-clock-form').onsubmit=event=>{event.preventDefault();recoveryAction(()=>{account.setDemoClock($('recovery-clock').value+'T12:00:00+03:00');account.visitRecovery();});};
+  function renderRecovery(){
+    const r=account.recovery();$('recovery-control').hidden=!r;if(!r)return;
+    $('recovery-status-title').textContent=`${r.status} · Cycle ${r.current.cycleNumber}${r.current.mode==='Maintenance'?' · lighter maintenance':''}`;
+    $('recovery-status-note').innerHTML=`${r.evidence.due?`${r.evidence.completed} of ${r.evidence.due} due practices done this week`:'Nothing due yet this week'}${window.DeepSproutUI?window.DeepSproutUI.help('this count','Completed practices and elapsed calendar days are reported separately — time passing is never counted as progress. Your history continues across cycles.'):''}`;
+    $('recovery-control').dataset.status=r.status;
+    const pending=r.returnNotice?.pending;$('recovery-return-summary').textContent=pending?`Welcome back. Since ${r.returnNotice.from}: ${r.returnNotice.completed} completed, ${r.returnNotice.missed} missed scheduled practices. Other days remain unknown. Resume or adjust; no backlog is assigned.`:'';
+    $('return-resume').hidden=$('return-adjust').hidden=!pending;
+    $('cycle-evidence').hidden=!['Cycle Review Due','Reviewed'].includes(r.status);if(!$('cycle-evidence').hidden){const evidence=r.current.cycleReview?.evidence||r.cycleEvidence;$('cycle-evidence').innerHTML='<h3>This cycle, from recorded sources</h3><ul>'+evidence.map(e=>`<li>Week ${e.week}: ${e.completed}/${e.due} due practices completed · ${e.missed} missed · ${e.routine.done} routine days self-reported${e.scheduled?'':' · No reliable scheduled practice data'}</li>`).join('')+'</ul><p>Lab remains independently eligible. Missing browser evidence is unknown, and the end date is not a recovery result.</p>'; }
+    $('continuation-preview').hidden=r.status!=='Reviewed';if(r.status==='Reviewed'){$('continuation-preview').innerHTML='<h3>Your next Week 1, before you choose</h3>'+['next','maintenance'].map(choice=>{const p=account.continuationPreview(choice);return `<details ${choice==='next'?'open':''}><summary>${choice==='next'?'Next Cycle':'Maintenance'} · ${p.preferences.days} practice days · ${p.preferences.minutes} minute budget</summary><p>${escape(p.reason)}</p><ul>${p.actions.filter(a=>a.kind!=='routine').map(a=>`<li>${escape(a.date)} · ${escape(a.kind==='practice'?a.activityType+' · Level '+a.level:a.kind)}</li>`).join('')}</ul></details>`;}).join('');}
+    $('cycle-review-area').hidden=r.status!=='Cycle Review Due';$('next-cycle').hidden=$('maintenance-cycle').hidden=r.status!=='Reviewed';$('pause-cycle').hidden=!['Active','Maintenance'].includes(r.status);$('resume-cycle').hidden=r.status!=='Paused';$('archive-cycle').hidden=!['Reviewed','Cancelled'].includes(r.status);$('cancel-cycle').disabled=['Cancelled','Archived','Reviewed'].includes(r.status);
+    $('weekly-review-link').hidden=!r.nextReview||account.todayKey<account.weeklyProposal(r.nextReview).opensOn||['Cancelled','Archived','Reviewed','Cycle Review Due'].includes(r.status);$('weekly-review-link').href=`../weekly-review/weekly-review.html?week=${r.nextReview||plan.week}`;
+    $('save-plan').disabled=!['Active','Maintenance'].includes(r.status);if($('save-plan').disabled)$('confirm-plan').hidden=true;
+    $('recovery-clock').value=account.todayKey;$('today-card').hidden=!['Active','Maintenance'].includes(r.status);
+    $('recovery-history').innerHTML=r.cycles.map(c=>`<details><summary>Cycle ${c.cycleNumber} · ${escape(c.mode)} · ${escape(c.status)} · ${escape(c.startDate)}</summary><p>Original goal: ${escape(c.goalLabel||c.preferences.goalLabel)}. ${escape(c.id)}</p><p>${escape(c.cycleReview?.reflection||'No completed cycle review recorded.')}</p><ul>${Array.from({length:Math.ceil(c.lengthDays/7)},(_,i)=>c.weeks[i+1]||{number:i+1,start:'Not detailed',end:'No reliable scheduled data',source:'No historical obligations invented'}).map(w=>`<li>Week ${w.number}: ${escape(w.start)}–${escape(w.end)} · ${escape(w.source||'Original schedule')}</li>`).join('')}</ul>${r.reviews.filter(v=>v.cycleId===c.id||c.legacy&&!v.cycleId).map(v=>`<p>Week ${v.week} review: ${escape(v.decision||v.outcome||'Legacy decision')} · ${v.evidence?`${v.evidence.completed}/${v.evidence.due} due practices · sources ${escape(v.evidence.attemptIds.join(', ')||'none')}`:'Legacy source details unchanged'}</p>`).join('')}</details>`).join('')+`<details><summary>Attributed schedule revisions (${r.revisions.length})</summary>${r.revisions.map(v=>`<details><summary>Revision ${v.version} · ${escape(v.action)}${v.decision?' / '+escape(v.decision):''} · effective ${escape(v.effectiveOn)}</summary><p>${escape(v.id)} · actor ${escape(v.actorId)} · ${escape(v.at)} · ${escape(v.reason)}</p>${v.previousPreferences?`<p>Prior goal ${escape(v.previousPreferences.goalLabel)} / ${v.previousPreferences.days} days → ${escape(v.nextPreferences.goalLabel)} / ${v.nextPreferences.days} days</p>`:''}<ul>${r.actions.filter(a=>[...(v.originalActionIds||[]),...(v.actionIds||[])].includes(a.id)).map(a=>`<li>${escape(a.date)} · ${escape(a.kind)} ${escape(a.activityType||a.title||'')} · ${escape(a.status)} · ${escape(a.id)}${a.completedAttemptId?' · completed source '+escape(a.completedAttemptId):''}</li>`).join('')}</ul></details>`).join('')}</details>`;
+  }
 
   /* --------------------------------------------------------------- history */
 
@@ -490,23 +501,36 @@
     $('history-empty').hidden = events.length > 0;
     let lastDay = '';
     const glyph = { plan: 'flag', adjust: 'sliders', review: 'flag', practice: 'book', invalid: 'book', routine: 'shoe', skipped: 'shoe', removed: 'shoe', baseline: 'chart' };
+    // The latest eight days are shown; earlier days stay one click away.
+    let days = 0;
     list.innerHTML = events.slice(0, 80).map((event, index) => {
+      if (event.on !== lastDay) days += 1;
+      const older = days > 8 ? ' rp-older' : '';
       const header = event.on !== lastDay
-        ? `<li class="rp-timeline-day">${escape(fmt.date(event.on, { weekday: true, year: true }))}</li>`
+        ? `<li class="rp-timeline-day${older}">${escape(fmt.date(event.on, { weekday: true, year: true }))}</li>`
         : '';
       lastDay = event.on;
-      return `${header}<li class="rp-event is-${event.kind}" style="--i:${Math.min(index, 12)}"><span class="rp-event-dot">${icon(glyph[event.kind] || 'flag')}</span><div><strong>${escape(event.title)}</strong><small>${escape(event.note)}</small></div></li>`;
+      return `${header}<li class="rp-event is-${event.kind}${older}" style="--i:${Math.min(index, 12)}"><span class="rp-event-dot">${icon(glyph[event.kind] || 'flag')}</span><div><strong>${escape(event.title)}</strong><small>${escape(event.note)}</small></div></li>`;
     }).join('');
+    list.classList.remove('is-expanded');
+    let more = $('history-more');
+    if (days > 8) {
+      if (!more) { more = document.createElement('button'); more.type = 'button'; more.id = 'history-more'; more.className = 'ds-link rp-history-more'; list.after(more); more.onclick = () => { const open = !list.classList.toggle('is-expanded') ? false : true; more.setAttribute('aria-expanded', String(open)); more.textContent = open ? 'Show fewer days' : `Show ${days - 8} earlier days`; }; }
+      more.hidden = false; more.setAttribute('aria-expanded', 'false'); more.textContent = `Show ${days - 8} earlier days`;
+    } else if (more) more.hidden = true;
   }
 
   /* ------------------------------------------------------------- lifecycle */
 
   function refresh() {
+    const previous=plan?.cycleId;plan=account.plan();if(previous!==plan?.cycleId){selectedWeek=plan?.week||1;weekNumber=plan?.week||1;}
+    renderHero();
     renderStats();
     renderRoutine();
     renderWeeks();
     renderWeekPanel();
     renderHistory();
+    renderRecovery();
   }
 
   const params = new URLSearchParams(location.search);
@@ -517,12 +541,14 @@
 
   Account.load().then(loaded => {
     account = loaded;
+    try{account.visitRecovery();}catch(error){$('recovery-message').textContent=error.message;}
     plan = account.plan();
     selectedWeek = plan?.week || 1;
     weekNumber = plan?.week || 1;
     renderHero();
     renderToday();
     refresh();
+    renderAdjustment();
     if (requested === 'journey') $('journey').scrollIntoView({ block: 'start' });
     window.addEventListener('deepsprout:account', () => { refresh(); renderToday(); });
   }).catch(() => {
@@ -532,4 +558,6 @@
     empty.querySelector('h2').textContent = 'Your roadmap couldn’t be loaded';
     empty.querySelector('p').textContent = 'Nothing is shown rather than made-up progress. If you opened this file directly, serve the Client folder locally and reload.';
   });
+  const renderShield=()=>{const v=window.DeepSproutShield?.view();$('recovery-shield-status').innerHTML=`Optional browser support: <strong>${escape(v?.state||'Unverified')}</strong>${window.DeepSproutUI?window.DeepSproutUI.help('browser support','Digital Shield is separate from your scheduled practices. It never completes a practice and does not prove scrolling went down.'):''}`;};
+  window.addEventListener('deepsprout:shield',renderShield);renderShield();
 })();

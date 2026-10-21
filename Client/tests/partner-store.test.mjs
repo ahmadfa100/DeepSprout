@@ -3,18 +3,22 @@ import assert from 'node:assert/strict';
 import {read,seed,dispatch,workspaces,inviteState,snapshotForTests,STORAGE_KEY} from '../src/workspaces/store.js';
 import {seats,occupied} from '../src/workspaces/domain.js';
 const as=personId=>dispatch('demo.signin',{personId});
-const reset=personId=>{dispatch('demo.reset');if(personId)as(personId);};
+// Pinned operational clock (16 Oct 2026 update) so seeded windows reproduce on any day.
+const reset=personId=>{dispatch('demo.reset');dispatch('demo.clock',{at:'2026-10-15T09:00:00+03:00'});if(personId)as(personId);};
 
+// Updated 16 Oct 2026 (Independent Coach cycle, master §13.1): a Group has exactly one parent, so the
+// Program is created first, the Group is created under it, and invitations need a published Program.
 test('Mentor creation → invitation → OTP → program → submission → review → one Garden contribution',()=>{
- reset('p-maya');const gid=dispatch('mentor.group.save',{name:'A new beginning',purpose:'Practice starting meaningful work.',capacity:4});
+ reset('p-maya');const programId=dispatch('mentor.program.save',{title:'Begin with a small step',description:'A short group program.',purpose:'Intentional work',focus:'Digital balance',duration:14,start:'2026-10-14',end:'2026-10-28',stages:[{id:'new-stage',title:'Try a first step',objective:'Name and try a small first step.',date:'2026-10-20'}],activities:['Practical Micro-Challenge'],required:true});
+ const gid=dispatch('mentor.group.save',{programId,name:'A new beginning',purpose:'Practice starting meaningful work.',capacity:4});
+ dispatch('mentor.program.publish',{id:programId});
  const token=dispatch('mentor.invite.create',{groupId:gid,expires:'2026-12-31',limit:2,email:'new-student@demo.example'});
  dispatch('auth.logout');dispatch('auth.otp',{email:'new-student@demo.example',token});
  assert.throws(()=>dispatch('auth.join',{email:'new-student@demo.example',name:'New Student',token,code:'000000'}),/demonstrated code/);
  dispatch('auth.join',{email:'new-student@demo.example',name:'New Student',token,code:'246810'});
  const studentId=read().session.personId;assert.equal(read().groups.find(g=>g.id===gid).memberIds.length,1);
  assert.equal(inviteState(read(),token),'Already joined');assert(workspaces().includes('student'));
- as('p-maya');const programId=dispatch('mentor.program.save',{title:'Begin with a small step',description:'A short group program.',purpose:'Intentional work',focus:'Digital balance',duration:14,groupIds:[gid],start:'2026-10-14',end:'2026-10-28',stages:[{id:'new-stage',title:'Try a first step',objective:'Name and try a small first step.',date:'2026-10-20'}],activities:['Practical Micro-Challenge'],required:true});
- dispatch('mentor.program.publish',{id:programId});const assignment=read().assignments.find(a=>a.programId===programId);
+ as('p-maya');const assignment=read().assignments.find(a=>a.programId===programId);
  assert.throws(()=>dispatch('mentor.program.publish',{id:programId}),/Only a draft/);
  as(studentId);dispatch('student.submit',{assignmentId:assignment.id,text:'I started by writing one sentence.'});
  const submission=read().submissions.find(x=>x.studentId===studentId);
@@ -35,11 +39,14 @@ test('Invitation invalid, revoked, exhausted, full, expiry, admission approval a
  dispatch('auth.otp',{email:'expired@demo.example',token:'fresh-start'});const exp=read();exp.otpChallenges.at(-1).expires=0;snapshotForTests(exp);assert.throws(()=>dispatch('auth.join',{email:'expired@demo.example',name:'Expired',token:'fresh-start',code:'246810'}),/expired/);
 });
 
-test('Institution publication, independent enrollment, hybrid capacity and anonymous versioned answers',()=>{
+// Updated 15 Oct 2026 for the approved v4.0 contract: publication now requires a public summary and
+// consent text (master §15.2), and Phase-1 forms are identified (D41), so a response keeps its personId.
+test('Institution publication, independent enrollment, hybrid capacity and identified versioned answers',()=>{
  reset('p-maya');const fid=dispatch('organization.form.save',{title:'New question',purpose:'Survey',anonymous:true,version:1,questions:[{id:'q-new',label:'Your first step?',type:'Single choice',required:true,options:['Write','Walk']}]});dispatch('organization.form.publish',{id:fid});
- const iid=dispatch('organization.initiative.save',{title:'A new community invitation',topic:'Youth wellbeing',objective:'Create room to take part.',audience:'Adults',coverage:'Nationwide',start:'2026-10-14',end:'2026-11-02',minAge:18,maxAge:30,conditions:'Adults in Jordan',completion:'Per component',capacity:5,enrollment:true,teamIds:['team-maya'],components:[{id:'cmp-new',type:'Survey or Quiz',title:'A purposeful question',resourceId:fid}]});dispatch('organization.initiative.publish',{id:iid});
+ const iid=dispatch('organization.initiative.save',{title:'A new community invitation',topic:'Youth wellbeing',objective:'Create room to take part.',summary:'A short invitation to take part.',consent:'I agree to respectful participation.',audience:'Adults',coverage:'Nationwide',start:'2026-10-14',end:'2026-11-02',minAge:18,maxAge:30,conditions:'Adults in Jordan',completion:'Per component',capacity:5,enrollment:true,teamIds:['team-maya'],components:[{id:'cmp-new',type:'Survey or Quiz',title:'A purposeful question',resourceId:fid}]});dispatch('organization.initiative.publish',{id:iid});
  as('p-rania');const before=read().sessionRegistrations.length;dispatch('participant.enroll',{initiativeId:iid,age:22,consent:true});assert.equal(read().sessionRegistrations.length,before);
- assert.throws(()=>dispatch('participant.form.respond',{formId:fid,answers:{}}),/Answer/);dispatch('participant.form.respond',{formId:fid,answers:{'q-new':'Write'}});const response=read().responses.find(x=>x.formId===fid);assert.equal(response.personId,null);assert.equal(response.version,1);
+ as('p-maya');dispatch('initiative.application.approve',{id:read().admissions.find(a=>a.initiativeId===iid&&a.personId==='p-rania').id});as('p-rania');
+ assert.throws(()=>dispatch('participant.form.respond',{formId:fid,answers:{}}),/Answer/);dispatch('participant.form.respond',{formId:fid,answers:{'q-new':'Write'}});const response=read().responses.find(x=>x.formId===fid);assert.equal(response.personId,'p-rania');assert.equal(response.version,1);
  dispatch('participant.session.register',{sessionId:'s-intro',mode:'In-person',consent:true});assert.throws(()=>dispatch('participant.session.register',{sessionId:'s-intro',mode:'Online',consent:true}),/already registered/);
  as('p-maya');const revision=dispatch('organization.form.revise',{id:fid});assert.equal(read().forms.find(x=>x.id===revision).version,2);assert.equal(read().responses.find(x=>x.id===response.id).version,1);
 });
@@ -59,10 +66,12 @@ test('Appointment acceptance, cohort eligibility, session attendance, duplicate 
  reset('p-sami');dispatch('provider.appoint',{personId:'p-maya',experienceId:'e-reset',sessionIds:['es-walk','es-circle'],cohortPermission:true});const ap=read().appointments.at(-1);as('p-maya');assert(workspaces().includes('supervisor'));assert.throws(()=>dispatch('supervisor.attendance',{sessionId:'es-walk',credential:'DS-NOOR-24'}),/accepted appointment/);dispatch('supervisor.appointment.accept',{id:ap.id});
  assert.throws(()=>dispatch('supervisor.cohort.save',{name:'Not eligible',experienceId:'e-reset',capacity:2,memberIds:['p-rania']}),/confirmed participants/);
  as('p-sami');assert.throws(()=>dispatch('supervisor.evaluate',{sessionId:'es-walk',personId:'p-noor',status:'Completed',notes:'Participated.'}),/attendance/);
+ // v4 check-in window (16 Oct 2026): move the demo clock into each session's window before recording.
+ assert.throws(()=>dispatch('supervisor.attendance',{sessionId:'es-walk',credential:'DS-NOOR-24'}),/has not opened yet/);dispatch('demo.clock',{at:'2026-10-24T09:05:00+03:00'});
  dispatch('supervisor.attendance',{sessionId:'es-walk',credential:'DS-NOOR-24'});assert.throws(()=>dispatch('supervisor.attendance',{sessionId:'es-walk',credential:'DS-NOOR-24'}),/Already checked in/);
- assert.throws(()=>dispatch('supervisor.attendance',{sessionId:'es-circle',personId:'p-noor',reason:''}),/reason/);
+ dispatch('demo.clock',{at:'2026-10-25T10:05:00+03:00'});assert.throws(()=>dispatch('supervisor.attendance',{sessionId:'es-circle',personId:'p-noor',reason:''}),/reason/);dispatch('demo.clock',{at:'2026-10-24T09:20:00+03:00'});
  dispatch('supervisor.evaluate',{sessionId:'es-walk',personId:'p-noor',status:'Completed',notes:'Participated in the walk.'});assert.equal(read().bookings[0].status,'Checked In');assert.equal(read().rewards.length,0);
- dispatch('supervisor.attendance',{sessionId:'es-circle',personId:'p-noor',reason:'Demo paper roster confirmation.'});dispatch('supervisor.evaluate',{sessionId:'es-circle',personId:'p-noor',status:'Completed',notes:'Shared an intention.'});assert.equal(read().bookings[0].status,'Completed');assert.equal(read().rewards.length,1);
+ dispatch('demo.clock',{at:'2026-10-25T10:05:00+03:00'});dispatch('supervisor.attendance',{sessionId:'es-circle',personId:'p-noor',reason:'Demo paper roster confirmation.'});dispatch('supervisor.evaluate',{sessionId:'es-circle',personId:'p-noor',status:'Completed',notes:'Shared an intention.'});assert.equal(read().bookings[0].status,'Completed');assert.equal(read().rewards.length,1);
  dispatch('supervisor.evaluate',{sessionId:'es-circle',personId:'p-noor',status:'Completed',notes:'Reviewed without a change.'});assert.equal(read().rewards.length,1);
  dispatch('supervisor.report.submit',{experienceId:'e-reset',summary:'Both sessions completed. Attendance and criteria reviewed.',exceptions:'None.'});dispatch('provider.experience.close',{id:'e-reset'});assert.equal(read().experiences[0].status,'Completed');assert.equal(read().cohorts[0].status,'Archived');
 });

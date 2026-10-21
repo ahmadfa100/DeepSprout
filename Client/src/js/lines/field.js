@@ -82,7 +82,7 @@ export function createField(section,reducedQuery){
  function rgb3(a,b,t){return[mix(a[0],b[0],t),mix(a[1],b[1],t),mix(a[2],b[2],t)]}
 
  const mask=document.createElement('canvas'),maskCtx=mask.getContext('2d');
- let shownCount=-1,shownYear=-1,frames=0,sizeKey='',lastKey=-1,count=0,width=0,height=0,dpr=1,top=0,travel=1,target=0,progress=0,visible=false,dirty=true,clock=0,lastBackground='',destroyed=false;
+ let shownCount=-1,shownYear=-1,frames=0,sizeKey='',lastKey=-1,count=0,width=0,height=0,dpr=1,top=0,travel=1,target=0,progress=0,visible=false,dirty=true,clock=0,lastBackground='',destroyed=false,overlap=false,engaged=null;
  let loops=1,cx=0,cy=0,rx=0,ry=0,word={x0:0,y0:0,x1:0,y1:0},crossY=0,crossStop=0,spotCount=0,mobile=false;
 
 
@@ -160,7 +160,7 @@ export function createField(section,reducedQuery){
   mobile=innerWidth<=700;
   // Mobile toolbars fire resize while scrolling: only a real size change rebuilds the mask and density.
   const rect=stage.getBoundingClientRect(),key=`${rect.width}x${rect.height}@${devicePixelRatio}`;
-  top=section.getBoundingClientRect().top+scrollY;travel=Math.max(1,section.offsetHeight-rect.height);
+  top=section.getBoundingClientRect().top+scrollY;travel=Math.max(1,section.offsetHeight-rect.height);overlap=parseFloat(getComputedStyle(section).marginTop)<0;
   if(key===sizeKey){scroll();dirty=true;return}
   sizeKey=key;width=Math.max(1,rect.width);height=Math.max(1,rect.height);
   dpr=Math.min(2,devicePixelRatio||1);canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
@@ -184,6 +184,9 @@ export function createField(section,reducedQuery){
  function scroll(){
   if(!height)return;
   const offset=scrollY-top;target=clamp(offset/travel);
+  // When the section overlaps the hero's last screen, its stage shows only once pinned: the hero's
+  // void is still closing underneath until then, and both are the same dark at the handoff.
+  const pinned=!overlap||offset>=0;if(pinned!==engaged){engaged=pinned;stage.style.visibility=pinned?'visible':'hidden'}
   const next=offset>-innerHeight&&offset<section.offsetHeight;
   if(next!==visible){visible=next;section.dataset.visible=String(next);dirty=true}
  }

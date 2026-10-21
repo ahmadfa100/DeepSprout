@@ -71,7 +71,8 @@ const report={cases:[],screenshots:[],errors:[],seam:{}};let browser;
   let s=await seek(p,2.4);await capture(p,prefix+'-1-assess');
   assert.equal(s.station,'assess');assert.deepEqual(s.ticks,[true,true,true,true]);
   assert.ok(s.bars.every(b=>b>0)&&new Set(s.bars.map(Math.round)).size===4,'Four bars build a profile');
-  assert.equal(await p.locator('.path-svg text').count(),0);
+  // The only SVG text is station 4's website names and its status word: never a number or score.
+  assert.ok((await p.locator('.path-svg text').allTextContents()).every(t=>!/\d|%/.test(t)));
   assert.ok(!/\d|%/.test((await copyOf(p,'assess')).text.join(' ')),'No score, no percentage, no number');
   // Station 2: week 1 solid with seven day nodes; weeks 2–4 faint dashes with none.
   s=await seek(p,3.9);const plan=decode(await capture(p,prefix+'-2-plan'));assert.equal(s.station,'plan');

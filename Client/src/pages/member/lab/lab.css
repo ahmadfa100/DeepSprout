@@ -107,3 +107,10 @@
   .ci-step { grid-template-columns: 1fr; }
   .ci-step em { grid-column: 1; grid-row: auto; }
 }
+
+.lab-attempt { border-top: 1px solid var(--line); padding-block: 16px; overflow-wrap: anywhere; }
+#personal-lab-controls { margin-block: 24px; overflow-wrap: anywhere; }
+#personal-lab-controls form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-block: 16px; }
+#personal-lab-controls input { max-width: 100%; min-height: 44px; }
+
+#personal-lab-controls[hidden] { display: none; }

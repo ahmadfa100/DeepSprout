@@ -127,7 +127,10 @@ function load(page, { search = '', clock = false, patchAccount = null } = {}) {
   const timers = clock ? controlClock(window) : null;
 
   // Execute the page's own deferred scripts in order.
+  // ES-module scripts (the shared member bridge) cannot run under jsdom's
+  // eval; pages must work without them, and the Playwright suite covers them.
   [...window.document.querySelectorAll('script[src]')]
+    .filter(tag => tag.type !== 'module')
     .map(tag => tag.getAttribute('src'))
     .filter(src => !src.startsWith('http'))
     .forEach(src => {
@@ -161,7 +164,7 @@ const clearAccountChanges = () => [...store.keys()]
 
 
 
-check('onboarding records the setup answers', () => {
+check('onboarding records the setup answers', async () => {
   const window = load('src/pages/member/onboarding/onboarding.html');
   const document = window.document;
 
@@ -183,6 +186,7 @@ check('onboarding records the setup answers', () => {
     }
   }
 
+  await settled(window);
   const state = window.DeepSprout.get();
   assert.equal(state.onboarding.setupDone, true, 'setup should be marked done');
   assert.equal(state.profile.goal, 'reduce-scrolling', 'first goal option should be stored');
@@ -294,12 +298,12 @@ check('the go/no-go task separates commission errors from misses', async () => {
 
 check('a completed starting point is not retestable until the window opens', async () => {
   clearAccountChanges();
-  const window = load('src/pages/member/lab/lab.html', { search: '?account=demo' });
+  const window = load('src/pages/member/lab/lab.html', { search: '?account=demo',patchAccount:data=>{data.account.asOf='2026-01-11';} });
   await settled(window);
   const account = await window.DeepSproutAccount.load();
   assert.equal(account.checkInMode('digital-habits').mode, 'practice', 'no official retest on demand');
   assert.equal(window.document.querySelectorAll('.lab-card').length, 4, 'four task cards');
-  assert.match(window.document.getElementById('ci-window').textContent, /next check-in in 12 days/i);
+  assert.match(window.document.getElementById('ci-window').textContent, /next check-in in 1 day/i);
   assert.equal(window.document.querySelectorAll('.lab-card a[href*="mode=practice"]').length, 4, 'practice rounds are always open');
   assert.equal([...window.document.querySelectorAll('.lab-card a')].some(link => /Take it/.test(link.textContent)), false,
     'no official attempt is offered outside the window');
@@ -307,7 +311,7 @@ check('a completed starting point is not retestable until the window opens', asy
 
 check('a practice round is never recorded or compared', async () => {
   clearAccountChanges();
-  const window = load('src/pages/member/lab/assessment.html', { search: '?account=demo&test=digital-habits' });
+  const window = load('src/pages/member/lab/assessment.html', { search: '?account=demo&test=digital-habits&mode=practice' });
   await settled(window);
   const account = await window.DeepSproutAccount.load();
   const before = account.exportRecord().assessmentAttempts.length;
@@ -320,24 +324,29 @@ check('a practice round is never recorded or compared', async () => {
   assert.equal(account.checkIns().some(entry => entry.comparison), false, 'no comparison appears');
 });
 
-check('an open window makes the repeat official, and a missed one marks it late', async () => {
+check('a weekly window makes only its pair official, and a missed window waits for the next pair', async () => {
   clearAccountChanges();
-  let window = load('src/pages/member/lab/lab.html', { search: '?account=demo', patchAccount: data => { data.account.asOf = '2026-01-30'; } });
+  let window = load('src/pages/member/lab/lab.html', { search: '?account=demo', patchAccount: data => { data.account.asOf = '2026-01-13'; } });
   await settled(window);
   let account = await window.DeepSproutAccount.load();
   assert.deepEqual([account.checkInMode('digital-habits').mode, account.checkInMode('sustained-attention').mode, account.checkInMode('inhibitory-control').mode],
-    ['official', 'official', 'practice'], 'cycle 1 repeats Digital Habits and Sustained Attention only');
+    ['official', 'official', 'practice'], 'week 1 repeats Digital Habits and Sustained Attention only');
   assert.match(window.document.getElementById('ci-window').textContent, /Digital Habits and Sustained Attention/);
-  assert.match(window.document.getElementById('ci-window').textContent, /about 5 minutes/);
+  assert.match(window.document.getElementById('ci-window').textContent, /about 8 minutes/);
 
-  window = load('src/pages/member/lab/lab.html', { search: '?account=demo', patchAccount: data => { data.account.asOf = '2026-02-06'; } });
+  window = load('src/pages/member/lab/lab.html', { search: '?account=demo', patchAccount: data => { data.account.asOf = '2026-01-16'; } });
   await settled(window);
   account = await window.DeepSproutAccount.load();
-  assert.equal(account.checkInMode('digital-habits').late, true, 'after the window closes the repeat is marked late');
+  assert.equal(account.checkInWindow().state,'missed','the three-day weekly window has closed');
+  assert.equal(account.checkInMode('digital-habits').mode,'practice','a missed window cannot create a late official result');
+  assert.equal(account.checkInWindow().nextWindow.week,2,'the next week selects its own rotating pair');
 });
 
-check('the plan preview requires an offline commitment before activating', () => {
-  const window = load('src/pages/member/onboarding/starting-point.html');
+check('the plan preview requires an offline commitment before activating', async () => {
+  clearAccountChanges();
+  const seedPage=load('src/pages/member/lab/lab.html',{search:'?account=empty'});await settled(seedPage);
+  const {baselines}=await import('./helpers/personal-fixture.mjs');baselines(await seedPage.DeepSproutAccount.load());
+  const window = load('src/pages/member/onboarding/starting-point.html',{search:'?account=empty'});await settled(window);
   const document = window.document;
 
   assert.equal(document.querySelectorAll('.sp-result-card').length, 4,

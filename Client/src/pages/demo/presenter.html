@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../../../assets/brand/logo.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8f2">
+  <meta name="robots" content="noindex">
+  <meta name="description" content="Choose a prepared DeepSprout demonstration identity, and restore the presentation scenario.">
+  <title>Demo presenter — DeepSprout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/style.css">
+  <link rel="stylesheet" href="presenter.css">
+  <script type="module" src="../../shared/member-bridge.js"></script>
+  <script src="../../js/data/personal-access.js" defer></script>
+  <script src="../../js/utils/storage.js" defer></script>
+  <script src="../../js/data/account.js" defer></script>
+  <script src="../../js/data/demo-scenarios.js" defer></script>
+  <script src="presenter.js" defer></script>
+</head>
+<body data-page="demo-presenter" data-root="../../../">
+  <main class="dp" id="main">
+    <header class="dp-head">
+      <a class="dp-brand" href="../../../index.html"><img src="../../../assets/brand/floral-mark.png" alt="" width="40" height="40"><span>DeepSprout</span></a>
+      <p class="dp-eyebrow">Presenter</p>
+      <h1>Choose who you are presenting as.</h1>
+      <p class="dp-lede">Prepared identities with connected records, so nothing has to be built live on stage.</p>
+      <p class="dp-status" id="dp-status" role="status" aria-live="polite"></p>
+    </header>
+
+    <section class="dp-section" aria-labelledby="dp-individual-title">
+      <div class="dp-section-head"><p class="dp-kicker">01</p><h2 id="dp-individual-title">Individuals</h2></div>
+      <div class="dp-grid dp-grid-feature" id="dp-individuals"></div>
+    </section>
+
+    <section class="dp-section" aria-labelledby="dp-partner-title">
+      <div class="dp-section-head"><p class="dp-kicker">02</p><h2 id="dp-partner-title">Partner roles · same shared records</h2></div>
+      <div class="dp-grid" id="dp-partners"></div>
+    </section>
+
+    <section class="dp-section dp-reset" aria-labelledby="dp-reset-title">
+      <div class="dp-section-head"><p class="dp-kicker">03</p><h2 id="dp-reset-title">Reset</h2></div>
+      <div class="dp-reset-grid" id="dp-resets"></div>
+      <p class="dp-fine">All records are local to this browser. The scenario journal is synthetic demonstration data, labelled on every page; Digital Shield usage only appears when a real extension observes it.</p>
+    </section>
+  </main>
+
+  <dialog class="dp-dialog" id="dp-dialog" aria-labelledby="dp-dialog-title">
+    <form method="dialog">
+      <h2 id="dp-dialog-title"></h2>
+      <div id="dp-dialog-body"></div>
+      <div class="dp-dialog-actions"><button type="submit" value="cancel" class="dp-btn dp-btn-quiet">Cancel</button><button type="submit" value="confirm" class="dp-btn dp-btn-primary" id="dp-dialog-confirm"></button></div>
+    </form>
+  </dialog>
+</body>
+</html>

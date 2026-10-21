@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#fbfbf6">
-  <meta name="description" content="Your DeepSprout garden: every practice and offline routine day you log grows something here.">
+  <meta name="description" content="Your Personal Garden: four practice trees grown only from real records.">
   <title>My Garden — DeepSprout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
   <link rel="stylesheet" href="garden.css">
   
+  <script type="module" src="../../../../src/shared/member-bridge.js"></script>
+  <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
   <script src="garden.js" defer></script>
@@ -26,7 +28,7 @@
     <header class="garden-head">
       <p class="garden-eyebrow">Garden</p>
       <h1>My Garden</h1>
-      <p id="garden-subtitle">One plant, grown only from what you actually did. Nothing here is a score.</p>
+      <p id="garden-subtitle">Four small trees, grown only from what you actually did. Nothing here is a score.</p>
     </header>
 
     <!-- 2 · The scene -->
@@ -41,10 +43,10 @@
     </section>
     <p class="garden-hint" id="garden-hint"></p>
 
-    <!-- 3 · Next unlock -->
-    <p class="garden-next" id="garden-next" aria-live="polite"></p>
+    <!-- 3 · Growth by practice: one summary card per practice type -->
+    <section class="garden-kinds" id="garden-next" aria-label="Growth by practice"></section>
 
-    <!-- 4 · Recent achievement -->
+    <!-- 4 · Recently grown -->
     <article class="garden-achievement" id="garden-achievement" aria-labelledby="achievement-title"></article>
   </main>
 

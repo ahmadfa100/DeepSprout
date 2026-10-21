@@ -32,14 +32,22 @@ const validate = () => {
 [email, password].forEach(input => input.addEventListener('input', () => {
   if (input.getAttribute('aria-invalid') === 'true') setError(input, '');
 }));
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
   if (!validate()) return;
-  // Not connected to an account service: credentials are discarded. The
-  // preview continues wherever this device's journey was last left.
-  showToast('This login preview is not connected to an account service. Your credentials were not sent or saved — continuing where you left off.');
-  const resume = window.DeepSprout?.onboardingResume('../../../../') || '../../../../index.html';
+  // Not connected to an account service: the password is discarded. The
+  // email selects the matching person on this device (demo only).
+  const known = window.DeepSproutRepo?.read().people.find(person => person.email.toLowerCase() === email.value.trim().toLowerCase());
+  if (window.DeepSproutRepo && !known) { setError(email, 'No account uses this email on this device. Create an account first.'); email.focus(); return; }
+  try {
+  if (known) { window.DeepSproutRepo.run('member.signin', { email: known.email }); try { sessionStorage.removeItem('deepsprout-account-choice'); } catch { /* ignore */ } }
+  window.DeepSprout?.bind();
+  const journal = known?.individual ? await window.DeepSproutAccount.load(true) : null;
+  const resume = known && !known.individual ? '../../../../workspaces.html#/student' : journal?.plan() ? '../../../../index.html' : window.DeepSprout?.onboardingResume('../../../../') || '../../../../index.html';
+  showToast(`Signed in as ${known?.name || 'this device'} (demo — your password was not checked, sent or saved).`);
   setTimeout(() => { location.href = resume; }, 1600);
+  } catch (error) { showToast(error.message); return; }
+
 });
 passwordToggle.addEventListener('click', () => {
   const showing = password.type === 'password';

@@ -4,8 +4,11 @@
  * returning visitor resumes where they stopped.
  */
 (() => {
+  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const DS = window.DeepSprout;
   const root = document.body.dataset.root || '../../../../';
+  let journal=null;
+  const nextBaseline=()=>journal?DS.ASSESSMENTS.find(meta=>journal.baselineResults().some(row=>row.id===meta.id&&!row.attempt)):DS.nextAssessment();
   const screens = [...document.querySelectorAll('.ob-screen')];
 
   const show = step => {
@@ -233,16 +236,14 @@
     window.setTimeout(() => { if (questions[index] === question) advance(); }, 240);
   }
 
-  function advance() {
+  async function advance() {
     persist();
     if (index === questions.length - 1) {
-      DS.update(current => {
-        current.onboarding.setupDone = true;
-        current.onboarding.introSeen = true;
-      });
       // Also record the setup on the account, so Home, Profile and every
       // account-backed page see that it is done.
-      window.DeepSproutAccount?.load().then(account => account.mutate({
+      try {
+      const account = await window.DeepSproutAccount.load();
+      account.mutate({
         type: 'setup.save',
         goal: answers.goal ? { id: answers.goal, label: DS.GOALS[answers.goal] || answers.goal, setOn: account.todayKey } : null,
         setup: {
@@ -251,7 +252,9 @@
           devices: answers.devices || [], offlineInterests: answers.offlineInterests || [],
           availableDays: answers.availableDays || '', protection: answers.protection || ''
         }
-      })).catch(() => { /* the setup is still kept on this device */ });
+      });
+      DS.update(current => { current.onboarding.setupDone = true; current.onboarding.introSeen = true; });
+      } catch (error) { savedEl.textContent = error.message; return; }
       show('handoff');
       return;
     }
@@ -279,14 +282,15 @@
   function renderHandoff() {
     const goal = DS.GOALS[answers.goal] || 'a more intentional relationship with your feeds';
     document.getElementById('handoff-goal').textContent = `We'll build your plan around one goal: ${goal.toLowerCase()}.`;
-    const next = DS.nextAssessment() || DS.ASSESSMENTS[0];
+    const next = nextBaseline();
+    if (!next) { document.getElementById('handoff-next-title').textContent = 'Your Starting Point'; document.getElementById('handoff-next-note').textContent = 'Your four starting checks are recorded.'; return; }
     document.getElementById('handoff-next-title').textContent = next.title;
     document.getElementById('handoff-next-note').textContent = `${next.kind} · about ${next.minutes} minutes. Your result is recorded on its own — the four assessments are never combined into a single score.`;
   }
 
   document.getElementById('handoff-start').addEventListener('click', () => {
-    const next = DS.nextAssessment() || DS.ASSESSMENTS[0];
-    location.href = `${root}src/pages/member/lab/assessment.html?test=${next.id}&flow=onboarding`;
+    const next = nextBaseline();
+    location.href = next ? `${root}src/pages/member/lab/assessment.html?test=${next.id}&flow=onboarding` : 'starting-point.html';
   });
 
   /* -------------------------------------------------------------- plumbing */
@@ -316,6 +320,7 @@
 
   /* ------------------------------------------------- resume where we left off */
 
+  window.DeepSproutAccount.load().then(value=>{journal=value;if(!document.querySelector('[data-step=handoff]').hidden)renderHandoff();},error=>{savedEl.textContent=error.message;});
   const requested = new URLSearchParams(location.search).get('step');
   const onboarding = DS.get().onboarding;
   if (requested && screens.some(screen => screen.dataset.step === requested)) {

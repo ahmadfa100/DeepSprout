@@ -4,8 +4,9 @@ import {createTimeline} from '../hero-v2/timeline.js';
 import {createIntroGate} from '../hero-v2/intro-gate.js';
 import {createBimo} from './bimo.js';
 import {createVortex} from './vortex.js';
-import {clamp,smooth,follow,stageAt,STAGES,BOUNDS,CAPTURES,stonePose} from './story-math.js';
+import {clamp,smooth,follow,stageAt,STAGES,BOUNDS,CAPTURES,stonePose,CORE} from './story-math.js';
 import {createCollapse,spiralIn,EXIT_TRAVEL,EXIT_END,originalTravel} from './collapse.js';
+import {holeFrame} from './black-hole.js';
 import {createField} from '../lines/field.js';
 import {createPath} from '../lines/path.js';
 import {createGardenStage} from '../journey/garden-stage.js';
@@ -21,11 +22,11 @@ document.documentElement.classList.add('reels-enhanced');
 // The line field shares this page's single scroll reader and animation frame.
 const collapse=createCollapse({root,world,character}),field=createField(document.querySelector('#not-alone'),reduced),garden=createGardenStage(document.querySelector('#product-journey'),reduced),path=createPath(document.querySelector('#way-back'),reduced,garden.entry);
 timeline=createTimeline({root,stones,bimo,onPhase:phase=>root.dispatchEvent(new CustomEvent('hero:phase',{detail:{phase}})),onComplete:()=>gate?.unlock()});
-gate=createIntroGate({timeline,signal,isStopped:()=>stopped()||reduced.matches,onUnlock:()=>{unlocked=true;holdUntil=performance.now()+500;root.dataset.introComplete='true';root.dataset.storyUnlocked='true'}});
+gate=createIntroGate({timeline,signal,isStopped:()=>stopped()||reduced.matches,onUnlock:()=>{unlocked=true;holdUntil=performance.now()+300;root.dataset.introComplete='true';root.dataset.storyUnlocked='true'}});
 const motion=root.querySelector('#motion-control'),originalCopy=root.querySelector('.copy'),copy=root.querySelector('.story-copy'),heading=copy.querySelector('h2'),support=copy.querySelector('.story-support'),cue=root.querySelector('.scroll-cue'),bar=root.querySelector('.story-progress span');
 const atmosphere=root.querySelector('.atmosphere'),effects=root.querySelector('#effects');
 const copyStates=[['',''],['It only takes a moment.','One notification. One video. One quick check.'],['Just one more.','And suddenly your attention is somewhere else.'],['One minute becomes another.',''],['And another.',''],['',''],['Where did the day go?','A few minutes became hours.']];
-let lastStage=-1,lastStaticStage=-1,ambientHeld=false,bimoSwallowed=false;
+let lastStage=-1,lastStaticStage=-1,ambientHeld=false,bimoSwallowed=false,cueShown=false,reframed=0,worldWidth=world.offsetWidth;
 function paint(p,dt=0){
  if(reduced.matches)p=unlocked?CAPTURES[stageAt(p)]:0;
  const stage=stageAt(p),violet=smooth(.25,.8,p),burst=smooth(.69,.85,p),trap=smooth(.86,1,p);
@@ -33,24 +34,33 @@ function paint(p,dt=0){
  if(unlocked&&!reduced.matches&&!debugHold){const hold=p>.10;if(hold!==ambientHeld){ambientHeld=hold;if(hold)timeline.pause();else if(!stopped())timeline.resume()}}
  root.dataset.reelStage=String(stage);root.dataset.reelProgress=p.toFixed(5);if(unlocked&&bimo.status!=='live')character.dataset.pose=p>.195?'awake':'focus';
  if(stage!==lastStage){lastStage=stage;heading.textContent=copyStates[stage][0];support.textContent=copyStates[stage][1];copy.querySelector('.story-kicker').textContent=stage===6?'JUST ONE MORE…':'THE ATTENTION COLLAPSE';if(reduced.matches)bimo.renderPose();root.dispatchEvent(new CustomEvent('reels:stage',{detail:{stage,name:STAGES[stage],progress:p}}))}
- const heroFade=1-smooth(.13,.18,p);originalCopy.style.opacity=heroFade;originalCopy.style.transform=`translateY(${-smooth(.13,.18,p)*18}px)`;originalCopy.inert=heroFade<.05;originalCopy.setAttribute('aria-hidden',String(heroFade<.05));
+ // The opening copy answers the first scroll at once, and is gone before the first story line.
+ const heroOut=smooth(.03,.13,p),heroFade=1-heroOut;originalCopy.style.opacity=heroFade;originalCopy.style.transform=`translateY(${-heroOut*22}px)`;originalCopy.inert=heroFade<.05;originalCopy.setAttribute('aria-hidden',String(heroFade<.05));
  const start=BOUNDS[stage],end=BOUNDS[stage+1]??1.1;
  let opacity=smooth(start+.008,start+.037,p)*(1-smooth(end-.035,end-.006,p));if(stage===1)opacity=smooth(.18,.205,p)*(1-smooth(.22,.23,p));if(stage===0||stage===5)opacity=0;if(stage===4)opacity*=1-smooth(.55,.61,p);if(stage===6)opacity=smooth(.905,.96,p);
  opacity*=1-smooth(.035,.15,exitProgress);copy.style.opacity=opacity;copy.style.transform=`translateY(${(1-opacity)*13}px)`;
- cue.style.opacity=unlocked?(1-smooth(.035,.10,p))*.9:0;
+ // The cue belongs to completed focus: it appears only once the intro has reached LIVING_IDLE,
+ // leaves on the first meaningful scroll, and returns at the top. CSS owns the fade.
+ const cueOn=unlocked&&targetProgress<(cueShown?.03:.012);if(cueOn!==cueShown){cueShown=cueOn;cue.dataset.show=String(cueOn)}
  bar.style.transform=`scaleX(${p})`;bar.parentElement.style.visibility=exitProgress>.59?'hidden':'visible';
  if(unlocked){stones.nodes.forEach(({config,node},i)=>{const pose=stonePose(config,i,p),pulled=spiralIn(pose.x/1672,pose.y/941,0,pose.width,exitProgress,.035+i*.012,.32+i*.025,.8);node.style.visibility=pulled.swallowed?'hidden':'visible';stones.apply({...pose,id:config.id,x:pulled.x*1672,y:pulled.y*941,width:pulled.size,rotation:pose.rotation+pulled.turn*180/Math.PI})});}
  for(const el of root.querySelectorAll('.foreground-left,.foreground-right'))el.style.opacity=1-trap*.9;
 
  atmosphere.style.opacity=violet*.83;root.style.setProperty('--sky-dim',violet.toFixed(2));
+ const hole=holeFrame(p,exitProgress);root.style.setProperty('--hole-dark',clamp(hole.form*.55+hole.dark*.45).toFixed(3));
  const tint=Math.round(burst*16)/16;
  root.querySelector('.root-core').setAttribute('stroke',`rgb(${Math.round(245+tint*7)},${Math.round(255-tint*114)},${Math.round(196+tint*59)})`);
- effects.style.opacity=(1-smooth(.38,.76,p)*.66+(p>.38&&p<.72?Math.sin(p*550)*.10:0)).toFixed(2);
+ // The garden's glow is the first light the hole takes: it is gone before the dark takes over.
+ effects.style.opacity=((1-smooth(.38,.76,p)*.66+(p>.38&&p<.72?Math.sin(p*550)*.10:0))*(1-smooth(.80,.97,p))).toFixed(2);
  root.querySelector('.ambient-svg').style.opacity=1-burst*.75;
  if(p>.10&&!reduced.matches){root.querySelector('.cloud-layers').style.transform=`translateX(${(Math.sin(clock*.08)*3).toFixed(1)}px)`;root.querySelector('.lake-motion').style.transform=`translateX(${(Math.sin(clock*.13)*2).toFixed(1)}px)`}
  else{root.querySelector('.cloud-layers').style.transform='';root.querySelector('.lake-motion').style.transform=''}
  const mobile=innerWidth<=700;
- world.style.transform=mobile?'translateX(-63.3%)':'none';
+ // On a phone the world is a cropped band; as the hole forms it slides so the core is centred,
+ // and the void's geometry is re-measured from the moved world.
+ const reframe=mobile?(.633-CORE.x)*worldWidth*smooth(.84,1,p):0;
+ world.style.transform=mobile?`translateX(calc(-63.3% + ${reframe.toFixed(1)}px))`:'none';
+ if(Math.abs(reframe-reframed)>.05){reframed=reframe;collapse.resize()}
  character.style.transform=`translate(${-trap*30}%,${-burst*3-trap*12}%) rotate(${-burst*3-trap*9}deg) scale(${1-trap*.12})`;
  character.style.setProperty('--reel-glow',burst.toFixed(2));
  collapse.render(exitProgress,reduced.matches);
@@ -79,22 +89,21 @@ function readScroll(){
  collapse.render(exitProgress,reduced.matches);
  if(paused&&!document.hidden)paint(visualProgress);
 }
-window.addEventListener('scroll',readScroll,{passive:true,signal});window.addEventListener('resize',()=>{collapse.resize();field.resize();garden.resize();path.resize();readScroll();paint(visualProgress)},{signal});
+window.addEventListener('scroll',readScroll,{passive:true,signal});window.addEventListener('resize',()=>{worldWidth=world.offsetWidth;collapse.resize();field.resize();garden.resize();path.resize();readScroll();paint(visualProgress)},{signal});
 function tick(now){
  if(destroyed)return;const dt=last?Math.min((now-last)/1000,.05):0;last=now;
  field.frame(now,dt);path.frame(now,dt);garden.frame(now,dt);
  if(!stopped()&&!debugHold){if(!reduced.matches&&exitProgress<.70)clock+=dt;if(unlocked&&now>=holdUntil)visualProgress=follow(visualProgress,targetProgress,dt,reduced.matches);paint(visualProgress,dt)}
  frame=requestAnimationFrame(tick);
 }
-motion.addEventListener('click',()=>{paused=!paused;sync()},{signal});root.querySelector('#replay').addEventListener('click',reset,{signal});
+motion.addEventListener('click',()=>{paused=!paused;sync()},{signal});
 document.addEventListener('visibilitychange',sync,{signal});
 reduced.addEventListener('change',()=>{timeline.finish();gate.unlock();sync();paint(visualProgress);field.resize();garden.resize();path.resize()},{signal});
-const dialog=document.querySelector('#focus-dialog');root.querySelector('#focus-check').addEventListener('click',()=>dialog.showModal(),{signal});
-dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()},{signal});
-for(const choice of dialog.querySelectorAll('[data-result]'))choice.addEventListener('click',()=>{dialog.querySelectorAll('[data-result]').forEach(b=>b.setAttribute('aria-pressed',String(b===choice)));document.querySelector('#check-result').textContent=choice.dataset.result},{signal});
 await Promise.race([Promise.allSettled([...root.querySelectorAll('.stone img,.awake-still')].map(i=>i.decode()).concat(document.fonts.ready)),new Promise(r=>setTimeout(r,1800))]);
 collapse.resize();field.resize();garden.resize();path.resize();
-root.dataset.layersReady='true';if(reduced.matches){timeline.finish();gate.unlock()}else timeline.play();sync();readScroll();paint(visualProgress);frame=requestAnimationFrame(tick);
+root.dataset.layersReady='true';
+// A restored scroll position past the trap may already have finished the intro; never restart it then.
+if(reduced.matches){timeline.finish();gate.unlock()}else if(!unlocked)timeline.play();sync();readScroll();paint(visualProgress);frame=requestAnimationFrame(tick);
 bimo.load().then(()=>{root.dataset.character=bimo.status;sync()}).catch(()=>{root.dataset.character='fallback'});root.dataset.ready='true';
 // Explicit review controls, absent on the public experience unless requested.
 if(new URLSearchParams(location.search).has('reelsDebug')){window.linesLab=field.debug;window.pathLab=path.debug;window.gardenLab=garden.debug}
