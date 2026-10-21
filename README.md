@@ -43,9 +43,9 @@ The personal journey is supported by four distinct systems: **Recovery Plan** sc
 
 ## Product preview
 
-![Actual desktop render of the current DeepSprout home page, with Bimo beside the introductory message](docs/assets/readme/home-preview.png)
+![Actual desktop render of the DeepSprout landing page](docs/assets/readme/home-preview.png)
 
-The image above is a **real local browser capture** of the current homepage at 1440 × 900 with its seeded demo account. It is distinct from the conceptual diagrams below. The [root entry](index.html) and [Client source](Client/index.html) render the same page.
+The image above is a **real local browser capture** of the default landing page at 1440 × 900. It is distinct from the conceptual diagrams below. The [root entry](index.html) and [Client entry](Client/index.html) render the same landing source.
 
 ## What the platform does
 
@@ -115,7 +115,7 @@ These flows share person, resource and participation identities in the newer bro
 
 | Area | Public entry points | Destination routes |
 | --- | --- | --- |
-| Public and access | [Home](index.html), [former story landing](Client/landing.html), [Pricing](Client/pricing.html), [Register](Client/register.html), [Login](Client/login.html), [Partner entry](Client/partners.html) | Public pages and auth pages under [`Client/src/pages/`](Client/src/pages/) |
+| Public and access | [Landing home](index.html), [Client landing entry](Client/landing.html), [Pricing](Client/pricing.html), [Register](Client/register.html), [Login](Client/login.html), [Partner entry](Client/partners.html) | Public pages and auth pages under [`Client/src/pages/`](Client/src/pages/) |
 | Individual first run | [Onboarding](Client/onboarding.html), [Lab](Client/lab.html) | Bimo/setup/Starting Point and four Lab tasks |
 | Individual ongoing | [Recovery Plan](Client/recovery-plan.html), [Weekly Review](Client/weekly-review.html), [Activities](Client/training.html), [Shield](Client/shield.html), [Garden](Client/garden.html), [Insights](Client/insights.html), [Explore](Client/explore.html), [Community](Client/community.html), [Profile](Client/profile.html) | Most short `Client/*.html` URLs forward to corresponding `Client/src/pages/member/...` pages |
 | Partner and administration | [Partner workspaces](Client/workspaces.html#/auth/login), [legacy Admin](Client/admin.html#/dashboard) | Hash routes such as `#/mentor/dashboard`, `#/organization/initiatives`, `#/provider/waitlist`, `#/supervisor/attendance`, `#/admin/overview` |
@@ -135,7 +135,7 @@ The workspace [navigation source](Client/src/workspaces/navigation.js) is the ex
 | Browser protection | Optional Chrome extension with local-origin pairing and restricted site coverage | Technically validated extension and authenticated, consent-aware sync |
 | Hosting | Static files from a local HTTP server or GitHub Pages | Separately hosted frontend, API, database and extension distribution |
 
-The root [`index.html`](index.html) is generated from `Client/index.html` by [`scripts/build_root_home.py`](scripts/build_root_home.py). It adds `<base href="./Client/">` so the **same homepage markup** resolves its relative CSS, scripts, media and links when served at `/DeepSprout/`; a small handler keeps same-page anchors on the root URL. The normal `Client/` entry remains usable. Generated output is checked with `--check`. No Angular, ASP.NET Core service, SQL Server database, production authentication, email delivery or payment processor is present in this checkout.
+The root [`index.html`](index.html) and [`Client/index.html`](Client/index.html) are generated from the [landing source](Client/src/pages/public/landing/home.html) by [`scripts/build_root_home.py`](scripts/build_root_home.py). Each adds a `<base>` for its location so the same landing markup resolves its CSS, scripts, media and links; a small handler keeps same-page anchors on the current URL. Generated output is checked with `--check`. No Angular, ASP.NET Core service, SQL Server database, production authentication, email delivery or payment processor is present in this checkout.
 
 ## Repository structure
 
@@ -146,7 +146,7 @@ The root [`index.html`](index.html) is generated from `Client/index.html` by [`s
 ├── DeepSprout.md              # Authoritative product specification
 ├── DESIGN.md / DeepSprout-DESIGN.md
 ├── Client/
-│   ├── index.html             # Canonical homepage source
+│   ├── index.html             # Generated Client landing homepage
 │   ├── *.html                 # Stable entries and demo pages
 │   ├── src/                   # Page code, layouts, styles, browser-local domain
 │   ├── assets/                # Runtime media, Bimo poses, local vendor assets
@@ -176,7 +176,7 @@ python3 scripts/build_root_home.py --check
 python3 -m http.server 8765 --bind 127.0.0.1
 ```
 
-Open **`http://127.0.0.1:8765/`** for the root homepage. The same server exposes `http://127.0.0.1:8765/Client/workspaces.html#/auth/login` and other `Client/` routes. If you prefer the client at origin root, run `python3 Client/serve.py --port 8765` instead and open `/`; that server also returns the custom `Client/404.html` with HTTP 404. Run `python3 scripts/build_root_home.py` after changing `Client/index.html`, then commit both source and generated root entry.
+Open **`http://127.0.0.1:8765/`** for the landing homepage. The same server exposes `http://127.0.0.1:8765/Client/workspaces.html#/auth/login` and other `Client/` routes. If you prefer the client at origin root, run `python3 Client/serve.py --port 8765` instead and open `/`; that server also returns the custom `Client/404.html` with HTTP 404. Run `python3 scripts/build_root_home.py` after changing the landing source, then commit both generated entries.
 
 The demo stores records in the **browser origin**. Changing between root and client-root server layouts, ports, or Pages creates a distinct origin; saved local progress does not automatically transfer. The seeded demo and identity switch are for review, not real accounts.
 

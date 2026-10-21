@@ -203,12 +203,12 @@
   </dialog>
 
   <!-- Focus mode: a full-screen timer, opened from a practice. -->
-  <dialog id="session-dialog" class="focus-mode" aria-labelledby="session-title">
+  <dialog id="session-dialog" class="focus-mode" aria-labelledby="session-title" aria-describedby="session-description">
     <div class="focus-inner">
       <button type="button" class="focus-close" id="session-close" aria-label="Leave focus mode"><svg><use href="#i-x"/></svg></button>
       <p class="kicker">Focus mode</p>
       <h2 id="session-title">Depth Practice</h2>
-      <p id="session-description">Original content, your responses and honest evidence labels.</p>
+      <p id="session-description">Choose an example and read the steps before you begin.</p>
       <div id="practice-player"></div>
       <p class="session-feedback" id="session-feedback" aria-live="polite"></p>
     </div>
