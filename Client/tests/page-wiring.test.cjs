@@ -39,6 +39,8 @@ for (const [page] of pages) {
   }
   const dir = path.dirname(page);
   const html = read(page);
+  const baseHref = html.match(/<base\s+href="([^"]+)"/)?.[1] || './';
+  const baseDir = path.resolve(root, dir, baseHref);
 
   const ids = new Set(matchAll(html, /\sid="([^"]+)"/g));
   const symbols = new Set(matchAll(html, /<symbol id="([^"]+)"/g));
@@ -50,7 +52,7 @@ for (const [page] of pages) {
   ].filter(ref => !/^(https?:)?\/\//.test(ref) && !ref.startsWith('data:'));
 
   for (const ref of refs) {
-    const target = path.resolve(root, dir, ref.split(/[?#]/)[0]);
+    const target = path.resolve(baseDir, ref.split(/[?#]/)[0]);
     if (!fs.existsSync(target)) problems.push(`${page}: missing file "${ref}"`);
   }
 
@@ -64,7 +66,7 @@ for (const [page] of pages) {
     .filter(src => !src.startsWith('http'));
 
   for (const script of scripts) {
-    const file = path.resolve(root, dir, script);
+    const file = path.resolve(baseDir, script);
     if (!fs.existsSync(file)) continue;
     const code = fs.readFileSync(file, 'utf8');
 

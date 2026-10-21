@@ -51,15 +51,21 @@ def main():
         url = f"http://127.0.0.1:{server.server_port}{PREFIX}"
         with urlopen(url) as response:
             html = response.read().decode("utf-8")
-        assert '<h1 id="hero-title">' in html, "root is not the actual homepage"
+        assert '<h1 id="hero-title">Make room for' in html, "root is not the landing page"
         parser = Assets()
         parser.feed(html)
-        assert parser.base == "./Client/", parser.base
+        assert parser.base == "./Client/src/pages/public/landing/", parser.base
         for asset in parser.assets:
             resolved = urljoin(urljoin(url, parser.base), asset)
             assert urlparse(resolved).path.startswith(PREFIX), resolved
             with urlopen(Request(resolved, method="HEAD")) as response:
                 assert response.status == 200, resolved
+        with urlopen(urljoin(url, "Client/index.html")) as response:
+            client_html = response.read().decode("utf-8")
+        assert '<h1 id="hero-title">Make room for' in client_html
+        client_parser = Assets()
+        client_parser.feed(client_html)
+        assert client_parser.base == "./src/pages/public/landing/", client_parser.base
         for route in ("Client/login.html", "Client/register.html", "Client/workspaces.html#/mentor/dashboard",
                       "Client/src/pages/member/training/training.html"):
             with urlopen(Request(urljoin(url, route), method="HEAD")) as response:

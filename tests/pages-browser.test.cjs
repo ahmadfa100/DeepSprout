@@ -40,19 +40,22 @@ const server = http.createServer((request, response) => {
       await page.goto(origin + prefix + '?preview=1');
       await page.locator('#hero-title').waitFor();
       await page.waitForTimeout(500);
-      assert.match(await page.locator('#hero-title').innerText(), /Break free from/);
-      assert.equal(await page.locator('.hero-bimo').evaluate(img => img.complete && img.naturalWidth > 0), true);
-      assert.equal(await page.locator('.hero-copy').evaluate(el => getComputedStyle(el).display !== 'none'), true);
+      assert.match(await page.locator('#hero-title').innerText(), /Make room for/);
+      assert.equal(await page.locator('.hero-content').isVisible(), true);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true,
         `${width}px horizontal overflow`);
       if (width === 1440) {
         if (process.env.CAPTURE === '1')
           await page.screenshot({path:path.join(root,'docs/assets/readme/home-preview.png')});
-        await page.locator('.hero-how').click();
+        await page.goto(origin + prefix + 'Client/index.html');
+        assert.match(await page.locator('#hero-title').innerText(), /Make room for/);
+        await page.goto(origin + prefix + '?preview=1');
+        await page.locator('.hero-story-link').click();
         assert.equal(new URL(page.url()).pathname, prefix);
-        assert.match(page.url(), /\?preview=1#journey-title$/);
+        assert.match(page.url(), /\?preview=1#story-entry$/);
         await page.goto(origin + prefix);
-        await page.locator('.hero-explore').click();
+        await page.locator('.ds-nav a').filter({hasText:'Activities'}).click();
+        await page.waitForURL(/\/DeepSprout\/Client\/src\/pages\/member\/training\/training\.html$/);
         assert.match(new URL(page.url()).pathname, /\/DeepSprout\/Client\/src\/pages\/member\/training\/training\.html$/);
         await page.goto(origin + prefix + 'Client/workspaces.html#/mentor/dashboard');
         await page.locator('#app').waitFor();
