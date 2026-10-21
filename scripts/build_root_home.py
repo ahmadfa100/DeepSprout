@@ -31,6 +31,8 @@ def render():
     source = SOURCE.read_text(encoding="utf-8")
     if source.count("<head>") != 1 or source.count("</body>") != 1:
         raise ValueError("Unexpected Client homepage structure")
+    # Normalize incidental source-line whitespace in the generated artifact.
+    source = "\n".join(line.rstrip() for line in source.splitlines()) + "\n"
     return (source.replace("<head>", f'<head>\n  {MARKER}\n  <base href="./Client/">', 1)
                   .replace("</body>", f"  {LOCAL_ANCHORS}\n</body>", 1))
 
