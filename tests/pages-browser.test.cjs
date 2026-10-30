@@ -48,6 +48,15 @@ const server = http.createServer((request, response) => {
       if (width === 1440) {
         if (process.env.CAPTURE === '1')
           await page.screenshot({path:path.join(root,'docs/assets/readme/home-preview.png')});
+        await page.goto(origin + prefix + 'Client/index.html');
+        assert.match(await page.locator('#hero-title').innerText(), /Break free from/);
+        await page.goto(origin + prefix + 'Client/hero-reels-lab.html');
+        const landingCta = page.locator('.journey-finish .journey-cta');
+        assert.equal(await landingCta.getAttribute('href'), 'index.html');
+        await landingCta.evaluate(link => link.click());
+        await page.waitForURL(origin + prefix + 'Client/index.html');
+        assert.match(await page.locator('#hero-title').innerText(), /Break free from/);
+        await page.goto(origin + prefix + '?preview=1');
         await page.locator('.hero-how').click();
         assert.equal(new URL(page.url()).pathname, prefix);
         assert.match(page.url(), /\?preview=1#journey-title$/);

@@ -10,6 +10,28 @@ const personalKey = key => `${key}:person:${personalSubject}`;
 const sessions = {
   today:{title:'Depth Practice'},depth:{title:'Depth Practice'},listening:{title:'Listening & Recall'},challenge:{title:'Practical Micro-Challenge'},protected:{title:'Protected Work'}
 };
+const PRACTICE_GUIDES = {
+  depth: {
+    heading: 'Read, then reflect',
+    steps: ['Read the passage at your own pace.', 'Answer the questions using what you understood.', 'Submit to save your attempt and see the result.'],
+    hint: 'The passage stays visible while you answer. Focus on meaning, not speed.'
+  },
+  listening: {
+    heading: 'Listen, then recall',
+    steps: ['Choose audio or the accessible transcript before starting.', 'Listen once or read the transcript, then answer from memory.', 'Submit your answers to save the attempt.'],
+    hint: 'For audio, check your volume first. You cannot seek or replay within the same attempt.'
+  },
+  practical: {
+    heading: 'Try one real task',
+    steps: ['Read the example and choose a small task you can do now.', 'Do the task away from the prompt.', 'Describe your steps and what happened in your own words.'],
+    hint: 'A small, honest outcome is enough. Your written result is a self-report.'
+  },
+  'protected-work': {
+    heading: 'Make room for focused work',
+    steps: ['Name one specific task you want to work on.', 'Start the local timer and pause it when you finish.', 'Record what you did, then submit your self-report.'],
+    hint: 'The timer does not block websites. Turn on Digital Shield separately if you want that support.'
+  }
+};
 const SESSION_BY_TITLE = {
   'Depth Practice': 'depth', 'Listening & Recall': 'listening',
   'Practical Micro-Challenge': 'challenge', 'Protected Work': 'protected'
@@ -125,6 +147,11 @@ const byId=id=>document.getElementById(id);
 const player=document.getElementById('practice-player');
 const feedback=document.getElementById('session-feedback');
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const renderPracticeGuide=type=>{
+ const guide=PRACTICE_GUIDES[type];
+ return `<aside class="practice-guide" aria-label="Before you start"><p class="practice-guide-label">Before you start</p><h3>${esc(guide.heading)}</h3><ol>${guide.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol><p class="practice-guide-hint"><strong>Helpful hint</strong> ${esc(guide.hint)}</p></aside>`;
+};
+const renderPracticeHint=type=>`<p class="practice-in-session-hint"><strong>Helpful hint:</strong> ${esc(PRACTICE_GUIDES[type].hint)}</p>`;
 let selectedType='depth',run=null,heartbeat=null;
 const fail=error=>{feedback.textContent=error.message;feedback.setAttribute('role','alert');};
 const safely=fn=>{try{fn();}catch(error){fail(error);}};
@@ -135,10 +162,12 @@ function stopHeartbeat(){clearInterval(heartbeat);heartbeat=null;}
 function startHeartbeat(){stopHeartbeat();heartbeat=setInterval(()=>safely(()=>{const r=latestRun();if(r?.status==='Started'&&r.activeSince){account.progressPractice(r.id,'tick');showTimer();if(latestRun().observedSeconds>=r.definitionSnapshot.sessionSeconds){stopHeartbeat();account.progressPractice(r.id,'pause');showTimer();byId('work-state').textContent='Expected duration reached. Record your actual outcome.';}}}),1000);}
 function chooseContent(){
  player.onchange=null;run=null;stopHeartbeat();feedback.textContent='';document.getElementById('session-title').textContent=sessions[SESSION_BY_TYPE[selectedType]].title;
+ document.getElementById('session-description').textContent='Choose an example and read the steps before you begin.';
  const level=account.training().find(t=>t.id===selectedType)?.level;
  const defs=account.practiceDefinitions(selectedType).filter(d=>d.level===level);
  const draft=account.practiceHistory().find(r=>['Started','Paused'].includes(r.status));
  player.innerHTML=`${draft?`<p>You have an unfinished ${esc(sessions[SESSION_BY_TYPE[draft.activityType]].title)} attempt with its original content.</p><button type="button" id="resume-practice">Resume original attempt</button><button type="button" id="interrupt-practice">Interrupt & choose a new attempt</button>`:''}<label>Example<select id="practice-definition">${defs.map(d=>`<option value="${esc(d.id)}">${esc(d.title)} · Level ${d.level}${d.access.allowed?'':' · '+esc(d.access.reason)}</option>`).join('')}</select></label><div id="practice-preview"></div>`;
+ player.insertAdjacentHTML('afterbegin',renderPracticeGuide(selectedType));
  const preview=()=>{const d=defs.find(d=>d.id===byId('practice-definition').value);byId('practice-preview').innerHTML=d?`<p>${esc(d.instructions)}</p><p class="practice-meta">About ${d.estimatedMinutes} min · <span class="ph-ref">${esc(d.contentVersion)}</span></p>${selectedType==='listening'?'<label>Access mode<select id="practice-mode"><option value="standard">Audio playback + recall</option><option value="transcript">Accessible transcript recall — changed conditions</option></select></label>':''}${selectedType==='protected-work'?'<label>Your real task / intention<input id="practice-intention" minlength="8" maxlength="500" autocomplete="off"></label><p>Local timer only. No website blocking or task-quality verification.</p><p><a href="../shield/shield.html" target="_blank" rel="noopener">Optional browser protection: open Digital Shield</a>. Start any protection separately; this attempt never implies that blocking occurred.</p>':''}<p>${esc(d.access.reason)}</p><button type="button" id="begin-practice" ${!d.access.allowed||draft?'disabled':''}>Start this example</button>`:'<p>Activate your personal plan to initialize Level 1, then return here.</p>';};
  player.querySelector('select').addEventListener('change',preview);preview();
  byId('resume-practice')?.addEventListener('click',()=>safely(()=>{run=draft;renderPlayer();}));
@@ -149,7 +178,9 @@ function beginClick(event){if(event.target.id!=='begin-practice')return;safely((
 function renderPlayer(){
  player.onclick=null;stopHeartbeat();run=latestRun()||run;feedback.textContent='';const d=run.definitionSnapshot,r=run.responses||{};
  document.getElementById('session-title').textContent=sessions[SESSION_BY_TYPE[run.activityType]].title;
+ document.getElementById('session-description').textContent='Follow the activity below, then submit your response.';
  player.innerHTML=`<p class="practice-meta">${esc(d.title)} · Level ${run.level} · ${esc(run.status)}</p><p>${esc(d.instructions)}</p>${d.practiceType==='depth'?`<article class="practice-passage" tabindex="0"><h3>${esc(d.title)}</h3><p>${esc(d.content)}</p></article>`:''}${d.practiceType==='listening'?(run.mode==='transcript'?`<p><strong>Accessible transcript mode. Changed measurement conditions; this is not verified audio recall.</strong></p><article class="practice-passage" tabindex="0">${esc(d.content)}</article>`:`<p>One playback, no seeking/replay. Audio may be paused. Questions are scored; audible output cannot be verified by the app.</p><audio id="practice-audio" controls preload="metadata" src="../../../../${esc(d.audio)}"></audio><p id="audio-status">${run.audioComplete?'Original playback completed.':'Listen from start to finish before submitting.'}</p><button type="button" id="audio-retry">Interrupt and retry audio</button>`):''}${d.questions?`<form id="practice-answers">${d.questions.map((q,i)=>`<fieldset><legend>${i+1}. ${esc(q.prompt)}</legend>${q.options.map((o,j)=>`<label class="practice-option"><input type="radio" name="answer-${i}" value="${j}" ${r.answers?.[i]===j?'checked':''} required>${esc(o)}</label>`).join('')}</fieldset>`).join('')}</form>`:`<p>${esc(d.content)}</p>${d.practiceType==='protected-work'?`<blockquote>Original intention: ${esc(run.intention)}</blockquote><p id="session-timer" role="timer"></p><p id="work-state">${run.status==='Paused'?'Paused. Resume when ready.':'Start the local timer when ready.'}</p><button type="button" id="timer-toggle">${run.status==='Paused'||!run.activeSince?'Resume / start timer':'Pause timer'}</button>`:`<label>Your steps, categories or revised instructions<textarea name="artifact" minlength="30" maxlength="5000" rows="5">${esc(r.artifact||'')}</textarea></label>`}<label>What actually happened?<textarea name="outcome" minlength="20" maxlength="5000" rows="3">${esc(r.outcome||'')}</textarea></label><label class="practice-option"><input type="checkbox" name="confirmed" ${r.confirmed?'checked':''}>This outcome is my self-report; it has not been independently verified.</label>`}<div class="practice-actions"><button type="button" id="save-practice">Save draft</button><button type="button" id="complete-session">Submit evidence</button><button type="button" id="end-practice">Interrupt attempt</button></div>`;
+ player.querySelector('.practice-meta').insertAdjacentHTML('afterend',renderPracticeHint(run.activityType));
  player.onchange=()=>safely(()=>{account.progressPractice(run.id,'save',{responses:responses()});feedback.textContent='Draft saved to your personal journal.';});
  byId('save-practice').onclick=()=>safely(()=>{account.progressPractice(run.id,'save',{responses:responses()});feedback.textContent='Draft saved.';});
  byId('complete-session').onclick=()=>safely(()=>{

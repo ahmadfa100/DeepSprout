@@ -1,0 +1,34 @@
+# 01 — Repository assessment
+
+## Method and authority
+
+Read all 1,435 lines of [`DeepSprout.md`](../../../DeepSprout.md), including §§25–30; root `AGENTS.md`, `DESIGN.md`, `DeepSprout-DESIGN.md`, `README.md`, `Server/README.md`, `Client/README.md`, `docs/README.md`, `docs/product-specification.md`; relevant cycle, architecture, audit and implementation reports. Inspected the current source and test inventory. Git was clean before this documentation work. There is no `.codegraph/` directory, so CodeGraph was correctly skipped. No application tests were run for this documentation pass; historical report results below are labeled as such.
+
+## Actual architecture on this checkout
+
+| Area | Current evidence | Database implication |
+|---|---|---|
+| Delivery | `README.md:131–138`, `Server/README.md:1–5`, `Client/README.md:1–6`: static HTML/CSS/JS; `Server/` contains only README. No `.csproj`, Angular workspace, SQL schema or migrations in source inventory. | SQL/EF/API are target design, not existing infrastructure. |
+| Operational graph | `Client/src/workspaces/store.js:16–42,83–132`: one `localStorage` JSON graph, schema migration/backups, seed/demo clock, command dispatch, local guards. `Client/src/workspaces/models.d.ts` is a TypeScript declaration for this JS graph, not EF entities. | Map stable original IDs and state histories; no local guard is production authorization or concurrency. |
+| Personal journal | `Client/src/js/data/account.js:130–132,774–806,1072–1085,1122–1135`; `Client/src/js/utils/storage.js:13,77–102`: event-like account changes and a legacy key, personal Lab/Recovery/Shield/practice data. | Import private records separately; distinguish instrument/plan/practice/shield source quality. |
+| Shared Individual bridge | `Client/src/shared/member-bridge.js:1–16,31–66`; `Client/src/shared/selectors.js`; `Client/src/shared/provider-selectors.js:6–38`; `Client/src/pages/member/explore/explore.js:55–72,686–708,789–852`; `Client/src/pages/member/training/assigned.js:49–68`: current regular pages now consume the operational graph, original IDs and assignments. | Older §29/Phase-0 claims that regular Explore is disconnected are dated. Still browser-local and same-origin only. |
+| Institution and rules | `Client/src/workspaces/initiative-rules.js:10–36,64–65`; `commands/initiative.js:36–77`; `commands/institution.js:19–49`: 135-seat and three-active-Supervisor demo rules, admissions/offers, staff, sessions, forms and partnerships. | Preserve separate lifecycles; SQL transactions must replace whole-JSON read/modify/write races. |
+| Coach/Student | `Client/src/workspaces/commands/mentorship.js`, `commands/initiative.js`, `pages/coach/independent.js`, `pages/student.js`; `Client/tests/coach-cycle.test.mjs`. | One shared assignment model; preserve attempts/reviews/authorship and group transfers. |
+| Provider | `Client/src/workspaces/domain.js:24–57`, `commands/outdoor.js:54–80,105–146`, `provider-rules.js`, `provider-completion.js`: local booking, offer, attendance and completion logic. | Original booking/offer IDs migrate; capacity needs SQL locking and uniqueness. |
+| Garden | Active page `Client/src/pages/member/garden/garden.js:1–10,505–629` reads `practiceGarden()` and shared evidence: four trees and bounded decorations; old `account.js:1025–1062` still contains legacy vitality/achievement projection. | Do not migrate dormant vitality as policy. Replace reward projections with a source-backed ledger and correct historical labeling. |
+| Admin duplication | `Client/src/admin/store.js:2–3,69–83` is a separate local store; `Client/src/workspaces/pages/admin.js` uses the partner graph. §19 and `Client/docs/architecture/admin-member-ia-audit.md` inventory unique capabilities. | One conceptual Admin role; reconcile data and publication capabilities without merging unrelated fixture people. |
+| Community | `Client/src/pages/member/community/community.js:9–22,166,543` persists a separate local feed/moderation graph and reads the shared person bridge for some actions. | Canonicalize author and moderator Person IDs; migrate social data separately and never treat engagement as reward evidence. |
+| Extension | `Client/extensions/digital-shield/README.md`, `Client/src/js/data/shield-bridge.js`, account sync validation `account.js:1128–1135`; the 17 October Round 2D report records a real local Chrome MV3 blocking/reminder demonstration. | Supported browser evidence can be stored under consent; local Chrome execution is not phone usage, cross-device service, or tamper-proof production telemetry. |
+| Tests | `Client/tests/` contains Node and browser journey suites; `docs/implementation/institution-cycle-implementation-report.md`, `deepsprout-round1-outdoor-provider-report.md`, `independent-coach-cycle-implementation-report.md` report dated passes and limitations. | These validate demo behavior at their dates, not SQL transactions, auth, cross-device races, or secure files. |
+
+## Ownership and technical debt
+
+The partner graph currently holds people, organizations, programs, initiatives, bookings, appointments and operational outcomes; the private journal holds Lab/Recovery/practice/Shield; legacy Admin and Community have separate local records. Local email selection and simulated OTP (`store.js:91–114`) cannot establish production identity. Browser storage can be forged, altered concurrently across tabs, cleared, or be unavailable. The active bridge improves regular Individual visibility without creating server-enforced privacy. Both code and reports must be read with this boundary.
+
+Transactional persistence is essential for admissions, staff cap, session inventory, provider holds, invitation acceptance, submission review, attendance correction, rewards, policy publication and entitlement usage. Auditability is essential for the same operations, plus moderation, governance, evidence access and consent. Sensitive classes include verified identity/contact, assessment responses/scores, browser domains/time coverage, personal routine, restricted forms/files, minor consent, attendance/excuse attachments and staff notes.
+
+## Current versus target caveats
+
+- [`DeepSprout.md` §29](../../../DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) is a **15 October snapshot**; later implementation reports and current source show the regular Individual bridge, weekly Lab rules and four-tree Garden. Treat §29's implementation claims as historical, while its approved target remains authoritative.
+- `account.js:1025–1062` retains a legacy `garden()` vitality calculation; the active page uses `practiceGarden()` (`garden.js:567`). Legacy code is a migration hazard, not a currently proven visible quiet-day decay.
+- The target still lacks Angular, ASP.NET Core, EF Core, SQL Server, production authentication, secure OTP/QR, payment and durable delivery. No browser-local test establishes those guarantees.
