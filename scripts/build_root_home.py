@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Publish the landing page at both default homepage URLs from one source."""
+"""Publish the Client homepage at the repository root without a second source."""
 
 from argparse import ArgumentParser
 from pathlib import Path
@@ -7,15 +7,12 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "Client" / "src" / "pages" / "public" / "landing" / "home.html"
-TARGETS = (
-    (ROOT / "Client" / "index.html", "./src/pages/public/landing/"),
-    (ROOT / "index.html", "./Client/src/pages/public/landing/"),
-)
-MARKER = "<!-- Generated from Client/src/pages/public/landing/home.html by scripts/build_root_home.py. -->"
+SOURCE = ROOT / "Client" / "index.html"
+TARGET = ROOT / "index.html"
+MARKER = "<!-- Generated from Client/index.html by scripts/build_root_home.py. -->"
 LOCAL_ANCHORS = """<script>
-  // A <base> keeps landing assets and routes portable at both homepage URLs.
-  // Keep same-page anchors on this document, including its query string.
+  // A <base> keeps Client assets and routes portable under a Pages project path.
+  // Keep anchors on this root document, including its query string.
   document.addEventListener('click', function (event) {
     const link = event.target.closest('a[href^="#"]');
     if (!link || event.defaultPrevented || event.button !== 0 ||
@@ -30,32 +27,29 @@ LOCAL_ANCHORS = """<script>
 </script>"""
 
 
-def render(base_href):
+def render():
     source = SOURCE.read_text(encoding="utf-8")
     if source.count("<head>") != 1 or source.count("</body>") != 1:
-        raise ValueError("Unexpected landing page structure")
+        raise ValueError("Unexpected Client homepage structure")
     # Normalize incidental source-line whitespace in the generated artifact.
     source = "\n".join(line.rstrip() for line in source.splitlines()) + "\n"
-    return (source.replace("<head>", f'<head>\n  {MARKER}\n  <base href="{base_href}">', 1)
+    return (source.replace("<head>", f'<head>\n  {MARKER}\n  <base href="./Client/">', 1)
                   .replace("</body>", f"  {LOCAL_ANCHORS}\n</body>", 1))
 
 
 def main():
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="fail if either generated homepage is stale")
+    parser.add_argument("--check", action="store_true", help="fail if root homepage is stale")
     args = parser.parse_args()
+    expected = render()
     if args.check:
-        stale = [target for target, base_href in TARGETS
-                 if not target.exists() or target.read_text(encoding="utf-8") != render(base_href)]
-        if stale:
-            print(f"Stale homepage: {', '.join(str(path.relative_to(ROOT)) for path in stale)}; "
-                  "run python3 scripts/build_root_home.py", file=sys.stderr)
+        if not TARGET.exists() or TARGET.read_text(encoding="utf-8") != expected:
+            print("Root index.html is stale; run python3 scripts/build_root_home.py", file=sys.stderr)
             return 1
-        print("Default homepages match the landing page")
+        print("Root homepage matches Client/index.html")
     else:
-        for target, base_href in TARGETS:
-            target.write_text(render(base_href), encoding="utf-8")
-            print(f"Wrote {target.relative_to(ROOT)} from the landing page")
+        TARGET.write_text(expected, encoding="utf-8")
+        print("Wrote index.html from Client/index.html")
     return 0
 
 

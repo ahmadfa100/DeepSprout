@@ -6,7 +6,7 @@ DeepSprout's current static HTML/CSS/JavaScript demonstration. The [authoritativ
 python3 serve.py --port 8765
 ```
 
-Pages: `index.html` (landing Home), `landing.html` (alternate entry to the same source), `onboarding.html`, `lab.html`, `recovery-plan.html`, `weekly-review.html`, `training.html` (Activities), `shield.html`, `garden.html`, `insights.html`, `explore.html`, `community.html`, `profile.html`, `pricing.html`, `login.html`, and `register.html`. The canonical landing content lives under `src/pages/public/landing/`; `index.html` is generated from it. Most other root files redirect to their page folder.
+Pages: `index.html` (Home), `landing.html` (the former animated landing page), `onboarding.html`, `lab.html`, `recovery-plan.html`, `weekly-review.html`, `training.html` (Activities), `shield.html`, `garden.html`, `insights.html`, `explore.html`, `community.html`, `profile.html`, `pricing.html`, `login.html`, and `register.html`. Home content lives in `index.html` with its CSS and JS under `src/pages/public/home/`. Most other root files redirect to their page folder.
 
 `404.html` is the illustrated missing-page screen, with an animated SVG garden and Bimo, home and activity links, a pause control, and automatic reduced-motion support. The preview server above automatically displays it for any missing URL, including nested paths, while returning HTTP status 404. Try `/does-not-exist` to see it. Assets and recovery links use root-relative URLs so they also work at nested missing paths. For production, serve `Client/` as the site root and configure the host's missing-page handler to serve `/404.html` with HTTP status 404 (for example, Nginx `error_page 404 /404.html;` or Apache `ErrorDocument 404 /404.html`). Hosts with automatic `404.html` support need no extra rule.
 
@@ -14,7 +14,7 @@ For VS Code Live Server, open the **DeepSprout repository** as the workspace. `.
 
 ## Current Individual and partner cycles
 
-The regular Individual routes include Register/Login, Bimo onboarding, four Lab tasks, Your Starting Point, Recovery Plan, Activities/Offline Routine, Digital Shield, Garden, Insights, Explore, Community and Profile. `src/pages/member/` contains most destination pages; root HTML files retain public entry URLs. `index.html` is the landing Home entry. First-run handoff (16 Oct 2026): Starting Point now reads the four official baselines from `DeepSproutAccount`, activation writes the plan to that same journal (which Roadmap and other Individual pages read), and the last baseline task links to Starting Point. A browser test verifies this with recorded baseline events; the timed tasks themselves were not replayed in that test. The short skippable orientation and the weekly Lab window are still open.
+The regular Individual routes include Register/Login, Bimo onboarding, four Lab tasks, Your Starting Point, Recovery Plan, Activities/Offline Routine, Digital Shield, Garden, Insights, Explore, Community and Profile. `src/pages/member/` contains most destination pages; root HTML files retain public entry URLs. `index.html` is the current Home entry. First-run handoff (16 Oct 2026): Starting Point now reads the four official baselines from `DeepSproutAccount`, activation writes the plan to that same journal (which Home and Roadmap read), and the last baseline task links to Starting Point. A browser test verifies this with recorded baseline events; the timed tasks themselves were not replayed in that test. The short skippable orientation and the weekly Lab window are still open.
 
 `workspaces.html` and `partners.html` provide browser-local Institution, Coach, Invited Student, Outdoor Provider, Supervisor, partner Participant and Admin workflows. Their local command/state flows are richer than mock screens, and, since 16 October 2026, the Institution cycle is connected to the **regular** Individual pages through one canonical person (`src/shared/member-bridge.js`, `src/shared/selectors.js`): published Initiatives appear live in `explore.html` (fixtures are labelled “Sample listing”), applications/My Initiatives, Activities → Assigned, session QR booking, excuses, Insights and the four-tree Garden read the same records the Representative, Supervisor and Coach use. Provider bookings remain fixture-only on the Individual side. See the [implementation report](../docs/implementation/institution-cycle-implementation-report.md).
 
@@ -42,7 +42,7 @@ The journey test needs `jsdom`; without it the test reports that it was skipped 
 ## Shared structure
 
 - `src/styles/theme.css` owns the common colors, typography, and design tokens. Each page loads this after its own stylesheet so the shared tokens stay consistent.
-- `src/layouts/member-layout/member-layout.js` renders shared member navigation and footer, including the responsive menu and illustrated page-transition loader. `member-layout.css` styles them. The landing homepage and Pricing use the public `site-layout`.
+- `src/layouts/member-layout/member-layout.js` renders the shared Home and member navigation and footer, including the responsive menu and illustrated page-transition loader. `member-layout.css` styles them. The former landing page and Pricing retain the public `site-layout`.
 - `assets/` contains runtime media. Illustration prompt notes live in `docs/design/image-prompts/`; original design references live in `references/`, and test captures live in `docs/validation/`.
 - Login uses `assets/auth/background.png`. Register has a live botanical/network Canvas environment, Individual/Partner path selection, reactive fields and responsive cards. It reuses DM Sans, the original brand artwork and the auth footer. The same scene continues through Partner registration routes. See [the living registration handoff](docs/experience/living-registration.md). Both forms and their text remain live HTML.
 - `src/styles/page-hero.css` is the shared hero for Roadmap, Activities, Digital Shield, Insights and Community: one fixed-height frame with copy on the left and art on the right.
@@ -58,7 +58,7 @@ Animations follow the user's reduced-motion preference. No framework or build st
 
 ## Landing: Break the Loop
 
-The default landing page is a continuous attention story: garden → distractions → infinity ribbon → stillness → seed → roots → path → garden. Scrolling remains native. Stop in the loop for about 1.3 seconds to let the world settle, or keep scrolling to continue through the fallback.
+The former landing page at `landing.html` is a continuous attention story: garden → distractions → infinity ribbon → stillness → seed → roots → path → garden. Scrolling remains native. Stop in the loop for about 1.3 seconds to let the world settle, or keep scrolling to continue through the fallback.
 
 - `src/pages/public/landing/animations/scroll-story.js` owns the state, filtered velocity, stillness, camera/seed handoff, and root/journey reveals.
 - `animations/loop-scene.js` projects a shaded SVG ribbon and HTML feed fragments, then unfolds the same geometry into a path. No Three.js/WebGL dependency is needed.
