@@ -65,7 +65,7 @@ export const ACTORS = {
   birdhouse: { kind: 'object', glyph: 'birdhouse', label: 'Birdhouse' },
   flower: { kind: 'object', glyph: 'flower', label: 'Flower' },
   workspace: { kind: 'object', glyph: 'layers', label: 'Workspace' },
-  setup: { kind: 'object', glyph: 'spark', label: 'Bimo + quick setup', short: 'Setup' },
+  setup: { kind: 'object', glyph: 'spark', label: 'Personal setup', short: 'Setup' },
   starting: { kind: 'object', glyph: 'chart', label: 'Your Starting Point', short: 'Starting Point' }
 };
 

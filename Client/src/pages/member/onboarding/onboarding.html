@@ -5,11 +5,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f9fcf5">
-  <meta name="description" content="Meet Bimo and set up your personal DeepSprout starting point.">
+  <meta name="description" content="Set your direction and begin a personal DeepSprout plan with Green.">
   <title>Welcome — DeepSprout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../../src/styles/style.css">
   <link rel="stylesheet" href="../../../../src/styles/member-page.css">
   <link rel="stylesheet" href="onboarding.css">
@@ -33,63 +33,70 @@
     <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M4 20c0-9 6-14 16-14 0 10-6 14-14 14H4Zm4-2c2-4 5-7 9-9"/></symbol>
   </svg>
 
+  <header class="ob-topbar">
+    <div class="ob-brand"><img src="../../../../assets/brand/floral-mark.png" alt=""><span>DeepSprout</span></div>
+    <div class="ob-stage" aria-live="polite"><span class="ob-stage-label">Getting started</span><span id="ob-stage-count">01 / 04</span></div>
+  </header>
   <main class="ob" id="ob-main">
 
-    <!-- ----------------------------------------------- Screen 01: Meet Bimo -->
+    <!-- ----------------------------------------------- Screen 01: Welcome -->
     <section class="ob-screen ob-meet" data-step="meet" aria-labelledby="meet-title">
       <div class="ob-meet-inner">
-        <figure class="ob-bimo">
-          <img src="../../../../assets/onboarding/bimo-greeting.png" alt="Bimo, the DeepSprout plant robot, waving hello">
-          <span class="ob-bimo-glow" aria-hidden="true"></span>
-        </figure>
         <div class="ob-meet-copy">
-          <p class="eyebrow"><svg><use href="#i-leaf"/></svg> Welcome to DeepSprout</p>
-          <h1 id="meet-title">Hey, I'm Bimo!</h1>
-          <p class="ob-lead">I'll be your friend along the way. Let's discover your starting point and build a plan that fits you.</p>
+          <p class="eyebrow">A MORE INTENTIONAL START</p>
+          <h1 id="meet-title">Make room for <em>what matters.</em></h1>
+          <p class="ob-lead">Choose a direction, learn your starting point, and build a plan that fits your life.</p>
+          <ol class="ob-journey" aria-label="What comes next">
+            <li><span>01</span>Set your direction</li>
+            <li><span>02</span>Find your baseline</li>
+            <li><span>03</span>Begin your plan</li>
+          </ol>
           <div class="btn-row">
-            <button class="btn btn-primary" type="button" data-go="intro">Let's Begin <svg><use href="#i-arrow"/></svg></button>
-            <button class="btn btn-quiet" type="button" data-skip-intro>Skip Introduction</button>
+            <button class="btn btn-primary" type="button" data-go="intro">Continue <svg><use href="#i-arrow"/></svg></button>
+            <button class="btn btn-quiet" type="button" data-skip-intro>Skip overview</button>
           </div>
-          <p class="ob-fineprint">Skipping the introduction skips these two explanation screens only — not the four assessments.</p>
+          <p class="ob-fineprint">Skipping the overview still takes you through setup and the four assessments.</p>
         </div>
+        <figure class="ob-green-scene">
+          <span class="ob-green-halo" aria-hidden="true"></span>
+          <img src="../../../../assets/hero-v2/bimo-awake.png" alt="Green, the DeepSprout guide">
+          <figcaption><span>YOUR GUIDE</span><strong>Green</strong></figcaption>
+        </figure>
       </div>
-      <div class="ob-meadow" aria-hidden="true"></div>
     </section>
 
     <!-- ----------------------------------------- Screen 02: Before We Begin -->
     <section class="ob-screen ob-intro" data-step="intro" hidden aria-labelledby="intro-title">
       <div class="page-shell ob-intro-inner">
         <div class="ob-intro-copy">
-          <p class="eyebrow"><svg><use href="#i-leaf"/></svg> Before we begin</p>
-          <h1 id="intro-title">Let's find your starting point.</h1>
-          <p class="ob-lead">We'll begin with a few questions and four short assessments.</p>
-          <p>Your answers and results are private by default. DeepSprout will use them to help build a plan around your goals.</p>
-          <p>There are no perfect answers. Just be yourself! You can take a break and continue later.</p>
+          <p class="eyebrow">THE PROCESS</p>
+          <h1 id="intro-title">Four check-ins. A clearer start.</h1>
+          <p class="ob-lead">First, a few choices about your goals. Then four short check-ins to shape your starting point.</p>
 
           <ul class="ob-assurances">
             <li><span class="badge-icon"><svg><use href="#i-clock"/></svg></span>
-              <span><strong>About 15–20 minutes</strong><small>An estimate for this preview. Real durations are confirmed once the assessments are measured.</small></span></li>
-            <li><span class="badge-icon gold"><svg><use href="#i-save"/></svg></span>
-              <span><strong>Progress is saved as you go</strong><small>Close the tab and come back — you return to the step you left.</small></span></li>
-            <li><span class="badge-icon sky"><svg><use href="#i-lock"/></svg></span>
-              <span><strong>Private by default</strong><small>Your results are not shared with mentors or institutions. <button type="button" class="ob-link" data-privacy>What we do with them</button></small></span></li>
+              <span><strong>At your pace</strong><small>Pause and return whenever you need.</small></span></li>
+            <li><span class="badge-icon"><svg><use href="#i-save"/></svg></span>
+              <span><strong>Progress saved</strong><small>Your place is kept on this device.</small></span></li>
+            <li><span class="badge-icon"><svg><use href="#i-lock"/></svg></span>
+              <span><strong>Private by default</strong><small>Your results stay yours. <button type="button" class="ob-link" data-privacy>How your data is used</button></small></span></li>
           </ul>
 
           <div class="btn-row">
-            <button class="btn btn-primary" type="button" data-go="setup">Start Assessments <svg><use href="#i-arrow"/></svg></button>
+            <button class="btn btn-primary" type="button" data-go="setup">Set my direction <svg><use href="#i-arrow"/></svg></button>
             <button class="btn btn-quiet" type="button" data-go="meet"><svg><use href="#i-back"/></svg> Back</button>
           </div>
         </div>
 
         <aside class="ob-intro-aside" aria-label="What you'll complete">
-          <img class="ob-bimo-small" src="../../../../assets/onboarding/bimo-calm.png" alt="Bimo standing calmly with open hands">
-          <ul class="ob-test-list">
-            <li><span class="badge-icon"><svg><use href="#i-phone"/></svg></span><span><strong>Digital Habits</strong><small>Short honest questions</small></span></li>
-            <li><span class="badge-icon sky"><svg><use href="#i-clock"/></svg></span><span><strong>Sustained Attention</strong><small>A timed response task</small></span></li>
-            <li><span class="badge-icon lilac"><svg><use href="#i-hand"/></svg></span><span><strong>Inhibitory Control</strong><small>Respond, or hold back</small></span></li>
-            <li><span class="badge-icon gold"><svg><use href="#i-book"/></svg></span><span><strong>Depth Challenge</strong><small>A short passage to read</small></span></li>
-          </ul>
-          <p class="ob-aside-note">Four assessments — not four diagnoses. There is no single score for your brain.</p>
+          <p class="ob-aside-kicker">YOUR STARTING POINT</p>
+          <ol class="ob-test-list">
+            <li><span class="ob-test-number">01</span><span><strong>Digital Habits</strong><small>A few honest questions</small></span></li>
+            <li><span class="ob-test-number">02</span><span><strong>Sustained Attention</strong><small>A short response task</small></span></li>
+            <li><span class="ob-test-number">03</span><span><strong>Inhibitory Control</strong><small>Respond, or hold back</small></span></li>
+            <li><span class="ob-test-number">04</span><span><strong>Depth Challenge</strong><small>A short reading passage</small></span></li>
+          </ol>
+          <p class="ob-aside-note">Each check-in stands on its own. There is no single score.</p>
         </aside>
       </div>
     </section>
@@ -100,8 +107,8 @@
         <header class="ob-setup-head">
           <div class="step-rail" id="setup-rail" aria-hidden="true"></div>
           <p class="ob-step-count" id="setup-count" aria-live="polite">Question 1 of 8</p>
-          <h1 id="setup-title">Quick personal setup</h1>
-          <p class="ob-lead">A few quick choices. Each one changes what your plan suggests — nothing here is a test.</p>
+          <h1 id="setup-title">Shape your starting point.</h1>
+          <p class="ob-lead">Eight quick choices. You can change them later.</p>
         </header>
 
         <form id="setup-form" novalidate>
@@ -123,10 +130,10 @@
     <section class="ob-screen ob-handoff" data-step="handoff" hidden aria-labelledby="handoff-title">
       <div class="narrow-shell ob-handoff-inner">
         <span class="badge-icon ob-handoff-mark"><svg><use href="#i-check"/></svg></span>
-        <p class="eyebrow">Setup complete</p>
-        <h1 id="handoff-title">Thanks — that helps a lot.</h1>
+        <p class="eyebrow">READY FOR THE NEXT STEP</p>
+        <h1 id="handoff-title">Your direction is set.</h1>
         <p class="ob-lead" id="handoff-goal"></p>
-        <p>Next come the four short assessments. They measure different things, and each one is recorded separately. You can stop after any assessment and pick up where you left off.</p>
+        <p>Next are four short check-ins. You can pause between them and return anytime.</p>
         <div class="card ob-next-card">
           <div class="card-head">
             <span class="badge-icon gold"><svg><use href="#i-clock"/></svg></span>

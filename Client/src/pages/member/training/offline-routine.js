@@ -152,9 +152,11 @@
   function renderList() {
     const items = account.routine().items;
     $('routine-empty').hidden = items.length > 0;
+    $('routine-board-count').textContent = `${items.length} ${items.length === 1 ? 'item' : 'items'}`;
     const dates = weekDates();
 
-    list.replaceChildren(...items.map(item => {
+    const ordered = [...items].sort((a, b) => Number(account.routineScheduledOn(b, account.today) && !b.paused) - Number(account.routineScheduledOn(a, account.today) && !a.paused));
+    list.replaceChildren(...ordered.map(item => {
       const status = account.routineStatusOn(item, account.today);
       const scheduled = account.routineScheduledOn(item, account.today);
       const weekCount = dates.filter(date => account.routineStatusOn(item, date) === 'done').length;
@@ -233,11 +235,8 @@
     const items = account.routine().items;
     const due = items.filter(item => account.routineScheduledOn(item, account.today));
     const done = due.filter(item => account.routineStatusOn(item, account.today) === 'done').length;
-    $('routine-ring-count').textContent = due.length ? `${done}/${due.length}` : '—';
-    const ring = $('routine-ring');
-    const length = 2 * Math.PI * 50;
-    ring.style.strokeDasharray = `${length}`;
-    ring.style.strokeDashoffset = `${length * (1 - (due.length ? done / due.length : 0))}`;
+    $('routine-ring-count').textContent = due.length ? `${done} / ${due.length}` : '—';
+    $('routine-ring').style.setProperty('--fill', String(due.length ? done / due.length : 0));
     $('routine-foot').textContent = !items.length ? 'Start with one thing. Small is fine.'
       : !due.length ? 'Nothing on your list is scheduled for today.'
         : done === due.length ? 'Everything for today is done. Skipped days are fine too — they are recorded as skipped, not as failures.'

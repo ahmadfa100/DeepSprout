@@ -26,7 +26,7 @@ export default f => ({
     {
       id: 'entry-individual',
       title: 'An Individual creates one identity',
-      summary: 'Joining as an Individual creates one verified, recoverable identity. Personal setup, Bimo and the four baseline assessments follow (Chapter 8).',
+      summary: 'Joining as an Individual creates one verified, recoverable identity. A short welcome, personal setup and four baseline assessments follow (Chapter 8).',
       show: ['individual', 'identity'],
       at: { individual: [300, 270], identity: [700, 270] },
       edges: ['individual>identity'], flows: ['individual>identity'], token: 'key',
