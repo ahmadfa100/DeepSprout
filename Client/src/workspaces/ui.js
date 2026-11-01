@@ -10,7 +10,7 @@ export const initials=name=>esc((name||'Demo').split(' ').map(x=>x[0]).slice(0,2
 export const avatar=name=>`<span class="avatar" aria-hidden="true">${initials(name)}</span>`;
 export function header(eyebrow,title,description='',actions=''){return `<header class="page-heading"><div><p class="eyebrow">${esc(eyebrow)}</p><h1>${esc(title)}</h1>${description?`<p>${esc(description)}</p>`:''}</div><div class="actions">${actions}</div></header>`;}
 export const section=(title,body,extra='')=>`<section class="panel"><div class="section-heading"><h2>${esc(title)}</h2>${extra}</div>${body}</section>`;
-export const empty=(title,description,action='',art=true)=>`<section class="empty-state">${art?'<img src="assets/onboarding/bimo-calm.png" alt="Bimo quietly keeping you company" width="120" height="150">':icon('leaf')}<h2>${esc(title)}</h2><p>${esc(description)}</p>${action}</section>`;
+export const empty=(title,description,action='',art=true)=>`<section class="empty-state">${art?'<img src="assets/onboarding/bimo-calm.png" alt="Green quietly keeping you company" width="120" height="150">':icon('leaf')}<h2>${esc(title)}</h2><p>${esc(description)}</p>${action}</section>`;
 export const missing=(what='page')=>empty(`We couldn't find this ${what}.`,'It may have been removed, archived or be outside your current workspace.',link('Choose a workspace','auth/workspaces'),false);
 export const note=text=>`<p class="note">${icon('shield')}<span>${esc(text)}</span></p>`;
 let fieldSequence=0;

@@ -120,14 +120,10 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 
 .routine-block { display: grid; grid-template-columns: minmax(250px, .8fr) 1.6fr; gap: 40px; }
 .routine-side { display: flex; flex-direction: column; }
-.today-ring { position: relative; width: 150px; height: 150px; margin: 28px 0 14px; }
-.today-ring svg, .focus-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.today-ring circle, .focus-ring circle { fill: none; }
+.focus-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.focus-ring circle { fill: none; }
 .ring-track { stroke: #e7eee4; stroke-width: 11; }
 .ring-fill { stroke: var(--leaf); stroke-width: 11; stroke-linecap: round; transition: stroke-dashoffset .9s var(--ease); }
-.today-ring span { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
-.today-ring strong { font-size: 2.1rem; font-weight: 800; letter-spacing: -.05em; line-height: 1; }
-.today-ring small { color: var(--muted); font-size: .88rem; font-weight: 600; }
 .routine-foot { color: var(--muted); font-size: .96rem; line-height: 1.5; }
 
 .routine-add {
@@ -295,8 +291,6 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
   .practice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .routine-block { grid-template-columns: 1fr; gap: 24px; }
   .routine-side { display: grid; grid-template-columns: 1fr auto; column-gap: 24px; }
-  .routine-side > :not(.today-ring) { grid-column: 1; }
-  .today-ring { grid-column: 2; grid-row: 1 / 5; margin: 0; width: 130px; height: 130px; }
 }
 @media (max-width: 760px) {
   .page-shell { width: min(100% - 32px, 1180px); }
@@ -307,7 +301,6 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
   .up-next-go { grid-column: 1 / -1; justify-content: center; }
   .shield-band { grid-template-columns: 1fr; padding: 22px; }
   .routine-side { grid-template-columns: 1fr; }
-  .today-ring { grid-column: 1; grid-row: auto; margin: 18px 0 10px; }
 }
 @media (max-width: 520px) {
   .practice-grid { grid-template-columns: 1fr; }
@@ -578,3 +571,65 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 #practice-player .pr-done { border-color: var(--color-pine); background: var(--color-pine); color: var(--color-white); }
 @keyframes pr-pop { from { transform: scale(.4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .pr-result, .pr-mark { animation: none; } }
+
+/* The offline list is the first everyday action on Activities. */
+.routine-block { grid-template-columns: minmax(0, .72fr) minmax(0, 1.5fr); gap: 34px; align-items: start; border-color: #e1e9de; background: #f0f5ed; box-shadow: none; }
+.routine-side { padding: 8px 0 0 4px; }
+.routine-side h2 { max-width: 11ch; font-size: clamp(2rem, 3.4vw, 2.8rem); line-height: 1.04; letter-spacing: -.052em; }
+.routine-side > p:not(.kicker):not(.routine-foot) { max-width: 28ch; font-size: 15px; }
+.routine-today { display: grid; gap: 7px; width: min(100%, 244px); margin: 32px 0 13px; padding: 16px 18px; border: 1px solid #dce7d8; border-radius: 17px; background: #fffefa; }
+.routine-today > span { color: var(--color-leaf); font-size: 11px; font-weight: 800; letter-spacing: .1em; }
+.routine-today strong { color: var(--color-pine); font-size: 2rem; line-height: 1; letter-spacing: -.055em; font-variant-numeric: tabular-nums; }
+.routine-today-track { height: 5px; margin-top: 7px; overflow: hidden; border-radius: 5px; background: #e2eadf; }
+.routine-today-track i { display: block; width: 100%; height: 100%; border-radius: inherit; background: var(--color-leaf); transform: scaleX(var(--fill, 0)); transform-origin: left; transition: transform .45s var(--ease-out); }
+.routine-foot { max-width: 28ch; font-size: 13px; }
+.routine-main { min-width: 0; padding: 24px 27px 27px; border: 1px solid #e0e8dd; border-radius: 23px; background: #fffefa; box-shadow: 0 14px 35px rgb(18 63 52 / .035); }
+.routine-board-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 20px; }
+.routine-board-kicker,.routine-list-label { color: var(--color-leaf); font-size: 11px; font-weight: 800; letter-spacing: .1em; }
+.routine-board-head h3 { margin: 3px 0 0; font-size: 1.55rem; line-height: 1.1; letter-spacing: -.04em; }
+.routine-board-count { color: var(--color-muted); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.routine-add { border-color: #c9d9c8; border-radius: 13px; box-shadow: none; }
+.routine-add input { font-size: 15px; }
+.routine-add button { border-radius: 9px; background: var(--color-pine); }
+.routine-suggestions { margin-top: 12px; }
+.routine-suggestions summary { width: max-content; max-width: 100%; color: var(--color-leaf); font-size: 13px; font-weight: 700; cursor: pointer; }
+.routine-suggestions summary:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+.routine-ideas { margin-top: 12px; }
+.routine-list-label { margin: 25px 0 4px; }
+.routine-week { margin: 11px 0 19px; padding: 3px 4px 12px; border-bottom: 1px solid #e5ebe2; }
+.routine-day-cell.is-today { background: #eaf2e8; }
+.routine-list { gap: 0; }
+.routine-item { gap: 4px 13px; padding: 17px 3px; border: 0; border-bottom: 1px solid #e5ebe2; border-radius: 0; background: transparent; box-shadow: none; }
+.routine-item:hover { border-color: #d3e0d1; background: #f8faf6; box-shadow: none; }
+.routine-item.is-done { background: #f7faf4; border-color: #e5ebe2; }
+.routine-item.is-paused { opacity: .78; }
+.routine-tick { width: 38px; height: 38px; border-width: 1.5px; }
+.routine-body strong { font-size: 16px; }
+.routine-meta { font-size: 12px; }
+.routine-icon-button { width: 36px; height: 36px; }
+.routine-empty { padding: 22px 7px; border: 0; border-radius: 0; background: transparent; font-size: 14px; }
+.routine-empty strong { color: var(--color-ink); }
+
+/* Protected Work: one calm, legible timer with observed progress. */
+#practice-player .work-notes { margin: 7px 0 18px; color: var(--color-text-2); font-size: 13px; }
+#practice-player .work-notes summary { width: max-content; color: var(--color-leaf); font-weight: 700; cursor: pointer; }
+#practice-player .work-notes p { margin-top: 8px; }
+#practice-player .work-intention { display: grid; gap: 3px; margin: 18px 0 12px; padding: 0; border: 0; background: transparent; }
+#practice-player .work-intention span { color: var(--color-muted); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+#practice-player .work-intention strong { font-size: 19px; letter-spacing: -.02em; }
+#practice-player .work-clock { margin: 0 0 25px; padding: 24px 28px; border: 1px solid #d7e5d5; border-radius: 22px; background: #edf4ea; }
+.work-clock-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: var(--color-pine); font-size: 12px; font-weight: 800; letter-spacing: .08em; }
+#work-clock-phase { padding: 5px 10px; border-radius: 20px; background: #fffefa; letter-spacing: 0; }
+.work-clock-readout { display: flex; align-items: baseline; gap: 15px; margin: 22px 0 18px; color: var(--color-pine); font-variant-numeric: tabular-nums; }
+#practice-player #session-timer { font-size: clamp(3.8rem, 8vw, 5.5rem); line-height: 1; font-weight: 700; letter-spacing: -.065em; }
+.work-clock-readout > span { color: var(--color-muted); font-size: 19px; font-weight: 600; }
+.work-clock-progress { height: 7px; overflow: hidden; border-radius: 7px; background: #d6e4d2; }
+.work-clock-progress > span { display: block; width: 100%; height: 100%; border-radius: inherit; background: var(--color-leaf); transform: scaleX(var(--progress, 0)); transform-origin: left; transition: transform .5s var(--ease-out); }
+.work-clock-foot { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 19px; }
+.work-clock-foot p { max-width: 35ch; color: var(--color-text-2); font-size: 13px; line-height: 1.45; }
+#practice-player .work-clock-control { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: none; margin: 0; padding: 0 18px; border: 1px solid var(--color-pine); border-radius: 11px; background: var(--color-pine); color: #fff; }
+#practice-player .work-clock-control:hover { background: var(--color-deep); color: #fff; }
+.work-clock-control svg { width: 16px; height: 16px; }
+@media (max-width: 1080px) { .routine-block { grid-template-columns: 1fr; } .routine-side { display: grid; grid-template-columns: 1fr auto; } .routine-side > :not(.routine-today) { grid-column: 1; } .routine-today { grid-column: 2; grid-row: 1 / 5; margin: 0; } }
+@media (max-width: 600px) { .routine-side { display: block; } .routine-side h2 { max-width: none; } .routine-today { margin: 22px 0 10px; } .routine-main { padding: 19px 16px 20px; } .routine-board-head h3 { font-size: 1.4rem; } .routine-item { grid-template-columns: auto minmax(0, 1fr); } .routine-row-actions { grid-column: 2; justify-content: flex-start; } .work-clock-head { padding-right: 43px; } .work-clock-foot { align-items: stretch; flex-direction: column; } #practice-player .work-clock-control { align-self: flex-start; } #practice-player .work-clock { padding: 20px; } }
+@media (prefers-reduced-motion: reduce) { .routine-today-track i, .work-clock-progress > span { transition: none; } }

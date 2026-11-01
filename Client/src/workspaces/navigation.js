@@ -1,4 +1,4 @@
-export const labels={mentor:'Coach',student:'Invited Student',organization:'Institution',provider:'Outdoor Provider',supervisor:'Supervisor',admin:'Admin',participant:'Participation'};
+export const labels={mentor:'Coach',student:'Invited Student',organization:'Institution',provider:'Outdoor Provider',supervisor:'Supervisor',admin:'Admin',participant:'Explore opportunities'};
 export const defaults={mentor:'dashboard',student:'dashboard',organization:'dashboard',provider:'overview',supervisor:'dashboard',admin:'overview',participant:'discover'};
 export const navigation={
  mentor:[['dashboard','home','Dashboard'],['groups','people','My Groups'],['students','people','My Students'],['programs','book','Programs'],['assignments','form','Assignments'],['reviews','check','Reviews'],['group-garden','leaf','Group Garden'],['reports','chart','Reports'],['notifications','mail','Notifications'],['profile','settings','Profile & settings']],

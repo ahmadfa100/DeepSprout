@@ -1,5 +1,5 @@
 /**
- * First-run flow: Meet Bimo → Before We Begin → Quick Personal Setup → handoff
+ * First-run flow: Welcome → Process overview → Personal setup → handoff
  * into the Lab assessments. Each screen writes to the shared demo state so a
  * returning visitor resumes where they stopped.
  */
@@ -10,9 +10,12 @@
   let journal=null;
   const nextBaseline=()=>journal?DS.ASSESSMENTS.find(meta=>journal.baselineResults().some(row=>row.id===meta.id&&!row.attempt)):DS.nextAssessment();
   const screens = [...document.querySelectorAll('.ob-screen')];
+  const stageCount = document.getElementById('ob-stage-count');
+  const stageNumbers = { meet: '01 / 04', intro: '02 / 04', setup: '03 / 04', handoff: '04 / 04' };
 
   const show = step => {
     screens.forEach(screen => { screen.hidden = screen.dataset.step !== step; });
+    stageCount.textContent = stageNumbers[step];
     window.scrollTo({ top: 0, behavior: 'auto' });
     const heading = document.querySelector(`.ob-screen[data-step="${step}"] h1`);
     if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus({ preventScroll: true }); }
@@ -281,11 +284,11 @@
 
   function renderHandoff() {
     const goal = DS.GOALS[answers.goal] || 'a more intentional relationship with your feeds';
-    document.getElementById('handoff-goal').textContent = `We'll build your plan around one goal: ${goal.toLowerCase()}.`;
+    document.getElementById('handoff-goal').textContent = `Your plan will focus on ${goal.toLowerCase()}.`;
     const next = nextBaseline();
     if (!next) { document.getElementById('handoff-next-title').textContent = 'Your Starting Point'; document.getElementById('handoff-next-note').textContent = 'Your four starting checks are recorded.'; return; }
     document.getElementById('handoff-next-title').textContent = next.title;
-    document.getElementById('handoff-next-note').textContent = `${next.kind} · about ${next.minutes} minutes. Your result is recorded on its own — the four assessments are never combined into a single score.`;
+    document.getElementById('handoff-next-note').textContent = `${next.kind} · about ${next.minutes} minutes.`;
   }
 
   document.getElementById('handoff-start').addEventListener('click', () => {

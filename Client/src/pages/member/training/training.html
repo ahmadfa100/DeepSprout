@@ -14,14 +14,14 @@
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
   <link rel="stylesheet" href="../../../../src/styles/page-hero.css">
   <link rel="stylesheet" href="../../../../src/styles/individual-ui.css">
-  <link rel="stylesheet" href="training.css">
+  <link rel="stylesheet" href="training.css?v=20261030-1">
   <script type="module" src="../../../../src/shared/member-bridge.js"></script>
   <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
   <script src="../../../../src/js/ui/individual-ui.js" defer></script>
-  <script src="training.js" defer></script>
-  <script src="offline-routine.js" defer></script>
+  <script src="training.js?v=20261030-1" defer></script>
+  <script src="offline-routine.js?v=20261030-1" defer></script>
   <script src="assigned.js" defer></script>
   <script src="../../../js/data/shield-bridge.js" defer></script>
 </head>
@@ -56,13 +56,13 @@
       <div class="ds-hero-copy">
         <p class="ds-hero-eyebrow">Activities</p>
         <h1 id="hero-title">Swap the scroll<br><em>for something real.</em></h1>
-        <p class="ds-hero-text">Short practices that train focus, and a small offline routine you choose yourself.</p>
+        <p class="ds-hero-text">A clear offline list for your day, with focused practices when you need them.</p>
         <div class="ds-hero-meta" id="progress">
           <span class="ds-hero-chip"><svg><use href="#i-check"/></svg><span id="weekly-plan-count">0 practices logged this week</span></span>
           <span class="ds-hero-chip" id="progress-message" hidden></span>
         </div>
       </div>
-      <figure class="ds-hero-art is-cutout"><img src="../../../../assets/training/bimo-activities.png" alt="Bimo in a green headband, crouched at the start line"></figure>
+      <figure class="ds-hero-art is-cutout"><img src="../../../../assets/training/bimo-activities.png" alt="Green in a green headband, crouched at the start line"></figure>
       <p class="ds-hero-note" aria-hidden="true">Ready?<br>Let's go!</p>
     </header>
 
@@ -85,7 +85,7 @@
       </section>
 
       <!-- ------------------------------------------------------------ practice -->
-      <nav class="practice-nav" aria-label="Activities sections"><a href="#for-you">For You</a><a href="#training-types">Browse Practices</a><a href="#assigned">Assigned</a><a href="#history">History</a><a href="#offline-routine">My Offline Routine</a></nav>
+      <nav class="practice-nav" aria-label="Activities sections"><a href="#for-you">For You</a><a href="#offline-routine">Offline to-do</a><a href="#training-types">Browse Practices</a><a href="#assigned">Assigned</a><a href="#history">History</a></nav>
       <section class="block foryou" id="for-you" aria-labelledby="for-you-title">
         <div class="block-head"><div><p class="kicker">For you</p><h2 id="for-you-title">Your next good step</h2></div></div>
         <p class="visually-hidden" id="practice-suggestion" aria-live="polite"></p>
@@ -97,6 +97,33 @@
           </div>
         </div>
       </section>
+      <!-- ------------------------------------------------------------- routine -->
+      <section class="block routine-block" id="offline-routine" aria-labelledby="routine-title">
+        <div class="routine-side">
+          <p class="kicker">Away from the screen</p>
+          <h2 id="routine-title">My offline to-do</h2>
+          <p>Choose a few real-world things. Check them off when they're done.</p>
+          <div class="routine-today" aria-label="Today's offline progress"><span>TODAY'S PLAN</span><strong id="routine-ring-count">0 / 0</strong><div class="routine-today-track" aria-hidden="true"><i id="routine-ring"></i></div></div>
+          <p class="routine-foot" id="routine-foot"></p>
+        </div>
+
+        <div class="routine-main">
+          <div class="routine-board-head"><div><span class="routine-board-kicker">YOUR SPACE</span><h3>Your list</h3></div><span class="routine-board-count" id="routine-board-count" aria-live="polite">0 items</span></div>
+          <form class="routine-add" id="routine-form" autocomplete="off">
+            <label class="visually-hidden" for="routine-input">Add something to your routine</label>
+            <span class="routine-add-icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span>
+            <input id="routine-input" type="text" maxlength="60" placeholder="Add an offline activity…">
+            <button type="submit" id="routine-add-custom">Add</button>
+          </form>
+          <details class="routine-suggestions"><summary>Need an idea? Try one of these</summary><div class="routine-ideas" id="routine-ideas" aria-label="Suggestions"></div></details>
+          <p class="routine-list-label">THIS WEEK</p>
+          <div class="routine-week" id="routine-week" aria-label="This week"></div>
+          <ul class="routine-list" id="routine-list"></ul>
+          <p class="routine-empty" id="routine-empty" hidden><svg><use href="#i-sprout"/></svg><span><strong>Your list starts here.</strong><br>Add one offline activity above, or open the ideas.</span></p>
+          <div class="routine-undo" id="routine-undo" role="status" aria-live="polite" hidden><span id="routine-undo-text"></span><button type="button" id="routine-undo-button">Undo</button></div>
+        </div>
+      </section>
+
       <section class="block practice-block" id="training-types" aria-labelledby="practice-title">
         <div class="block-head">
           <div><p class="kicker">Browse practices</p><h2 id="practice-title">Four ways to train attention</h2><p>Short, original exercises. Each is saved with its own evidence when you finish.</p></div>
@@ -141,35 +168,6 @@
           </article>
         </div>
         <p class="saved-line" id="saved-line" hidden></p>
-      </section>
-
-      <!-- ------------------------------------------------------------- routine -->
-      <section class="block routine-block" id="offline-routine" aria-labelledby="routine-title">
-        <div class="routine-side">
-          <p class="kicker">Offline routine</p>
-          <h2 id="routine-title">Your small, real-world things</h2>
-          <p>A short checklist you write yourself. Tick it off when you have done it — that is your own report, never graded.</p>
-          <div class="today-ring" aria-hidden="true">
-            <svg viewBox="0 0 120 120"><circle class="ring-track" cx="60" cy="60" r="50"/><circle class="ring-fill" id="routine-ring" cx="60" cy="60" r="50"/></svg>
-            <span><strong id="routine-ring-count">0/0</strong><small>today</small></span>
-          </div>
-          <p class="routine-foot" id="routine-foot"></p>
-        </div>
-
-        <div class="routine-main">
-          <form class="routine-add" id="routine-form" autocomplete="off">
-            <label class="visually-hidden" for="routine-input">Add something to your routine</label>
-            <span class="routine-add-icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span>
-            <input id="routine-input" type="text" maxlength="60" placeholder="Add something you'll do away from a screen…">
-            <button type="submit" id="routine-add-custom">Add</button>
-          </form>
-          <div class="routine-ideas" id="routine-ideas" aria-label="Suggestions"></div>
-
-          <div class="routine-week" id="routine-week" aria-label="This week"></div>
-          <ul class="routine-list" id="routine-list"></ul>
-          <p class="routine-empty" id="routine-empty" hidden><svg><use href="#i-sprout"/></svg>Nothing on your list yet. Type one small thing above, or tap a suggestion.</p>
-          <div class="routine-undo" id="routine-undo" role="status" aria-live="polite" hidden><span id="routine-undo-text"></span><button type="button" id="routine-undo-button">Undo</button></div>
-        </div>
       </section>
 
       <!-- -------------------------------------------------------------- shield -->

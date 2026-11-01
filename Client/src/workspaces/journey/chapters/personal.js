@@ -5,9 +5,9 @@ export default f => ({
   steps: [
     {
       id: 'pers-start', overview: true,
-      title: 'Meet Bimo and set up quickly',
-      summary: 'A new Individual sees two short Bimo screens, then answers a few quick setup questions: main goal, distracting sites, browsing device, offline interests and one small offline commitment.',
-      brief: 'A new Individual meets Bimo and answers a few quick setup questions.',
+      title: 'A more intentional start',
+      summary: 'A new Individual sees a welcome and process overview, then answers a few quick setup questions: main goal, distracting sites, browsing device, offline interests and one small offline commitment.',
+      brief: 'A new Individual sees a short welcome and answers a few setup questions.',
       show: ['individual', 'setup'],
       at: { individual: [300, 270], setup: [700, 270] },
       edges: ['individual>setup'], flows: ['individual>setup'], token: 'spark',
@@ -17,7 +17,7 @@ export default f => ({
         who: 'The Individual.',
         changed: 'Private personal setup and the first small offline commitment.',
         visible: 'Only the Individual. Progress is saved at every meaningful stage.',
-        rules: ['Bimo appears in two short screens using approved original artwork only (§4.2).', 'Skip Introduction skips the explanation, never the four assessments.', 'One small personal offline commitment is required before the first plan activation (§4.3).'],
+        rules: ['Green appears in the welcome screen using approved original artwork (§4.2).', 'Skip overview skips the explanation, never the four assessments.', 'One small personal offline commitment is required before the first plan activation (§4.3).'],
         where: ['onboarding.html']
       },
       spec: ['§4.1', '§4.2', '§4.3', 'D04'], scenarios: ['A']

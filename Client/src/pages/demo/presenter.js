@@ -21,7 +21,7 @@
     {person: 'p-ahmad', role: 'Individual · original seeded story', go: 'index.html',
       points: ['Frozen on Sat 17 Jan 2026, day 13', 'Legacy records shown honestly as legacy', 'Two Initiative registrations']},
     {fresh: true, role: 'Fresh first run', go: 'register.html',
-      points: ['Register → Bimo → four assessments', 'Activation from an empty journal', 'Independent of the prepared journeys']}
+      points: ['Register → Green → four assessments', 'Activation from an empty journal', 'Independent of the prepared journeys']}
   ];
   const PARTNERS = [
     ['p-maya', 'Institution Representative · Coach', 'Start Today initiative, admissions, sessions and groups'],
