@@ -204,7 +204,7 @@ async function main() {
     assert.match(await text('#garden-next'), /Protected Work Sprout \(2\)/, 'one journal practice + one Coach-approved task');
   });
   await step('D3', 'Supervisor Insights and Representative Reports reflect the approved task', async () => {
-    await as('p-hala'); await ws(`supervisor/reports?initiative=${initiativeId}`); assert.match(await text('main'), /Coach-reviewed tasks/);
+    await as('p-hala'); await ws(`supervisor/reports?initiative=${initiativeId}`); assert.match(await text('main h1'), /Coach reports/);
     const s = await read(); assert.equal(s.submissions.filter(x => x.status === 'Approved' && s.assignments.find(a => a.id === x.assignmentId)?.groupId === groupId).length, 1);
     const lina = s.people.find(p => p.email === 'lina.rep@demo.example').id;
     await as(lina); await ws(`organization/reports?initiative=${initiativeId}`);
@@ -272,7 +272,7 @@ async function main() {
     await as('p-ahmad'); await member('garden/garden.html'); await page.waitForTimeout(600);
     const before = await page.getAttribute('#garden-canvas', 'aria-label');
     const lina = (await read()).people.find(p => p.email === 'lina.rep@demo.example').id;
-    await as(lina); await ws(`organization/initiatives/${initiativeId}`); await click('[data-action=initiative-complete]'); await dialogSave();
+    await as(lina); await ws(`organization/initiatives/${initiativeId}`); await click('.iw-menu > summary'); await click('[data-action=initiative-complete]'); await dialogSave();
     assert.equal((await read()).initiatives.find(i => i.id === initiativeId).status, 'Completed');
     await ws(`organization/group-garden?initiative=${initiativeId}`); assert.match(await text('main'), /Initiative completed/);
     await as('p-ahmad'); await member('explore/explore.html', '#my-initiatives');
@@ -284,7 +284,7 @@ async function main() {
 
   await step('F3', 'Representative archives the completed initiative; history, reports and My Initiatives remain', async () => {
     const lina = (await read()).people.find(p => p.email === 'lina.rep@demo.example').id;
-    await as(lina); await ws(`organization/initiatives/${initiativeId}`); await click('[data-action=initiative-archive]'); await dialogSave();
+    await as(lina); await ws(`organization/initiatives/${initiativeId}`); await click('.iw-menu > summary'); await click('[data-action=initiative-archive]'); await dialogSave();
     assert.equal((await read()).initiatives.find(i => i.id === initiativeId).status, 'Archived');
     await ws(`organization/initiatives/${initiativeId}?tab=history`); assert.match(await text('main'), /Archived[\s\S]*Completed|Completed[\s\S]*Archived/);
     await ws(`organization/reports?initiative=${initiativeId}`); assert.match(await page.locator('.iw-stat', {hasText:'Completed students'}).innerText(), /2/);

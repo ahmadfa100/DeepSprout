@@ -1,6 +1,17 @@
 import {deprecatedPractice} from '../activity-contract.js';
 import {taskBlockReason,id,now,requireThat,find,textRequired,numberIn,audit,notify} from '../domain.js';
 export function platformCommand(s,action,p,actor) {
+  if(action==='admin.assessment.content.save'){
+    const item=find(s.assessments,p.id),content=p.content;
+    requireThat(content&&typeof content==='object','Provide assessment content.');
+    textRequired(content.intro?.heading,'Introduction heading');textRequired(content.intro?.body,'Instructions');textRequired(content.blurb,'Purpose');
+    requireThat(Array.isArray(content.intro.points)&&content.intro.points.length>0,'Add at least one instruction point.');
+    const questions=content.items||content.questions;
+    if(questions){requireThat(Array.isArray(questions)&&questions.length>0&&questions.length<=40,'Keep between 1 and 40 questions.');for(const q of questions){textRequired(q.text,'Question text');if(content.questions){requireThat(Array.isArray(q.options)&&q.options.length===4&&q.options.every(o=>typeof o==='string'&&o.trim()),'Provide four answer options.');requireThat(Number.isInteger(q.answer)&&q.answer>=0&&q.answer<4,'Choose a correct answer.');}}}
+    if(content.passage){textRequired(content.passageTitle,'Passage title');requireThat(Array.isArray(content.passage)&&content.passage.some(x=>x.trim()),'Add a reading passage.');}
+    item.contentHistory||=[];if(item.contentDraft)item.contentHistory.push({version:item.version,content:structuredClone(item.contentDraft),created:item.updated||now(),actorId:item.updatedBy||actor});
+    item.version++;item.contentDraft=structuredClone(content);item.updated=now();item.updatedBy=actor;audit(s,actor,'Assessment content draft saved',item.title,`Draft v${item.version}`);return;
+  }
   if(action==='auth.application.save'||action==='auth.application.submit'){
     const pp=find(s.people,actor);requireThat(pp.verified,'Complete the simulated email verification first.');requireThat(['mentor','organization','provider'].includes(p.type),'Choose a partner category.');
     const old=p.id?find(s.applications,p.id):null;requireThat(!old||old.personId===actor,'This application belongs to another applicant.');requireThat(!old||['Draft','Needs More Info','Rejected'].includes(old.status),'This application is already under review.');

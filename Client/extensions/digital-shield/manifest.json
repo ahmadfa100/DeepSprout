@@ -5,7 +5,7 @@
   "minimum_chrome_version": "120",
   "description": "Optional whole-site protection and one shared active-site usage reminder. Browser-local demonstration.",
   "permissions": ["storage", "alarms", "idle", "declarativeNetRequest"],
-  "host_permissions": ["*://*.instagram.com/*", "*://*.youtube.com/*", "*://*.tiktok.com/*"],
+  "host_permissions": ["*://*.instagram.com/*", "*://*.youtube.com/*", "*://*.tiktok.com/*", "*://*.facebook.com/*", "*://*.x.com/*", "*://*.reddit.com/*", "*://*.snapchat.com/*", "*://*.netflix.com/*", "*://*.twitch.tv/*", "*://*.pinterest.com/*"],
   "background": {"service_worker": "worker.js", "type": "module"},
   "action": {"default_popup": "popup.html", "default_title": "DeepSprout Shield"},
   "incognito": "not_allowed",
@@ -13,7 +13,7 @@
     "matches": ["http://127.0.0.1/src/pages/member/*", "http://localhost/src/pages/member/*"],
     "js": ["bridge.js"], "run_at": "document_start", "all_frames": false
   }, {
-    "matches": ["*://*.instagram.com/*", "*://*.youtube.com/*", "*://*.tiktok.com/*"],
+    "matches": ["*://*.instagram.com/*", "*://*.youtube.com/*", "*://*.tiktok.com/*", "*://*.facebook.com/*", "*://*.x.com/*", "*://*.reddit.com/*", "*://*.snapchat.com/*", "*://*.netflix.com/*", "*://*.twitch.tv/*", "*://*.pinterest.com/*"],
     "js": ["observer.js"], "run_at": "document_idle", "all_frames": false
   }],
   "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'none'"}

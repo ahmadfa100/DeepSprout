@@ -156,25 +156,58 @@
       case 'routine.add':
         data.routine.push({
           id: event.id, title: event.title, hint: event.hint || '', createdOn: event.on, removedOn: null, checkIns: [],
-          days: event.days, recurrence: event.recurrence || 'weekly', paused: false,
-          schedule: [{ from: event.on, days: event.days, recurrence: event.recurrence || 'weekly', paused: false }]
+          days: event.days, recurrence: event.recurrence || 'weekly', paused: false, durationMinutes: event.durationMinutes || null,
+          schedule: [{ from: event.on, days: event.days, recurrence: event.recurrence || 'weekly', paused: false, durationMinutes: event.durationMinutes || null }]
         });
         break;
       case 'routine.update': {
         if (!item) break;
-        if (event.title){item.title=event.title;item.titleUpdatedOn=event.on;}
+        const previousTitle = item.title;
+        if (event.title && event.title !== item.title) {
+          item.checkIns.forEach(entry => { if (entry.date === event.on && !entry.title) entry.title = previousTitle; });
+          item.titleVersions ||= [{ from: item.createdOn, title: item.title }];
+          const lastTitle = item.titleVersions.at(-1);
+          if (lastTitle.from === event.on) lastTitle.title = event.title;
+          else item.titleVersions.push({ from: event.on, title: event.title });
+          item.title = event.title;
+          item.titleUpdatedOn = event.on;
+        }
         const versions = scheduleOf(item).slice();
         const latest = versions[versions.length - 1];
         const next = {
           from: event.on,
           days: event.days || latest.days,
           recurrence: event.recurrence || latest.recurrence,
-          paused: typeof event.paused === 'boolean' ? event.paused : latest.paused
+          paused: typeof event.paused === 'boolean' ? event.paused : latest.paused,
+          durationMinutes: event.durationMinutes ?? latest.durationMinutes ?? item.durationMinutes ?? null
         };
         if (latest.from === event.on) versions[versions.length - 1] = next;
         else versions.push(next);
         item.schedule = versions;
-        Object.assign(item, { days: next.days, recurrence: next.recurrence, paused: next.paused });
+        Object.assign(item, { days: next.days, recurrence: next.recurrence, paused: next.paused, durationMinutes: next.durationMinutes });
+        // Routine references are optional plan entries. Keep their original IDs and
+        // past state, while updating future labels and availability in place.
+        const affectedActionIds = [];
+        for (const action of data.scheduledActions) {
+          if (action.kind !== 'routine' || action.routineId !== item.id || action.date < event.on || ['Rescheduled', 'Cancelled'].includes(action.status)) continue;
+          if (action.date === event.on && item.checkIns.some(entry => entry.date === event.on)) continue;
+          const date = parse(action.date);
+          action.title = item.title;
+          action.routineDurationMinutes = next.durationMinutes;
+          action.routineScheduled = !next.paused && next.days.includes(date.getDay()) && (next.recurrence !== 'biweekly' || Math.floor(daysBetween(parse(item.createdOn), date) / 7) % 2 === 0);
+          affectedActionIds.push(action.id);
+        }
+        if (data.plan) {
+          const cycle = data.recovery?.cycles.find(entry => entry.id === data.recovery.activeCycleId);
+          const current = cycle?.preferenceVersions?.at(-1)?.value || cycle?.preferences;
+          if (current?.routineId === item.id) {
+            const nextPreferences = { ...current, commitment: item.title };
+            cycle.preferenceVersions.push({ effectiveOn: event.on, value: nextPreferences, revisionId: event.revisionId });
+            data.recovery.revisions.push({ id: event.revisionId, actorId: data.recovery.personId, personId: data.recovery.personId, cycleId: cycle.id, at: event.at, on: event.on, effectiveOn: event.on, policyVersion: 1, reason: 'Personal offline routine updated', action: 'routine.update', decision: null, previousVersion: data.recovery.revisions.length, previousPreferences: current, nextPreferences, actionIds: affectedActionIds });
+            data.recovery.adjustmentDraft = null;
+          }
+          data.planAdjustments.push({ on: event.on, label: 'Offline routine updated', detail: `${previousTitle} → ${item.title}; future availability updated`, revisionId: event.revisionId, cycleId: cycle?.id || null });
+        }
         break;
       }
       case 'routine.remove':
@@ -248,7 +281,7 @@
         data.plan = { id:event.planId,personId:event.personId,policyVersion:event.policyVersion,baselineIds:event.baselineIds,activatedAt:event.at,cycleNumber: 1, startDate: event.on, lengthDays: event.lengthDays || 28, activatedOn: event.on,
           direction: (event.direction || []).map((entry, index) => ({ week: index + 1, title: entry.title, note: entry.note })) };
         if(event.policyVersion===1&&event.planId)for(const type of data.catalog.activityTypes)if(!data.levelEvents.some(e=>e.activityType===type.id))data.levelEvents.push({id:`initial-${event.planId}-${type.id}`,activityType:type.id,level:1,on:event.on,policyVersion:1,sourcePlanId:event.planId,detail:'Introductory demo starting level; no calibrated cognitive inference.'});
-        if (event.commitment) data.routine.push({id:`r-plan-${event.on}`, title:event.commitment.title, hint:event.commitment.hint || '', createdOn:event.on, removedOn:null, checkIns:[], schedule:[{from:event.on,days:[0,1,2,3,4,5,6],recurrence:'weekly',paused:false}]});
+        if (event.commitment) data.routine.push({id:`r-plan-${event.on}`, title:event.commitment.title, hint:event.commitment.hint || '', createdOn:event.on, removedOn:null, checkIns:[], durationMinutes:event.commitment.durationMinutes||null, schedule:[{from:event.on,days:[0,1,2,3,4,5,6],recurrence:'weekly',paused:false,durationMinutes:event.commitment.durationMinutes||null}]});
         if (event.goal) data.user.goal = { id: event.goal, label: event.goalLabel || '', setOn: event.on };
         if(!event.recoveryTransaction)(event.schedule || []).forEach((entry, index) => data.scheduledActions.push({ id: `s-${event.on}-${index}`, date: entry.date, kind: 'practice', activityType: entry.activityType, level: 1, minutes: entry.minutes || 5 }));
         break;
@@ -329,13 +362,15 @@
     const reviewedWeek=(c,n)=>data.weeklyReviews.find(r=>r.cycleId===c.id&&r.week===n||c.legacy&&!r.cycleId&&r.week===n);
     const recoveryStatus=c=>!c?null:['Paused','Cancelled','Archived','Reviewed'].includes(c.status)?c.status:personalDay()>cycleEnd(c)?'Cycle Review Due':c.mode==='Maintenance'?'Maintenance':'Active';
     const validatedPrefs=(input,base)=>{
-      const p={...clone(base),...clone(input||{})};
+      const {lowerType: _lowerType, ...preferenceInput}=clone(input||{});
+      const p={...clone(base),...preferenceInput};
+      delete p.lowerType;
       if(!Number.isInteger(Number(p.days))||Number(p.days)<1||Number(p.days)>recoveryPolicy().maxPracticeDays)throw new Error('Choose one to five practice days, leaving room for rest.');p.days=Number(p.days);
       if(![5,10,15].includes(Number(p.minutes)))throw new Error('Choose a 5, 10 or 15 minute time preference.');p.minutes=Number(p.minutes);
       if(!Array.isArray(p.weekdays)||!p.weekdays.length||p.weekdays.some(d=>!Number.isInteger(d)||d<0||d>6))throw new Error('Choose at least one available weekday.');p.weekdays=[...new Set(p.weekdays)];
       if(!Array.isArray(p.mix)||!p.mix.length||p.mix.some(t=>!TYPES.includes(t)))throw new Error('Choose approved personal practice types.');p.mix=[...new Set(p.mix)];
       if(!GOALS[p.goal]&&p.goal!==base.goal)throw new Error('Choose a supported personal goal.');
-      if(p.goal!==base.goal)p.goalLabel=GOALS[p.goal];
+      if(p.goal!==base.goal){p.goalLabel=GOALS[p.goal];if(!Object.prototype.hasOwnProperty.call(input||{},'mix'))p.mix=defaultMix(p.goal);}
       if(typeof p.commitment!=='string'||!p.commitment.trim()||p.commitment.length>200)throw new Error('Keep one short personal offline commitment.');p.commitment=p.commitment.trim();return p;
     };
     const makeWeek=(c,n,prefs,revisionId,effectiveOn,provided)=>{
@@ -354,7 +389,7 @@
         actions.push({...base,id:uid('scheduled'),kind:practice?'practice':date===end?'review':'rest',required:practice||date===end,activityType:practice?type:undefined,level:practice?level:undefined,minutes:practice?(original?.minutes||prefs.minutes):prefs.minutes,selectionPolicy:practice?'approved-current-level-content-v1':undefined});
         if(practice)index++;
         if(date===end&&practice)actions.push({...base,id:uid('review'),kind:'review'});
-        actions.push({...base,id:uid('routine-ref'),kind:'routine',required:false,routineId:prefs.routineId,title:prefs.commitment,evidenceTier:'Self-reported'});
+        actions.push({...base,id:uid('routine-ref'),kind:'routine',required:false,routineId:prefs.routineId,title:prefs.commitment,routineDurationMinutes:data.routine.find(item=>item.id===prefs.routineId)?.durationMinutes||null,evidenceTier:'Self-reported'});
       }
       return {week:{id:`week:${c.id}:${n}`,personId:subject,journeyId:`journey:${subject}`,cycleId:c.id,planId:c.planId||data.plan?.id,number:n,start,end,priorVersions:[],actionIds:actions.map(a=>a.id),revisionId,policyVersion:1,source:provided?'Original activation preview':'Versioned future schedule',effectiveOn},actions};
     };
@@ -388,7 +423,7 @@
 
     const adjustmentPreview=input=>{
       const s=recoveryState(),c=activeCycle(s);if(!c||!['Active','Maintenance'].includes(recoveryStatus(c)))throw new Error('Adjust an active personal cycle.');
-      const effectiveOn=keyOf(addDays(parse(personalDay()),1)),prefs=validatedPrefs(input,cyclePrefs(c));
+      const effectiveOn=keyOf(addDays(parse(personalDay()),1)),prefs=validatedPrefs(input,cyclePrefs(c,effectiveOn));
       const replace=cycleActions(c).filter(a=>liveAction(a)&&a.date>=effectiveOn&&!actionStarted(a.id));
       const weeks=[...new Set(replace.map(a=>a.week||Math.floor(daysBetween(parse(c.startDate),parse(a.date))/7)+1))];
       const actions=weeks.flatMap(n=>makeWeek(c,n,prefs,'preview',effectiveOn).actions);
@@ -434,7 +469,7 @@
           const preview=adjustmentPreview(full.adjustments||{});assert(full.reason?.trim(),'Explain this future preview.');state.adjustmentDraft={...preview,id:uid('preview'),focus:full.focus||'depth',reason:full.reason.trim(),at:full.at,personId:subject};return {state,actions:[],updates:[],review:null,levelDecision:null};
         } else if(type==='recovery.adjust'||type==='plan.adjust'){
           state.adjustmentDraft=null;
-          assert(full.reason?.trim(),'Explain the future change.');const preview=adjustmentPreview(full.adjustments||full.input||{});revision.effectiveOn=preview.effectiveOn;revision.reason=full.reason.trim();revision.previousPreferences=cyclePrefs(c);revision.nextPreferences=preview.preferences;
+          assert(full.reason?.trim(),'Explain the future change.');const preview=adjustmentPreview(full.adjustments||full.input||{});revision.effectiveOn=preview.effectiveOn;revision.reason=full.reason.trim();revision.previousPreferences=cyclePrefs(c,preview.effectiveOn);revision.nextPreferences=preview.preferences;
           updates=preview.supersededIds.map(id=>({id,status:'Rescheduled',replacementRevisionId:revision.id,reason:revision.reason}));
           const affected=[...new Set(preview.actions.map(a=>a.week))];for(const n of affected){const detail=makeWeek(c,n,preview.preferences,revision.id,preview.effectiveOn);const preserved=cycleActions(c).filter(a=>liveAction(a)&&!preview.supersededIds.includes(a.id));actions.push(...detail.actions.filter(a=>!preserved.some(old=>old.date===a.date&&old.kind===a.kind)));c.weeks[n]={...c.weeks[n],priorVersions:c.weeks[n]?[...(c.weeks[n].priorVersions||[]),{...c.weeks[n],priorVersions:undefined}]:[],revisionId:revision.id,actionIds:[...(c.weeks[n]?.actionIds||[]),...actions.filter(a=>a.week===n).map(a=>a.id)]};}
           c.preferenceVersions.push({effectiveOn:preview.effectiveOn,value:preview.preferences,revisionId:revision.id});
@@ -576,7 +611,10 @@
 
     const routineTitleOn=(item,date)=>{
       if(!item)return '';const key=keyOf(date),c=data.recovery?.cycles.find(c=>key>=c.startDate&&key<=cycleEnd(c));
-      const version=c?.preferenceVersions?.filter(v=>v.effectiveOn<=key).at(-1),p=version?.value;if(!version||item.titleUpdatedOn&&item.titleUpdatedOn>=version.effectiveOn)return item.title;return p?.routineId===item.id?p.commitment:item.title;
+      const version=c?.preferenceVersions?.filter(v=>v.effectiveOn<=key).at(-1),p=version?.value;
+      const direct=item.titleVersions?.filter(v=>v.from<=key).at(-1);
+      if(version&&p?.routineId===item.id&&(!direct||version.effectiveOn>direct.from))return p.commitment;
+      return direct?.title||item.title;
     };
 
     /** Is this routine item scheduled on this date — by the schedule version in force that day? */
@@ -1005,7 +1043,7 @@
         const count = perWeek.get(week) || 0;
         if (count >= policy.routineDaysPerWeek) return;
         perWeek.set(week, count + 1);
-        steps.push({ on: entry.date, kind: 'routine', title: item.title, detail: 'Offline routine ticked', source: 'Self-reported', why: `A routine day adds one growth step (up to ${policy.routineDaysPerWeek} a week).` });
+        steps.push({ on: entry.date, kind: 'routine', title: entry.title||routineTitleOn(item,parse(entry.date)), detail: 'Offline routine ticked', source: 'Self-reported', why: `A routine day adds one growth step (up to ${policy.routineDaysPerWeek} a week).` });
       }));
       data.weeklyReviews.filter(review=>!review.cycleId).forEach(review => steps.push({
         on: review.completedOn, kind: 'review', title: `Week ${review.week} review`, detail: 'Weekly review completed',
@@ -1102,7 +1140,7 @@
       }));
       data.routine.forEach(item => {
         item.checkIns.forEach(entry => events.push({
-          on: entry.date, kind: entry.status === 'done' ? 'routine' : 'skipped', title: entry.title||item.title,
+          on: entry.date, kind: entry.status === 'done' ? 'routine' : 'skipped', title: entry.title||routineTitleOn(item,parse(entry.date)),
           note: entry.status === 'done' ? 'Offline routine · self-reported' : 'Routine skipped · self-reported'
         }));
         if (item.removedOn) events.push({ on: item.removedOn, kind: 'removed', title: item.title, note: 'Removed from your routine. Past check-ins are kept.' });
@@ -1196,7 +1234,31 @@
         full.attempt={...a,...contract,measurementContext,personId:subject,kind,cycle:allowed.cycle||1,windowId:allowed.windowId||'baseline',week:allowed.week||null,labPolicyVersion:1,labPolicy:labPolicy(),startedAt:run?.startedAt||a.startedAt||full.at,completedAt:full.at,on:todayKey,status:reason?'Invalid':'Completed',valid:!reason,validity:{status:reason?'Invalid':'Valid',reason:reason||'Completed current Phase-1 demo protocol',policyVersion:1}};
       }
       if (full.type === 'routine.add') {
+        if (typeof full.title !== 'string' || !full.title.trim() || full.title.trim().length > 60) throw new Error('Give this offline activity a name of up to 60 characters.');
+        full.title = full.title.trim().replace(/\s+/g, ' ');
+        full.days ||= [0, 1, 2, 3, 4, 5, 6];
+        if (!Array.isArray(full.days) || !full.days.length || full.days.some(day => !Number.isInteger(day) || day < 0 || day > 6)) throw new Error('Choose at least one available day.');
+        full.days = [...new Set(full.days)].sort();
+        full.recurrence ||= 'weekly';
+        if (!['weekly', 'biweekly'].includes(full.recurrence)) throw new Error('Choose a supported recurrence.');
+        const guessed = Number(full.title.match(/^(\d{1,3})[\s-]*minutes?\b/i)?.[1]);
+        if (full.durationMinutes == null) full.durationMinutes = guessed >= 1 && guessed <= 180 ? guessed : null;
+        if (full.durationMinutes !== null && (!Number.isInteger(full.durationMinutes) || full.durationMinutes < 1 || full.durationMinutes > 180)) throw new Error('Choose a duration between 1 and 180 minutes.');
         full.id = `r-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+      }
+      if (full.type === 'routine.update') {
+        const item = data.routine.find(entry => entry.id === full.id && !entry.removedOn);
+        if (!item) throw new Error('This routine is no longer available. Reload the page.');
+        if (typeof full.title !== 'string' || !full.title.trim() || full.title.trim().length > 60) throw new Error('Give this offline activity a name of up to 60 characters.');
+        full.title = full.title.trim().replace(/\s+/g, ' ');
+        if (!Array.isArray(full.days) || !full.days.length || full.days.some(day => !Number.isInteger(day) || day < 0 || day > 6)) throw new Error('Choose at least one available day.');
+        full.days = [...new Set(full.days)].sort();
+        if (!['weekly', 'biweekly'].includes(full.recurrence)) throw new Error('Choose a supported recurrence.');
+        if (typeof full.paused !== 'boolean') throw new Error('Choose whether the routine is paused.');
+        const guessed = Number(full.title.match(/^(\d{1,3})[\s-]*minutes?\b/i)?.[1]);
+        if (full.durationMinutes == null) full.durationMinutes = guessed >= 1 && guessed <= 180 ? guessed : item.durationMinutes ?? null;
+        if (full.durationMinutes !== null && (!Number.isInteger(full.durationMinutes) || full.durationMinutes < 1 || full.durationMinutes > 180)) throw new Error('Choose a duration between 1 and 180 minutes.');
+        full.revisionId = `routine-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
       }
       if (full.type === 'routine.log'){full.date ||= todayKey;if(data.recovery)full.titleSnapshot=routineTitleOn(data.routine.find(r=>r.id===full.id),parse(full.date));}
       if(full.type==='attempt.add'){

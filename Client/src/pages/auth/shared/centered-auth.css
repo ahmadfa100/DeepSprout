@@ -1,0 +1,66 @@
+/* Login and Register: one calm ivory field, a floating network
+   (floating-network.js) and a single centered card.
+   login.css and experience.css also serve the partner workspace routes, so
+   every rule here is scoped to .auth-centered. */
+
+/* ── Field ─────────────────────────────────────────── */
+html:has(body.auth-centered) { background:#fbfaf5; }
+body.auth-centered {
+ background:
+  radial-gradient(ellipse 720px 520px at 50% 300px, rgba(198,222,207,.55), rgba(198,222,207,0) 70%),
+  linear-gradient(180deg, #fffefa 0%, #f7f8f2 100%);
+}
+
+/* ── Layout: brand, card, links in one column ──────── */
+.auth-centered .register-scene.auth-scene { display:flex; justify-content:center; position:relative; padding:64px 16px 96px; }
+.auth-network { position:absolute; inset:0; z-index:0; display:block; pointer-events:none; }
+.auth-centered .register-card.login-card { position:relative; z-index:1; }
+.auth-centered .register-card.login-card { width:100%; max-width:460px; margin:0; padding:40px 40px 32px; border-radius:24px; text-align:center; }
+
+/* Brand: centered mark + wordmark at the top of the card. */
+.auth-centered .register-card > .login-brand { display:flex; gap:10px; margin:0 auto 28px; }
+.auth-centered .login-brand img { width:56px; height:56px; }
+.auth-centered .login-brand span { color:var(--reg-ink); font-size:19px; line-height:1; font-weight:600; letter-spacing:-.03em; }
+
+.auth-centered .register-card h1 { margin:0; font-size:30px; text-align:center; }
+.auth-centered .login-subtitle { margin:8px 0 0; color:var(--reg-muted); font-size:15px; text-align:center; }
+.auth-centered #login-form { margin-top:28px; text-align:left; }
+.auth-centered .password-field { margin-top:18px; }
+.auth-centered .forgot-link { margin-top:10px; color:var(--reg-accent); font-size:14px; }
+
+/* Register: the same centered header; options and forms stay left-aligned. */
+.auth-centered .entry-kicker { justify-content:center; gap:10px; margin-bottom:14px; }
+.auth-centered .entry-number { width:30px; height:30px; font-size:12px; }
+.auth-centered .entry-steps { margin-left:4px; }
+.auth-centered .register-card .entry-title, .auth-centered .register-card h1 { margin-bottom:10px; font-size:30px; text-align:center; }
+.auth-centered .entry-intro, .auth-centered .register-intro { margin-inline:auto; text-align:center; }
+.auth-centered .entry-back { display:flex; margin:-6px 0 6px; }
+.auth-centered form, .auth-centered .path-options, .auth-centered .partner-paths { text-align:left; }
+.auth-centered .register-preview-note { text-align:center; }
+
+/* One primary action in the brand's pine, matching Register. */
+.auth-centered .login-submit:not(.register-submit) { height:54px; gap:12px; margin-top:20px; border-radius:14px; background:var(--reg-pine); box-shadow:0 14px 28px -16px rgba(15,58,47,.6); font-size:16px; font-weight:600; transition:background-color .25s var(--reg-ease),transform .2s var(--reg-ease); }
+.auth-centered .login-submit:hover { background:var(--reg-pine-hover); filter:none; transform:none; }
+.auth-centered .login-submit:active { transform:scale(.99); }
+.auth-centered .login-submit svg { width:20px; height:20px; }
+
+.auth-centered .login-divider { margin-top:26px; }
+.auth-centered .social-options { margin-top:14px; gap:10px; }
+.auth-centered .social-options button:hover { transform:none; }
+
+.auth-centered .signup-line { margin:26px 0 0; font-size:14px; }
+.auth-centered .signup-line a { padding-left:4px; font-weight:600; }
+
+/* Admin preview: a secondary demo entry, set apart below a hairline. */
+.auth-centered .admin-demo-entry { gap:4px; margin:24px -40px -32px; padding:16px 40px 18px; border:0; border-top:1px solid var(--reg-line); border-radius:0 0 24px 24px; background:var(--reg-soft); }
+.auth-centered .admin-demo-entry button { min-height:32px; border:0; background:none; color:var(--reg-accent); font-size:13.5px; font-weight:600; }
+.auth-centered .admin-demo-entry button:hover { background:none; text-decoration:underline; }
+.auth-centered .admin-demo-entry small { color:var(--reg-muted); font-size:12px; }
+
+@media (max-width:560px) {
+ .auth-centered .register-scene.auth-scene { padding:56px 16px 48px; }
+ .auth-centered .register-card.login-card { padding:28px 20px 24px; }
+ .auth-centered .register-card > .login-brand { margin-bottom:22px; }
+ .auth-centered .register-card h1, .auth-centered .register-card .entry-title { font-size:26px; }
+ .auth-centered .admin-demo-entry { margin:22px -20px -24px; padding:14px 20px 16px; border-radius:0 0 20px 20px; }
+}

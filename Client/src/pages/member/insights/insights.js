@@ -80,50 +80,19 @@
 
   const renderGlance = () => {
     const plan = account.plan();
-    const profile = account.profile();
-    const cards = [];
-
-    if (plan && profile.goal) {
-      const weeks = plan.direction.map(entry => `<i class="${entry.status === 'complete' ? 'is-done' : entry.status === 'current' ? 'is-current' : ''}"></i>`).join('');
-      cards.push(`<article class="ins-glance-card">
-        <div class="ins-glance-top"><span class="ins-glance-label">Your goal</span></div>
-        <p class="ins-glance-goal">${esc(profile.goal.label)}</p>
-        <p class="ins-glance-sub">Week ${plan.week} of ${plan.weeks} · day ${plan.day} of ${plan.lengthDays}</p>
-        <div class="ins-weeks" style="--weeks:${plan.weeks}" aria-hidden="true">${weeks}</div>
-      </article>`);
-    } else {
-      cards.push(`<article class="ins-glance-card"><div class="ins-glance-top"><span class="ins-glance-label">Your goal</span></div>
-        ${empty('No goal yet. You choose one during setup.', button('Start setup', href('src/pages/member/onboarding/onboarding.html'), { quiet: true }))}</article>`);
-    }
-
     const adherence = plan ? account.adherence() : null;
-    if (adherence && adherence.due) {
-      const pips = account.schedule()
-        .filter(day => day.action?.kind === 'practice')
-        .map(day => `<i class="ins-day-mark" data-state="${day.state}"></i>`).join('');
-      cards.push(`<article class="ins-glance-card">
-        <div class="ins-glance-top"><span class="ins-glance-label">Plan adherence</span>${badge(adherence.provenance)}</div>
-        <div class="ins-glance-figure">${num(adherence.completed)}<span>of ${adherence.due} due ${plural(adherence.due, 'practice')} this week</span></div>
-        <div class="ins-pips" aria-hidden="true">${pips}</div>
-      </article>`);
-    } else {
-      cards.push(`<article class="ins-glance-card"><div class="ins-glance-top"><span class="ins-glance-label">Plan adherence</span></div>
-        ${empty(plan ? 'Nothing is due yet this week.' : 'No active plan yet, so nothing is due.')}</article>`);
-    }
-
+    const usage = account.browserUsage(14);
+    const checks = account.checkIns();
     const routine = account.routine();
-    // Past check-ins are history: they stay visible even after an item is deleted.
-    if (routine.primary || routine.monthDays) {
-      cards.push(`<article class="ins-glance-card">
-        <div class="ins-glance-top"><span class="ins-glance-label">Your routine</span>${badge(routine.provenance)}</div>
-        <div class="ins-glance-figure">${num(routine.monthDays)}<span>${plural(routine.monthDays, 'day')} this month</span></div>
-        <p class="ins-glance-sub">${routine.primary ? esc(routine.primary.title) : 'From items you have since removed'}</p>
-      </article>`);
-    } else {
-      cards.push(`<article class="ins-glance-card"><div class="ins-glance-top"><span class="ins-glance-label">Your routine</span></div>
-        ${empty('No offline routine yet.', button('Add one', href('src/pages/member/training/training.html#offline-routine'), { quiet: true }))}</article>`);
-    }
-    $('glance-grid').innerHTML = cards.join('');
+    const anyResult = checks.some(item => item.latest);
+    const comparison = checks.some(item => item.comparison);
+    const tile = (target, iconName, title, value, detail, tone = '') => `<a class="ins-glance-card ${tone}" href="#${target}"><span class="ins-glance-icon">${icon(iconName)}</span><span class="ins-glance-label">${title}</span><strong class="ins-glance-value">${value}</strong><span class="ins-glance-sub">${detail}</span></a>`;
+    $('glance-grid').innerHTML = [
+      tile('adherence','i-calendar','Plan adherence',adherence?.due ? `${adherence.completed} of ${adherence.due}` : 'No plan',adherence?.due ? 'due practices completed this week' : plan ? 'Nothing due yet this week' : 'Start your Recovery Plan','is-plan'),
+      tile('usage','i-chart','Digital usage',usage.available ? minutes(usage.totalSeconds) : 'No data',usage.available ? `${usage.periods.length} observed ${plural(usage.periods.length,'day')} in the last 14 days` : 'Browser tracking not set up yet','is-usage'),
+      tile('checkins','i-flask','Assessments',comparison ? 'Comparison ready' : anyResult ? 'Baseline only' : 'No results',comparison ? 'Valid change measured' : anyResult ? 'No valid comparison yet' : 'Complete your first Lab check','is-checks'),
+      tile('beyond','i-walk','Offline routine',`${routine.monthDays} ${plural(routine.monthDays,'day')}`,routine.monthDays ? `self-reported in ${account.today.toLocaleDateString('en-GB',{month:'long'})}` : routine.primary ? 'No days reported this month' : 'Add a routine in Activities','is-routine')
+    ].join('');
   };
 
   /* ------------------------------------------------------- plan adherence */
@@ -148,7 +117,7 @@
     const adherence = account.adherence();
     const reviews = account.reviews();
     const range = `${fmt.date(days[0].date)} – ${fmt.date(days[6].date)}`;
-    $('adherence-meta').innerHTML = `<span class="ins-caption">Week ${plan.week} of ${plan.weeks} · ${range}</span>${badge(adherence.provenance)}`;
+    $('adherence-meta').innerHTML = `${badge(adherence.provenance)}`;
 
     const tiles = days.map((day, index) => {
       const label = `${fmt.date(day.date, { weekday: true })} · ${shortTitle(day)} · ${DAY_STATE_LABELS[day.state]}${day.isToday ? ' · today' : ''}`;
@@ -176,16 +145,8 @@
     const nextReview = reviews.nextDue ? ` · next due ${fmt.date(reviews.nextDue, { weekday: true })}` : '';
 
     $('adherence-body').innerHTML = `
-      <ol class="ins-days" aria-label="This week's schedule">${tiles}</ol>
-      <ul class="ins-legend" aria-label="Legend">${legend}</ul>
-      <div class="ins-adherence-foot">
-        <p class="ins-formula">${formula}</p>
-        <ul class="ins-facts">
-          <li>Weekly reviews: <strong>${reviews.completed} of ${reviews.expected} completed</strong>${nextReview}</li>
-          ${adjustment}
-          <li><a class="ins-link" href="${href('src/pages/member/recovery-plan/recovery-plan.html#history')}">Roadmap → History${icon('i-arrow')}</a></li>
-        </ul>
-      </div>`;
+      <div class="ins-week-summary"><div class="ins-week-progress"><div class="ins-progress-track" role="progressbar" aria-valuenow="${adherence.completed}" aria-valuemin="0" aria-valuemax="${adherence.due}" aria-label="Due practices completed this week"><span style="width:${adherence.due ? Math.min(100,adherence.completed/adherence.due*100) : 0}%"></span></div><p>${range} · Week ${plan.week} of ${plan.weeks}</p></div><strong>${adherence.completed} of ${adherence.due}</strong><a class="ins-link" href="${href('src/pages/member/recovery-plan/recovery-plan.html#week')}">View week details${icon('i-arrow')}</a></div>
+      <details class="ins-detail-disclosure"><summary>See daily schedule and review evidence</summary><div class="ins-detail-content"><ol class="ins-days" aria-label="This week's schedule">${tiles}</ol><ul class="ins-legend" aria-label="Legend">${legend}</ul><div class="ins-adherence-foot"><p class="ins-formula">${formula}</p><ul class="ins-facts"><li>Weekly reviews: <strong>${reviews.completed} of ${reviews.expected} completed</strong>${nextReview}</li>${adjustment}<li><a class="ins-link" href="${href('src/pages/member/recovery-plan/recovery-plan.html#history')}">Roadmap → History${icon('i-arrow')}</a></li></ul></div></div></details>`;
   };
 
   /* -------------------------------------------------------- digital usage */
@@ -263,10 +224,7 @@
     const box = $('phone-box');
     if (!phone) { box.hidden = true; return; }
     box.hidden = false;
-    box.innerHTML = `${icon('i-phone')}
-      <div><span class="ins-caption">Phone screen time</span><div>${num(fmt.duration(phone.minutesPerDay))} <span class="ins-caption">a day</span></div></div>
-      <p>Entered by you on ${fmt.date(phone.on)}${help('phone screen time','You entered this yourself. It is never added to the browser figures above — the two are measured differently.')}</p>
-      ${badge(phone.provenance)}`;
+    box.innerHTML = `<div class="ins-phone-heading">${icon('i-phone')}<strong>Phone screen time</strong>${help('phone screen time','You entered this yourself. It is never added to the browser figures — the two are measured differently.')}</div><div class="ins-phone-value">${num(fmt.duration(phone.minutesPerDay))}<span>/ day</span></div><p>Self-reported · ${fmt.date(phone.on, {year:true})}</p><div class="ins-phone-note">${icon('i-info')}<span>This is a manual entry, not an automatic measurement.</span></div>`;
   };
 
   /* Tooltip: hover, keyboard focus and tap all show it. */
@@ -431,82 +389,28 @@
   const renderCheckIns = () => {
     const instruments = account.checkIns();
     const due = account.checkInWindow();
-    const anyComparison = instruments.some(item => item.comparison);
-    $('checkins-eyebrow').textContent = `${NAMES.checkIn} results`;
-    $('checkins-title').textContent = anyComparison ? `Since ${NAMES.baseline}` : `${NAMES.baseline[0].toUpperCase()}${NAMES.baseline.slice(1)}`;
+    const baselineDate = instruments.find(item => item.baseline)?.baseline.on;
+    const anySynthetic = instruments.some(item => item.history.some(synthetic));
+    $('checkins-eyebrow').textContent = baselineDate ? `${NAMES.baseline[0].toUpperCase()}${NAMES.baseline.slice(1)} · ${fmt.date(baselineDate, { year: true })}` : 'From your Lab records';
+    $('checkins-meta').innerHTML = anySynthetic ? `${demoChip}${help('demo scenario results', 'These results were created by the presentation scenario builder. They are synthetic demonstration data, not measurements of a real person or evidence of improvement.')}` : '';
 
     if (due.state === 'baseline-needed') {
-      $('checkins-title').textContent = 'Not measured yet';
-      $('checkins-meta').innerHTML = '';
       $('checkins-window').innerHTML = '';
-      $('checkins-body').innerHTML = empty(
-        `You haven’t taken your first ${NAMES.checkIn.toLowerCase()} yet. Each result appears here once it has been measured — nothing is estimated.`,
-        button(`Start your ${NAMES.checkIn.toLowerCase()}`, href('src/pages/member/lab/lab.html')));
+      $('checkins-body').innerHTML = empty(`You haven’t taken your first ${NAMES.checkIn.toLowerCase()} yet. Nothing is estimated.`, button(`Start your ${NAMES.checkIn.toLowerCase()}`, href('src/pages/member/lab/lab.html')));
       return;
     }
 
-    const baselineDate = instruments.find(item => item.baseline)?.baseline.on;
-    const anySynthetic = instruments.some(item => item.history.some(synthetic));
-    $('checkins-meta').innerHTML = `${anySynthetic ? `${demoChip}${help('demo scenario results', 'These results were created by the presentation scenario builder through the real instrument checks. They are synthetic demonstration data, not a real person’s measurements, and they are not evidence of improvement.')}` : ''}${baselineDate ? `<span class="ins-caption">${NAMES.baseline[0].toUpperCase()}${NAMES.baseline.slice(1)} · ${fmt.date(baselineDate, { year: true })}</span>` : ''}`;
+    const upcoming = instruments.filter(item => item.nextMeasured?.opens).sort((a,b) => a.nextMeasured.opens - b.nextMeasured.opens).slice(0,3);
+    $('checkins-window').innerHTML = `<div class="ins-upcoming-heading">${icon('i-calendar')}<h3>Next assessments</h3></div>${upcoming.length ? `<ul class="ins-upcoming-list">${upcoming.map(item => `<li><strong>${fmt.date(item.nextMeasured.opens, { year: true })}</strong><span>${esc(item.title)}</span></li>`).join('')}</ul>` : '<p>No upcoming assessments scheduled.</p>'}${['open','late'].includes(due.state) ? button(`Start ${NAMES.checkIn.toLowerCase()}`, href('src/pages/member/lab/lab.html'), { quiet:true }) : ''}`;
 
-    const tasks = due.tasks.map(task => task.title).join(' and ');
-    const kind = due.kind === 'full' ? 'full check' : 'short check';
-    const windowHtml = {
-      upcoming: `<div class="ins-window">
-          <div><p>Your next ${NAMES.checkIn.toLowerCase()} in ${num(due.daysUntilOpen)} ${plural(due.daysUntilOpen, 'day')}</p>
-          <p class="ins-window-tasks">${kind[0].toUpperCase()}${kind.slice(1)}: ${esc(tasks)} · about ${due.minutes} minutes · window ${fmt.date(due.opens)} – ${fmt.date(due.closes)}</p></div>
-          <span class="ins-button" role="link" aria-disabled="true">${icon('i-lock')}Re-check opens ${fmt.date(due.opens, { year: true })}</span>
-        </div>`,
-      open: `<div class="ins-window is-open">
-          <div><p><strong>Your ${NAMES.checkIn.toLowerCase()} window is open</strong> until ${fmt.date(due.closes, { weekday: true })}.</p>
-          <p class="ins-window-tasks">We’ll repeat ${esc(tasks)}. It takes about ${due.minutes} minutes.</p></div>
-          ${button(`Start ${NAMES.checkIn.toLowerCase()}`, href('src/pages/member/lab/lab.html'))}
-        </div>`,
-      late: `<div class="ins-window is-open">
-          <div><p><strong>Your ${NAMES.checkIn.toLowerCase()} window closed</strong> on ${fmt.date(due.closes)}.</p>
-          <p class="ins-window-tasks">You can still take it — ${esc(tasks)}, about ${due.minutes} minutes. The result will be marked late.</p></div>
-          ${button(`Start ${NAMES.checkIn.toLowerCase()}`, href('src/pages/member/lab/lab.html'))}
-        </div>`,
-      done: `<div class="ins-window"><p>This weekly ${NAMES.checkIn.toLowerCase()} is done. Next window: ${fmt.date(due.nextOpens)}.</p></div>`,
-      missed: `<div class="ins-window"><p>The weekly window closed ${fmt.date(due.closes)}. No late backfill under the interim rule. Next free pair opens ${fmt.date(due.nextOpens)}.</p></div>`
-    }[due.state] || '';
-    $('checkins-window').innerHTML = windowHtml;
-
-    $('checkins-body').innerHTML = instruments.map(item => {
-      if (!item.latest) {
-        if(!item.comparison&&item.history.filter(a=>a.valid===true).length>1)status=item.comparisonReason;
-      return `<article class="ins-range"><div class="ins-range-meta"><h3>${esc(item.title)}</h3><small>${esc(item.kind)}</small></div>
-          <p class="ins-range-status">Not measured yet.</p></article>`;
-      }
-      let status;
-      if (item.comparison) {
-        const [baseShape, latestShape] = item.provenance.id === 'self-reported' ? ['dashed ring', 'ring'] : ['hollow', 'solid'];
-        status = `${NAMES.baseline[0].toUpperCase()}${NAMES.baseline.slice(1)} (${baseShape}) ${fmt.date(item.comparison.from.on, { year: true })} · ${NAMES.latest} (${latestShape}) ${fmt.date(item.comparison.to.on, { year: true })}${item.comparison.to.late ? ' · taken late' : ''}`;
-      } else if (anyComparison) {
-        const dueNow = (due.state === 'open' || due.state === 'late') && due.tasks.some(task => task.id === item.id);
-        status = `Latest valid result: ${fmt.date(item.latest.on,{year:true})}${dueNow?' · included in this weekly window':item.nextMeasured?` · next in week ${item.nextMeasured.week}`:''}`;
-      } else if (item.nextMeasured) {
-        const opens = fmt.date(item.nextMeasured.opens, { year: true });
-        const inNextCheck = due.opens && item.nextMeasured.opens.getTime() === due.opens.getTime();
-        const windowOpen = due.state === 'open' || due.state === 'late';
-        status = inNextCheck && windowOpen
-          ? 'No comparison yet — this task is repeated in the check-in that is open now'
-          : inNextCheck
-          ? `No comparison yet — first re-check available ${opens}`
-          : `No comparison yet — measured again in week ${item.nextMeasured.week}, from ${opens}`;
-      } else {
-        status = 'No comparison yet.';
-      }
-      if(!item.comparison&&item.history.filter(a=>a.valid===true).length>1)status=item.comparisonReason;
-      return `<article class="ins-range">
-        <div class="ins-range-meta">
-          <h3>${esc(item.title)}</h3>
-          <small>${esc(item.kind)}</small>
-          <div>${badge(item.provenance)}${[item.baseline, item.latest].some(synthetic) ? demoChip : ''}</div>
-        </div>
-        <div class="ins-range-axis">${axis(item)}<p class="ins-range-status">${status}</p></div>
-      </article>`;
+    const rows = instruments.map(item => {
+      const result = item.baseline || item.latest;
+      const comparison = item.comparison;
+      const comparisonText = comparison ? `${esc(comparison.from.score)} → ${esc(comparison.to.score)}` : 'Not yet available';
+      return `<tr><th scope="row"><span class="ins-assessment-name">${esc(item.title)}</span><span class="ins-assessment-source">${badge(item.provenance)}</span></th><td data-label="What it measures">${esc(item.kind)}</td><td data-label="First result"><strong class="ins-assessment-score">${result ? esc(result.score) : '—'}</strong></td><td data-label="Comparison"><span class="${comparison ? 'ins-assessment-comparison' : 'ins-assessment-pending'}">${comparisonText}</span>${!comparison && item.comparisonReason ? help(`${item.title} comparison`, item.comparisonReason) : ''}</td></tr>`;
     }).join('');
+    const evidence = instruments.filter(item => item.latest).map(item => `<article class="ins-range"><div class="ins-range-meta"><h3>${esc(item.title)}</h3><small>${esc(item.kind)}</small><div>${badge(item.provenance)}</div></div><div class="ins-range-axis">${axis(item)}<p class="ins-range-status">Recorded ${fmt.date(item.latest.on, { year: true })}${item.comparison ? ` · compared with ${fmt.date(item.comparison.from.on, { year: true })}` : item.comparisonReason ? ` · ${esc(item.comparisonReason)}` : ' · no valid comparison yet'}</p></div></article>`).join('');
+    $('checkins-body').innerHTML = `<div class="ins-assessment-table-wrap"><table class="ins-assessment-table"><thead><tr><th scope="col">Measure</th><th scope="col">What it measures</th><th scope="col">First result</th><th scope="col">Comparison</th></tr></thead><tbody>${rows}</tbody></table></div>${evidence ? `<details class="ins-detail-disclosure ins-assessment-details"><summary>See measurement details</summary><div class="ins-detail-content">${evidence}</div></details>` : ''}`;
   };
 
   /* ---------------------------------------------------- beyond the screen */
@@ -615,7 +519,7 @@
   const renderNext = () => {
     const steps = account.nextSteps(root);
     $('next-body').innerHTML = steps.length
-      ? steps.map(step => `<li class="ins-step"><p>${esc(step.reason)}</p>${button(step.action, step.href)}</li>`).join('')
+      ? steps.map(step => `<li><a class="ins-step" href="${step.href}"><span class="ins-step-icon">${icon(step.href.includes('shield') ? 'i-shield' : step.href.includes('review') ? 'i-calendar' : 'i-arrow')}</span><span class="ins-step-copy"><strong>${esc(step.action)}</strong><small>${esc(step.reason)}</small></span>${icon('i-arrow')}</a></li>`).join('')
       : `<li>${empty('Nothing needs your attention right now.')}</li>`;
   };
 
@@ -636,9 +540,19 @@
 
   document.querySelectorAll('.ins-period button').forEach(item =>
     item.addEventListener('click', () => setPeriod(Number(item.dataset.period))));
+  const updateSectionNav = () => {
+    const target = location.hash || '#glance';
+    document.querySelectorAll('.ins-section-nav a').forEach(link => {
+      if (link.getAttribute('href') === target) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  };
+  window.addEventListener('hashchange', updateSectionNav);
+  updateSectionNav();
 
   Account.load().then(loaded => {
     account = loaded;
+    $('ins-snapshot').innerHTML = `${icon('i-calendar')}<span>Demo snapshot · ${fmt.date(account.today, { year: true })}</span>${help('snapshot date','This page shows the local demonstration account at its planning date. Browser observations use the device calendar and are labeled separately.')}`;
     renderGlance();
     renderAdherence();
     renderUsage();
@@ -657,5 +571,5 @@
     error.textContent = 'We couldn’t load your data, so nothing is shown rather than zeros. If you opened this file directly from disk, serve the Client folder locally (see README) and reload.';
     document.querySelectorAll('.ins-section').forEach(section => { section.hidden = true; });
   });
-  window.addEventListener('deepsprout:shield',()=>{if(account)renderUsage();});
+  window.addEventListener('deepsprout:shield',()=>{if(account){renderGlance();renderUsage();}});
 })();

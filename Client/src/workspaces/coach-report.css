@@ -1,0 +1,89 @@
+/* Coach report: records filled in for the Coach (step 1), the Coach's own words (step 2), earlier reports. */
+.coach-report-page { --report-ink: #173e35; --report-muted: #5d7168; --report-border: #e0e6d8; color: var(--report-ink); }
+
+/* Period bar */
+.coach-report-scope {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 14px 18px;
+  border: 1px solid var(--report-border);
+  border-radius: 16px;
+  background: #fbfbf4;
+}
+.coach-report-scope .field { gap: 6px; margin: 0; font-size: 12px; font-weight: 650; }
+.coach-report-scope .field input,
+.coach-report-scope .field select { height: 42px; padding: 8px 11px; border-radius: 11px; font-size: 13.5px; }
+.cw-scope-group { display: grid; gap: 6px; min-width: 0; }
+.cw-scope-group > span { font-size: 12px; font-weight: 650; }
+.cw-scope-group b { display: flex; align-items: center; gap: 8px; height: 42px; font-size: 15px; }
+.cw-scope-group .iw-gdot { margin: 0; }
+.coach-report-update { min-height: 42px; border-radius: 11px; white-space: nowrap; }
+
+/* Two panels */
+.coach-report-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(320px, 1fr); align-items: start; gap: 18px; }
+.coach-report-page .panel { min-width: 0; margin: 0; padding: 24px 26px; border: 1px solid var(--report-border); border-radius: 22px; background: #fffef9; box-shadow: 0 12px 34px rgb(23 62 53 / 6%); }
+.coach-report-page .panel .eyebrow { margin: 0 0 6px; font-size: 10.5px; letter-spacing: .14em; color: #4c7a5c; }
+.coach-report-page .panel h2 { margin: 0 0 4px; font-size: 20px; color: var(--report-ink); }
+.coach-report-page .panel .cw-sub { margin: 0 0 16px; }
+
+/* Six numbers, compact */
+.coach-report-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.coach-report-metric { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid #edf0e6; border-radius: 13px; background: #f8f9f3; }
+.coach-report-metric strong { font-size: 24px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--report-ink); }
+.coach-report-metric span { font-size: 12px; color: var(--report-muted); }
+.coach-report-metric.is-sage { background: #f0f7ec; border-color: #e1ecdb; }
+.coach-report-metric.is-amber { background: #fdf6e6; border-color: #f2e7cf; }
+.coach-report-metric.is-amber strong { color: #85590f; }
+.coach-report-metric.is-rose { background: #fbf1ec; border-color: #f1e1d9; }
+.coach-report-metric.is-rose strong { color: #9a3f2a; }
+
+/* Student by student */
+.cw-mini-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cw-mini-table th { padding: 0 8px 8px; border-bottom: 1px solid #edf0e6; font-size: 11px; font-weight: 650; text-align: left; color: var(--report-muted); }
+.cw-mini-table td { padding: 9px 8px; border-bottom: 1px solid #f1f3ec; font-variant-numeric: tabular-nums; vertical-align: middle; }
+.cw-mini-table tr:last-child td { border-bottom: 0; }
+.cw-mini-table .iw-person { display: flex; align-items: center; gap: 9px; }
+.cw-mini-table .avatar { width: 28px; height: 28px; font-size: 10px; }
+.cw-mini-table strong { font-size: 13px; font-weight: 600; }
+
+.coach-report-source-note { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; padding: 12px 14px; border-radius: 13px; background: #f1f4ea; }
+.coach-report-source-note .icon { width: 16px; height: 16px; flex: none; margin-top: 2px; color: #2f6b4a; }
+.coach-report-source-note p { margin: 0; font-size: 12px; line-height: 1.5; color: #3d5a4d; }
+
+/* Your update */
+.coach-report-notes { position: sticky; top: 18px; }
+.coach-report-writing { display: grid; gap: 16px; }
+.coach-report-field { display: grid; gap: 4px; margin: 0; font-size: 13.5px; font-weight: 650; color: var(--report-ink); }
+.coach-report-field small { font-weight: 400; color: var(--report-muted); }
+.coach-report-field .cw-hint { font-size: 12px; }
+.coach-report-field textarea { min-height: 84px; margin-top: 4px; padding: 11px 13px; border: 1px solid #ccd8cd; border-radius: 12px; background: #fff; font: inherit; font-size: 14px; font-weight: 400; line-height: 1.5; color: var(--report-ink); }
+.coach-report-field textarea::placeholder { color: #8a978f; }
+.coach-report-field textarea:focus { border-color: #34805b; outline: none; box-shadow: 0 0 0 3px #e4f1e7; }
+.coach-report-page .required { color: #a65532; }
+.coach-report-writing .form-error { margin: 0; }
+.coach-report-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.coach-report-actions .button { min-height: 44px; white-space: nowrap; }
+
+/* Earlier reports */
+.coach-report-history { margin-top: 18px !important; }
+.coach-report-history h2 { margin-bottom: 14px !important; }
+.coach-report-history-empty { margin: 0; color: var(--report-muted); font-size: 13px; }
+
+@media (max-width: 1080px) {
+  .coach-report-layout { grid-template-columns: minmax(0, 1fr); }
+  .coach-report-notes { position: static; }
+}
+@media (max-width: 700px) {
+  .coach-report-scope { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .coach-report-scope > .cw-scope-group, .coach-report-scope > .field:first-child { grid-column: 1 / -1; }
+  .cw-scope-group b { height: auto; }
+  .coach-report-update { grid-column: 1 / -1; }
+  .coach-report-page .panel { padding: 20px 16px; }
+  .coach-report-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cw-mini-table th:nth-child(3), .cw-mini-table td:nth-child(3) { display: none; }
+  .coach-report-actions { flex-wrap: wrap; }
+  .coach-report-actions .button { flex: 1 1 100%; }
+}

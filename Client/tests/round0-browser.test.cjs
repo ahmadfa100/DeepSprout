@@ -57,16 +57,16 @@ const base=process.env.BASE_URL||'http://127.0.0.1:8896';
   // A valid returning seeded Individual follows their real active journal.
   await page.goto(base+'/src/pages/auth/login/login.html');await page.locator('#email').fill('ahmad@demo.example');await page.locator('#password').fill('demo-password');await page.locator('#login-form button[type=submit]').click();await page.waitForURL(base+'/index.html');
   assert.equal(await page.evaluate(async()=>(await DeepSproutAccount.load()).id),'demo');
-  await page.goto(base+'/src/pages/member/shield/shield.html');await page.locator('#shield-time').fill('20:15');
+  await page.goto(base+'/src/pages/member/shield/shield.html');await page.locator('#legacy-title').click();await page.locator('#shield-time').fill('20:15');
   await page.evaluate(()=>{window.__setItem=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k.startsWith('deepsprout-account-changes-v1:'))throw new DOMException('Full','QuotaExceededError');return __setItem.call(this,k,v);};});
   const shieldBefore=await page.evaluate(async()=>(await DeepSproutAccount.load()).changeCount());
   await page.locator('[form=shield-form][type=submit]').click();await page.locator('#save-message').filter({hasText:/could not save/}).waitFor();assert.equal(await page.evaluate(async()=>(await DeepSproutAccount.load()).changeCount()),shieldBefore);
   await page.evaluate(()=>Storage.prototype.setItem=__setItem);await page.locator('[form=shield-form][type=submit]').click();await page.locator('#save-message').filter({hasText:/Preferences saved/}).waitFor();await page.reload();assert.equal(await page.locator('#shield-time').inputValue(),'20:15');
-  await page.goto(base+'/src/pages/member/recovery-plan/recovery-plan.html');await page.locator('#tab-adjust').click();await page.getByText('More time away from screens',{exact:true}).click();
+  await page.goto(base+'/src/pages/member/recovery-plan/recovery-plan.html');await page.locator('#tab-adjust').click();await page.locator('#adjust-goal-path').click();await page.locator('[name=goal][value=offline-time]').locator('..').click();
   const recoveryBefore=await page.evaluate(async()=>(await DeepSproutAccount.load()).changeCount());
   await page.evaluate(()=>{window.__setItem=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k.startsWith('deepsprout-account-changes-v1:'))throw new DOMException('Full','QuotaExceededError');return __setItem.call(this,k,v);};});
-  await page.locator('#adjust-form button[type=submit]').click();await page.locator('#save-note').filter({hasText:/could not be saved/}).waitFor();assert.equal(await page.evaluate(async()=>(await DeepSproutAccount.load()).changeCount()),recoveryBefore);
-  await page.evaluate(()=>Storage.prototype.setItem=__setItem);await page.locator('#adjust-form button[type=submit]').click();await page.locator('#save-note').filter({hasText:/Saved/}).waitFor();await page.reload();await page.locator('#tab-adjust').click();assert(await page.locator('[name=focus][value=offline]').isChecked());
+  await page.locator('#save-plan').click();await page.locator('#routine-toast.is-error').waitFor();assert.equal(await page.evaluate(async()=>(await DeepSproutAccount.load()).changeCount()),recoveryBefore);
+  await page.evaluate(()=>Storage.prototype.setItem=__setItem);await page.locator('#save-plan').click();await page.locator('#save-plan').getByText('Changes saved successfully').waitFor();await page.reload();await page.locator('#tab-adjust').click();assert.match(await page.locator('#adjust-summary-goal').innerText(),/offline life/i);
   assert.deepEqual(errors,[]);
   console.log('round0-browser: PASS — canonical profile/reload, two identities/cross-tab stale write, four limited routes/upgrade, cancelled and former-membership history/reload; failed registration/profile saves and seeded login; final page-error check reached');
  } finally {await browser.close();}

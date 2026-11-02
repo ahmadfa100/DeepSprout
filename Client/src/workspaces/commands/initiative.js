@@ -502,11 +502,44 @@ export function initiativeCommand(s, action, p, actor) {
     const initiative = initiativeOf(s, p.initiativeId);
     requireThat(isActiveSupervisor(s, initiative.id, actor), 'Only an active Supervisor can submit a summary.');
     requireThat(p.from && p.to && p.to >= p.from, 'Choose a valid reporting period.');
-    const coachReportIds = s.coachReports.filter(r => r.initiativeId === initiative.id && r.status === 'Submitted' && r.period.to >= p.from && r.period.from <= p.to).map(r => r.id);
+    // The Supervisor may choose which Coach reports go with the summary; otherwise every report in the period.
+    const inPeriod = s.coachReports.filter(r => r.initiativeId === initiative.id && r.status === 'Submitted' && r.period.to >= p.from && r.period.from <= p.to);
+    const chosen = [].concat(p.coachReportIds || []).filter(Boolean);
+    const coachReportIds = chosen.length ? s.coachReports.filter(r => r.initiativeId === initiative.id && r.status === 'Submitted' && chosen.includes(r.id)).map(r => r.id) : inPeriod.map(r => r.id);
     const summary = {id:id('sup-summary'), initiativeId:initiative.id, authorId:actor, period:{from:p.from, to:p.to}, metrics:initiativeMetrics(s, initiative, p.from, p.to), coachReportIds, summary:textRequired(p.summary, 'Summary'), issues:String(p.issues || '').trim(), recommendations:String(p.recommendations || '').trim(), status:'Submitted', submitted:now()};
     s.supervisorSummaries.push(summary);
+    for (const r of s.coachReports.filter(x => coachReportIds.includes(x.id))) r.review = {...(r.review || {}), sentIn:summary.id, sentAt:now()};
     noticeAll(s, representativesOf(s, initiative), `${personOf(s, actor).name} submitted a Supervisor summary for ${initiative.title}.`, `workspaces.html#/organization/reports?initiative=${initiative.id}`);
     return summary.id;
+  }
+
+  if (action === 'initiative.coach.report.review') {
+    const r = find(s.coachReports, p.id);
+    requireThat(r.status === 'Submitted', 'Only a submitted Coach report can be reviewed.');
+    requireThat(isActiveSupervisor(s, r.initiativeId, actor), 'Only an active Supervisor of this initiative can review Coach reports.');
+    // The Coach's words stay as written; the Supervisor's note and correction sit beside them.
+    r.review = {...(r.review || {}), note:String(p.note ?? r.review?.note ?? '').trim(), correction:String(p.correction ?? r.review?.correction ?? '').trim(), included:p.included === undefined ? (r.review?.included ?? true) : !!p.included, reviewerId:actor, reviewedAt:now()};
+    return r.id;
+  }
+  if (action === 'initiative.supervisor.meeting') {
+    const initiative = initiativeOf(s, p.initiativeId);
+    requireThat(isActiveSupervisor(s, initiative.id, actor), 'Only an active Supervisor can schedule a meeting.');
+    requireThat(['everyone', 'coaches', 'coach'].includes(p.audience), 'Choose who the meeting is with.');
+    if (p.audience === 'coach') requireThat(activeGrantsFor(s, initiative.id, 'coach').some(g => g.personId === p.coachId), 'Choose a Coach of this initiative.');
+    requireThat(p.date && p.time, 'Choose a date and time.');
+    const meeting = {id:id('meeting'), initiativeId:initiative.id, organizerId:actor, title:textRequired(p.title, 'Title'), audience:p.audience, coachId:p.audience === 'coach' ? p.coachId : null, date:p.date, time:p.time, minutes:Number(p.minutes) || 45, format:p.format || 'Online', place:String(p.place || '').trim(), note:String(p.note || '').trim(), status:'Scheduled', created:now()};
+    (s.supervisorMeetings ||= []).push(meeting);
+    const coaches = activeGrantsFor(s, initiative.id, 'coach').map(g => g.personId);
+    const students = s.groups.filter(g => g.parentType === 'initiative' && g.initiativeId === initiative.id).flatMap(g => g.memberIds);
+    const invited = p.audience === 'coach' ? [p.coachId] : p.audience === 'coaches' ? coaches : [...coaches, ...students];
+    noticeAll(s, invited, `${personOf(s, actor).name} scheduled “${meeting.title}” on ${meeting.date} at ${meeting.time}.`, `workspaces.html#/mentor/dashboard`);
+    return meeting.id;
+  }
+  if (action === 'initiative.supervisor.meeting.cancel') {
+    const m = find(s.supervisorMeetings || [], p.id);
+    requireThat(isActiveSupervisor(s, m.initiativeId, actor), 'Only an active Supervisor can cancel this meeting.');
+    m.status = 'Cancelled'; m.cancelReason = String(p.reason || '').trim();
+    return m.id;
   }
 
   /* ---- Initiative lifecycle beyond Draft/Publish */

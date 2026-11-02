@@ -256,8 +256,60 @@
     if (dot && unread.length) dot.hidden = false;
     list.querySelector('.member-notices-read')?.addEventListener('click', () => { unread.forEach(n => { try { repo.run('member.notice.read', { id: n.id }); } catch { /* not mine */ } }); paintNotices(repo); });
   };
+  /* ------------------------------------------- My initiative (portal)
+     Shown only when this Individual holds an Accepted place in a live
+     initiative. Opens the Student initiative dashboard with a short
+     transition; the dashboard plays the matching arrival. */
+  const portalMark = '<svg class="ds-portal-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-9M12 15C6 15 3 11 3 5c6 0 9 3 9 10Zm0-3c0-6 3-9 9-9 0 6-3 9-9 9Z"/></svg>';
+  const openPortal = (repo, link) => event => {
+    if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    try { repo.ensureSession(); } catch { /* the dashboard asks the person to sign in */ }
+    try { sessionStorage.setItem('deepsprout-initiative-portal', JSON.stringify({ title: link.dataset.title, org: link.dataset.org })); } catch { /* arrival simply skips the animation */ }
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    event.preventDefault();
+    const box = link.getBoundingClientRect();
+    const portal = document.createElement('div');
+    portal.className = 'ds-portal is-leaving';
+    portal.setAttribute('aria-hidden', 'true');
+    portal.style.setProperty('--x', `${box.left + box.width / 2}px`);
+    portal.style.setProperty('--y', `${box.top + box.height / 2}px`);
+    portal.innerHTML = `<div class="ds-portal-inner">${portalMark}<span class="ds-portal-eyebrow">My initiative</span><strong>${escapeHtml(link.dataset.title)}</strong><small>${escapeHtml(link.dataset.org)}</small></div>`;
+    document.body.append(portal);
+    setTimeout(() => { location.href = link.href; }, 980);
+  };
+  const paintInitiative = repo => {
+    const actions = document.querySelector('.member-header-actions');
+    if (!actions) return;
+    let entry = null;
+    try {
+      const me = repo.me();
+      entry = me && repo.selectors.myInitiatives(repo.read(), me.id).find(e => e.admission.status === 'Accepted' && !['Cancelled', 'Archived'].includes(e.initiative.status));
+    } catch { /* no initiative data on this device */ }
+    let link = actions.querySelector('.member-initiative');
+    if (!entry) { link?.remove(); return; }
+    if (!link) {
+      link = document.createElement('a');
+      link.className = 'member-initiative';
+      actions.prepend(link);
+      link.addEventListener('click', openPortal(repo, link));
+    }
+    link.href = `${root}workspaces.html#/student/dashboard`;
+    link.dataset.title = entry.initiative.title;
+    link.dataset.org = entry.initiative.organizer || entry.group?.name || '';
+    link.setAttribute('aria-label', `Open my initiative dashboard: ${entry.initiative.title}`);
+    link.innerHTML = `<span class="member-initiative-dot" aria-hidden="true"></span><svg class="member-initiative-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-9M12 15C6 15 3 11 3 5c6 0 9 3 9 10Zm0-3c0-6 3-9 9-9 0 6-3 9-9 9Z"/></svg><span class="member-initiative-label"><small>My initiative</small><strong>${escapeHtml(entry.initiative.title)}</strong></span><svg class="member-initiative-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>`;
+  };
+  if (!document.querySelector('link[href*="initiative-portal.css"]')) {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = `${root}src/styles/initiative-portal.css`;
+    document.head.append(css);
+  }
+  // Returning with the browser's back button restores a page frozen mid-transition.
+  window.addEventListener('pageshow', event => { if (event.persisted) document.querySelectorAll('.ds-portal').forEach(node => node.remove()); });
+
   withRepo(repo => {
-    const paint = () => { paintIdentity(repo); paintNotices(repo); };
+    const paint = () => { paintIdentity(repo); paintNotices(repo); paintInitiative(repo); };
     paint();
     window.addEventListener('deepsprout:repo', paint);
     window.addEventListener('deepsprout:account', () => setTimeout(paint, 0));

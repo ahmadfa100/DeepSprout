@@ -39,7 +39,7 @@ export function currentContext(ctx) {
 }
 export function contextBar(ctx, current) {
   const list = supervisorContexts(ctx);
-  if (list.length < 2) return current ? `<div class="iw-contexts is-single" aria-label="Current assignment">${chip(current, true, ctx.route.page)}</div>` : '';
+  if (list.length < 2) return ''; // one assignment: the page itself names it
   return `<nav class="iw-contexts" aria-label="Choose an assignment">${list.map(c => chip(c, c.key === current?.key, ctx.route.page)).join('')}</nav>`;
 }
 function chip(c, active, page) {

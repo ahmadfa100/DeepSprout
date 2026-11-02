@@ -1,3 +1,4 @@
+import {renderReportInbox,inboxReportAction,inboxReportSubmit} from './report-inbox.js';
 /**
  * Representative Reports and Supervisor Insights. Every number is counted
  * from original records in the chosen scope; people add interpretation.
@@ -8,7 +9,6 @@ import {esc,nameOf,pill,head,stats,stat,card,bars,funnel,ring,emptyState,initiat
 import {seatCap} from '../../initiative-rules.js';
 import {groupMetrics} from '../../commands/initiative.js';
 import {providerReport} from '../../../shared/provider-selectors.js';
-import {initiativeGarden} from '../../../shared/selectors.js';
 
 const inRange = (value, from, to) => { const day = String(value || '').slice(0, 10); return (!from || day >= from) && (!to || day <= to); };
 
@@ -71,24 +71,8 @@ function providerAggregates(ctx,i){
  return card('Accepted Provider partnerships',ids.length?u.table(['Provider-owned experience','Confirmed','Held','Queued','Present','Late','Absent','Camp completions'],ids.map(id=>{const d=providerReport(ctx.s,id,{from:ctx.route.query.get('from'),to:ctx.route.query.get('to')});return {cells:[esc(ctx.s.experiences.find(e=>e.id===id)?.title||id),d?.confirmed||0,d?.held||0,d?.queued||0,d?.present||0,d?.late||0,d?.absent||0,d?.completed||0]};}))+provenance('Agreed aggregate participation for the entire linked Provider experience, not just this Initiative’s students. Original Provider bookings remain separate from Initiative admissions, attendance and Group Garden. Date filters select the original booking cohort; no personal records are shared here.'):'<p class="iw-muted">No active, accepted Provider links.</p>');
 }
 
-export function renderRepReports(ctx, initiatives) {
-  const {s} = ctx;
-  const i = initiatives.find(x => x.id === (ctx.route.query.get('initiative') || ctx.localUI.initiativeId)) || initiatives[0];
-  if (!i) return head({eyebrow:'REPORTS', title:'Reports'}) + emptyState('No initiative to report on yet.', 'Reports are counted from the records of your initiatives.', u.link('Create an initiative', 'organization/initiatives/new', 'button primary'));
-  ctx.localUI.initiativeId = i.id;
-  const q = ctx.route.query, data = initiativeReport(s, i, {from:q.get('from') || '', to:q.get('to') || '', groupId:q.get('group') || ''});
-  ctx.localUI.reportExport = {i, data};
-  const garden = initiativeGarden(s, i.id);
-  return head({eyebrow:'INSIGHTS FOR THE REPRESENTATIVE', title:'Reports', lead:'Counted from Applications, attendance, excuses and Coach-reviewed work. Coach reports and Supervisor summaries add the human interpretation.', actions:u.button('Export participants CSV', 'report-export-csv', {}, 'button secondary')})
-    + filters(ctx, i, initiatives)
-    + stats([stat(data.accepted, 'Accepted now', {of:seatCap(i)}), stat(data.applied, 'Applications in range'), stat(data.attendance.present + data.attendance.late, 'Attended records', {hint:`${data.attendance.absent} absent`}), stat(data.tasks.approved, 'Tasks approved', {of:data.tasks.expected || 0}), stat(data.completions.completed, 'Completed students', {hint:i.status === 'Completed' ? 'Initiative completed' : 'Recorded on completion'})])
-    + sharedSections(ctx, i, data)
-    + providerAggregates(ctx,i)
-    + `<div class="iw-split">${card('Supervisor summaries', reportList(ctx, data.summaries, 'summary'), {eyebrow:'SUPERVISOR → YOU'})}${card('Coach reports', reportList(ctx, data.coachReports, 'coach'), {eyebrow:'COACHES → SUPERVISORS → YOU'})}</div>`
-    + `<div class="iw-split">${card('Forms & surveys', data.forms.length ? `<ul class="iw-mini-list">${data.forms.map(f => `<li><span>${esc(f.form.title)} · v${esc(f.form.version)}</span><b>${f.responses} identified response(s)</b>${u.link('Responses', `organization/forms/${f.form.id}/responses`, 'text-link')}</li>`).join('')}</ul>` : '<p class="iw-muted">No linked forms.</p>', {eyebrow:'IDENTIFIED RESPONSES'})}
-      ${card('Competitions & collective garden', `${data.competitions.length ? `<ul class="iw-mini-list">${data.competitions.map(c => `<li><span>${esc(c.competition.title)}</span><b>${c.entries} entries · ${c.reviewed} reviewed</b></li>`).join('')}</ul>` : '<p class="iw-muted">No linked competitions.</p>'}<p class="iw-muted">Group Garden: ${garden.count} qualifying contribution(s) from ${garden.contributors} student(s) · stage ${garden.stage}/5.</p>${u.link('Open Group Garden', `organization/group-garden?initiative=${i.id}`, 'text-link')}`, {eyebrow:'OUTCOMES'})}</div>`
-    + `<p class="iw-footnote">${u.icon('shield')}Reports never include personal Lab, Shield or Recovery data. Initiative participation does not change anyone’s personal scores.</p>`;
-}
+/** Received narrative reports are the Representative's primary Reports view. */
+export function renderRepReports(ctx, initiatives) { return renderReportInbox(ctx, initiatives); }
 
 export function renderSupervisorInsights(ctx, initiatives) {
   const {s, person:p} = ctx;
@@ -109,6 +93,7 @@ export function renderSupervisorInsights(ctx, initiatives) {
 }
 
 export function reportAction(action, target, ctx) {
+  if(inboxReportAction(action,target,ctx))return true;
   const d = target.dataset, s = ctx.s;
   if (action === 'report-open') {
     const r = (d.kind === 'coach' ? s.coachReports : s.supervisorSummaries).find(x => x.id === d.id);
@@ -127,6 +112,7 @@ export function reportAction(action, target, ctx) {
   return false;
 }
 export function reportSubmit(form, ctx) {
+  if(inboxReportSubmit(form,ctx))return true;
   if (form.dataset.form === 'report-filters') { const v = u.formValues(form); if (v.from && v.to && v.to < v.from) throw new Error('The end date must follow the start date.'); const q = new URLSearchParams(ctx.route.query); ['from','to','group'].forEach(k => v[k] ? q.set(k, v[k]) : q.delete(k)); ctx.go(`${ctx.route.path}?${q}`); return true; }
   if (form.dataset.form === 'supervisor-summary') { ctx.run('initiative.supervisor.summary', {initiativeId:form.dataset.initiative, ...u.formValues(form)}, 'Summary submitted to the Representative.'); ctx.render(); return true; }
   return false;

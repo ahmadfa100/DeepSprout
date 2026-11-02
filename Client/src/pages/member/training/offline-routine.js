@@ -27,6 +27,8 @@
 
   const $ = id => document.getElementById(id);
   const list = $('routine-list');
+  const doingList = $('routine-doing-list');
+  const doneList = $('routine-done-list');
   const weekStrip = $('routine-week');
   const input = $('routine-input');
   const escape = value => String(value ?? '').replace(/[&<>"']/g, char => (
@@ -37,6 +39,79 @@
   let editingId = null;
   let freshId = null;
   let flashTimer = null;
+  let doingIds = new Set();
+  let doingKey = '';
+
+  function saveDoing() {
+    try { localStorage.setItem(doingKey, JSON.stringify([...doingIds])); } catch {}
+  }
+
+  function moveItem(item, lane) {
+    if (!item || item.paused || !['todo', 'doing', 'done'].includes(lane)) return;
+    const status = account.routineStatusOn(item, account.today);
+    const current = status === 'done' ? 'done' : doingIds.has(item.id) ? 'doing' : 'todo';
+    if (current === lane) return;
+    const previous = new Set(doingIds);
+    doingIds.delete(item.id);
+    if (lane === 'doing') doingIds.add(item.id);
+    saveDoing();
+    try {
+      if (lane === 'done' && status !== 'done') account.mutate({ type: 'routine.log', id: item.id, status: 'done' });
+      else if (lane !== 'done' && (status === 'done' || lane === 'doing' && status === 'skipped')) account.mutate({ type: 'routine.log', id: item.id, status: null });
+      else render();
+      if (lane === 'done') burst(doneList.querySelector(`[data-id="${item.id}"] .routine-tick`));
+      flash(`“${item.title}” moved to ${lane === 'todo' ? 'To do' : lane === 'doing' ? 'Doing' : 'Done'}${lane === 'done' ? ' · self-reported for today' : ''}.`);
+    } catch (error) {
+      doingIds = previous;
+      saveDoing();
+      render();
+      flash(error.message);
+    }
+  }
+
+  function attachDrag(handle, row, item) {
+    handle.addEventListener('pointerdown', start => {
+      if (item.paused || start.button !== 0) return;
+      start.preventDefault();
+      handle.setPointerCapture(start.pointerId);
+      const rect = row.getBoundingClientRect();
+      let ghost = null;
+      let target = null;
+      const clearTarget = () => { if (target) target.classList.remove('is-drop-target'); target = null; };
+      const cleanup = () => { clearTarget(); ghost?.remove(); row.classList.remove('is-drag-source'); handle.removeEventListener('pointermove', onMove); handle.removeEventListener('pointerup', onEnd); handle.removeEventListener('pointercancel', onCancel); };
+      const onMove = event => {
+        const dx = event.clientX - start.clientX, dy = event.clientY - start.clientY;
+        if (!ghost && Math.hypot(dx, dy) < 6) return;
+        if (!ghost) {
+          ghost = row.cloneNode(true);
+          ghost.classList.add('routine-drag-ghost');
+          ghost.setAttribute('aria-hidden', 'true');
+          ghost.style.width = `${rect.width}px`;
+          ghost.style.left = `${rect.left}px`;
+          ghost.style.top = `${rect.top}px`;
+          document.body.append(ghost);
+          row.classList.add('is-drag-source');
+        }
+        ghost.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+        const next = document.elementFromPoint(event.clientX, event.clientY)?.closest('.routine-lane');
+        if (next !== target) { clearTarget(); target = next; target?.classList.add('is-drop-target'); }
+      };
+      const onEnd = () => { const lane = target?.dataset.lane; cleanup(); if (lane) moveItem(item, lane); };
+      const onCancel = () => cleanup();
+      handle.addEventListener('pointermove', onMove);
+      handle.addEventListener('pointerup', onEnd);
+      handle.addEventListener('pointercancel', onCancel);
+    });
+    handle.addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || item.paused) return;
+      event.preventDefault();
+      const lanes = ['todo', 'doing', 'done'];
+      const current = row.closest('.routine-lane')?.dataset.lane || 'todo';
+      const next = lanes[Math.max(0, Math.min(2, lanes.indexOf(current) + (event.key === 'ArrowRight' ? 1 : -1)))];
+      moveItem(item, next);
+      if (next !== current) requestAnimationFrame(() => $('routine-board').querySelector(`[data-id="${item.id}"] .routine-drag-handle`)?.focus());
+    });
+  }
 
   const dayLabel = (days, recurrence) => {
     const base = days.length === 7 ? 'Every day'
@@ -151,15 +226,17 @@
 
   function renderList() {
     const items = account.routine().items;
-    $('routine-empty').hidden = items.length > 0;
+    $('routine-empty').hidden = true;
     $('routine-board-count').textContent = `${items.length} ${items.length === 1 ? 'item' : 'items'}`;
     const dates = weekDates();
+    const rows = { todo: [], doing: [], done: [] };
 
     const ordered = [...items].sort((a, b) => Number(account.routineScheduledOn(b, account.today) && !b.paused) - Number(account.routineScheduledOn(a, account.today) && !a.paused));
-    list.replaceChildren(...ordered.map(item => {
+    ordered.forEach(item => {
       const status = account.routineStatusOn(item, account.today);
       const scheduled = account.routineScheduledOn(item, account.today);
       const weekCount = dates.filter(date => account.routineStatusOn(item, date) === 'done').length;
+      const lane = status === 'done' ? 'done' : doingIds.has(item.id) && !item.paused ? 'doing' : 'todo';
       const row = document.createElement('li');
       row.className = 'routine-item';
       row.dataset.id = item.id;
@@ -169,29 +246,41 @@
       if (item.id === editingId) row.classList.add('is-open');
       if (item.id === freshId) row.classList.add('is-fresh');
 
+      const handle = document.createElement('button');
+      handle.type = 'button';
+      handle.className = 'routine-drag-handle';
+      handle.disabled = item.paused;
+      handle.setAttribute('aria-label', `Drag “${item.title}” or use arrow keys to move between To do, Doing and Done`);
+      handle.title = 'Drag to move';
+      handle.innerHTML = '<span aria-hidden="true">⠿</span>';
+      attachDrag(handle, row, item);
+
       const tick = document.createElement('button');
       tick.type = 'button';
       tick.className = 'routine-tick';
       tick.setAttribute('aria-pressed', String(status === 'done'));
-      tick.setAttribute('aria-label', `Mark “${item.title}” as done today (your own report)`);
+      tick.setAttribute('aria-label', status === 'done' ? `Move “${item.title}” back to To do` : `Mark “${item.title}” as done today (your own report)`);
       tick.innerHTML = '<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>';
-      tick.disabled = item.paused || !scheduled;
-      tick.addEventListener('click', () => {
-        const nowDone = account.routineStatusOn(item, account.today) !== 'done';
-        account.mutate({ type: 'routine.log', id: item.id, status: nowDone ? 'done' : null });
-        if (nowDone) burst(list.querySelector(`[data-id="${item.id}"] .routine-tick`));
-      });
+      tick.disabled = item.paused;
+      tick.addEventListener('click', () => moveItem(item, status === 'done' ? 'todo' : 'done'));
 
       const body = document.createElement('div');
       body.className = 'routine-body';
       const tag = item.paused ? '<span class="routine-tag">Paused</span>'
-        : !scheduled ? '<span class="routine-tag is-quiet">Not today</span>'
+        : !scheduled ? '<span class="routine-tag is-quiet">Optional today</span>'
           : status === 'skipped' ? '<span class="routine-tag is-skip">Skipped today</span>' : '';
       body.innerHTML = `<strong>${escape(item.title)}</strong>
-        <span class="routine-meta"><span>${escape(dayLabel(item.days, item.recurrence))}</span><span aria-hidden="true">·</span><span>${weekCount} this week</span>${tag}</span>`;
+        <span class="routine-meta">${item.durationMinutes ? `<span>${item.durationMinutes} min</span><span aria-hidden="true">·</span>` : ''}<span>${escape(dayLabel(item.days, item.recurrence))}</span><span aria-hidden="true">·</span><span>${weekCount} this week</span>${tag}</span>`;
 
       const actions = document.createElement('div');
       actions.className = 'routine-row-actions';
+      const move = document.createElement('select');
+      move.className = 'routine-move';
+      move.setAttribute('aria-label', `Move “${item.title}” to`);
+      move.disabled = item.paused;
+      move.innerHTML = `<option value="todo"${lane === 'todo' ? ' selected' : ''}>To do</option><option value="doing"${lane === 'doing' ? ' selected' : ''}>Doing</option><option value="done"${lane === 'done' ? ' selected' : ''}>Done</option>`;
+      move.addEventListener('change', () => { moveItem(item, move.value); requestAnimationFrame(() => $('routine-board').querySelector(`[data-id="${item.id}"] .routine-move`)?.focus()); });
+      actions.append(move);
       if (scheduled && !item.paused) {
         const skip = document.createElement('button');
         skip.type = 'button';
@@ -199,7 +288,7 @@
         skip.setAttribute('aria-label', status === 'skipped' ? `Undo skip for “${item.title}”` : `Skip “${item.title}” today`);
         skip.title = status === 'skipped' ? 'Undo skip' : 'Skip today';
         skip.innerHTML = '<svg><use href="#i-minus"/></svg>';
-        skip.addEventListener('click', () => account.mutate({ type: 'routine.log', id: item.id, status: status === 'skipped' ? null : 'skipped' }));
+        skip.addEventListener('click', () => { doingIds.delete(item.id); saveDoing(); account.mutate({ type: 'routine.log', id: item.id, status: status === 'skipped' ? null : 'skipped' }); });
         actions.append(skip);
       }
       const edit = document.createElement('button');
@@ -213,7 +302,7 @@
       edit.addEventListener('click', () => {
         editingId = editingId === item.id ? null : item.id;
         render();
-        if (editingId) list.querySelector(`[data-id="${item.id}"] input[name="title"]`)?.focus();
+        if (editingId) $('routine-board').querySelector(`[data-id="${item.id}"] input[name="title"]`)?.focus();
       });
       const remove = document.createElement('button');
       remove.type = 'button';
@@ -224,10 +313,18 @@
       remove.addEventListener('click', () => confirmDelete(item));
       actions.append(edit, remove);
 
-      row.append(tick, body, actions);
+      row.append(handle, tick, body, actions);
       if (item.id === editingId) row.append(editorFor(item));
-      return row;
-    }));
+      rows[lane].push(row);
+    });
+    list.replaceChildren(...rows.todo);
+    doingList.replaceChildren(...rows.doing);
+    doneList.replaceChildren(...rows.done);
+    for (const lane of ['todo', 'doing', 'done']) {
+      $(`routine-${lane}-count`).textContent = rows[lane].length;
+      $(`routine-${lane}-empty`).hidden = rows[lane].length > 0;
+    }
+    $('routine-todo-empty').textContent = items.length ? 'Nothing waiting here.' : 'Add an activity above to begin.';
     freshId = null;
   }
 
@@ -235,10 +332,11 @@
     const items = account.routine().items;
     const due = items.filter(item => account.routineScheduledOn(item, account.today));
     const done = due.filter(item => account.routineStatusOn(item, account.today) === 'done').length;
+    const optionalDone = items.filter(item => !account.routineScheduledOn(item, account.today) && account.routineStatusOn(item, account.today) === 'done').length;
     $('routine-ring-count').textContent = due.length ? `${done} / ${due.length}` : '—';
     $('routine-ring').style.setProperty('--fill', String(due.length ? done / due.length : 0));
     $('routine-foot').textContent = !items.length ? 'Start with one thing. Small is fine.'
-      : !due.length ? 'Nothing on your list is scheduled for today.'
+      : !due.length ? optionalDone ? `${optionalDone} optional ${optionalDone === 1 ? 'activity' : 'activities'} done today.` : 'Nothing is scheduled today. You can still complete an optional activity.'
         : done === due.length ? 'Everything for today is done. Skipped days are fine too — they are recorded as skipped, not as failures.'
           : `${due.length - done} left for today.`;
   }
@@ -250,7 +348,7 @@
     renderToday();
   };
 
-  const focusRow = id => list.querySelector(`[data-id="${id}"] [data-edit]`)?.focus();
+  const focusRow = id => $('routine-board').querySelector(`[data-id="${id}"] [data-edit]`)?.focus();
 
   /* ------------------------------------------------------------- the actions */
 
@@ -292,6 +390,8 @@
     const item = pendingDelete;
     pendingDelete = null;
     if (dialog.returnValue === 'delete' && item) {
+      doingIds.delete(item.id);
+      saveDoing();
       account.mutate({ type: 'routine.remove', id: item.id });
       editingId = null;
       flash(`Deleted “${item.title}”. Its past check-ins are kept in your history.`);
@@ -333,9 +433,12 @@
 
   Account.load().then(loaded => {
     account = loaded;
+    doingKey = `deepsprout-routine-doing:person:${window.DeepSproutPersonal.subject()}:${account.todayKey}`;
+    try { doingIds = new Set(JSON.parse(localStorage.getItem(doingKey) || '[]')); } catch { doingIds = new Set(); }
     render();
     window.addEventListener('deepsprout:account', render);
   }).catch(() => {
+    $('routine-board').hidden = true;
     $('routine-empty').hidden = false;
     $('routine-empty').lastChild.textContent = 'Your routine couldn’t be loaded. Nothing is shown rather than an empty list that isn’t true.';
   });

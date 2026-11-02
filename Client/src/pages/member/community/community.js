@@ -17,7 +17,7 @@
     if (!Array.isArray(state.posts)) state.posts = [];
   } catch { /* The demo still works when storage is unavailable. */ }
   const refreshModeration = () => {
-    try { const latest=JSON.parse(localStorage.getItem(storageKey)||'{}');state.reports=Array.isArray(latest.reports)?latest.reports:[];state.moderation=latest.moderation||{}; } catch {}
+    try { const latest=JSON.parse(localStorage.getItem(storageKey)||'{}');state.reports=Array.isArray(latest.reports)?latest.reports:[];state.moderation=latest.moderation||{};state.moderationHistory=latest.moderationHistory||[]; } catch {}
   };
   const persist = () => { refreshModeration();try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch {} };
   const notify = message => {
@@ -25,6 +25,12 @@
     toast.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+  };
+  const queuePost = post => {
+    refreshModeration();
+    state.posts.push(post);state.moderation[post.id]='pending';
+    try { localStorage.setItem(storageKey,JSON.stringify(state));return true; }
+    catch { state.posts.pop();delete state.moderation[post.id];notify('Your post could not be saved. Please try again.');return false; }
   };
   const cards = () => [...feed.querySelectorAll('.post-card')];
   const cardId = card => card.dataset.id || [...cards()].indexOf(card).toString();
@@ -34,7 +40,7 @@
     cards().forEach(card => {
       const categoryMatch = activeFilter === 'all' || card.dataset.category === activeFilter;
       const textMatch = !query || `${card.dataset.search || ''} ${card.textContent}`.toLowerCase().includes(query);
-      card.hidden = state.moderation?.[cardId(card)]==='hidden' || !(categoryMatch && textMatch);
+      card.hidden = ['hidden','pending','removed','rejected'].includes(state.moderation?.[cardId(card)]) || !(categoryMatch && textMatch);
       if (!card.hidden) shown++;
     });
     empty.hidden = shown > 0;
@@ -99,6 +105,12 @@
     const message = document.createElement('p'); message.textContent = post.message;
     const actions = document.createElement('div'); actions.className = 'post-actions';
     actions.append(button('like-button', 'Like your post', 'heart', 0), button('comment-button', 'Show comments on your post', 'comment', 0), button('save-button', 'Save your post', 'bookmark'));
+    if (post.challengeId && window.DeepSproutChallenges?.exists(post.challengeId)) {
+      const view = document.createElement('button');
+      view.type = 'button'; view.className = 'post-challenge-open'; view.dataset.openChallenge = post.challengeId;
+      view.textContent = 'View challenge';
+      actions.append(view);
+    }
     body.append(badge, title, message, actions);
     const art = document.createElement('img');
     art.className = 'post-image'; art.src = '../../../../assets/community/post-win.png'; art.alt = 'A sprout in a sunset landscape';
@@ -162,8 +174,9 @@
       if (state.reports.some(report=>report.postId===id&&report.status==='pending')) {
         notify('This post is already awaiting review.');
       } else {
-        state.reports.push({id:`report-${Date.now()}`,postId:id,reason:'Member requested content review',status:'pending',created:new Date().toISOString(),post:{id,title:card.querySelector('h2')?.textContent||'Community post',body:card.querySelector('.post-body > p')?.textContent||'',author:card.querySelector('.post-author strong')?.textContent||'Member'}});
-        try { localStorage.setItem(storageKey,JSON.stringify(state));notify('Report sent to the local moderation queue.'); } catch { notify('The report could not be saved. Please try again.'); }
+        reportDialog.dataset.post=id;
+        reportDialog.querySelector('form').reset();
+        reportDialog.showModal();
       }
       target.closest('.post-menu').remove();
     } else if (target.dataset.action === 'hide') {
@@ -188,6 +201,21 @@
     notify('Comment added for this visit.');
   });
 
+  const reportDialog=document.createElement('dialog');
+  reportDialog.id='report-dialog';reportDialog.setAttribute('aria-labelledby','report-title');
+  reportDialog.innerHTML='<form><h2 id="report-title">Report this post</h2><p>Tell the Admin what needs reviewing.</p><label>Reason<select name="reason" required><option value="Spam or advertising">Spam or advertising</option><option value="Harassment or abuse">Harassment or abuse</option><option value="Harmful or misleading content">Harmful or misleading content</option><option value="Privacy concern">Privacy concern</option><option value="Other concern">Other concern</option></select></label><label>Additional details (optional)<textarea name="detail" maxlength="1000" rows="3"></textarea></label><div class="dialog-actions"><button type="button" class="cancel-button">Cancel</button><button type="submit" class="publish-button">Send report</button></div></form>';
+  document.body.append(reportDialog);
+  reportDialog.querySelector('.cancel-button').addEventListener('click',()=>reportDialog.close());
+  reportDialog.querySelector('form').addEventListener('submit',event=>{
+    event.preventDefault();refreshModeration();const postId=reportDialog.dataset.post,card=cards().find(c=>cardId(c)===postId);
+    if(!card)return;
+    if(state.reports.some(r=>r.postId===postId&&r.status==='pending')){notify('This post is already awaiting review.');reportDialog.close();return;}
+    const values=new FormData(event.target),report={id:`report-${Date.now()}`,postId,reason:values.get('reason')+(String(values.get('detail')).trim()?': '+String(values.get('detail')).trim():''),status:'pending',created:new Date().toISOString(),post:{id:postId,title:card.querySelector('h2')?.textContent||'Community post',body:card.querySelector('.post-body > p')?.textContent||'',author:card.querySelector('.post-author strong')?.textContent||'Member'}};
+    state.reports.push(report);
+    try { localStorage.setItem(storageKey,JSON.stringify(state));reportDialog.close();notify('Report sent to Admin for review.'); }
+    catch { state.reports.pop();notify('The report could not be saved. Please try again.'); }
+  });
+
   document.querySelector('#new-post').addEventListener('click', () => dialog.showModal());
   dialog.querySelectorAll('[data-close]').forEach(close => close.addEventListener('click', () => dialog.close()));
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
@@ -196,14 +224,14 @@
     const fields = new FormData(form);
     const post = { id: `local-${Date.now()}`, category: String(fields.get('category')), title: String(fields.get('title')).trim(), message: String(fields.get('message')).trim() };
     if (!post.title || !post.message) return;
-    state.posts.push(post); persist();
+    if (!queuePost(post)) return;
     feed.insertBefore(makePost(post), feed.firstChild);
     feed.firstChild.id = post.id;
     search.value = '';
     setFilter('all');
     form.reset(); dialog.close();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    notify('Your post was added on this device.');
+    notify('Your post was saved and is awaiting Admin approval.');
   });
   // Challenges: create one (posted to the feed under Challenges) or browse them.
   const motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -213,22 +241,54 @@
   document.querySelectorAll('#create-challenge, #empty-create').forEach(trigger => trigger.addEventListener('click', () => challengeDialog.showModal()));
   challengeDialog.querySelectorAll('[data-close]').forEach(close => close.addEventListener('click', () => challengeDialog.close()));
   challengeDialog.addEventListener('click', event => { if (event.target === challengeDialog) challengeDialog.close(); });
+  // Partner picker: one partner, or up to three for a small group.
+  const picker = challengeForm.querySelector('.partner-picker');
+  const whoSelect = challengeForm.querySelector('[name="who"]');
+  const partnerBoxes = [...challengeForm.querySelectorAll('[name="partners"]')];
+  const partnerLimit = () => (whoSelect.value === 'Small group' ? 3 : whoSelect.value === 'With a partner' ? 1 : 0);
+  const syncPicker = () => {
+    const limit = partnerLimit();
+    picker.hidden = !limit;
+    picker.querySelector('.partner-hint').textContent = limit === 1 ? 'Pick one partner.' : 'Pick up to three people.';
+    const chosen = partnerBoxes.filter(box => box.checked);
+    chosen.slice(limit).forEach(box => { box.checked = false; });
+  };
+  const errorLine = challengeForm.querySelector('.challenge-error');
+  const formError = message => { errorLine.textContent = message; errorLine.hidden = !message; };
+  whoSelect.addEventListener('change', () => { syncPicker(); formError(''); });
+  challengeForm.addEventListener('change', event => { if (event.target.name === 'partners') formError(''); });
+  partnerBoxes.forEach(box => box.addEventListener('change', () => {
+    const limit = partnerLimit();
+    if (!box.checked) return;
+    const chosen = partnerBoxes.filter(other => other.checked && other !== box);
+    if (limit === 1) chosen.forEach(other => { other.checked = false; });
+    else if (chosen.length >= limit) box.checked = false;
+  }));
   challengeForm.addEventListener('submit', event => {
     event.preventDefault();
     const fields = new FormData(challengeForm);
     const title = String(fields.get('title')).trim();
     const goal = String(fields.get('goal')).trim();
     if (!title || !goal) return;
-    const post = { id: `local-${Date.now()}`, category: 'challenges', title, message: `${goal} · ${fields.get('days')}-day challenge · ${fields.get('who')}` };
-    state.posts.push(post); persist();
-    const card = makePost(post);
-    card.id = post.id;
-    feed.insertBefore(card, feed.firstChild);
-    search.value = '';
-    setFilter('challenges');
-    challengeForm.reset(); challengeDialog.close();
-    showFeed();
-    notify('Your challenge was posted on this device.');
+    const who = String(fields.get('who'));
+    const partners = fields.getAll('partners').map(String);
+    if (partnerLimit() && !partners.length) { formError(who === 'Small group' ? 'Choose who joins your group.' : 'Choose your partner.'); picker.querySelector('input').focus(); return; }
+    const names = partners.map(id => window.DeepSproutChallenges?.people[id]?.name).filter(Boolean);
+    let challengeId = '';
+    try { challengeId = window.DeepSproutChallenges?.add({ title, goal, days: fields.get('days'), who, partners }) || ''; }
+    catch { formError('Your challenge could not be saved. Free some device storage and try again.'); return; }
+    const post = { id: `local-${Date.now()}`, category: 'challenges', title, message: `${goal} · ${fields.get('days')}-day challenge · ${names.length ? `with ${names.join(', ')}` : who}`, challengeId };
+    // The challenge itself is already saved; the feed post is a separate, moderated copy.
+    if (queuePost(post)) {
+      const card = makePost(post);
+      card.id = post.id;
+      feed.insertBefore(card, feed.firstChild);
+      search.value = '';
+      setFilter('challenges');
+    } else if (!challengeId) return;
+    challengeForm.reset(); syncPicker(); formError(''); challengeDialog.close();
+    if (challengeId) window.DeepSproutChallenges.open(challengeId);
+    else notify('Your challenge was saved and is awaiting Admin approval.');
   });
   document.querySelector('#explore-challenges').addEventListener('click', () => {
     search.value = '';

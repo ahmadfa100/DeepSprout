@@ -81,7 +81,7 @@ async function main() {
     assert.ok(s.notifications.some(n => n.recipientId === coachId && /approved/.test(n.text)));
   });
   await step('C3', 'Coach workspace activates with a first-time Program-first dashboard', async () => {
-    await as(coachId); await ws('mentor/dashboard');
+    await as(coachId); await ws('mentor/dashboard?scope=own');
     assert.match(await text('main h1'), /Good to see you, Lina/); assert.match(await text('main'), /Build your first Program/);
     assert.match(await text('main'), /INDEPENDENT COACH · APPROVED/i);
   });
@@ -106,7 +106,7 @@ async function main() {
     assert.ok(stageTask, 'publication creates the stage task for the group');
   });
   await step('C5', 'Create a second Group from My Groups; it belongs to exactly one Program', async () => {
-    await ws('mentor/groups'); await click('[data-action=group-create]');
+    await ws('mentor/groups?scope=own'); await click('[data-action=group-create]');
     await page.selectOption('#dialog-body [name=programId]', programId);
     await page.fill('#dialog-body [name=name]', 'Circle B'); await page.fill('#dialog-body [name=purpose]', 'A quieter evening group.'); await save();
     await page.waitForFunction(() => /\/mentor\/groups\/group-/.test(location.hash));
@@ -143,7 +143,7 @@ async function main() {
 
   // ---------------------------------------------------------------- C9–C13
   await step('C9', 'Coach assigns an approved activity to the group; the Student is notified', async () => {
-    await as(coachId); await ws('mentor/assignments'); await click('[data-action=assignment-create]');
+    await as(coachId); await ws('mentor/assignments?scope=own'); await click('[data-action=assignment-create]');
     await page.fill('#dialog-body [name=title]', 'Ten protected minutes'); await page.selectOption('#dialog-body [name=groupId]', groupA);
     await page.selectOption('#dialog-body [name=activity]', 'Protected Work'); await page.fill('#dialog-body [name=instructions]', 'Protect ten minutes for one task and describe it.'); await page.fill('#dialog-body [name=due]', '2026-10-28');
     await save();
@@ -271,21 +271,19 @@ async function main() {
   await step('X9', 'Institution-invited Coach workflow intact: Initiative group, roster and Coach report', async () => {
     await as('p-karim'); await ws('mentor/groups/g-today-a?tab=members'); assert.match(await text('main'), /Noor Khalil/);
     await ws('mentor/reports?scope=initiative&group=g-today-a&from=2026-10-01&to=2026-12-31'); assert.match(await text('main'), /Submit to Supervisors/);
-    await ws('mentor/dashboard'); assert.match(await text('main'), /INSTITUTION-INVITED COACH/i);
+    await ws('mentor/dashboard'); assert.match(await text('main'), /Coach · Start Today/); assert.match(await text('main'), /Invited by/i);
   });
 
-  await step('X10', 'One person, two Coach contexts: the scope selector switches between independent Programs and the allocated Initiative group', async () => {
+  await step('X10', 'Coaching is by institution invitation: once invited, the Coach workspace shows only the allocated Initiative group; independent pages need an explicit link', async () => {
     await as('p-maya'); const t = await store((m, e) => m.dispatch('initiative.staff.invite', {initiativeId:'i-today', role:'coach', email:e}), COACH.email);
     await as(coachId); await ws(`auth/staff-invitation/${t}`); await click('[data-action=staff-accept]');
     await as('p-maya'); await store((m, id) => m.dispatch('initiative.group.coach', {groupId:'g-today-b', coachId:id}), coachId);
-    await as(coachId); await ws('mentor/dashboard?scope=own');
-    assert.equal(await page.locator('main .iw-contexts .iw-context').count(), 2, 'two context chips');
-    assert.match(await text('main'), /INDEPENDENT COACH · APPROVED/i);
-    await click('.iw-context[data-scope=initiative]'); await page.waitForTimeout(300);
-    assert.match(await text('main'), /INSTITUTION-INVITED COACH/i); assert.match(await text('main'), /Circle B · Steady pace/); assert.doesNotMatch(await text('main .iw-mini-list'), /Circle A/);
-    await ws('mentor/groups'); assert.match(await text('main'), /INITIATIVE GROUP/); assert.doesNotMatch(await text('main .grid'), /Small Steps Lab/);
-    await click('.iw-context[data-scope=own]'); await page.waitForTimeout(300);
-    assert.match(await text('main'), /Small Steps Lab/); assert.doesNotMatch(await text('main'), /Circle B · Steady pace/);
+    await as(coachId); await ws('mentor/dashboard');
+    assert.equal(await page.locator('main .iw-contexts').count(), 0, 'no context switch');
+    assert.match(await text('main'), /Coach · Start Today/); assert.match(await text('main'), /Circle B · Steady pace/); assert.doesNotMatch(await text('main'), /Circle A · First steps|Small Steps Lab/);
+    assert.doesNotMatch(await text('aside nav'), /Programs|Group Garden/);
+    await ws('mentor/groups'); assert.match(await text('main .cw-groups'), /Circle B/); assert.doesNotMatch(await text('main .cw-groups'), /Small Steps Lab/);
+    await ws('mentor/dashboard?scope=own'); assert.match(await text('main'), /Small Steps Lab/);
     const refused = await store(m => { try { m.dispatch('mentor.invite.create', {groupId:'g-today-b', email:'x@demo.example'}); return ''; } catch (e) { return e.message; } });
     assert.match(refused, /different Mentor|Attach this group/, 'no private invitations into the Institution group');
     assert.equal((await read()).people.filter(p => p.email === COACH.email).length, 1, 'one Person ID');
@@ -338,7 +336,7 @@ async function main() {
   });
 
   // ---------------------------------------------------------------- widths & motion
-  for (const [name, route, pid] of [['coach-dash', 'mentor/dashboard', coachId], ['coach-program', `mentor/programs/${programId}`, coachId], ['coach-garden', `mentor/group-garden?group=${groupA}`, coachId], ['student-dash', 'student/dashboard', studentId], ['join', `join/${token}`, null]]) {
+  for (const [name, route, pid] of [['coach-dash', 'mentor/dashboard?scope=own', coachId], ['coach-program', `mentor/programs/${programId}`, coachId], ['coach-garden', `mentor/group-garden?scope=own&group=${groupA}`, coachId], ['student-dash', 'student/dashboard', studentId], ['join', `join/${token}`, null]]) {
     const ctx2 = await browser.newContext({viewport:{width:390, height:844}, storageState:await context.storageState()});
     const p2 = await ctx2.newPage(); p2.on('pageerror', e => errors.push(`PAGEERROR mobile ${e.message}`));
     await p2.goto(`${BASE}/workspaces.html`); await p2.evaluate(async id => { const m = await import('/src/workspaces/store.js'); if (id) m.dispatch('demo.signin', {personId:id}); else m.dispatch('auth.logout'); }, pid);
@@ -350,11 +348,11 @@ async function main() {
   }
   const rm = await browser.newContext({viewport:{width:1280, height:900}, reducedMotion:'reduce', storageState:await context.storageState()});
   const p3 = await rm.newPage(); await p3.goto(`${BASE}/workspaces.html`); await p3.evaluate(async id => { const m = await import('/src/workspaces/store.js'); m.dispatch('demo.signin', {personId:id}); }, coachId);
-  await p3.goto(`${BASE}/workspaces.html#/mentor/group-garden?group=${groupA}`); await p3.waitForTimeout(500);
+  await p3.goto(`${BASE}/workspaces.html#/mentor/group-garden?scope=own&group=${groupA}`); await p3.waitForTimeout(500);
   const anim = await p3.evaluate(() => [getComputedStyle(document.querySelector('.iw-reveal')).animationName, getComputedStyle(document.querySelector('.iw-milestones li.is-done > span')).animationName]);
   results.push({id:'RM', title:'Reduced motion: no entrance or milestone animation', status:anim.every(a => a === 'none') ? 'Pass' : 'Fail', error:anim.join(' ')});
   await rm.close();
-  if (SHOTS) for (const [name, route, pid] of [['coach-dashboard', 'mentor/dashboard', coachId], ['coach-program-completion', `mentor/programs/${programId}?tab=completion`, coachId], ['coach-reports', `mentor/reports?scope=own&program=${programId}`, coachId], ['coach-garden', `mentor/group-garden?group=${groupA}`, coachId], ['student-progress', 'student/progress', studentId]]) { await as(pid); await ws(route); await page.waitForTimeout(900); await page.screenshot({path:`${SHOTS}/${name}.png`, fullPage:true}); }
+  if (SHOTS) for (const [name, route, pid] of [['coach-dashboard', 'mentor/dashboard', coachId], ['coach-program-completion', `mentor/programs/${programId}?tab=completion`, coachId], ['coach-reports', `mentor/reports?scope=own&program=${programId}`, coachId], ['coach-garden', `mentor/group-garden?scope=own&group=${groupA}`, coachId], ['student-progress', 'student/progress', studentId]]) { await as(pid); await ws(route); await page.waitForTimeout(900); await page.screenshot({path:`${SHOTS}/${name}.png`, fullPage:true}); }
   await browser.close();
 }
 main().then(() => {

@@ -1,4 +1,4 @@
-import {createLivingWorld} from './experience/living-world.js';
+import {createFloatingNetwork} from '../shared/floating-network.js';
 import {choiceMarkup,bindChoices} from './experience/entry.js';
 const entry = document.getElementById('register-entry');
 entry.innerHTML = choiceMarkup('../../../../workspaces.html#/auth/account/');
@@ -13,9 +13,7 @@ function showStep(moveFocus = true) {
   if (moveFocus) (individual ? document.getElementById('register-title') : entry.querySelector(partner ? '.register-partner-content h1' : '.register-choice-content h1')).focus({preventScroll:true});
 }
 function mountExperience() {
-  const host = document.createElement('aside');host.className = 'registration-world';
-  document.querySelector('.register-header').after(host);
-  world = createLivingWorld(host, location.hash === '#partner' ? 'partner' : 'individual');
+  world = createFloatingNetwork(document.getElementById('main'), location.hash === '#partner' ? 'partner' : 'individual');
   unbindChoices = bindChoices(entry, world, {initial:location.hash==='#partner'?'partner':'individual',individual:()=>{location.hash='individual';},partner:()=>{location.hash='partner';},back:()=>{location.hash='choose';}});
   showStep(false);
 }

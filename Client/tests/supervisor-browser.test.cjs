@@ -83,7 +83,7 @@ async function main() {
     await page.fill('[data-form=staff-new] [name=name]', 'Nadia Supervisor'); await page.check('[data-form=staff-new] input[name=consent]'); await click('[data-form=staff-new] button');
     await page.fill('[data-form=staff-verify] [name=code]', '246810'); await click('[data-form=staff-verify] button');
     await click('[data-action=staff-accept]');
-    assert.match(page.url(), /supervisor\/dashboard/); assert.match(await text('main'), /Steady hands, Nadia/);
+    assert.match(page.url(), /supervisor\/dashboard/); assert.match(await text('main'), /Good (morning|afternoon|evening), Nadia/);
     newSup = (await read()).people.find(p => p.email === 'new.sup@demo.example').id;
   });
   await step('S2b', 'Supervisor approves an eligible application, flags another for the Representative, creates a group and allocates', async () => {

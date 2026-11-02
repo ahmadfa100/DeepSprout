@@ -10,7 +10,7 @@ const base=process.env.BASE_URL||'http://127.0.0.1:8765';
   page.on('response',r=>{if(r.status()>=400&&r.url().startsWith(base))errors.push(r.status()+' '+r.url());});
   await page.addInitScript(()=>localStorage.setItem('deepsprout-admin-demo-session','active'));
   await page.clock.install({time:new Date('2026-10-15T12:00:00+03:00')});
-  await page.goto(base+'/admin.html#/dashboard');await page.locator('.dashboard').waitFor();
+  await page.goto(base+'/admin.html?legacy=1#/dashboard');await page.locator('.dashboard').waitFor();
   assert.equal(await page.locator('.dashboard-kpi').count(),4);
   assert.equal(await page.locator('.sidebar nav a').count(),10);
   const metrics=await page.evaluate(async()=>{
@@ -30,9 +30,9 @@ const base=process.env.BASE_URL||'http://127.0.0.1:8765';
   await page.locator('#admin-notifications summary').click();assert(await page.locator('.popover-body').first().isVisible());await page.keyboard.press('Escape');assert.equal(await page.locator('#admin-notifications').getAttribute('open'),null);
   await page.locator('#admin-profile summary').click();await page.locator('#admin-profile a').click();await page.locator('h1').filter({hasText:'Settings'}).waitFor();
   for(const route of ['users','activities','plans','assessments','shield','content','subscriptions','reports','settings','groups','garden','community','audit']){
-   await page.goto(base+'/admin.html#/'+route);await page.locator('h1').waitFor();assert(!/undefined/.test(await page.locator('h1').innerText()),route);
+   await page.goto(base+'/admin.html?legacy=1#/'+route);await page.locator('h1').waitFor();assert(!/undefined/.test(await page.locator('h1').innerText()),route);
   }
-  await page.goto(base+'/admin.html#/dashboard');await page.locator('[data-action="activity-create"]').first().click();await page.locator('#editor-dialog[open]').waitFor();await page.locator('#editor-dialog [data-close]').first().click();
+  await page.goto(base+'/admin.html?legacy=1#/dashboard');await page.locator('[data-action="activity-create"]').first().click();await page.locator('#editor-dialog[open]').waitFor();await page.locator('#editor-dialog [data-close]').first().click();
   await page.locator('#dashboard-period').selectOption('30');await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:'/tmp/deepsprout-admin-desktop.png',fullPage:true});
   for(const width of [1024,768,390,320]){
    await page.setViewportSize({width,height:900});
@@ -41,7 +41,7 @@ const base=process.env.BASE_URL||'http://127.0.0.1:8765';
    if(width<=880){
     assert(await page.locator('.sidebar').evaluate(el=>el.inert));await page.locator('.sidebar-toggle').click();assert.equal(await page.locator('.sidebar').evaluate(el=>el.inert),false);
     assert(await page.locator('.main-wrap').evaluate(el=>el.inert));await page.keyboard.press('Escape');assert.equal(await page.locator('.main-wrap').evaluate(el=>el.inert),false);
-    await page.locator('.sidebar-toggle').click();await page.locator('.sidebar a[href="#/users"]').click();await page.locator('h1').filter({hasText:'Users'}).waitFor();assert(await page.locator('.sidebar').evaluate(el=>el.inert));await page.goto(base+'/admin.html#/dashboard');
+    await page.locator('.sidebar-toggle').click();await page.locator('.sidebar a[href="#/users"]').click();await page.locator('h1').filter({hasText:'Users'}).waitFor();assert(await page.locator('.sidebar').evaluate(el=>el.inert));await page.goto(base+'/admin.html?legacy=1#/dashboard');
    }
   }
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/deepsprout-admin-mobile.png',fullPage:true});

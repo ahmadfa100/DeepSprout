@@ -14,14 +14,14 @@
   <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
   <link rel="stylesheet" href="../../../../src/styles/page-hero.css?v=20261014-1">
   <link rel="stylesheet" href="../../../../src/styles/individual-ui.css">
-  <link rel="stylesheet" href="shield.css?v=20261030-2">
+  <link rel="stylesheet" href="shield.css?v=20261101-1">
   
   <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
   <script src="../../../js/data/shield-bridge.js" defer></script>
   <script src="../../../../src/js/ui/individual-ui.js" defer></script>
-  <script src="shield.js?v=20261030-2" defer></script>
+  <script src="shield.js?v=20261101-1" defer></script>
 </head>
 <body data-page="shield" data-root="../../../../">
   <div data-site-header></div>
@@ -42,6 +42,9 @@
       <symbol id="sh-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20a2 2 0 0 0 4 0"/></symbol>
       <symbol id="sh-alert" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4Z"/><path d="M12 10v4m0 3v.5"/></symbol>
       <symbol id="sh-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+      <symbol id="sh-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+      <symbol id="sh-plus" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></symbol>
+      <symbol id="sh-basket" viewBox="0 0 24 24"><path d="M3 10h18l-1.8 9.2a2 2 0 0 1-2 1.6H6.8a2 2 0 0 1-2-1.6L3 10Zm4.5 0L11 4m5.5 6L13 4M9 14v3m6-3v3"/></symbol>
     </svg>
 
     <section class="sh-status" id="shield-status" aria-labelledby="connection-title" data-state="checking">
@@ -68,36 +71,50 @@
 
     <div class="shield-features">
       <section class="shield-feature sh-card" aria-labelledby="protection-title" data-feature="protection" id="protection-card">
-        <header class="sh-card-head"><span class="sh-card-icon" aria-hidden="true"><svg><use href="#sh-lock"/></svg></span><div><p class="sh-kicker">01 · Focus session</p><h2 id="protection-title">Put distractions away</h2><p class="sh-lede">Block selected websites for a set time.</p></div></header>
+        <header class="sh-card-head"><span class="sh-card-icon" aria-hidden="true"><svg><use href="#sh-lock"/></svg></span><div><p class="sh-kicker">01 · Focus session</p><h2 id="protection-title">Put distractions away</h2><p class="sh-lede">Drop the apps that pull you away into the basket, set a time, and start.</p></div></header>
         <div class="sh-live" id="protection-live" hidden>
-          <div class="sh-live-head"><p class="sh-live-label"><span class="ds-dot" aria-hidden="true"></span>Protection active</p><span>FOCUS SESSION</span></div>
-          <p id="protection-countdown" role="timer"></p><p class="sh-live-phase" id="protection-live-phase">Remaining</p>
-          <div class="sh-live-progress" aria-hidden="true"><span id="protection-ring"></span></div>
-          <div class="sh-live-bottom"><div class="sh-live-icons" id="protection-live-icons" aria-hidden="true"></div><p class="sh-live-sites" id="protection-live-sites"></p></div>
+          <div class="sh-live-ring"><span class="sh-dial-ticks" aria-hidden="true"></span><svg viewBox="0 0 260 260" aria-hidden="true"><defs><linearGradient id="sh-live-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5fb37f"/><stop offset="1" stop-color="#123f34"/></linearGradient></defs><circle class="sh-live-track" cx="130" cy="130" r="112"/><circle class="sh-live-fill" id="protection-ring" cx="130" cy="130" r="112" pathLength="100"/></svg>
+            <div class="sh-live-center"><p class="sh-live-label"><span class="ds-dot" aria-hidden="true"></span>Focus on</p><p id="protection-countdown" role="timer"></p><p class="sh-live-phase" id="protection-live-phase">Remaining</p></div></div>
+          <div class="sh-live-side"><p class="sh-kicker">Blocked right now</p><div class="sh-live-icons" id="protection-live-icons" aria-hidden="true"></div><p class="sh-live-sites" id="protection-live-sites"></p><button type="button" class="ds-btn sh-stop" data-variant="secondary" data-size="sm" id="stop-protection" disabled>Stop protection early…</button></div>
         </div>
-        <form id="protection-form">
-          <fieldset id="protection-sites" class="sh-sites"><legend>Choose sites <small>Tap or drag into your tray</small></legend><div class="sh-site-picker" id="protection-picker"></div><div class="sh-tray" id="protection-tray" aria-label="Selected sites for protection"><span class="sh-tray-icon" aria-hidden="true"><svg viewBox="0 0 36 30"><path d="M3 10h30l-3 17H6L3 10Zm8 0 4-7m10 7-4-7"/></svg></span><div class="sh-tray-content"><span class="sh-tray-label">Focus tray <span id="protection-count" class="sh-count"></span></span><div class="sh-tray-items" id="protection-tray-items"></div></div></div></fieldset>
-          <div class="sh-field"><label for="protection-duration">For how long? <span class="sh-unit">minutes · 1–120</span></label>
-            <div class="sh-presets" role="group" aria-label="Quick durations"><button type="button" data-duration="15">15</button><button type="button" data-duration="25">25</button><button type="button" data-duration="45">45</button><button type="button" data-duration="60">60</button><input id="protection-duration" type="number" min="1" max="120" value="25" step="1" required aria-label="Custom minutes" aria-describedby="protection-scope"></div></div>
-          <p id="protection-summary" class="sh-summary" aria-live="polite"></p>
-          <div class="sh-review"><label class="shield-check sh-consent"><input type="checkbox" id="protection-consent" required> Block entire selected sites in this Chrome profile.</label><p id="protection-scope" class="sh-fine">Open pages need a reload. <button type="button" class="ds-help" aria-expanded="false" aria-label="About what protection covers" data-help="Protection blocks new page loads on the selected websites and all their subdomains in this Chrome profile. This includes ordinary YouTube videos and Instagram messages. Media already loaded keeps playing until you reload. You can stop early at any time; it is not uninstall-proof."><span aria-hidden="true">?</span></button></p></div>
-          <button type="submit" class="ds-btn sh-start" id="start-protection" disabled>Start focus session <svg aria-hidden="true"><use href="#sh-arrow"/></svg></button>
+        <form id="protection-form" class="sh-grid">
+          <div class="sh-col">
+            <fieldset id="protection-sites" class="sh-sites"><legend><span class="sh-step">1</span>Choose apps <small>Tap an app or drag it into the basket</small></legend><div class="sh-site-picker" id="protection-picker"></div></fieldset>
+            <div class="sh-basket" id="protection-tray" data-group="protection" aria-label="Apps in this focus session"><span class="sh-basket-handle" aria-hidden="true"></span><div class="sh-basket-body"><div class="sh-basket-head"><span class="sh-basket-title"><svg aria-hidden="true"><use href="#sh-basket"/></svg>Focus basket</span><span id="protection-count" class="sh-count"></span></div><div class="sh-tray-items" id="protection-tray-items"></div></div></div>
+          </div>
+          <div class="sh-col sh-col-time">
+            <div class="sh-field"><label for="protection-duration"><span class="sh-step">2</span>Set the time</label>
+              <div class="sh-dial" id="protection-dial" aria-hidden="true"><span class="sh-dial-ticks"></span><svg class="sh-dial-svg" viewBox="0 0 200 200"><circle class="sh-dial-track" cx="100" cy="100" r="84"/><circle class="sh-dial-fill" id="protection-dial-fill" cx="100" cy="100" r="84" pathLength="100"/></svg><span class="sh-dial-knob" id="protection-dial-knob"><i></i></span><span class="sh-dial-center"><strong id="protection-dial-value">0</strong><span>minutes</span><small id="protection-dial-note"></small></span></div>
+              <div class="sh-time-controls"><div class="sh-stepper"><button type="button" data-nudge="-5" data-for="protection-duration" aria-label="5 minutes less"><svg aria-hidden="true"><use href="#sh-minus"/></svg></button><input id="protection-duration" type="number" min="1" max="120" value="25" step="1" required aria-label="Minutes, 1 to 120" aria-describedby="protection-scope"><button type="button" data-nudge="5" data-for="protection-duration" aria-label="5 minutes more"><svg aria-hidden="true"><use href="#sh-plus"/></svg></button></div>
+              <div class="sh-presets" role="group" aria-label="Quick durations"><button type="button" data-duration="15">15</button><button type="button" data-duration="25">25</button><button type="button" data-duration="45">45</button><button type="button" data-duration="60">60</button><button type="button" data-duration="90">90</button></div></div></div>
+            <p id="protection-summary" class="sh-summary" aria-live="polite"></p>
+            <div class="sh-review"><label class="shield-check sh-consent"><input type="checkbox" id="protection-consent" required> Block the entire selected sites in this Chrome profile.</label><p id="protection-scope" class="sh-fine">Open pages need a reload. <button type="button" class="ds-help" aria-expanded="false" aria-label="About what protection covers" data-help="Protection blocks new page loads on the selected websites and all their subdomains in this Chrome profile. This includes ordinary YouTube videos and Instagram messages. Media already loaded keeps playing until you reload. You can stop early at any time; it is not uninstall-proof."><span aria-hidden="true">?</span></button></p></div>
+            <button type="submit" class="ds-btn sh-start" id="start-protection" disabled>Start focus session <svg aria-hidden="true"><use href="#sh-arrow"/></svg></button>
+            <p class="sh-state-line" id="protection-state" role="status">Connect to verify protection state.</p>
+          </div>
         </form>
-        <p class="sh-state-line" id="protection-state" role="status">Connect to verify protection state.</p>
-        <button type="button" class="ds-btn sh-stop" data-variant="secondary" data-size="sm" id="stop-protection" disabled>Stop protection early…</button><p class="sh-message" id="protection-message" role="status" aria-live="polite"></p>
+        <p class="sh-message" id="protection-message" role="status" aria-live="polite"></p>
       </section>
 
       <section class="shield-feature sh-card" aria-labelledby="reminder-title" data-feature="reminder" id="reminder-card">
-        <header class="sh-card-head"><span class="sh-card-icon" aria-hidden="true"><svg><use href="#sh-bell"/></svg></span><div><p class="sh-kicker">02 · Gentle reminder</p><h2 id="reminder-title">Notice your time</h2><p class="sh-lede">Get one nudge when time across selected sites adds up.</p></div></header>
-        <div class="sh-today"><p class="sh-today-label">Today in this browser <button type="button" class="ds-help" aria-expanded="false" aria-label="About how time is counted" data-help="Time adds up across all the websites you select, counted only while a selected site is the active tab in a focused Chrome window and you are not idle. It does not measure Reels, attention, phone apps or all screen time. Missing time is unknown, never zero."><span aria-hidden="true">?</span></button></p><p id="reminder-usage">No browser usage data available.</p><div class="ds-meter-track sh-today-meter" aria-hidden="true"><span class="ds-meter-fill" id="reminder-meter" style="--value:0"></span></div><details class="sh-coverage"><summary>Measurement details</summary><p id="reminder-coverage" class="sh-fine"></p></details></div>
-        <form id="reminder-form">
-          <fieldset id="reminder-sites" class="sh-sites"><legend>Choose sites <small>Time is counted together</small></legend><div class="sh-site-picker" id="reminder-picker"></div><div class="sh-tray" id="reminder-tray" aria-label="Selected sites for the reminder"><span class="sh-tray-icon" aria-hidden="true"><svg viewBox="0 0 36 30"><path d="M3 10h30l-3 17H6L3 10Zm8 0 4-7m10 7-4-7"/></svg></span><div class="sh-tray-content"><span class="sh-tray-label">Reminder tray <span id="reminder-count" class="sh-count"></span></span><div class="sh-tray-items" id="reminder-tray-items"></div></div></div></fieldset>
-          <div class="sh-field"><label for="reminder-threshold">Remind me after <span class="sh-unit">minutes per day · 1–240</span></label>
-            <div class="sh-presets" role="group" aria-label="Quick thresholds"><button type="button" data-threshold="15">15</button><button type="button" data-threshold="30">30</button><button type="button" data-threshold="60">60</button><input id="reminder-threshold" type="number" min="1" max="240" step="1" value="30" required aria-label="Custom minutes"></div></div>
-          <label class="shield-check sh-toggle"><input type="checkbox" id="reminder-enabled" checked><span class="sh-switch" aria-hidden="true"></span> Reminder on</label>
-          <button type="submit" class="ds-btn sh-start" id="save-reminder" disabled>Save reminder <svg aria-hidden="true"><use href="#sh-arrow"/></svg></button>
+        <header class="sh-card-head"><span class="sh-card-icon" aria-hidden="true"><svg><use href="#sh-bell"/></svg></span><div><p class="sh-kicker">02 · Gentle reminder</p><h2 id="reminder-title">Notice your time</h2><p class="sh-lede">Get one nudge when time across the apps in this basket adds up.</p></div></header>
+        <form id="reminder-form" class="sh-grid">
+          <div class="sh-col">
+            <fieldset id="reminder-sites" class="sh-sites"><legend><span class="sh-step">1</span>Choose apps <small>Their time is counted together</small></legend><div class="sh-site-picker" id="reminder-picker"></div></fieldset>
+            <div class="sh-basket" id="reminder-tray" data-group="reminder" aria-label="Apps counted for the reminder"><span class="sh-basket-handle" aria-hidden="true"></span><div class="sh-basket-body"><div class="sh-basket-head"><span class="sh-basket-title"><svg aria-hidden="true"><use href="#sh-basket"/></svg>Reminder basket</span><span id="reminder-count" class="sh-count"></span></div><div class="sh-tray-items" id="reminder-tray-items"></div></div></div>
+          </div>
+          <div class="sh-col sh-col-time">
+            <div class="sh-field"><label for="reminder-threshold"><span class="sh-step">2</span>Remind me after</label>
+              <div class="sh-dial" id="reminder-dial" aria-hidden="true"><span class="sh-dial-ticks"></span><svg class="sh-dial-svg" viewBox="0 0 200 200"><circle class="sh-dial-track" cx="100" cy="100" r="84"/><circle class="sh-dial-fill" id="reminder-dial-fill" cx="100" cy="100" r="84" pathLength="100"/></svg><span class="sh-dial-knob" id="reminder-dial-knob"><i></i></span><span class="sh-dial-center"><strong id="reminder-dial-value">0</strong><span>min a day</span><small id="reminder-dial-note"></small></span></div>
+              <div class="sh-time-controls"><div class="sh-stepper"><button type="button" data-nudge="-5" data-for="reminder-threshold" aria-label="5 minutes less"><svg aria-hidden="true"><use href="#sh-minus"/></svg></button><input id="reminder-threshold" type="number" min="1" max="240" step="1" value="30" required aria-label="Minutes per day, 1 to 240"><button type="button" data-nudge="5" data-for="reminder-threshold" aria-label="5 minutes more"><svg aria-hidden="true"><use href="#sh-plus"/></svg></button></div>
+              <div class="sh-presets" role="group" aria-label="Quick thresholds"><button type="button" data-threshold="15">15</button><button type="button" data-threshold="30">30</button><button type="button" data-threshold="60">60</button><button type="button" data-threshold="90">90</button><button type="button" data-threshold="120">120</button></div></div></div>
+            <div class="sh-today"><p class="sh-today-label">Today in this browser <button type="button" class="ds-help" aria-expanded="false" aria-label="About how time is counted" data-help="Time adds up across all the websites you select, counted only while a selected site is the active tab in a focused Chrome window and you are not idle. It does not measure Reels, attention, phone apps or all screen time. Missing time is unknown, never zero."><span aria-hidden="true">?</span></button></p><p id="reminder-usage">No browser usage data available.</p><div class="ds-meter-track sh-today-meter" aria-hidden="true"><span class="ds-meter-fill" id="reminder-meter" style="--value:0"></span></div><details class="sh-coverage"><summary>Measurement details</summary><p id="reminder-coverage" class="sh-fine"></p></details></div>
+            <label class="shield-check sh-toggle"><input type="checkbox" id="reminder-enabled" checked><span class="sh-switch" aria-hidden="true"></span> Reminder on</label>
+            <button type="submit" class="ds-btn sh-start" id="save-reminder" disabled>Save reminder <svg aria-hidden="true"><use href="#sh-arrow"/></svg></button>
+            <p class="sh-state-line" id="reminder-state" role="status">Connect to verify reminder state.</p>
+          </div>
         </form>
-        <p class="sh-state-line" id="reminder-state" role="status">Connect to verify reminder state.</p><p class="sh-message" id="reminder-message" role="status" aria-live="polite"></p><a class="ds-link" href="../insights/insights.html#usage">See your website time in Insights <svg aria-hidden="true"><use href="#sh-arrow"/></svg></a>
+        <p class="sh-message" id="reminder-message" role="status" aria-live="polite"></p><a class="ds-link" href="../insights/insights.html#usage">See your website time in Insights <svg aria-hidden="true"><use href="#sh-arrow"/></svg></a>
       </section>
     </div>
 

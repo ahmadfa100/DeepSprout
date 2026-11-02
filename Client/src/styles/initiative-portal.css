@@ -1,0 +1,48 @@
+/* "My initiative" entry: header pill in the Individual app, and the portal
+   transition that carries the person into the Student initiative dashboard.
+   Loaded by member-layout.js and workspaces.html. */
+
+/* ---------- Header pill (Individual app) ---------- */
+.member-initiative{position:relative;display:inline-flex;align-items:center;gap:9px;height:38px;padding:0 12px 0 10px;border:1px solid #cfe3cb;border-radius:999px;background:linear-gradient(135deg,#f2f8ee,#e1efdb);color:var(--color-ink,#173c33);text-decoration:none;white-space:nowrap;transition:background .3s ease,color .3s ease,border-color .3s ease,transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease;animation:initiative-pill-in .6s cubic-bezier(.2,.8,.2,1) both}
+.member-initiative:hover{background:#123f34;border-color:#123f34;color:#fffdf4;transform:translateY(-1px);box-shadow:0 10px 22px rgb(18 63 52 / .22)}
+.member-initiative:focus-visible{outline:3px solid #65bc80;outline-offset:3px}
+.member-initiative-dot{position:relative;width:9px;height:9px;flex:none;border-radius:50%;background:#168557}
+.member-initiative-dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid #168557;opacity:0;animation:initiative-ping 2.4s ease-out infinite}
+.member-initiative:hover .member-initiative-dot{background:#9fd9a6}
+.member-initiative-label{display:grid;line-height:1.05;text-align:left}
+.member-initiative-label small{font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.66}
+.member-initiative-label strong{max-width:150px;overflow:hidden;text-overflow:ellipsis;font-size:12.5px;font-weight:800}
+.member-initiative svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.member-initiative:hover svg{transform:translateX(3px)}
+@media(max-width:650px){.member-initiative{height:34px;padding:0 10px;gap:7px}.member-initiative-label small{display:none}.member-initiative-label strong{max-width:72px;font-size:12px}.member-initiative svg{display:none}}
+.member-initiative .member-initiative-glyph{display:none}
+@media(min-width:931px) and (max-width:1400px),(max-width:400px){.member-initiative-label,.member-initiative-dot,.member-initiative .member-initiative-arrow{display:none}.member-initiative{width:36px;height:36px;padding:0;justify-content:center;background:#123f34;border-color:#123f34;color:#fffdf4}.member-initiative .member-initiative-glyph{display:block;width:18px;height:18px}.member-initiative::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid #168557;opacity:0;animation:initiative-ping 2.4s ease-out infinite}}
+/* Room for the button while the full nav row shows: keep the avatar, drop the name (as the header already does on phones). */
+@media(min-width:931px) and (max-width:1240px){.member-header-actions:has(.member-initiative) .member-account summary>span:not(.member-avatar),.member-header-actions:has(.member-initiative) .member-account summary>img{display:none}}
+@keyframes initiative-ping{0%{opacity:.55;transform:scale(.6)}70%,100%{opacity:0;transform:scale(1.7)}}
+@keyframes initiative-pill-in{from{opacity:0;transform:translateY(-6px) scale(.96)}}
+
+/* ---------- Portal ---------- */
+.ds-portal{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:24px;background:radial-gradient(120% 90% at 50% 38%,#1f6550 0%,#123f34 52%,#0b2a23 100%);color:#fffdf4;font-family:'DM Sans',system-ui,sans-serif;pointer-events:none}
+.ds-portal::before{content:'';position:absolute;left:50%;top:50%;width:min(78vmin,560px);aspect-ratio:1;border-radius:50%;border:1px solid rgb(184 220 176 / .18);box-shadow:0 0 0 46px rgb(184 220 176 / .05),0 0 0 92px rgb(184 220 176 / .03);transform:translate(-50%,-50%)}
+.ds-portal-inner{position:relative;display:grid;justify-items:center;gap:10px;text-align:center}
+.ds-portal-mark{width:54px;height:54px;margin-bottom:6px;fill:none;stroke:#b8dcb0;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ds-portal-mark path{stroke-dasharray:60;stroke-dashoffset:0}
+.ds-portal-eyebrow{font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#b8dcb0}
+.ds-portal-inner strong{font-size:clamp(34px,6.4vw,64px);font-weight:700;line-height:1;letter-spacing:-.035em}
+.ds-portal-inner small{font-size:15px;font-weight:500;color:rgb(255 253 244 / .72)}
+
+/* Leaving the Individual app: a circle grows from the pill. */
+.ds-portal.is-leaving{clip-path:circle(0 at var(--x,50%) var(--y,50%));animation:portal-open .74s cubic-bezier(.7,0,.2,1) forwards}
+.ds-portal.is-leaving .ds-portal-inner{opacity:0;transform:translateY(14px);animation:portal-text .5s .26s cubic-bezier(.2,.8,.2,1) forwards}
+.ds-portal.is-leaving .ds-portal-mark path{stroke-dashoffset:60;animation:portal-draw .7s .2s ease forwards}
+/* Arriving in the initiative dashboard: the same scene lifts like a curtain. */
+.ds-portal.is-arriving{clip-path:inset(0 0 0 0 round 0);animation:portal-lift .8s .28s cubic-bezier(.65,0,.25,1) forwards}
+.ds-portal.is-arriving .ds-portal-inner{animation:portal-text-out .36s .22s ease forwards}
+
+@keyframes portal-open{to{clip-path:circle(150vmax at var(--x,50%) var(--y,50%))}}
+@keyframes portal-text{to{opacity:1;transform:none}}
+@keyframes portal-draw{to{stroke-dashoffset:0}}
+@keyframes portal-lift{to{clip-path:inset(0 0 100% 0 round 0 0 50% 50%)}}
+@keyframes portal-text-out{to{opacity:0;transform:translateY(-18px)}}
+@media(prefers-reduced-motion:reduce){.member-initiative,.member-initiative-dot::after{animation:none}.ds-portal{display:none}}

@@ -53,7 +53,7 @@ export function funnel(steps) {
 }
 export function ring(value, max, label) {
   const pct = max ? Math.min(1, value / max) : 0, r = 34, c = 2 * Math.PI * r;
-  return `<figure class="iw-ring" aria-label="${esc(`${label}: ${value} of ${max}`)}"><svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="${r}" class="track"/><circle cx="42" cy="42" r="${r}" class="value${pct ? '' : ' is-zero'}" style="--dash:${(pct * c).toFixed(1)};--gap:${c.toFixed(1)}"/></svg><figcaption><b>${esc(value)}</b><small>of ${esc(max)}</small><span>${esc(label)}</span></figcaption></figure>`;
+  return `<figure class="iw-ring" aria-label="${esc(`${label}: ${value} of ${max}`)}"><svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="${r}" class="track"/><circle cx="42" cy="42" r="${r}" class="value${pct ? '' : ' is-zero'}" style="--dash:${(pct * c).toFixed(1)};--gap:${c.toFixed(1)}"/></svg><figcaption><span class="iw-ring-value"><b>${esc(value)}</b><small>/ ${esc(max)}</small></span><span>${esc(label)}</span></figcaption></figure>`;
 }
 export function feed(items) {
   if (!items.length) return '<p class="iw-muted">Activity will appear here as records change.</p>';
@@ -80,7 +80,7 @@ export function currentInitiative(ctx, list) {
   return found;
 }
 export function initiativeSwitcher(ctx, list, current) {
-  if (list.length < 2) return current ? `<span class="iw-scope">${u.icon('nodes')}<span>${esc(current.title)}</span>${pill(current.status)}</span>` : '';
+  if (list.length < 2) return current ? `<span class="iw-scope">${u.icon('nodes')}<span><small>Initiative</small>${esc(current.title)}</span></span>` : '';
   return `<label class="iw-scope is-select">${u.icon('nodes')}<span class="sr-only">Initiative</span><select data-action="initiative-scope">${list.map(i => `<option value="${esc(i.id)}" ${i.id === current?.id ? 'selected' : ''}>${esc(i.title)} · ${esc(i.status)}</option>`).join('')}</select></label>`;
 }
 export function withInitiative(path, initiative) { const [base, q = ''] = path.split('?'); const params = new URLSearchParams(q); if (initiative) params.set('initiative', initiative.id); return `${base}?${params}`; }
@@ -117,3 +117,29 @@ export function summary(s, i) {
 }
 export const fmtDate = u.date;
 export const sessionWhen = ss => `${u.date(ss.date)} · ${ss.time}–${ss.endTime}`;
+
+/* ------------------------------------------------------------ picker */
+
+/**
+ * A styled dropdown over a real <select> (see picker.js).
+ * options: [{value, label, sub, tags:[], person:true|false, hue}]
+ * `attrs` go on the native select (name, data-action, data-*), so forms,
+ * module change handlers and tests keep working against the select.
+ */
+export function picker({attrs = '', value = '', multiple = false, label = '', placeholder = 'Choose…', options = [], search = false, searchLabel = 'Search…', filters = [], inline = false, trigger = '', one = 'selected', many = 'selected', none = 'Nothing matches.', empty = ''} = {}) {
+  const values = Array.isArray(value) ? value.map(String) : [String(value ?? '')];
+  const body = o => `${o.person ? u.avatar(o.label) : o.hue != null ? `<span class="iw-opt-dot" style="--h:${o.hue}"></span>` : ''}<span class="iw-opt-text"><b>${esc(o.label)}</b>${o.sub ? `<small>${esc(o.sub)}</small>` : ''}</span>`;
+  const nativeOptions = (multiple ? '' : `<option value="" ${values.includes('') ? 'selected' : ''}>${esc(placeholder)}</option>`) + options.filter(o => o.value !== '').map(o => `<option value="${esc(o.value)}" ${values.includes(String(o.value)) ? 'selected' : ''}>${esc(o.label)}</option>`).join('');
+  const list = options.map(o => `<button type="button" role="option" tabindex="-1" class="iw-opt${o.value === '' ? ' is-none' : ''}" data-value="${esc(o.value)}" data-search="${esc(`${o.label} ${o.sub || ''}`.toLowerCase())}" data-tags="${esc((o.tags || []).join('|'))}" aria-selected="${values.includes(String(o.value))}"><span class="iw-opt-body">${body(o)}</span>${multiple ? '<span class="iw-opt-check" aria-hidden="true"></span>' : ''}</button>`).join('');
+  return `<div class="iw-picker${inline ? ' is-inline' : ''}${multiple ? ' is-multiple' : ''}${trigger ? ' is-compact' : ''}" data-picker data-placeholder="${esc(placeholder)}" data-one="${esc(one)}" data-many="${esc(many)}" ${trigger ? 'data-static="true"' : ''}>
+    <select class="iw-picker-native" tabindex="-1" aria-hidden="true" ${multiple ? 'multiple' : ''} ${attrs}>${nativeOptions}</select>
+    <button type="button" class="iw-picker-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="${esc(label)}">${trigger || `<span class="iw-picker-summary"></span><svg class="iw-picker-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>`}</button>
+    <div class="iw-picker-panel" hidden>
+      ${search ? `<label class="iw-picker-searchbox"><span class="sr-only">${esc(searchLabel)}</span><input type="search" class="iw-picker-search" placeholder="${esc(searchLabel)}" autocomplete="off"></label>` : ''}
+      ${filters.length ? `<div class="iw-picker-filters" role="group" aria-label="Filter">${[['', 'All'], ...filters].map(([tag, l], n) => `<button type="button" data-tag="${esc(tag)}" aria-pressed="${n === 0}">${esc(l)}</button>`).join('')}</div>` : ''}
+      <div class="iw-picker-list" role="listbox" aria-label="${esc(label)}" ${multiple ? 'aria-multiselectable="true"' : ''}>${list || `<p class="iw-picker-empty">${esc(empty)}</p>`}</div>
+      <p class="iw-picker-none" hidden>${esc(none)}</p>
+      ${multiple ? `<div class="iw-picker-foot"><button type="button" class="text-link iw-picker-clear">Clear</button><button type="button" class="button primary small iw-picker-done">Done</button></div>` : ''}
+    </div>
+  </div>`;
+}

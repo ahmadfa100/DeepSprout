@@ -37,6 +37,11 @@
 
   let account = null;
   let plan = null;
+  let adjustMode = null;
+  let routineBaseline = null;
+  let routineSaving = false;
+  let planBaseline = null;
+  let planSaving = false;
 
   /* ------------------------------------------------------------------ tabs */
 
@@ -54,7 +59,9 @@
   };
 
   function activate(name, { updateHash = true, focus = false } = {}) {
-    activeTab = ALIASES[name] || 'overview';
+    const nextTab = ALIASES[name] || 'overview';
+    if (activeTab === 'adjust' && nextTab !== 'adjust' && (adjustMode === 'routine' ? routineDirty() : adjustDirty()) && !window.confirm('Discard your unsaved changes?')) return false;
+    activeTab = nextTab;
     tabs.forEach(tab => {
       const selected = tab.dataset.tab === activeTab;
       tab.setAttribute('aria-selected', String(selected));
@@ -74,6 +81,7 @@
     if (updateHash && window.history?.replaceState) {
       window.history.replaceState(null, '', `${location.pathname}${location.search.replace(/[?&]setup=1/, '')}#${activeTab}`);
     }
+    return true;
   }
 
   tabs.forEach((tab, index) => {
@@ -93,7 +101,7 @@
   window.addEventListener('resize', placeIndicator);
   window.addEventListener('hashchange', () => {
     const name = location.hash.slice(1);
-    if (ALIASES[name]) activate(name, { updateHash: false });
+    if (ALIASES[name] && activate(name, { updateHash: false }) === false) window.history.replaceState(null, '', `${location.pathname}${location.search}#adjust`);
   });
 
   /* --------------------------------------------------------------- helpers */
@@ -251,9 +259,8 @@
         </ul>`;
     }
     detail.innerHTML = `
-      <div class="rp-detail-head"><span class="rp-week-badge is-${kind}">Week ${number}</span><small>${range}</small></div>
-      <h3>${escape(week.title)}</h3>
-      <p>${escape(week.note)}</p>
+      <div class="rp-week-story"><div class="rp-detail-head"><span class="rp-week-badge is-${kind}">Week ${number}</span><small>${range}</small></div>
+        <h3>${escape(week.title)}</h3><p>${escape(week.note)}</p></div>
       ${facts}`;
     detail.classList.remove('is-entering');
     void detail.offsetWidth;
@@ -409,8 +416,8 @@
       const kind = day.action.kind;
       const [session, glyph] = kind === 'practice' ? (SESSION[day.action.activityType] || ['quick', 'book']) : [null, kind === 'review' ? 'flag' : 'moon'];
       const title = kind === 'practice' ? day.action.type?.title : kind === 'review' ? 'Weekly review' : 'Rest day';
-      const note = kind === 'practice' ? `${day.action.minutes} minute budget · level ${day.action.level} · ${STATE_LABELS[day.state].toLowerCase()}`
-        : kind === 'review' ? `A few short questions · ${STATE_LABELS[day.state].toLowerCase()}`
+      const note = kind === 'practice' ? `${day.action.minutes} minute budget · Level ${day.action.level}`
+        : kind === 'review' ? 'A few short questions'
           : 'A day off is part of the plan, not a gap in it.';
       const cta = kind === 'practice' && day.isToday && !['completed','cancelled','rescheduled','paused'].includes(day.state) && ['Active','Maintenance'].includes(plan.status||'Active')
         ? `<a class="rp-button rp-button-primary rp-button-small" href="../training/training.html?session=${session}">Start ${icon('arrow')}</a>`
@@ -419,31 +426,32 @@
           : '';
       planned = `<div class="rp-planned is-${kind}">
         <span class="rp-stat-icon ${kind === 'practice' ? 'rp-gold' : 'rp-sage'}">${icon(glyph)}</span>
-        <div><small>${kind === 'practice' ? 'Required personal practice' : kind === 'review' ? 'Planned' : 'Rest day'}</small><h4>${escape(title)}</h4><p>${escape(note)}</p></div>${cta}</div>`;
+        <div class="rp-planned-copy"><small>${kind === 'practice' ? 'Required personal practice' : kind === 'review' ? 'Planned review' : 'Space to rest'}</small><h4>${escape(title)}</h4><p>${escape(note)}</p></div>${cta}</div>`;
     }
 
     const additionalReview=day.actions?.find(a=>a.kind==='review'&&day.action?.kind!=='review');if(additionalReview)planned+=`<p>Also scheduled: Weekly Review · ${escape(additionalReview.dueOn||day.key)}. <a href="../weekly-review/weekly-review.html?week=${additionalReview.week}">Open review</a></p>`;
     const attempts = account.attemptsOn(day.date).map(attempt =>
-      `<li class="is-${attempt.valid ? 'done' : 'open'}"><span>${escape(attempt.type?.title || attempt.title || 'Practice')}</span><b>${attempt.valid ? escape(attempt.outcome) : 'Not counted'}</b></li>`).join('');
+      `<li class="is-${attempt.valid ? 'done' : 'open'}"><span class="rp-evidence-mark" aria-hidden="true">${icon(attempt.valid ? 'check' : 'book')}</span><span class="rp-evidence-name">${escape(attempt.type?.title || attempt.title || 'Practice')}</span><b>${attempt.valid ? escape(attempt.outcome) : 'Not counted'}</b></li>`).join('');
     const routineRows = account.routine().items.concat([])
       .filter(item => account.routineScheduledOn(item, day.date) || account.routineStatusOn(item, day.date))
       .map(item => {
         const status = account.routineStatusOn(item, day.date);
         const label = status === 'done' ? 'Done' : status === 'skipped' ? 'Skipped' : future ? 'Planned' : 'Not logged';
-        return `<li class="is-${status || (future ? 'planned' : 'open')}"><span>${escape(account.routineTitleOn(item,day.date))}</span><b>${label}</b></li>`;
+        return `<li class="rp-routine-entry is-${status || (future ? 'planned' : 'open')}"><span>${escape(account.routineTitleOn(item,day.date))}</span><b>${label}</b></li>`;
       }).join('');
 
     detail.innerHTML = `
-      <header><h3>${day.isToday ? 'Today' : day.date.toLocaleDateString('en-GB', { weekday: 'long' })}</h3><span>${day.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}</span></header>
-      ${planned}
-      <div class="rp-day-columns">
-        <section><h4>Practices · original evidence</h4>${attempts ? `<ul class="rp-day-list">${attempts}</ul>` : `<p class="rp-detail-hint">${future ? 'Nothing yet — this day has not happened.' : 'None recorded.'}</p>`}</section>
-        <section><h4>Offline routine · self-reported</h4>${routineRows ? `<ul class="rp-day-list">${routineRows}</ul>` : '<p class="rp-detail-hint">Nothing on your routine for this day.</p>'}</section>
+      <header class="rp-day-heading"><p class="rp-kicker">Selected day</p><h3>${day.isToday ? 'Today' : day.date.toLocaleDateString('en-GB', { weekday: 'long' })}</h3><time datetime="${day.key}">${day.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}</time><span class="rp-day-state is-${day.state}">${escape(STATE_LABELS[day.state] || 'Unrecorded')}</span></header>
+      <div class="rp-day-content">${planned}
+        <div class="rp-day-columns">
+          <section class="rp-day-source"><h4>Practices <span>Original evidence</span></h4>${attempts ? `<ul class="rp-day-list">${attempts}</ul>` : `<p class="rp-detail-hint">${future ? 'Nothing yet — this day has not happened.' : 'None recorded.'}</p>`}</section>
+          <section class="rp-day-source"><h4>Offline routine <span>Self-reported</span></h4>${routineRows ? `<ul class="rp-day-list">${routineRows}</ul>` : '<p class="rp-detail-hint">Nothing on your routine for this day.</p>'}</section>
+        </div>
       </div>`;
     if(day.action?.kind==='practice'&&future&&['Active','Maintenance'].includes(plan.status||'Active')&&!day.action.started&&!['Rescheduled','Cancelled'].includes(day.action.status)){
       const host=document.createElement('form');host.className='rp-reschedule';host.dataset.reschedule=day.action.id;
       host.innerHTML=`<h4>Move this future personal practice</h4><label>New date<input name="date" type="date" min="${Account.keyOf(Account.addDays(account.today,1))}" max="${Account.keyOf(plan.end)}" required></label><label>Alternative<select name="type">${Object.keys(SESSION).map(t=>`<option value="${t}" ${t===day.action.activityType?'selected':''}>${escape(t)}</option>`).join('')}</select></label><label>Reason<input name="reason" maxlength="300" required></label><button>Preview reschedule</button><p role="status"></p>`;
-      host.onsubmit=event=>{event.preventDefault();const values={date:host.elements.date.value,type:host.elements.type.value,reason:host.elements.reason.value};host.querySelector('p').textContent=`Preview: ${day.key} → ${values.date}, ${values.type}. Original ID stays in history.`;let b=host.querySelector('[data-confirm-reschedule]');if(!b){b=document.createElement('button');b.type='button';b.dataset.confirmReschedule='';b.textContent='Confirm reschedule';host.append(b);}b.onclick=()=>{try{account.rescheduleRecovery(day.action.id,values.date,values.type,values.reason);}catch(e){host.querySelector('p').textContent=e.message;}};};detail.append(host);
+      host.onsubmit=event=>{event.preventDefault();const values={date:host.elements.date.value,type:host.elements.type.value,reason:host.elements.reason.value};host.querySelector('p').textContent=`Preview: ${day.key} → ${values.date}, ${values.type}. Original ID stays in history.`;let b=host.querySelector('[data-confirm-reschedule]');if(!b){b=document.createElement('button');b.type='button';b.dataset.confirmReschedule='';b.textContent='Confirm reschedule';host.append(b);}b.onclick=()=>{try{account.rescheduleRecovery(day.action.id,values.date,values.type,values.reason);}catch(e){host.querySelector('p').textContent=e.message;}};};detail.querySelector('.rp-day-content').append(host);
     }
     detail.classList.remove('is-entering');
     void detail.offsetWidth;
@@ -455,20 +463,333 @@
 
   /* ---------------------------------------------------------------- adjust */
 
-  const form=$('adjust-form');let adjustment=null;
-  const selection=()=>({goal:$('adjust-goal').value,days:Number($('adjust-days').value),minutes:Number($('adjust-minutes').value),commitment:$('adjust-commitment').value,weekdays:[...form.querySelectorAll('[name=weekday]:checked')].map(b=>Number(b.value)),mix:[...form.querySelectorAll('[name=mix]:checked')].map(b=>b.value),lowerType:$('adjust-lower').value||null});
-  function renderAdjustment(){
-    const r=account.recovery();if(!r)return;const p=r.adjustmentDraft?.preferences||r.preferences;const focus=r.adjustmentDraft?.focus||readStored('deepsprout-recovery-focus','depth');const radio=form.querySelector(`[name=focus][value="${focus}"]`);if(radio)radio.checked=true;if(r.adjustmentDraft)$('adjust-reason').value=r.adjustmentDraft.reason;
-    if(!$('adjust-goal').querySelector(`option[value="${p.goal}"]`)){const o=document.createElement('option');o.value=p.goal;o.textContent=p.goalLabel;$('adjust-goal').append(o);}
-    $('adjust-goal').value=p.goal;$('adjust-days').value=p.days;$('adjust-minutes').value=p.minutes;$('adjust-commitment').value=p.commitment;
-    $('adjust-weekdays').innerHTML=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d,n)=>`<label><input type="checkbox" name="weekday" value="${n}" ${p.weekdays.includes(n)?'checked':''}>${d}</label>`).join('');
-    $('adjust-types').innerHTML=account.training().map(t=>`<label><input type="checkbox" name="mix" value="${t.id}" ${p.mix.includes(t.id)?'checked':''}>${escape(t.title)}</label>`).join('');
-    $('adjust-lower').innerHTML='<option value="">Keep current independent levels</option>'+account.training().filter(t=>t.level>1).map(t=>`<option value="${t.id}">${escape(t.title)}: ${t.level} → ${t.level-1}</option>`).join('');
+  const form = $('adjust-form');
+  const adjustDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const goalOptions = [
+    ['reduce-scrolling', 'Spend less time scrolling'],
+    ['intentional-phone', 'Use my phone intentionally'],
+    ['offline-time', 'Make room for offline life'],
+    ['focus-objective', 'Focus on meaningful work']
+  ];
+  const adjustCopy = {
+    schedule: ['Your schedule', 'Make room for a different week', 'Choose the days and time you can realistically give to practice.', 'My practice availability changed'],
+    difficulty: ['Practice level', 'Make one practice more manageable', 'Step down one eligible practice. Your earlier attempts and levels remain in history.', 'I chose a lower practice level'],
+    mix: ['Practice types', 'Choose what you want to practice', 'Pick the types that suit you. Only future unstarted days will change.', 'I chose a different practice mix'],
+    goal: ['Main goal', 'Choose a new direction', 'The next unstarted schedule will use a practice mix suited to this goal.', 'My main goal changed']
+  };
+  const latestPlanVersion = () => {
+    const versions = account?.recovery()?.current?.preferenceVersions || [];
+    const nextDay = account ? Account.keyOf(Account.addDays(account.today, 1)) : '';
+    return versions.filter(version => version.effectiveOn <= nextDay).at(-1) || versions[0] || null;
+  };
+  const latestPlanPrefs = () => latestPlanVersion()?.value || account?.recovery()?.preferences || null;
+  const selectedValues = name => [...form.querySelectorAll(`[name="${name}"]:checked`)].map(node => node.value);
+  const planDraft = () => {
+    if (adjustMode === 'schedule') return { days: Number($('adjust-days').value), minutes: Number($('adjust-minutes').value), weekdays: selectedValues('weekday').map(Number).sort() };
+    if (adjustMode === 'difficulty') return { lowerType: form.querySelector('[name="lowerType"]:checked')?.value || null };
+    if (adjustMode === 'mix') return { mix: selectedValues('mix').sort() };
+    if (adjustMode === 'goal') return { goal: form.querySelector('[name="goal"]:checked')?.value || null };
+    return {};
+  };
+  function adjustDirty() {
+    if (!planBaseline || !['schedule', 'difficulty', 'mix', 'goal'].includes(adjustMode)) return false;
+    return JSON.stringify(planDraft()) !== JSON.stringify(planBaseline);
   }
-  form.addEventListener('change',event=>{if(event.target.name==='focus'){const focus=event.target.value,type={depth:'depth',stillness:'protected-work',offline:'practical'}[focus];form.querySelectorAll('[name=mix]').forEach(b=>b.checked=b.value===type);$('adjust-reason').value=`Prefer ${focus==='offline'?'offline activity':focus==='stillness'?'fewer reflex pickups':'deeper focus'} in eligible future practice`;}});
-  form.oninput=()=>{adjustment=null;$('confirm-plan').hidden=true;$('adjust-preview').textContent='Preview again before confirming changed inputs.';};
-  form.addEventListener('submit',event=>{event.preventDefault();try{if(!$('adjust-reason').value.trim())throw new Error('Explain this future change.');const input=selection();account.saveRecoveryPreview(input,$('adjust-reason').value,form.querySelector('[name=focus]:checked')?.value);adjustment=account.adjustmentPreview(input);$('adjust-preview').innerHTML=`<li class="rp-preview-head"><strong>Effective ${escape(adjustment.effectiveOn)}</strong><span>${adjustment.supersededIds.length} future unstarted ${adjustment.supersededIds.length===1?'day':'days'} replaced · past work stays intact</span></li>`+adjustment.actions.filter(a=>a.kind!=='routine').map(a=>`<li class="rp-preview-day is-${a.kind}" data-type="${escape(a.activityType||a.kind)}"><span class="rp-preview-date">${escape(fmt.date(a.date,{weekday:true}))}</span><strong>${escape(a.kind==='practice'?(account.training().find(t=>t.id===a.activityType)?.title||a.activityType):a.kind==='rest'?'Rest day':a.kind==='review'?'Weekly review':a.kind)}</strong>${a.kind==='practice'?`<small>Level ${a.level}</small>`:''}</li>`).join('');$('confirm-plan').hidden=false;$('save-note').textContent='Saved preview. Confirm the future revision to apply it; the schedule is unchanged.';}catch(e){$('save-note').textContent=e.message;}});
-  $('confirm-plan').onclick=()=>{if(!adjustment)return;try{account.adjustRecovery({...adjustment.preferences,lowerType:adjustment.lowerType},$('adjust-reason').value,adjustment.sourceRevision);adjustment=null;$('confirm-plan').hidden=true;$('save-note').textContent='Future revision saved. Original attempts, past missed work and external obligations were preserved.';renderAdjustment();}catch(e){$('save-note').textContent=e.message;}};
+  function renderAdjustment() {
+    if (!account) return;
+    const recovery = account.recovery(), prefs = latestPlanPrefs();
+    const adjustable = recovery && ['Active', 'Maintenance'].includes(recovery.status);
+    $('adjust-readiness').hidden = Boolean(adjustable);
+    if (!adjustable) $('adjust-readiness').textContent = recovery
+      ? `This cycle is ${recovery.status.toLowerCase()}. Open a change card to see how to continue before editing the plan.`
+      : 'No Recovery Plan is active yet. Open a change card to start your journey; you can still add an offline routine now.';
+    if (!recovery || !prefs) {
+      $('adjust-summary-goal').textContent = 'No active plan yet';
+      $('adjust-summary-days').textContent = '—';
+      $('adjust-summary-minutes').textContent = '—';
+      $('adjust-summary-routine').textContent = account.routine().primary?.title || 'No activity yet';
+      $('adjust-summary-timing').textContent = 'Start a plan to adjust it';
+      return;
+    }
+    $('adjust-summary-goal').textContent = prefs.goalLabel || account.plan()?.goalLabel || 'Your personal goal';
+    $('adjust-summary-days').textContent = `${prefs.days} ${prefs.days === 1 ? 'day' : 'days'} each week`;
+    $('adjust-summary-minutes').textContent = `${prefs.minutes} minutes`;
+    const primaryRoutine = account.routine().primary;
+    $('adjust-summary-routine').textContent = primaryRoutine ? `${primaryRoutine.title}${primaryRoutine.paused ? ' · paused' : ''}` : prefs.commitment || 'No activity yet';
+    const effectiveOn = latestPlanVersion()?.effectiveOn;
+    $('adjust-summary-timing').textContent = effectiveOn && effectiveOn > account.todayKey ? `Saved · begins ${fmt.date(effectiveOn, { month: true, day: true })}` : 'Active now';
+  }
+  function loadPlanEditor(mode) {
+    const prefs = latestPlanPrefs();
+    if (!prefs) return;
+    planBaseline = null;
+    const [kicker, title, description] = adjustCopy[mode];
+    $('adjust-editor-kicker').textContent = kicker;
+    $('adjust-editor-title').textContent = title;
+    $('adjust-editor-description').textContent = description;
+    form.querySelectorAll('[data-adjust-editor]').forEach(section => { section.hidden = section.dataset.adjustEditor !== mode; });
+    $('adjust-days').value = String(prefs.days);
+    $('adjust-minutes').value = String(prefs.minutes);
+    $('adjust-weekdays').innerHTML = adjustDayNames.map((label, day) => `<label><input type="checkbox" name="weekday" value="${day}" ${prefs.weekdays.includes(day) ? 'checked' : ''}><span>${label}</span></label>`).join('');
+    $('adjust-level-options').innerHTML = account.training().map(type => `<label class="rp-option-row ${type.level <= 1 ? 'is-unavailable' : ''}"><input type="radio" name="lowerType" value="${escape(type.id)}" ${type.level <= 1 ? 'disabled' : ''}><span class="rp-option-mark"></span><span><strong>${escape(type.title)}</strong><small>Level ${type.level} ${type.level > 1 ? `→ Level ${type.level - 1}` : '· already at the introductory level'}</small></span></label>`).join('');
+    $('adjust-types').innerHTML = account.training().map(type => `<label class="rp-option-row"><input type="checkbox" name="mix" value="${escape(type.id)}" ${prefs.mix.includes(type.id) ? 'checked' : ''}><span class="rp-option-mark"></span><span><strong>${escape(type.title)}</strong><small>Current level ${type.level}</small></span></label>`).join('');
+    $('adjust-goals').innerHTML = goalOptions.map(([id, label]) => `<label class="rp-option-row"><input type="radio" name="goal" value="${id}" ${prefs.goal === id ? 'checked' : ''}><span class="rp-option-mark"></span><span><strong>${label}</strong></span></label>`).join('');
+    planBaseline = planDraft();
+    $('adjust-error').hidden = true;
+    $('save-plan').textContent = 'Save Changes';
+    updatePlanPreview();
+  }
+  function updatePlanPreview() {
+    if (!planBaseline || !account) return;
+    const draft = planDraft(), changed = adjustDirty(), valid =
+      adjustMode === 'schedule' ? draft.weekdays.length > 0 && draft.weekdays.length >= draft.days :
+      adjustMode === 'difficulty' ? account.training().some(type => type.id === draft.lowerType && type.level > 1) :
+      adjustMode === 'mix' ? draft.mix.length > 0 :
+      adjustMode === 'goal' ? goalOptions.some(([id]) => id === draft.goal) : false;
+    const error = $('adjust-error');
+    error.hidden = true;
+    $('adjust-preview').replaceChildren();
+    $('adjust-preview-title').textContent = changed ? 'Complete your change' : 'Your plan stays as it is';
+    $('adjust-preview-detail').textContent = changed ? '' : 'Select a different option to see what will change.';
+    $('adjust-preview-foot').textContent = 'Completed and started activities stay as recorded.';
+    let preview = null;
+    if (changed && !valid) {
+      error.textContent = adjustMode === 'schedule' ? 'Choose enough available weekdays for your practice days.' : 'Choose at least one valid option.';
+      error.hidden = false;
+    } else if (changed && valid) {
+      try {
+        preview = account.adjustmentPreview(draft);
+        const effective = fmt.date(preview.effectiveOn, { month: true, day: true, year: true });
+        const types = account.training();
+        $('adjust-preview-title').textContent =
+          adjustMode === 'schedule' ? `${draft.days} ${draft.days === 1 ? 'day' : 'days'} · ${draft.minutes} minutes per practice` :
+          adjustMode === 'difficulty' ? `${types.find(type => type.id === draft.lowerType).title}: Level ${types.find(type => type.id === draft.lowerType).level} → Level ${types.find(type => type.id === draft.lowerType).level - 1}` :
+          adjustMode === 'mix' ? preview.preferences.mix.map(id => types.find(type => type.id === id)?.title || id).join(' · ') :
+          preview.preferences.goalLabel;
+        $('adjust-preview-detail').textContent = `Effective ${effective}. ${preview.supersededIds.length ? `${preview.supersededIds.length} future unstarted plan entries will be revised.` : 'The next detailed week will use these preferences when it is built.'}`;
+        if (adjustMode === 'goal') $('adjust-preview-foot').textContent = `Recommended future mix: ${preview.preferences.mix.map(id => types.find(type => type.id === id)?.title || id).join(', ')}. Earlier work stays recorded.`;
+        const actions = preview.actions.filter(action => action.kind === 'practice').slice(0, 5);
+        $('adjust-preview').innerHTML = actions.map(action => {
+          const title = types.find(type => type.id === action.activityType)?.title || action.activityType;
+          const level = adjustMode === 'difficulty' && action.activityType === draft.lowerType ? action.level - 1 : action.level;
+          return `<li><span>${escape(fmt.date(action.date, { weekday: true, month: true, day: true }))}</span><strong>${escape(title)}</strong><small>Level ${level} · ${action.minutes} min</small></li>`;
+        }).join('');
+      } catch (cause) {
+        error.textContent = cause.message;
+        error.hidden = false;
+      }
+    }
+    $('save-plan').disabled = planSaving || !changed || !valid || !preview;
+  }
+  function openAdjustEditor(mode, force = false) {
+    if (!force && (adjustMode === 'routine' ? routineDirty() : adjustDirty()) && !window.confirm('Discard your unsaved changes?')) return;
+    if (planSaving || routineSaving) return;
+    const recovery = account?.recovery();
+    const unavailable = mode && mode !== 'routine' && (!recovery || !['Active', 'Maintenance'].includes(recovery.status));
+    const subject = mode === 'schedule' ? 'schedule' : mode === 'difficulty' ? 'practice level' : mode === 'mix' ? 'practice mix' : 'goal';
+    adjustMode = unavailable ? 'unavailable' : mode;
+    $('adjust-home').hidden = Boolean(mode);
+    $('adjust-unavailable').hidden = !unavailable;
+    form.hidden = !mode || mode === 'routine' || unavailable;
+    $('routine-adjust-form').hidden = mode !== 'routine';
+    if (unavailable) {
+      $('adjust-unavailable-title').textContent = recovery ? 'Continue your plan before editing it' : 'Start your plan first';
+      $('adjust-unavailable-description').textContent = recovery
+        ? `Your cycle is ${recovery.status.toLowerCase()}. Use the journey controls to resume or continue it, then return to adjust your ${subject}.`
+        : `There is no active Recovery Plan to adjust. Start your journey to create one, then return here to change your ${subject}.`;
+      $('adjust-unavailable-link').href = recovery ? '#overview' : '../onboarding/onboarding.html';
+      $('adjust-unavailable-link').firstChild.textContent = recovery ? 'View journey controls ' : 'Start your journey ';
+    } else if (mode === 'routine') loadRoutineEditor();
+    else if (mode) loadPlanEditor(mode);
+    else { planBaseline = null; renderAdjustment(); }
+    (unavailable ? $('adjust-unavailable') : mode ? (mode === 'routine' ? $('routine-adjust-form') : form) : $('adjust-home')).scrollIntoView({ block: 'start', behavior: reducedMotion ? 'instant' : 'smooth' });
+  }
+  document.querySelectorAll('[data-adjust-path]').forEach(button => button.addEventListener('click', () => openAdjustEditor(button.dataset.adjustPath)));
+  $('adjust-goal-path').addEventListener('click', () => openAdjustEditor('goal'));
+  $('adjust-unavailable-back').addEventListener('click', () => openAdjustEditor(null));
+  $('adjust-unavailable-link').addEventListener('click', event => {
+    if (event.currentTarget.getAttribute('href') !== '#overview') return;
+    event.preventDefault();
+    activate('overview');
+    $('recovery-control').scrollIntoView({ block: 'start', behavior: reducedMotion ? 'instant' : 'smooth' });
+  });
+  $('adjust-back').addEventListener('click', () => openAdjustEditor(null));
+  $('adjust-cancel').addEventListener('click', () => openAdjustEditor(null, true));
+  form.addEventListener('input', updatePlanPreview);
+  form.addEventListener('change', updatePlanPreview);
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (planSaving || !adjustDirty()) return;
+    const mode = adjustMode, draft = planDraft();
+    let preview;
+    try { preview = account.adjustmentPreview(draft); }
+    catch (error) { $('adjust-error').textContent = error.message; $('adjust-error').hidden = false; return; }
+    if ($('save-plan').disabled) return;
+    planSaving = true;
+    $('save-plan').disabled = true;
+    $('save-plan').textContent = 'Saving...';
+    $('adjust-cancel').disabled = true;
+    try {
+      await new Promise(requestAnimationFrame);
+      const beforeLevel = mode === 'difficulty' ? account.training().find(type => type.id === draft.lowerType)?.level : null;
+      const saved = account.adjustRecovery(mode === 'difficulty' ? { ...preview.preferences, lowerType: draft.lowerType } : preview.preferences, adjustCopy[mode][3], preview.sourceRevision);
+      const reloaded = await Account.load();
+      const revision = reloaded.recovery()?.revisions.find(entry => entry.id === saved?.recoveryTransaction?.state?.revisions.at(-1)?.id);
+      const latest = reloaded.recovery()?.current?.preferenceVersions?.at(-1);
+      if (!revision || !latest || JSON.stringify(latest.value) !== JSON.stringify(preview.preferences) || (mode === 'difficulty' && reloaded.training().find(type => type.id === draft.lowerType)?.level !== beforeLevel - 1)) throw new Error('The saved plan could not be verified. Reload before trying again.');
+      account = reloaded;
+      planSaving = false;
+      $('adjust-cancel').disabled = false;
+      renderAdjustment();
+      loadPlanEditor(mode);
+      refresh();
+      $('save-plan').textContent = 'Changes saved successfully';
+      $('save-plan').disabled = true;
+      routineToast('Changes saved successfully', 'Your plan has been updated.');
+      setTimeout(() => { if (adjustMode === mode && !adjustDirty()) $('save-plan').textContent = 'Save Changes'; }, 3500);
+    } catch (error) {
+      planSaving = false;
+      $('adjust-cancel').disabled = false;
+      updatePlanPreview();
+      routineToast('Changes could not be saved', error.message || 'Your plan was not updated. Please try again.', true);
+    }
+  });
+
+  /* A focused edit of the same journal-backed routine used by Activities. */
+  const routineForm = $('routine-adjust-form');
+  const routineDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  let routineTouched = false;
+  let routineSaveState = 'idle';
+  let routineToastTimer = null;
+  let routineToastHideTimer = null;
+  const routineMinutes = item => item?.durationMinutes ?? (Number(item?.title?.match(/^(\d{1,3})[\s-]*minutes?\b/i)?.[1]) || null);
+  const routineDayLabel = days => days.length === 7 ? 'Every day' : days.length === 5 && [1, 2, 3, 4, 5].every(day => days.includes(day)) ? 'Weekdays' : routineDayNames.filter((_, day) => days.includes(day)).join(', ');
+  const routineSnapshot = item => item ? { id: item.id, title: item.title, durationMinutes: routineMinutes(item), days: [...item.days].sort(), recurrence: item.recurrence || 'weekly', paused: Boolean(item.paused) } : { id: null, title: '', durationMinutes: null, days: [1, 2, 3, 4, 5], recurrence: 'weekly', paused: false };
+  const routineDraft = () => ({
+    id: routineBaseline?.id || null,
+    title: $('routine-adjust-title').value.trim().replace(/\s+/g, ' '),
+    durationMinutes: $('routine-adjust-minutes').value === '' ? null : Number($('routine-adjust-minutes').value),
+    days: [...routineForm.querySelectorAll('#routine-adjust-days [aria-pressed="true"]')].map(button => Number(button.dataset.day)).sort(),
+    recurrence: $('routine-adjust-recurrence').value,
+    paused: $('routine-adjust-paused').checked
+  });
+  const routineValid = draft => Boolean(draft.title && draft.title.length <= 60 && Number.isInteger(draft.durationMinutes) && draft.durationMinutes >= 1 && draft.durationMinutes <= 180 && draft.days.length && ['weekly', 'biweekly'].includes(draft.recurrence));
+  function routineDirty() {
+    if (!routineBaseline || adjustMode !== 'routine') return false;
+    const draft = routineDraft();
+    return draft.title !== routineBaseline.title || draft.durationMinutes !== routineBaseline.durationMinutes || draft.days.join(',') !== routineBaseline.days.join(',') || draft.recurrence !== routineBaseline.recurrence || draft.paused !== routineBaseline.paused;
+  }
+  function updateRoutinePreview() {
+    if (!routineBaseline) return;
+    const draft = routineDraft(), valid = routineValid(draft), changed = routineDirty();
+    const error = $('routine-adjust-error');
+    error.hidden = true;
+    if (routineTouched && !valid) {
+      error.textContent = !draft.title ? 'Enter an activity name.' : !Number.isInteger(draft.durationMinutes) || draft.durationMinutes < 1 || draft.durationMinutes > 180 ? 'Choose a duration from 1 to 180 minutes.' : 'Choose at least one available day.';
+      error.hidden = false;
+    }
+    $('routine-preview-title').textContent = valid && changed ? draft.title : changed ? 'Complete your changes' : 'No changes yet';
+    $('routine-preview-meta').textContent = valid && changed ? `${draft.durationMinutes} minutes · ${routineDayLabel(draft.days)} · ${draft.recurrence === 'biweekly' ? 'every other week' : 'every week'}${draft.paused ? ' · paused' : ''}` : '';
+    $('routine-preview-note').textContent = draft.paused && changed ? 'This routine will pause from today. Earlier check-ins, rewards, and your recovery cycle stay as recorded.' : 'Changes apply from today. Completed activities, past self-reports, rewards, and your recovery cycle stay as recorded.';
+    routineForm.querySelectorAll('[data-routine-idea]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.routineIdea === draft.title)));
+    const save = $('routine-save');
+    save.disabled = routineSaving || !valid || !changed;
+    if (routineSaveState === 'idle') save.textContent = 'Save Changes';
+  }
+  function loadRoutineEditor(id) {
+    if (!account) return;
+    const all = account.routine().items;
+    const item = all.find(entry => entry.id === id) || account.routine().primary || all[0] || null;
+    routineBaseline = routineSnapshot(item);
+    routineTouched = false;
+    routineSaveState = 'idle';
+    const select = $('routine-item-select');
+    select.replaceChildren(...all.map(entry => { const option = document.createElement('option'); option.value = entry.id; option.textContent = entry.title; return option; }));
+    if (item) select.value = item.id;
+    $('routine-select-wrap').hidden = all.length < 2;
+    $('routine-current-title').textContent = item?.title || 'No offline activity yet';
+    $('routine-current-meta').textContent = item ? `${routineMinutes(item) ? `${routineMinutes(item)} minutes · ` : ''}${routineDayLabel(item.days)} · ${item.recurrence === 'biweekly' ? 'every other week' : 'every week'}${item.paused ? ' · paused' : ''}` : 'Choose a small activity to begin.';
+    $('routine-adjust-title').value = routineBaseline.title;
+    $('routine-adjust-minutes').value = routineBaseline.durationMinutes ?? '';
+    $('routine-adjust-recurrence').value = routineBaseline.recurrence;
+    $('routine-adjust-paused').checked = routineBaseline.paused;
+    $('routine-adjust-paused').disabled = !item;
+    $('routine-adjust-days').innerHTML = routineDayNames.map((label, day) => `<button type="button" data-day="${day}" aria-pressed="${routineBaseline.days.includes(day)}" aria-label="${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][day]}">${label}</button>`).join('');
+    $('routine-adjust-error').hidden = true;
+    updateRoutinePreview();
+  }
+  function routineToast(title, message, error = false) {
+    const toast = $('routine-toast');
+    clearTimeout(routineToastTimer);
+    clearTimeout(routineToastHideTimer);
+    $('routine-toast-title').textContent = title;
+    $('routine-toast-text').textContent = message;
+    toast.classList.toggle('is-error', error);
+    toast.setAttribute('role', error ? 'alert' : 'status');
+    toast.hidden = false;
+    toast.classList.remove('is-showing', 'is-leaving');
+    void toast.offsetWidth;
+    toast.classList.add('is-showing');
+    routineToastTimer = setTimeout(() => {
+      toast.classList.remove('is-showing');
+      toast.classList.add('is-leaving');
+      routineToastHideTimer = setTimeout(() => { toast.hidden = true; toast.classList.remove('is-leaving'); }, 250);
+    }, 4750);
+  }
+  $('routine-back').addEventListener('click', () => openAdjustEditor(null));
+  $('routine-cancel').addEventListener('click', () => { loadRoutineEditor(); openAdjustEditor(null, true); $('adjust-routine-path').focus(); });
+  $('routine-toast-close').addEventListener('click', () => { clearTimeout(routineToastTimer); clearTimeout(routineToastHideTimer); $('routine-toast').hidden = true; });
+  $('routine-item-select').addEventListener('change', event => {
+    if (routineDirty() && !window.confirm('Discard your unsaved changes to this activity?')) { event.target.value = routineBaseline.id; return; }
+    loadRoutineEditor(event.target.value);
+  });
+  $('routine-adjust-days').addEventListener('click', event => {
+    const button = event.target.closest('button[data-day]');
+    if (!button) return;
+    button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true'));
+    routineTouched = true; routineSaveState = 'idle'; updateRoutinePreview();
+  });
+  routineForm.querySelectorAll('[data-routine-idea]').forEach(button => button.addEventListener('click', () => {
+    $('routine-adjust-title').value = button.dataset.routineIdea;
+    $('routine-adjust-minutes').value = button.dataset.routineMinutes;
+    routineTouched = true; routineSaveState = 'idle'; updateRoutinePreview();
+  }));
+  routineForm.addEventListener('input', () => { routineTouched = true; routineSaveState = 'idle'; updateRoutinePreview(); });
+  routineForm.addEventListener('change', () => { routineTouched = true; routineSaveState = 'idle'; updateRoutinePreview(); });
+  routineForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (routineSaving) return;
+    const draft = routineDraft();
+    routineTouched = true;
+    updateRoutinePreview();
+    if (!routineValid(draft) || !routineDirty()) return;
+    routineSaving = true; routineSaveState = 'saving';
+    $('routine-save').disabled = true; $('routine-save').textContent = 'Saving...';
+    $('routine-cancel').disabled = true;
+    try {
+      await new Promise(requestAnimationFrame);
+      const saved = account.mutate({ type: draft.id ? 'routine.update' : 'routine.add', id: draft.id || undefined, title: draft.title, durationMinutes: draft.durationMinutes, days: draft.days, recurrence: draft.recurrence, paused: draft.paused, source: 'recovery-adjust' });
+      const reloaded = await Account.load();
+      const persisted = reloaded.routine().items.find(item => item.id === (draft.id || saved.id));
+      if (!persisted || persisted.title !== draft.title || Number(persisted.durationMinutes) !== draft.durationMinutes || persisted.days.join(',') !== draft.days.join(',') || persisted.recurrence !== draft.recurrence || Boolean(persisted.paused) !== draft.paused) throw new Error('The saved routine could not be verified. Reload before trying again.');
+      routineSaving = false;
+      $('routine-cancel').disabled = false;
+      loadRoutineEditor(persisted.id);
+      renderAdjustment();
+      routineSaveState = 'saved';
+      $('routine-save').textContent = 'Changes saved successfully';
+      $('routine-save').disabled = true;
+      routineToast('Changes saved successfully', 'Your plan has been updated.');
+      setTimeout(() => { if (routineSaveState === 'saved') { routineSaveState = 'idle'; updateRoutinePreview(); } }, 3500);
+    } catch (error) {
+      routineSaving = false; routineSaveState = 'idle';
+      $('routine-cancel').disabled = false;
+      updateRoutinePreview();
+      routineToast('Changes could not be saved', error.message || 'Your offline routine was not updated. Please try again.', true);
+    }
+  });
+  window.addEventListener('beforeunload', event => { if ((adjustMode === 'routine' ? routineDirty() : adjustDirty()) && !routineSaving && !planSaving) { event.preventDefault(); event.returnValue = ''; } });
+
   const recoveryAction=fn=>{try{fn();$('recovery-message').textContent='Saved to your original personal journey.';}catch(e){$('recovery-message').textContent=e.message;}};
   $('return-resume').onclick=()=>recoveryAction(()=>account.decideReturn('Resume'));
   $('return-adjust').onclick=()=>recoveryAction(()=>{account.decideReturn('Adjust');activate('adjust');});
@@ -488,7 +809,7 @@
     $('continuation-preview').hidden=r.status!=='Reviewed';if(r.status==='Reviewed'){$('continuation-preview').innerHTML='<h3>Your next Week 1, before you choose</h3>'+['next','maintenance'].map(choice=>{const p=account.continuationPreview(choice);return `<details ${choice==='next'?'open':''}><summary>${choice==='next'?'Next Cycle':'Maintenance'} · ${p.preferences.days} practice days · ${p.preferences.minutes} minute budget</summary><p>${escape(p.reason)}</p><ul>${p.actions.filter(a=>a.kind!=='routine').map(a=>`<li>${escape(a.date)} · ${escape(a.kind==='practice'?a.activityType+' · Level '+a.level:a.kind)}</li>`).join('')}</ul></details>`;}).join('');}
     $('cycle-review-area').hidden=r.status!=='Cycle Review Due';$('next-cycle').hidden=$('maintenance-cycle').hidden=r.status!=='Reviewed';$('pause-cycle').hidden=!['Active','Maintenance'].includes(r.status);$('resume-cycle').hidden=r.status!=='Paused';$('archive-cycle').hidden=!['Reviewed','Cancelled'].includes(r.status);$('cancel-cycle').disabled=['Cancelled','Archived','Reviewed'].includes(r.status);
     $('weekly-review-link').hidden=!r.nextReview||account.todayKey<account.weeklyProposal(r.nextReview).opensOn||['Cancelled','Archived','Reviewed','Cycle Review Due'].includes(r.status);$('weekly-review-link').href=`../weekly-review/weekly-review.html?week=${r.nextReview||plan.week}`;
-    $('save-plan').disabled=!['Active','Maintenance'].includes(r.status);if($('save-plan').disabled)$('confirm-plan').hidden=true;
+    if (adjustMode && adjustMode !== 'routine') updatePlanPreview();
     $('recovery-clock').value=account.todayKey;$('today-card').hidden=!['Active','Maintenance'].includes(r.status);
     $('recovery-history').innerHTML=r.cycles.map(c=>`<details><summary>Cycle ${c.cycleNumber} · ${escape(c.mode)} · ${escape(c.status)} · ${escape(c.startDate)}</summary><p>Original goal: ${escape(c.goalLabel||c.preferences.goalLabel)}. ${escape(c.id)}</p><p>${escape(c.cycleReview?.reflection||'No completed cycle review recorded.')}</p><ul>${Array.from({length:Math.ceil(c.lengthDays/7)},(_,i)=>c.weeks[i+1]||{number:i+1,start:'Not detailed',end:'No reliable scheduled data',source:'No historical obligations invented'}).map(w=>`<li>Week ${w.number}: ${escape(w.start)}–${escape(w.end)} · ${escape(w.source||'Original schedule')}</li>`).join('')}</ul>${r.reviews.filter(v=>v.cycleId===c.id||c.legacy&&!v.cycleId).map(v=>`<p>Week ${v.week} review: ${escape(v.decision||v.outcome||'Legacy decision')} · ${v.evidence?`${v.evidence.completed}/${v.evidence.due} due practices · sources ${escape(v.evidence.attemptIds.join(', ')||'none')}`:'Legacy source details unchanged'}</p>`).join('')}</details>`).join('')+`<details><summary>Attributed schedule revisions (${r.revisions.length})</summary>${r.revisions.map(v=>`<details><summary>Revision ${v.version} · ${escape(v.action)}${v.decision?' / '+escape(v.decision):''} · effective ${escape(v.effectiveOn)}</summary><p>${escape(v.id)} · actor ${escape(v.actorId)} · ${escape(v.at)} · ${escape(v.reason)}</p>${v.previousPreferences?`<p>Prior goal ${escape(v.previousPreferences.goalLabel)} / ${v.previousPreferences.days} days → ${escape(v.nextPreferences.goalLabel)} / ${v.nextPreferences.days} days</p>`:''}<ul>${r.actions.filter(a=>[...(v.originalActionIds||[]),...(v.actionIds||[])].includes(a.id)).map(a=>`<li>${escape(a.date)} · ${escape(a.kind)} ${escape(a.activityType||a.title||'')} · ${escape(a.status)} · ${escape(a.id)}${a.completedAttemptId?' · completed source '+escape(a.completedAttemptId):''}</li>`).join('')}</ul></details>`).join('')}</details>`;
   }
@@ -531,6 +852,7 @@
     renderWeekPanel();
     renderHistory();
     renderRecovery();
+    renderAdjustment();
   }
 
   const params = new URLSearchParams(location.search);
@@ -548,7 +870,8 @@
     renderHero();
     renderToday();
     refresh();
-    renderAdjustment();
+    if (adjustMode === 'routine') loadRoutineEditor();
+    if (requested === 'adjust' || requested === 'reminder') requestAnimationFrame(() => $('panel-adjust').scrollIntoView({ block: 'start', behavior: 'instant' }));
     if (requested === 'journey') $('journey').scrollIntoView({ block: 'start' });
     window.addEventListener('deepsprout:account', () => { refresh(); renderToday(); });
   }).catch(() => {

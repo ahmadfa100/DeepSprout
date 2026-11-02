@@ -91,7 +91,7 @@ let browser;
   assert.deepEqual(await page.locator('canvas').evaluate(c=>({w:c.width,h:c.height})),scene);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await capture('form-'+width);
  }
- const touch=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});await touch.goto(base+'/register.html');await touch.waitForSelector('canvas');await touch.touchscreen.tap(180,180);assert.equal(await touch.locator('.registration-world').getAttribute('data-activity'),'background');await touch.close();
+ const touch=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});await touch.goto(base+'/register.html');await touch.waitForSelector('canvas');await touch.touchscreen.tap(195,24);assert.equal(await touch.locator('.registration-world').getAttribute('data-activity'),'background');await touch.close();
  verified.push('320/390/768 layouts have no horizontal overflow; keyboard-sized viewport changes preserve the scene geometry; touch taps trigger feedback.');
  assert.deepEqual(errors,[]);fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({verified,errors},null,2));console.log(JSON.stringify({verified,errors},null,2));await browser.close();
 })().catch(async error=>{console.error(error);await browser?.close();process.exitCode=1;});

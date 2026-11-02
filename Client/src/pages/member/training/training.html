@@ -108,7 +108,7 @@
         </div>
 
         <div class="routine-main">
-          <div class="routine-board-head"><div><span class="routine-board-kicker">YOUR SPACE</span><h3>Your list</h3></div><span class="routine-board-count" id="routine-board-count" aria-live="polite">0 items</span></div>
+          <div class="routine-board-head"><div><span class="routine-board-kicker">YOUR SPACE</span><h3>Offline activities</h3><p>Move a task as you go. Done is your own report for today.</p></div><span class="routine-board-count" id="routine-board-count" aria-live="polite">0 items</span></div>
           <form class="routine-add" id="routine-form" autocomplete="off">
             <label class="visually-hidden" for="routine-input">Add something to your routine</label>
             <span class="routine-add-icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span>
@@ -118,8 +118,13 @@
           <details class="routine-suggestions"><summary>Need an idea? Try one of these</summary><div class="routine-ideas" id="routine-ideas" aria-label="Suggestions"></div></details>
           <p class="routine-list-label">THIS WEEK</p>
           <div class="routine-week" id="routine-week" aria-label="This week"></div>
-          <ul class="routine-list" id="routine-list"></ul>
           <p class="routine-empty" id="routine-empty" hidden><svg><use href="#i-sprout"/></svg><span><strong>Your list starts here.</strong><br>Add one offline activity above, or open the ideas.</span></p>
+          <div class="routine-kanban" id="routine-board" aria-label="Offline activity board">
+            <section class="routine-lane is-todo" data-lane="todo" aria-labelledby="routine-todo-title"><header><span class="routine-lane-icon" aria-hidden="true">□</span><h4 id="routine-todo-title">To do</h4><span class="routine-lane-count" id="routine-todo-count">0</span></header><ul class="routine-list" id="routine-list"></ul><p class="routine-lane-empty" id="routine-todo-empty">Add an activity above to begin.</p></section>
+            <section class="routine-lane is-doing" data-lane="doing" aria-labelledby="routine-doing-title"><header><span class="routine-lane-icon" aria-hidden="true">▷</span><h4 id="routine-doing-title">Doing</h4><span class="routine-lane-count" id="routine-doing-count">0</span></header><ul class="routine-list" id="routine-doing-list"></ul><p class="routine-lane-empty" id="routine-doing-empty">Drag an activity here when you start.</p></section>
+            <section class="routine-lane is-done" data-lane="done" aria-labelledby="routine-done-title"><header><span class="routine-lane-icon" aria-hidden="true">✓</span><h4 id="routine-done-title">Done</h4><span class="routine-lane-count" id="routine-done-count">0</span></header><ul class="routine-list" id="routine-done-list"></ul><p class="routine-lane-empty" id="routine-done-empty">Finished activities appear here.</p></section>
+          </div>
+          <p class="routine-board-help">Drag by the handle, use its arrow keys, or choose a column from Move. “Doing” stays on this board; “Done” records your self-report for today.</p>
           <div class="routine-undo" id="routine-undo" role="status" aria-live="polite" hidden><span id="routine-undo-text"></span><button type="button" id="routine-undo-button">Undo</button></div>
         </div>
       </section>

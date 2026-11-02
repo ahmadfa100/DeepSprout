@@ -31,15 +31,9 @@ export function coachContexts(ctx) {
   const status = independentStatus(s, p.id);
   return {status, independent:status !== 'None' || ownPrograms(ctx).length > 0, institution:coachInitiatives(s, p.id).length > 0 || institutionGroups(ctx).length > 0};
 }
-/** 'own' (independent) or 'initiative' (Institution); follows ?scope=, then the last choice, then the only context. */
+/** Coaches work by institution invitation, so the Coach workspace is the Institution scope. The independent Program pages answer only an explicit ?scope=own link. */
 export function coachScope(ctx) {
-  const q = ctx.route.query.get('scope'), c = coachContexts(ctx);
-  if (q === 'own' || q === 'initiative') { ctx.localUI.coachScope = q; return q; }
-  if (ctx.route.query.get('initiative')) return 'initiative';
-  const remembered = ctx.localUI.coachScope;
-  if (remembered === 'own' && c.independent) return 'own';
-  if (remembered === 'initiative' && c.institution) return 'initiative';
-  return c.independent || !c.institution ? 'own' : 'initiative';
+  return ctx.route.query.get('scope') === 'own' ? 'own' : 'initiative';
 }
 /** Context selector shown only to a person with both Coach contexts. */
 export function scopeBar(ctx, scope) {
