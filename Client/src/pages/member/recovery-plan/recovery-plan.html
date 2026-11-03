@@ -104,12 +104,10 @@
             <div class="rp-status-review" id="cycle-review-area"><label for="cycle-reflection">What would you keep or change after this cycle?</label><textarea id="cycle-reflection" rows="3" maxlength="2000"></textarea><button type="button" class="ds-btn" data-size="sm" id="review-cycle">Record cycle review</button></div>
             <div id="continuation-preview" hidden></div>
             <div class="rp-actions rp-status-continue"><button type="button" class="ds-btn" data-size="sm" id="next-cycle">Start Next Cycle</button><button type="button" class="ds-btn" data-variant="secondary" data-size="sm" id="maintenance-cycle">Enter Maintenance</button></div>
-            <div class="rp-status-foot">
-              <p class="rp-status-shield"><svg aria-hidden="true"><use href="#rp-shield"/></svg><span id="recovery-shield-status">Optional browser support: checking connection…</span><a href="../shield/shield.html">Open Digital Shield →</a></p>
+            <div class="rp-status-foot" id="recovery-manage" hidden>
               <div class="rp-status-manage">
-                <button type="button" class="rp-quiet" id="pause-cycle">Pause cycle</button><button type="button" class="ds-btn" data-size="sm" id="resume-cycle">Resume cycle</button><button type="button" class="rp-quiet" id="archive-cycle">Archive closed cycle</button>
-                <details class="rp-more"><summary>Cancel this personal cycle</summary><div class="rp-more-body"><label for="cycle-reason">Reason</label><input id="cycle-reason" maxlength="300"><button type="button" class="ds-btn" data-variant="secondary" data-size="sm" id="cancel-cycle">Cancel with reason</button><p class="rp-more-note">Your attempts, reviews and Garden growth stay in your history.</p></div></details>
-                <details class="rp-more"><summary>Personal demo clock</summary><div class="rp-more-body"><form id="recovery-clock-form"><label for="recovery-clock">Personal date</label><input type="date" id="recovery-clock" required><button class="ds-btn" data-variant="secondary" data-size="sm">Set personal demo date</button></form><p class="rp-more-note">This local planning clock does not change Provider or Institution time or original evidence dates.</p></div></details>
+                <button type="button" class="ds-btn" data-size="sm" id="resume-cycle">Resume cycle</button>
+                <button type="button" class="rp-quiet" id="archive-cycle">Archive closed cycle</button>
               </div>
             </div>
             <p class="rp-status-message" id="recovery-message" role="status" aria-live="polite"></p>
@@ -286,8 +284,8 @@
 
         <!-- ============================================================= History -->
         <section class="rp-panel" role="tabpanel" id="panel-history" aria-labelledby="tab-history" data-panel="history" hidden>
-          <div class="rp-section-head"><div><p class="rp-kicker">History</p><h2>Everything you have recorded</h2><p>Newest first. Practice evidence keeps its original classification; routine ticks are self-reported; formal Lab results stay separate.</p></div></div>
-          <div id="recovery-history"></div><ol class="rp-timeline" id="history-list"></ol>
+          <div class="rp-section-head"><div><p class="rp-kicker">History</p><h2>Your journey history</h2><p>Your cycles, weekly reviews and recorded activities, newest first.</p></div></div>
+          <div id="recovery-history"></div><div class="rp-history-log-heading"><h3>Activity log</h3><p>Practices, routine check-ins and reviews, grouped by day.</p></div><ol class="rp-timeline" id="history-list"></ol>
           <p class="rp-history-empty" id="history-empty" hidden>Nothing recorded yet. Your first practice, routine tick or review will appear here.</p>
         </section>
       </div>

@@ -4,7 +4,7 @@
  * three distinct facts.
  */
 import * as u from '../../ui.js';
-import {esc,nameOf,pill,head,stats,stat,card,attention,emptyState,ring,feed,tabs,summary,initiativeSwitcher,withInitiative,fmtDate,sessionWhen} from './common.js';
+import {esc,nameOf,pill,head,stats,stat,card,attention,emptyState,ring,tabs,summary,initiativeSwitcher,withInitiative,fmtDate,sessionWhen} from './common.js';
 import {seatCap,MAX_SUPERVISORS,representativeOrg} from '../../initiative-rules.js';
 
 const cover = i => i.cover?.image ? `<img class="iw-cover" src="${esc(i.cover.image)}" alt="${esc(i.cover.alt || '')}">` : `<div class="iw-cover is-blank" aria-hidden="true">${u.icon('nodes')}</div>`;
@@ -27,11 +27,27 @@ function attentionFor(s, i) {
 }
 function recentActivity(s, initiativeIds) {
   const items = [];
-  for (const a of s.admissions.filter(x => initiativeIds.includes(x.initiativeId))) for (const h of a.history || []) items.push({at:h.at, title:`${nameOf(s, a.personId)} · ${h.to}`, text:`${a.code}${h.reason ? ` · ${h.reason}` : ''}`});
-  for (const g of (s.grants || []).filter(x => initiativeIds.includes(x.scopeId))) for (const h of g.history || []) items.push({at:h.at, title:`${nameOf(s, g.personId)} · ${g.role} ${h.change.toLowerCase()}`, text:h.reason || ''});
-  for (const e of (s.excuses || []).filter(x => initiativeIds.includes(x.initiativeId))) for (const h of e.history || []) items.push({at:h.at, title:`Excuse · ${h.change}`, text:nameOf(s, e.personId)});
-  for (const a of (s.sessionAttendance || []).filter(x => initiativeIds.includes(x.initiativeId))) items.push({at:a.at, title:`Attendance · ${nameOf(s, a.personId)} ${a.status}`, text:s.sessions.find(x => x.id === a.sessionId)?.title || ''});
-  return items.filter(x => x.at).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 8);
+  const applicationLabels={Pending:'submitted an application',Accepted:'was accepted into the initiative',Rejected:'had their application declined',Suspended:'had their participation suspended',Removed:'was removed from the initiative',Withdrawn:'withdrew their application',Queued:'joined the waiting list',Offered:'received a seat offer',Completed:'completed the initiative'};
+  for(const application of s.admissions.filter(x=>initiativeIds.includes(x.initiativeId)))for(const event of application.history||[]){
+    const migrated=/^Migrated /i.test(event.reason||'');
+    items.push({at:event.at,name:nameOf(s,application.personId),action:applicationLabels[event.to]||`application updated to ${event.to}`,kind:'Application',status:event.to,icon:event.to==='Accepted'?'check':'people',description:migrated?'Existing registration confirmed.':event.reason==='Application submitted'?'':event.reason||'',reference:application.code,originalReason:migrated?event.reason:''});
+  }
+  for(const grant of(s.grants||[]).filter(x=>initiativeIds.includes(x.scopeId)))for(const event of grant.history||[]){
+    const change=String(event.change||'Access updated'),accepted=/accept/i.test(change),role=grant.role==='coach'?'Coach':'Supervisor';
+    items.push({at:event.at,name:nameOf(s,grant.personId),action:accepted?`joined the team as a ${role}`:`${role} access updated`,kind:'Team invitation',status:accepted?'Accepted':/revok/i.test(change)?'Revoked':'Updated',icon:'people',description:event.reason||(accepted?'':change)});
+  }
+  for(const excuse of(s.excuses||[]).filter(x=>initiativeIds.includes(x.initiativeId)))for(const event of excuse.history||[])items.push({at:event.at,name:nameOf(s,excuse.personId),action:`absence request · ${event.change}`,kind:'Absence request',icon:'form',description:s.sessions.find(x=>x.id===excuse.sessionId)?.title||'',status:''});
+  for(const attendance of(s.sessionAttendance||[]).filter(x=>initiativeIds.includes(x.initiativeId)))items.push({at:attendance.at,name:nameOf(s,attendance.personId),action:'had their attendance recorded',kind:'Session attendance',icon:'check',status:attendance.status,description:s.sessions.find(x=>x.id===attendance.sessionId)?.title||'',recordedBy:attendance.actorId?nameOf(s,attendance.actorId):''});
+  return items.map((item,sequence)=>({...item,sequence})).filter(x=>x.at).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)||b.sequence-a.sequence).slice(0,8);
+}
+function activityTimeline(items) {
+  if(!items.length)return '<p class="iw-muted">Recent updates will appear here as your initiative progresses.</p>';
+  const groups=new Map(),dayKey=at=>/^\d{4}-\d{2}-\d{2}$/.test(at)?at:new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Amman',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(at));
+  for(const item of items){const day=dayKey(item.at);if(!groups.has(day))groups.set(day,[]);groups.get(day).push(item);}
+  return `<div class="iw-activity-timeline">${[...groups].map(([date,events])=>`<section class="iw-activity-day"><header><h3><time datetime="${esc(date)}">${esc(fmtDate(date))}</time></h3><span>${events.length} ${events.length===1?'update':'updates'}</span></header><ol>${events.map(event=>{
+    const time=String(event.at).includes('T')?new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Amman',hour:'2-digit',minute:'2-digit'}).format(new Date(event.at)):null;
+    return `<li><time class="iw-activity-time" datetime="${esc(event.at)}">${time||'<span aria-label="Time not recorded">—</span>'}</time><span class="iw-activity-node is-${event.icon}" aria-hidden="true">${u.icon(event.icon)}</span><div class="iw-activity-content"><div class="iw-activity-kind">${esc(event.kind)}</div><div class="iw-activity-title"><h4><strong>${esc(event.name)}</strong><span>${esc(event.action)}</span></h4>${event.status?pill(event.status):''}</div>${event.description?`<p>${esc(event.description)}</p>`:''}${event.reference||event.recordedBy?`<div class="iw-activity-meta">${event.reference?`<span>Application ${esc(event.reference)}</span>`:''}${event.recordedBy?`<span>Recorded by ${esc(event.recordedBy)}</span>`:''}</div>`:''}${event.originalReason?`<details class="iw-activity-source"><summary>Original record note</summary><p>${esc(event.originalReason)}</p></details>`:''}</div></li>`;
+  }).join('')}</ol></section>`).join('')}<p class="iw-activity-timezone">Newest first · Times in Asia/Amman</p></div>`;
 }
 
 export function renderDashboard(ctx, initiatives) {
@@ -51,7 +67,7 @@ export function renderDashboard(ctx, initiatives) {
     + `<div class="iw-split is-wide">${card('Needs your attention', attention(attentionFor(s, i)), {eyebrow:'ACTION QUEUE'})}
       ${card('Progress', `<div class="iw-ring-row">${ring(approvedTasks, Math.max(sum.submissions.length, approvedTasks, 1), 'Tasks approved')}${ring(att.filter(a => a.status !== 'Absent').length, Math.max(att.length, 1), 'Attendance records present')}</div><dl class="iw-facts is-compact"><div><dt>Awaiting Coach review</dt><dd>${toReview}</dd></div><div><dt>Absences (factual)</dt><dd>${att.filter(a => a.status === 'Absent').length}</dd></div><div><dt>Excuses to decide</dt><dd>${sum.excusesForRep.length}</dd></div><div><dt>Coach reports · Supervisor summaries</dt><dd>${sum.coachReports.length} · ${sum.summaries.length}</dd></div></dl>${u.link('Open reports', withInitiative('organization/reports', i), 'text-link')}`, {eyebrow:'FROM THE RECORDS'})}</div>`
     + card('Upcoming sessions', sum.upcoming.length ? `<ol class="iw-agenda">${sum.upcoming.slice(0, 4).map(ss => `<li><time><b>${esc(new Date(ss.date + 'T12:00').getDate())}</b><span>${esc(new Date(ss.date + 'T12:00').toLocaleDateString('en-GB', {month:'short'}))}</span></time><div><strong>${esc(ss.title)}</strong><small>${esc(ss.time)} · ${esc(ss.format)}</small></div>${summary(s, i).needsSupervisor.some(x => x.id === ss.id) ? pill('Needs Supervisor') : pill('Active', 'Supervised')}</li>`).join('')}</ol>` : '<p class="iw-muted">No upcoming published sessions.</p>', {extra:u.link('Schedule', withInitiative('organization/sessions', i), 'text-link')})
-    + card('Recent activity', feed(recentActivity(s, [i.id])), {eyebrow:'DERIVED FROM RECORDS'});
+    + card('Recent activity', activityTimeline(recentActivity(s, [i.id])), {eyebrow:'LATEST UPDATES'});
 }
 
 export function renderInitiativeList(ctx, initiatives) {
