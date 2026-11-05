@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="Client/assets/brand/logo.png" alt="DeepSprout leaf logo" width="76">
+  <img src="src/DeepSprout.Web/wwwroot/assets/brand/logo.png" alt="DeepSprout leaf logo" width="76">
   <h1>DeepSprout</h1>
   <p><strong>Less scrolling. More living.</strong></p>
   <p>A digital wellbeing platform for reclaiming attention from compulsive short-form feeds and making room for meaningful life beyond the screen.</p>
@@ -14,7 +14,7 @@
 
 DeepSprout joins a **personal Recovery Journey** with practice, browser support, real-world opportunities, and guided group work. Start with the [current product guide](docs/current-product-guide.md) for every page and connected cycle; the [product specification](DeepSprout.md) records intended rules and older decisions. The website can now be served by ASP.NET Core MVC from `Server/`. Its existing interactions still use browser-local demo records; server authentication and durable product persistence remain future work.
 
-**Explore the demo:** [Home](index.html) · [Individual activities](Client/src/pages/member/training/training.html) · [Partner workspaces](Client/workspaces.html#/auth/login) · [System Journey walkthrough](Client/workspaces.html#/admin/system-journey)
+**Explore the demo:** [Home](http://127.0.0.1:8765/) · [Individual activities](http://127.0.0.1:8765/src/pages/member/training/training.html) · [Partner workspaces](http://127.0.0.1:8765/workspaces.html#/auth/login) · [System Journey walkthrough](http://127.0.0.1:8765/workspaces.html#/admin/system-journey)
 
 ## Contents
 
@@ -31,7 +31,6 @@ DeepSprout joins a **personal Recovery Journey** with practice, browser support,
 - [Architecture and technology](#architecture-and-technology)
 - [Repository structure](#repository-structure)
 - [Run locally](#run-locally)
-- [GitHub Pages deployment](#github-pages-deployment)
 - [Status and roadmap](#status-and-roadmap)
 - [Testing, accessibility and privacy](#testing-accessibility-and-privacy)
 - [Contributing and license](#contributing-and-license)
@@ -50,7 +49,7 @@ The [3 November 2026 guide](docs/current-product-guide.md) inventories the publi
 
 ![Actual desktop render of the current DeepSprout home page, with Bimo beside the introductory message](docs/assets/readme/home-preview.png)
 
-The image above is a **local browser capture** of the homepage at 1440 × 900 with a seeded demo account, taken for an earlier documentation pass. The current page may have changed since that capture. The [root entry](index.html) and [Client source](Client/index.html) use the same page markup.
+The image above is a **local browser capture** of the homepage at 1440 × 900 with a seeded demo account, taken for an earlier documentation pass. The current page may have changed since that capture. The [root entry](http://127.0.0.1:8765/) and [Client source](http://127.0.0.1:8765/index.html) use the same page markup.
 
 ## What the platform does
 
@@ -60,7 +59,7 @@ The image above is a **local browser capture** of the homepage at 1440 × 900 wi
 | Recovery Plan | One continuous journey with usually 28-day cycles, an actionable week, review, future-only adjustment, and continuation decisions | Browser-local versioned journal; [Round 2C report](docs/implementation/deepsprout-round2c-adaptive-recovery-report.md) |
 | Meaningful Practices | Depth Practice, Listening & Recall, Practical Micro-Challenge, and Protected Work; independent levels and evidence | Four local players and versioned content; [Round 2B report](docs/implementation/deepsprout-round2b-meaningful-practices-report.md) |
 | Offline Routine | Small personally chosen real-world commitments | Local self-report, separate from system-scored practice |
-| Digital Shield | Manual Website Protection and one shared selected-site Usage Reminder | Optional **local Chrome extension**; supported-domain, browser-only coverage and pairing limits in its [guide](Client/extensions/digital-shield/README.md). No Pages pairing or production sync is claimed |
+| Digital Shield | Manual Website Protection and one shared selected-site Usage Reminder | Optional **local Chrome extension**; supported-domain, browser-only coverage and pairing limits in its [guide](extensions/digital-shield/README.md). No Pages pairing or production sync is claimed |
 | Personal Garden | Earned visual growth from eligible practice and selected participation records | Four practice-type trees and bounded details in the current demo; a later one-main-plant design direction is a separate Garden task |
 | Lab and Insights | Four baselines, periodic rechecks, source-labelled progress and missing-data context | Weekly demo Lab window and local source-labelled views; no clinical measurement claim |
 | Explore and Community | Discover initiatives, workshops, experiences and community participation | Local opportunity, registration and community flows; no public multi-user service |
@@ -78,15 +77,15 @@ A **Journey** is the person's continuing history. A **Recovery Cycle** is one bo
 
 ## Meet Bimo
 
-<p align="center"><img src="Client/assets/hero-v2/bimo-awake.png" alt="Original approved Bimo character, a small ivory and sage companion with a leaf sprout" width="230"></p>
+<p align="center"><img src="src/DeepSprout.Web/wwwroot/assets/hero-v2/bimo-awake.png" alt="Original approved Bimo character, a small ivory and sage companion with a leaf sprout" width="230"></p>
 
-Bimo is DeepSprout's **original approved companion**. Bimo welcomes people, guides the first-run sequence, and explains selected milestones in a calm, friendly voice. The image above is an existing runtime asset; source references and poses live in [`Client/references/bimo/`](Client/references/bimo/). Bimo is a guide in the interface, not a claim that a conversational AI service is running.
+Bimo is DeepSprout's **original approved companion**. Bimo welcomes people, guides the first-run sequence, and explains selected milestones in a calm, friendly voice. The image above is an existing runtime asset; source references and poses live in [`docs/references/bimo/`](docs/references/bimo/). Bimo is a guide in the interface, not a claim that a conversational AI service is running.
 
 ## Garden and evidence
 
 ![Illustrative diagram of four practice trees growing from qualifying evidence](docs/assets/readme/garden-growth.svg)
 
-The Garden makes earned participation visible. Valid, eligible original practice attempts contribute to their corresponding four practice-type trees; routine and verified participation can produce bounded details under different rules. It does not grow merely because an app was opened, a timer elapsed, or a booking was made. Missing observations should remain unknown rather than be treated as failure. The illustration explains the current source model; it is **not a screenshot** of the Garden. See [the live Garden](Client/src/pages/member/garden/garden.html). The later design guidance calls for one clean ivory scene with one main plant; the current four-tree implementation remains until a separately scoped Garden task resolves its visual and evidence mapping.
+The Garden makes earned participation visible. Valid, eligible original practice attempts contribute to their corresponding four practice-type trees; routine and verified participation can produce bounded details under different rules. It does not grow merely because an app was opened, a timer elapsed, or a booking was made. Missing observations should remain unknown rather than be treated as failure. The illustration explains the current source model; it is **not a screenshot** of the Garden. See [the live Garden](http://127.0.0.1:8765/src/pages/member/garden/garden.html). The later design guidance calls for one clean ivory scene with one main plant; the current four-tree implementation remains until a separately scoped Garden task resolves its visual and evidence mapping.
 
 ## Connected workspaces
 
@@ -94,13 +93,13 @@ The Garden makes earned participation visible. Valid, eligible original practice
 
 | Workspace | Primary pages and job | Connection |
 | --- | --- | --- |
-| **Individual** | [Home](index.html), [Recovery Plan](Client/src/pages/member/recovery-plan/recovery-plan.html), [Activities](Client/src/pages/member/training/training.html), [Lab](Client/src/pages/member/lab/lab.html), [Shield](Client/src/pages/member/shield/shield.html), [Garden](Client/src/pages/member/garden/garden.html), [Insights](Client/src/pages/member/insights/insights.html), [Explore](Client/src/pages/member/explore/explore.html) | Receives its own assignments, applications, bookings and attributed outcomes |
-| **Coach / Mentor** | [Dashboard, Programs, Groups, Assignments, Reviews, Group Garden, Reports](Client/workspaces.html#/mentor/dashboard) | Runs an independent Program or reviews scoped group work |
-| **Invited Student** | [Dashboard, My Tasks, My Group, Progress, Group Garden](Client/workspaces.html#/student/dashboard) | Joins a group through invitation; can later upgrade the same person identity to Individual |
-| **Institution Representative** | [Dashboard, Initiatives, Applications, Team, Sessions, Forms, Reports](Client/workspaces.html#/organization/dashboard) | Publishes and runs youth initiatives, assigns staff, reviews participation and received Supervisor reports |
-| **Outdoor Provider** | [Overview, Experiences, Registrations, Waiting List, Evaluations, Reports](Client/workspaces.html#/provider/overview) | Owns experiences and camps, bookings, offers, completion rules |
-| **Supervisor** | [Dashboard, Schedule, Attendance, Excuses, Reports](Client/workspaces.html#/supervisor/dashboard) | Acts only on assigned Institution or Provider resources; confirms operational evidence |
-| **Platform Admin** | [Overview, approvals, catalog, policy, CMS, moderation, reports, audit](Client/workspaces.html#/admin/overview) | Governs publication and platform policy; [legacy Admin](Client/admin.html#/dashboard) still holds some separate demo capabilities |
+| **Individual** | [Home](http://127.0.0.1:8765/), [Recovery Plan](http://127.0.0.1:8765/src/pages/member/recovery-plan/recovery-plan.html), [Activities](http://127.0.0.1:8765/src/pages/member/training/training.html), [Lab](http://127.0.0.1:8765/src/pages/member/lab/lab.html), [Shield](http://127.0.0.1:8765/src/pages/member/shield/shield.html), [Garden](http://127.0.0.1:8765/src/pages/member/garden/garden.html), [Insights](http://127.0.0.1:8765/src/pages/member/insights/insights.html), [Explore](http://127.0.0.1:8765/src/pages/member/explore/explore.html) | Receives its own assignments, applications, bookings and attributed outcomes |
+| **Coach / Mentor** | [Dashboard, Programs, Groups, Assignments, Reviews, Group Garden, Reports](http://127.0.0.1:8765/workspaces.html#/mentor/dashboard) | Runs an independent Program or reviews scoped group work |
+| **Invited Student** | [Dashboard, My Tasks, My Group, Progress, Group Garden](http://127.0.0.1:8765/workspaces.html#/student/dashboard) | Joins a group through invitation; can later upgrade the same person identity to Individual |
+| **Institution Representative** | [Dashboard, Initiatives, Applications, Team, Sessions, Forms, Reports](http://127.0.0.1:8765/workspaces.html#/organization/dashboard) | Publishes and runs youth initiatives, assigns staff, reviews participation and received Supervisor reports |
+| **Outdoor Provider** | [Overview, Experiences, Registrations, Waiting List, Evaluations, Reports](http://127.0.0.1:8765/workspaces.html#/provider/overview) | Owns experiences and camps, bookings, offers, completion rules |
+| **Supervisor** | [Dashboard, Schedule, Attendance, Excuses, Reports](http://127.0.0.1:8765/workspaces.html#/supervisor/dashboard) | Acts only on assigned Institution or Provider resources; confirms operational evidence |
+| **Platform Admin** | [Overview, approvals, catalog, policy, CMS, moderation, reports, audit](http://127.0.0.1:8765/workspaces.html#/admin/overview) | Governs publication and platform policy; [legacy Admin](http://127.0.0.1:8765/admin.html#/dashboard) still holds some separate demo capabilities |
 
 A person can have multiple **role grants**, each scoped to the relevant resource. A workspace switch does not grant permission. **Subscription entitlements** are a separate proposed commercial mechanism, not a substitute for identity or authorization; no real billing runs here. The current browser guards demonstrate policy, but production enforcement requires server-side checks. See [master §§2, 20, 23](DeepSprout.md#2-fundamental-concepts-authorization-and-workspaces).
 
@@ -120,12 +119,12 @@ These flows share person, resource and participation identities in the newer bro
 
 | Area | Public entry points | Destination routes |
 | --- | --- | --- |
-| Public and access | [Home](index.html), [former story landing](Client/landing.html), [Pricing](Client/pricing.html), [Register](Client/register.html), [Login](Client/login.html), [Partner entry](Client/partners.html) | Public pages and auth pages under [`Client/src/pages/`](Client/src/pages/) |
-| Individual first run | [Onboarding](Client/onboarding.html), [Lab](Client/lab.html) | Bimo/setup/Starting Point and four Lab tasks |
-| Individual ongoing | [Recovery Plan](Client/recovery-plan.html), [Weekly Review](Client/weekly-review.html), [Activities](Client/training.html), [Shield](Client/shield.html), [Garden](Client/garden.html), [Insights](Client/insights.html), [Explore](Client/explore.html), [Community](Client/community.html), [Profile](Client/profile.html) | Most short `Client/*.html` URLs forward to corresponding `Client/src/pages/member/...` pages |
-| Partner and administration | [Partner workspaces](Client/workspaces.html#/auth/login), [legacy Admin](Client/admin.html#/dashboard) | Hash routes such as `#/mentor/dashboard`, `#/organization/initiatives`, `#/provider/waitlist`, `#/supervisor/attendance`, `#/admin/overview` |
+| Public and access | [Home](http://127.0.0.1:8765/), [former story landing](http://127.0.0.1:8765/landing.html), [Pricing](http://127.0.0.1:8765/pricing.html), [Register](http://127.0.0.1:8765/register.html), [Login](http://127.0.0.1:8765/login.html), [Partner entry](http://127.0.0.1:8765/partners.html) | Public pages and auth pages under [`Client/src/pages/`](Client/src/pages/) |
+| Individual first run | [Onboarding](http://127.0.0.1:8765/onboarding.html), [Lab](http://127.0.0.1:8765/lab.html) | Bimo/setup/Starting Point and four Lab tasks |
+| Individual ongoing | [Recovery Plan](http://127.0.0.1:8765/recovery-plan.html), [Weekly Review](http://127.0.0.1:8765/weekly-review.html), [Activities](http://127.0.0.1:8765/training.html), [Shield](http://127.0.0.1:8765/shield.html), [Garden](http://127.0.0.1:8765/garden.html), [Insights](http://127.0.0.1:8765/insights.html), [Explore](http://127.0.0.1:8765/explore.html), [Community](http://127.0.0.1:8765/community.html), [Profile](http://127.0.0.1:8765/profile.html) | Most short `Client/*.html` URLs forward to corresponding `Client/src/pages/member/...` pages |
+| Partner and administration | [Partner workspaces](http://127.0.0.1:8765/workspaces.html#/auth/login), [legacy Admin](http://127.0.0.1:8765/admin.html#/dashboard) | Hash routes such as `#/mentor/dashboard`, `#/organization/initiatives`, `#/provider/waitlist`, `#/supervisor/attendance`, `#/admin/overview` |
 
-The workspace [navigation source](Client/src/workspaces/navigation.js) is the exact current menu inventory. The [current product guide](docs/current-product-guide.md) describes every destination and cycle; the [client guide](Client/README.md) records local preview and experiment entry points.
+The workspace [navigation source](src/DeepSprout.Web/wwwroot/src/workspaces/navigation.js) is the exact current menu inventory. The [current product guide](docs/current-product-guide.md) describes every destination and cycle; the [client guide](docs/client-static-site-README.md) records local preview and experiment entry points.
 
 ## Architecture and technology
 
@@ -133,74 +132,57 @@ The workspace [navigation source](Client/src/workspaces/navigation.js) is the ex
 
 | Layer | Running in this repository | Planned production direction |
 | --- | --- | --- |
-| Web experience | 46 Razor views and MVC routing in `Server/src/DeepSprout.Web`; existing CSS, JavaScript and hash-routed `workspaces.html` from `Client/` | Server-backed MVC actions; the older Angular client direction needs a separate integration decision |
+| Web experience | 46 Razor views and MVC routing in `src/DeepSprout.Web`; CSS, JavaScript and images under `wwwroot/`, and the hash-routed `workspaces.html` partner workspaces | Server-backed MVC actions; the older Angular client direction needs a separate integration decision |
 | State | Browser-local person journals, ecosystem graph, seeded JSON and some separate legacy Admin data; separate EF Core/SQL Server schema and validation solution | ASP.NET Core MVC application with C# domain services and EF Core/SQL Server persistence |
 | Identity and access | Demo identity selector and browser-side scoped guards | Authenticated identity, role and resource-scoped server authorization |
 | Business changes | Local commands and projections; some original records bridge Individual and partner screens | Versioned workflows, transactions, service-layer invariants and durable audit trails |
 | Browser protection | Optional Chrome extension with local-origin pairing and restricted site coverage | Technically validated extension and authenticated, consent-aware sync |
-| Hosting | Static files from a local HTTP server or GitHub Pages; validation database is separate | Hosted ASP.NET Core MVC application, database and optional extension distribution |
+| Hosting | One ASP.NET Core MVC application run locally; validation database is separate | Hosted ASP.NET Core MVC application, database and optional extension distribution |
 
-The root [`index.html`](index.html) is generated from `Client/index.html` by [`scripts/build_root_home.py`](scripts/build_root_home.py). It adds `<base href="./Client/">` so the **same homepage markup** resolves its relative CSS, scripts, media and links when served at `/DeepSprout/`; a small handler keeps same-page anchors on the root URL. The normal `Client/` entry remains usable. Generated output is checked with `--check`. The [MVC website](Server/README.md) serves page views at the original client URLs; production authentication, email delivery and payment processing remain unconnected.
+DeepSprout is **one ASP.NET Core MVC solution**. The pages are Razor views in `src/DeepSprout.Web/Views`; their CSS, JavaScript, images and fonts live in `src/DeepSprout.Web/wwwroot`. Page URLs keep their historical `.html` form (for example `/training.html`), routed by `PagesController` from `page-routes.json`. There is no separate static HTML site.
 
 ## Repository structure
 
 ```text
 .
-├── index.html                 # Generated root homepage for static hosting
-├── README.md                  # This guide
-├── DeepSprout.md              # Authoritative product specification
-├── DESIGN.md / DeepSprout-DESIGN.md
-├── Client/
-│   ├── index.html             # Canonical homepage source
-│   ├── *.html                 # Stable entries and demo pages
-│   ├── src/                   # Page code, layouts, styles, browser-local domain
-│   ├── assets/                # Runtime media, Bimo poses, local vendor assets
-│   ├── references/bimo/       # Approved original character references
-│   ├── extensions/digital-shield/
-│   ├── tests/                 # Model, wiring and browser checks
-│   ├── docs/                  # Client architecture and validation records
-│   └── serve.py               # Client-root preview with custom 404
-├── Server/                    # MVC website, EF Core/SQL Server schema and validation
-├── docs/
-│   ├── assets/readme/         # README diagrams and illustrations
-│   ├── cycles/                # Cross-workspace audits and route inventories
-│   ├── implementation/        # Dated implementation evidence
-│   └── audits/                # Broader verification and gap analyses
-├── scripts/                   # Root homepage and diagram generation
-└── experiments/              # Independent Bimo/visual experiments
+├── DeepSprout.sln                 # Open this in Visual Studio
+├── DeepSprout.Database.slnx       # Database-focused solution
+├── src/
+│   ├── DeepSprout.Web/            # ASP.NET Core MVC website
+│   │   ├── Controllers/           # PagesController (page routing)
+│   │   ├── Models/                # PageCatalog (routes from page-routes.json)
+│   │   ├── Views/                 # 46 Razor views grouped by area
+│   │   ├── wwwroot/               # assets/ (media, Bimo, vendor) and src/ (page JS/CSS, workspaces)
+│   │   ├── Program.cs  page-routes.json  appsettings.json
+│   ├── DeepSprout.Domain/         # Domain records (no persistence dependency)
+│   ├── DeepSprout.Application/    # Command contracts and DTOs
+│   └── DeepSprout.Infrastructure/ # EF Core SQL Server context, migrations
+├── tests/
+│   ├── mvc-smoke.mjs              # Routes every page and resolves every local link/asset
+│   ├── client/                    # Browser-model and Playwright suites (run against the MVC site)
+│   └── DeepSprout.DatabaseValidation/  # SQL Server integration suite
+├── extensions/digital-shield/     # Optional Chrome extension (not part of the website)
+├── docs/                          # Product guide, database architecture (v4, v5), design/validation records
+│   ├── architecture/database/     # Database design, v5 lean design and SQL submission
+│   ├── client/                    # Former client architecture, design and validation records
+│   └── references/                # Approved Bimo and design references
+├── tools/                         # Database and media helper scripts
+├── experiments/                   # Independent Bimo/visual experiments
+├── DeepSprout.md  DESIGN.md  DeepSprout-DESIGN.md  AGENTS.md
 ```
 
 ## Run locally
 
-**MVC website:** open [`DeepSprout.sln`](DeepSprout.sln) in Visual Studio, set `DeepSprout.Web` as the startup project, and press F5. With .NET SDK 10, the command-line equivalent from the repository root is:
+Open [`DeepSprout.sln`](DeepSprout.sln) in Visual Studio, set `DeepSprout.Web` as the startup project and press F5. From a terminal with .NET SDK 10:
 
 ```sh
-dotnet run --project Server/src/DeepSprout.Web/DeepSprout.Web.csproj
+dotnet run --project src/DeepSprout.Web/DeepSprout.Web.csproj
 ```
 
-Open `http://127.0.0.1:8765/`. The separate static preview remains available with Python 3; Node.js and an installed browser are needed for selected tests.
+Open `http://127.0.0.1:8765/`. Partner workspaces are at `/workspaces.html#/auth/login`. The demo stores records in the **browser origin**, so a different port or host starts with empty local data. A database connection is optional (`ConnectionStrings__DeepSprout`); running the site never migrates or writes to the validation database. Before adding server sessions, configure a persistent protected key store through `DataProtection__KeyDirectory`.
 
-```sh
-git clone https://github.com/ahmadfa100/DeepSprout.git
-cd DeepSprout
-python3 scripts/build_root_home.py --check
-python3 -m http.server 8765 --bind 127.0.0.1
-```
+Publish with `dotnet publish src/DeepSprout.Web/DeepSprout.Web.csproj -c Release`.
 
-Open **`http://127.0.0.1:8765/`** for the root homepage. The same server exposes `http://127.0.0.1:8765/Client/workspaces.html#/auth/login` and other `Client/` routes. If you prefer the client at origin root, run `python3 Client/serve.py --port 8765` instead and open `/`; that server also returns the custom `Client/404.html` with HTTP 404. Run `python3 scripts/build_root_home.py` after changing `Client/index.html`, then commit both source and generated root entry.
-
-The demo stores records in the **browser origin**. Changing between root and client-root server layouts, ports, or Pages creates a distinct origin; saved local progress does not automatically transfer. The seeded demo and identity switch are for review, not real accounts.
-
-## GitHub Pages deployment
-
-This project uses **branch publishing from the repository root**; no build service or framework is required. The committed `.nojekyll` keeps the static tree as-is.
-
-1. Merge and push this documentation/root-entry change to the repository's publishing branch (`main` is the current remote default).
-2. On GitHub open **Settings → Pages → Build and deployment**. Choose **Deploy from a branch**, select **`main`** and **`/(root)`**, then save.
-3. After GitHub reports publication, open the expected project URL: `https://ahmadfa100.github.io/DeepSprout/`. This is an **expected URL**, not a claim that publication has already happened.
-4. After future homepage edits, run `python3 scripts/build_root_home.py` and `python3 scripts/build_root_home.py --check` before pushing.
-
-The root homepage is a full rendered page, not a redirect. Relative links enter `Client/` and continue resolving under the `/DeepSprout/` project prefix. Partner `#/...` routes stay on `Client/workspaces.html`; query strings and hashes on those destinations are preserved by normal relative links. GitHub Pages can only serve static files. It cannot run ASP.NET Core MVC or SQL Server, provide real multi-user persistence, secure cross-device authorization, email, payments, or browser extension pairing. The current extension's allowlist is for local demo origins, so Pages does **not** provide live Shield enforcement or telemetry pairing. A future MVC application and database need separate hosting and a reviewed integration boundary.
 
 ## Status and roadmap
 
@@ -218,19 +200,16 @@ For precise evidence and remaining limitations see the [Round 0](docs/implementa
 
 ## Testing, accessibility and privacy
 
-The focused, dependency-light checks are:
+With the site running (`dotnet run --project src/DeepSprout.Web`), the checks are:
 
 ```sh
-python3 scripts/build_root_home.py --check
-python3 tests/pages-root.test.py
-node Client/tests/page-wiring.test.cjs
-node --test Client/tests/partner-store.test.mjs Client/tests/institution-cycle.test.mjs Client/tests/supervisor-cycle.test.mjs Client/tests/coach-cycle.test.mjs
-node --test Client/tests/round2a-personal.test.mjs Client/tests/round2b-practices.test.mjs Client/tests/round2c-recovery.test.mjs Client/tests/round2d-shield.test.mjs
-python3 Client/tests/not-found-server.test.py
-node tests/pages-browser.test.cjs  # requires Playwright Chromium; checks desktop/mobile and Pages subpath
+node tests/mvc-smoke.mjs                      # every routed page, custom 404, every local link and asset
+node --test tests/client/partner-store.test.mjs tests/client/institution-cycle.test.mjs tests/client/supervisor-cycle.test.mjs tests/client/coach-cycle.test.mjs
+node --test tests/client/round2a-personal.test.mjs tests/client/round2b-practices.test.mjs tests/client/round2c-recovery.test.mjs tests/client/round2d-shield.test.mjs
+BASE_URL=http://127.0.0.1:8765 node tests/client/round0-browser.test.cjs   # Playwright suites; set CHROME_PATH
 ```
 
-Browser suites in `Client/tests/` need Playwright and Chrome. The [client guide](Client/README.md) lists the relevant `BASE_URL`, `CHROME_PATH` and `NODE_PATH` settings. Some existing browser tests write screenshots under validation folders; choose a temporary `SHOTS_DIR` when supported and inspect the test before running it. The root `package.json` has a placeholder `npm test` command, so use the actual test commands above.
+Browser suites in `tests/client/` need Playwright and Chrome (`CHROME_PATH`). The [former client guide](docs/client-static-site-README.md) lists the relevant `BASE_URL`, `CHROME_PATH` and `NODE_PATH` settings. Some existing browser tests write screenshots under validation folders; choose a temporary `SHOTS_DIR` when supported and inspect the test before running it. The root `package.json` has a placeholder `npm test` command, so use the actual test commands above.
 
 During the 3 November documentation review, page wiring passed for 14 pages. The combined Institution, Supervisor, Coach and Provider domain run passed 37 of 41 cases; four Institution/Supervisor cases stopped at the newly required “remote or on-site” session-booking value in their test fixture. See the [current guide](docs/current-product-guide.md#current-implementation-and-evidence-limits) for the verification boundary.
 

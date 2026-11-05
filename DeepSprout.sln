@@ -3,21 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{DAD03CFC-D5FA-AC94-41C7-9ABAB326F09E}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2132E9AA-A8A6-6DB3-1CCB-FE240A8CB002}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSprout.Web", "Server\src\DeepSprout.Web\DeepSprout.Web.csproj", "{A3E96232-7492-4133-AA61-8EBFC4FE906C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSprout.Web", "src\DeepSprout.Web\DeepSprout.Web.csproj", "{A3E96232-7492-4133-AA61-8EBFC4FE906C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSprout.Application", "Server\src\DeepSprout.Application\DeepSprout.Application.csproj", "{180196AF-0A15-4B60-9CE3-FDB464612F74}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSprout.Application", "src\DeepSprout.Application\DeepSprout.Application.csproj", "{180196AF-0A15-4B60-9CE3-FDB464612F74}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSprout.Domain", "Server\src\DeepSprout.Domain\DeepSprout.Domain.csproj", "{52770814-F21D-4F4F-A14F-E2FC47D8D8E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSprout.Domain", "src\DeepSprout.Domain\DeepSprout.Domain.csproj", "{52770814-F21D-4F4F-A14F-E2FC47D8D8E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSprout.Infrastructure", "Server\src\DeepSprout.Infrastructure\DeepSprout.Infrastructure.csproj", "{54D2FD27-94B3-4265-BE65-D943AD1167AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSprout.Infrastructure", "src\DeepSprout.Infrastructure\DeepSprout.Infrastructure.csproj", "{54D2FD27-94B3-4265-BE65-D943AD1167AB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F6418E52-5FE5-8182-075E-77FED2B86FC9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSprout.DatabaseValidation", "Server\tests\DeepSprout.DatabaseValidation\DeepSprout.DatabaseValidation.csproj", "{47849A22-43D3-4EFA-8750-6087C869C7A4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepSprout.DatabaseValidation", "tests\DeepSprout.DatabaseValidation\DeepSprout.DatabaseValidation.csproj", "{47849A22-43D3-4EFA-8750-6087C869C7A4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -94,12 +92,10 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{2132E9AA-A8A6-6DB3-1CCB-FE240A8CB002} = {DAD03CFC-D5FA-AC94-41C7-9ABAB326F09E}
 		{A3E96232-7492-4133-AA61-8EBFC4FE906C} = {2132E9AA-A8A6-6DB3-1CCB-FE240A8CB002}
 		{180196AF-0A15-4B60-9CE3-FDB464612F74} = {2132E9AA-A8A6-6DB3-1CCB-FE240A8CB002}
 		{52770814-F21D-4F4F-A14F-E2FC47D8D8E1} = {2132E9AA-A8A6-6DB3-1CCB-FE240A8CB002}
 		{54D2FD27-94B3-4265-BE65-D943AD1167AB} = {2132E9AA-A8A6-6DB3-1CCB-FE240A8CB002}
-		{F6418E52-5FE5-8182-075E-77FED2B86FC9} = {DAD03CFC-D5FA-AC94-41C7-9ABAB326F09E}
 		{47849A22-43D3-4EFA-8750-6087C869C7A4} = {F6418E52-5FE5-8182-075E-77FED2B86FC9}
 	EndGlobalSection
 EndGlobal

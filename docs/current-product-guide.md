@@ -46,7 +46,7 @@ The root `Client/*.html` shortcuts generally redirect to their `Client/src/pages
 | [Roadmap / Recovery Plan](../Client/src/pages/member/recovery-plan/recovery-plan.html) | Overview, This week, Adjust and History tabs; current action, four-week direction, routine and support tools. Changes apply to future work and preserve recorded history. |
 | [Weekly Review](../Client/src/pages/member/weekly-review/weekly-review.html) | Shows what was recorded, asks about manageability and fit, previews a next week and saves a deliberate decision. It is a review, not a fifth practice. |
 | [Activities](../Client/src/pages/member/training/training.html) | A suggested next action, four practice families, practice history, Coach-assigned work and an editable offline to-do. Players capture their own evidence; a timer alone does not approve work. |
-| [Digital Shield](../Client/src/pages/member/shield/shield.html) | Manual Website Protection and one shared selected-site Usage Reminder. A separately installed local [Chrome extension](../Client/extensions/digital-shield/README.md) can enforce supported-domain navigation blocking and record eligible browser activity after explicit pairing; the website alone cannot. |
+| [Digital Shield](../Client/src/pages/member/shield/shield.html) | Manual Website Protection and one shared selected-site Usage Reminder. A separately installed local [Chrome extension](../extensions/digital-shield/README.md) can enforce supported-domain navigation blocking and record eligible browser activity after explicit pairing; the website alone cannot. |
 | [Garden](../Client/src/pages/member/garden/garden.html) | Current four-tree Personal scene, type progress, recent qualifying sources and bounded flower/rabbit/birdhouse effects. No-data is neutral. A later design instruction proposes one clean ivory scene with **one main plant**; changing the current Garden is a separate design task, so this guide describes what runs now. |
 | [Insights](../Client/src/pages/member/insights/insights.html) | Overview, Digital Habits, Plan & Practice, Assessments, Offline Life and Next Steps. Browser usage has 7/14/28-day controls and coverage context. Missing or incompatible evidence must not be presented as zero or improvement. |
 | [Explore](../Client/src/pages/member/explore/explore.html) | Filters Initiatives, Sessions, Experiences and Competitions; shows details, local applications/bookings and the person's Initiative and registration states. Live partner publications are combined with labelled sample listings. |
@@ -55,7 +55,7 @@ The root `Client/*.html` shortcuts generally redirect to their `Client/src/pages
 
 ## Partner and administration pages
 
-Partner pages use hash routes below [`Client/workspaces.html`](../Client/workspaces.html). The [navigation source](../Client/src/workspaces/navigation.js) is the current menu authority. Detail pages, builders and tabs appear inside those route families.
+Partner pages use hash routes below [`Client/workspaces.html`](../Client/workspaces.html). The [navigation source](../src/DeepSprout.Web/wwwroot/src/workspaces/navigation.js) is the current menu authority. Detail pages, builders and tabs appear inside those route families.
 
 | Workspace | Current pages and main actions |
 | --- | --- |
@@ -145,12 +145,12 @@ The separate `Client/admin.html` legacy Admin uses `#/dashboard`, `#/users`, `#/
 
 Historical [cycle audits](cycles/README.md) describe the 15 October code state and contain gaps that later work closed. For current behavior, inspect the linked source and later [implementation reports](implementation/). Automated browser suites provide milestone evidence, but this document does not promote every historical pass into a fresh verification of today's uncommitted working tree.
 
-**Verification during this documentation pass:** `node Client/tests/page-wiring.test.cjs` passed for 14 pages. The combined Institution, Supervisor, Coach and Provider domain suites passed 37 of 41 cases. Four Institution/Supervisor cases stopped when the currently edited session-booking command required an explicit “remote or on-site” value that those tests did not supply. This is a current test/fixture mismatch in the working tree; the remaining downstream steps in those four cases were not established by this run. No application code or test fixture was changed as part of this documentation update.
+**Verification during this documentation pass:** `node tests/client/page-wiring.test.cjs` passed for 14 pages. The combined Institution, Supervisor, Coach and Provider domain suites passed 37 of 41 cases. Four Institution/Supervisor cases stopped when the currently edited session-booking command required an explicit “remote or on-site” value that those tests did not supply. This is a current test/fixture mismatch in the working tree; the remaining downstream steps in those four cases were not established by this run. No application code or test fixture was changed as part of this documentation update.
 
 ## Where to continue
 
 - [README](../README.md): short project overview, local run and deployment.
-- [Client guide](../Client/README.md): client layout, test commands and local preview.
+- [Client guide](../docs/client-static-site-README.md): client layout, test commands and local preview.
 - [Server guide](../Server/README.md): database solution and validation scope.
 - [Product specification](../DeepSprout.md): intended rules and open decisions, with its dated §29 implementation snapshot.
 - [Implementation reports](implementation/) and [database architecture](architecture/database/README.md): milestone evidence and data design.

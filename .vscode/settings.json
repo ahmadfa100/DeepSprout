@@ -1,4 +1,3 @@
 {
-  "liveServer.settings.port": 5501,
-  "liveServer.settings.file": "Client/404.html"
+  "dotnet.defaultSolution": "DeepSprout.sln"
 }
