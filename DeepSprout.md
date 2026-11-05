@@ -4,9 +4,11 @@
 
 **Version:** 4.0 — final owner-decision reconciliation
 **Date:** 15 October 2026 (Asia/Amman)
-**Status:** Authoritative **target** specification; §29 separately records evidence-limited current implementation.
+**Status:** Authoritative **target** specification; §29 preserves a dated 15 October implementation snapshot.
 **Audience:** Product owner, designers, Codex/Claude Code, engineers, testers and reviewers.
-**Delivery:** Phase-1 connected static HTML/CSS/JavaScript demo; eventual Angular + ASP.NET Core/C# + EF Core + SQL Server, with technically validated optional browser extension.
+**Delivery:** Phase-1 connected static HTML/CSS/JavaScript demo; eventual ASP.NET Core MVC/C# application with EF Core and SQL Server. An Angular client remains a separate target described in this document, not a current implementation.
+
+> **Current implementation:** Read the [3 November 2026 page and cycle guide](docs/current-product-guide.md) for the working checkout. This v4.0 decision text is dated 15 October; §29 and §30 are historical snapshots. `Server/` now contains validated EF Core/SQL Server database work, though no running MVC website. The owner's later design instruction sets one clean ivory Garden scene with one main plant as the direction for a separately scoped Garden task; the four-tree implementation and older target language below remain here as historical context until that task reconciles the evidence mapping.
 
 > **Authority:** This file is the one maintained master. The owner's final approvals in the 15 October consolidation request outrank the attached blueprint's earlier open-question labels, which outrank consistent v3.1 requirements and older examples. `docs/product-specification.md` redirects here; dated audits describe observed code, not a second target contract. Historical examples, current demo defaults and design recommendations do not become approved numeric policy. No application implementation is asserted by this specification.
 
@@ -25,6 +27,7 @@
 
 | Version | Date | Record |
 |---|---|---|
+| 4.0 documentation note | 3 November 2026 | Linked the current implementation guide, recorded the database milestone and corrected the planned server type to ASP.NET Core MVC. No new product policy or Garden implementation is asserted. |
 | 4.0 | 15 October 2026 | Reconciled v3.1 and the later owner-approved D01–D48 decisions; replaced conflicting Garden, Group ownership, Initiative/Program, capacity, attendance, staffing, survey and Lab contracts; added detailed page, workflow, permission, acceptance and evidence-limited current-state coverage. |
 | 3.1 | 15 October 2026 | Earlier master with implementation audit layer and then-current Garden/Admin decisions; superseded here. |
 | 3.0 | 13 October 2026 | Original conversation specification; superseded here. |
@@ -139,7 +142,7 @@ The previous blueprint targeted approximately **ages 16–26**. This is a produc
 - An independent Coach applies for professional capability under the configured verification policy. An Institution-invited Coach gains only the accepted Initiative grant without a separate Platform Admin approval.
 - An appointed Supervisor sees the Supervisor Workspace only for assigned resources.
 - Invited students may use email OTP (passwordless verification) plus invitation token and obtain authenticated, persistent limited access.
-- Server authentication and resource authorization are required at **every sensitive API endpoint**. Angular route guards are only a UI convenience.
+- Server authentication and resource authorization are required for **every sensitive MVC action and request**. Client route guards are only a UI convenience.
 - `Join as Partner` is a registration **path**, not a global security role; a single person may later hold several memberships/capabilities.
 
 ## 2.3 Workspaces and navigation
@@ -154,7 +157,7 @@ The previous blueprint targeted approximately **ages 16–26**. This is a produc
 | Supervisor | Dashboard, assigned Initiatives/Provider Experiences, Applications, Students & Groups or Provider Cohorts, Coaches, Schedule, Attendance, Notes & Excuses, Evaluations, Group Garden where authorized, Insights/Reports |
 | Admin | Overview, accounts/approvals, organizations/providers, mentors/groups, initiatives, experiences, activity and assessment catalog, reward/rule policies, CMS/content, community moderation, reports, audit, configuration |
 
-An authorized user may have a **Workspace Switcher**. A switching UI never itself grants access; entitlements must be returned and validated by the API.
+An authorized user may have a **Workspace Switcher**. A switching UI never itself grants access; effective permissions and entitlements must be checked by the MVC application for every relevant request.
 
 ---
 
@@ -186,7 +189,7 @@ An authorized user may have a **Workspace Switcher**. A switching UI never itsel
 
 ## 3.3 Unified Login and routing
 
-After authentication, API returns identity, onboarding state, workspace memberships/permissions and allowed default destination. The user can then open or switch to authorized workspaces. Admin access is privately provisioned; the login form need not show Admin as a public choice. The clearly labeled `Continue as Admin (Demo)` shortcut is acceptable in the static demonstration. It is not authentication and must never be represented or shipped as production authorization. Normal logout, recovery, OTP expiry and login errors must exist.
+After authentication, the MVC application resolves identity, onboarding state, workspace memberships/permissions and allowed default destination. The user can then open or switch to authorized workspaces. Admin access is privately provisioned; the login form need not show Admin as a public choice. The clearly labeled `Continue as Admin (Demo)` shortcut is acceptable in the static demonstration. It is not authentication and must never be represented or shipped as production authorization. Normal logout, recovery, OTP expiry and login errors must exist.
 
 ---
 
@@ -1035,7 +1038,7 @@ The operational journeys below complement the page tables. A read always require
 
 **Phase 1:** static HTML/CSS/JavaScript, local assets, browser-side demo records, no build/backend dependency. It must still demonstrate coherent cross-workspace IDs, publication, admission, bookings, invitations, attendance, reports and rewards from a resettable fixture. Label simulated login/OTP/email, payment, QR verification, staff authorization, capacity races and notices truthfully. Rendering a page or passing a local store unit test is not proof that the regular Individual receives the change. Payment is explicitly simulated; there is no processor, charge, refund or banking integration.
 
-**Eventual architecture:** Angular client and a modular ASP.NET Core Web API in C#, Entity Framework Core and SQL Server. The server owns authentication, resource authorization, validation, state transitions, idempotency, transactional seat holds, offer-expiry jobs, versioned policies/forms/catalog, durable audit, notifications, privacy/retention and reporting projections. An optional separately installed Chrome-compatible extension is subject to technical feasibility and disclosure; it cannot silently control mobile apps or claim Reels-specific time without evidence. `Server/` currently contains only a README. There is no Angular workspace or backend in this checkout.
+**Eventual architecture:** an ASP.NET Core MVC application in C#, with Entity Framework Core and SQL Server. The server owns authentication, resource authorization, validation, state transitions, idempotency, transactional seat holds, offer-expiry jobs, versioned policies/forms/catalog, durable audit, notifications, privacy/retention and reporting projections. The specification's Angular client direction needs a separate integration decision when MVC pages and actions are designed. The optional Chrome extension has a local demonstration implementation with documented limits. `Server/` now contains domain/application/infrastructure code, migrations and a validated database solution, but no running MVC website or connected client.
 
 ## 22.2 Domain ownership and constraints
 
@@ -1056,9 +1059,9 @@ The operational journeys below complement the page tables. A read always require
 
 Relational uniqueness, foreign keys, status constraints and transaction boundaries must enforce these invariants in the final backend. Model cancellations and corrections as attributed transitions, not silent deletion. Data migration from multiple current browser keys needs a documented ID map and reset/seed strategy; do not create another unsynchronized listing copy.
 
-## 22.3 Service/API contract to derive
+## 22.3 MVC request and workflow contract to derive
 
-Derive an OpenAPI contract for identity and invitation acceptance; Institution/Coach/Provider applications and Admin decision; Initiative/Program/Experience publish and revisions; application/approval/discipline; Group allocation; assignment/submission/review; session and experience registration/waitlist/offer; QR/typed/manual/online attendance; excuse recommendation/final decision; completion; Garden projection; source-based reporting; notice/audit. Every mutation requires actor/resource scope, expected version or idempotency key where races occur, allowed transition, explicit validation errors and original record ID in the response. Route names in a future API are **not yet fixed**. A browser-only guard is a demo convenience, never proof of server permission.
+Define MVC routes, controllers/actions, view models or form contracts, validation and response behavior for identity and invitation acceptance; Institution/Coach/Provider applications and Admin decisions; Initiative/Program/Experience publication and revisions; application/approval/discipline; Group allocation; assignment/submission/review; session and experience registration/waitlist/offer; QR/typed/manual/online attendance; excuse recommendation/final decision; completion; Garden projection; source-based reporting; notice/audit. Every mutation requires actor/resource scope, anti-forgery protection, expected version or idempotency key where races occur, allowed transition, explicit validation errors and original record ID in the result. MVC route and view names are not yet fixed. A browser-only guard is a demo convenience, never proof of server permission.
 
 ---
 
@@ -1148,7 +1151,7 @@ Failures must leave original records unchanged or produce a traceable compensati
 
 ## 24.6 Operational requirements
 
-- Standard API error contracts with correlation IDs; input validation and reasonable rate limits.
+- Consistent MVC validation and error responses with correlation IDs; input validation and reasonable rate limits.
 - Secure password storage, OTP hashing/rate limits, hashed invite credentials, robust token/session revocation.
 - EF Core migrations, transactional consistency, background job retry/idempotency, structured logging and fault alerts.
 - Auth and consent audit logs; roles/tenant tests; no private sensitive values in application logs.
@@ -1188,7 +1191,7 @@ For every script record fixture, exact route/control, action, expected and actua
 | ADMIN-19 / ADMN-20 | Ordinary Initiative publish bypasses per-item Admin approval; unique legacy/workspace Admin features mapped to working destination; no dead Reports route |
 | STATE-21 / NOFAKE-22 | Cancel/close/revoke preserves history and notifies; seeded metrics labeled; no fake sent email, completed payment, production auth or concurrency guarantee |
 
-Final backend test family additionally requires authenticated API authorization, signed/non-replayable QR, transactional seat/offer races, secure document handling, durable audit and notification delivery. These are future architecture acceptance tests, not Phase-1 browser security claims.
+Final server test family additionally requires authenticated MVC action authorization, signed/non-replayable QR, transactional seat/offer races, secure document handling, durable audit and notification delivery. These are future architecture acceptance tests, not Phase-1 browser security claims.
 
 ---
 
@@ -1355,7 +1358,7 @@ This specification is the **upstream product contract**. Before intensive implem
 | **Sequence UML** | New user→plan; invitation→OTP→member; booking race; check-in→reward→report; partner linking; review→new week |
 | **Class/Domain UML** | Aggregates, entities, value objects, domain events and ownership boundaries |
 | **ERD & Database Constraints** | Normalized schema, keys, cardinalities, uniqueness and concurrency strategies |
-| **API Contract (OpenAPI)** | Paths, request/response DTOs, errors, authorization and idempotency guarantees |
+| **MVC Route and View Contract** | Controller actions, routes, view/form models, validation errors, authorization, anti-forgery and idempotency guarantees |
 | **Frontend Design System** | Components, typography, palettes, Bimo scenes, animations, responsive states and page templates |
 | **Role-specific UX Specifications** | Individual, Mentor, Student, Institution, Provider, Supervisor and Admin page/state contracts |
 | **Test & Demo Plan** | Integration/security/concurrency cases proving real ASP.NET Core and SQL Server behavior |
@@ -1383,6 +1386,8 @@ A valid DeepSprout implementation must allow a user to reduce their short-form s
 ---
 
 # 29. Current implementation versus agreed target (15 October 2026)
+
+> **Historical snapshot:** The observations and gaps in this section describe the 15 October working tree. Later client and database work changed several of them. Use the [current guide](docs/current-product-guide.md) for the 3 November inventory; do not read the table below as today's implementation status.
 
 **Evidence levels:** `IMPLEMENTED AND VERIFIED` means a relevant command/browser result was actually exercised in a cited audit; `IMPLEMENTED BUT NOT FULLY VERIFIED` means current source contains the path but this consolidation did not run every UI state; `WORKS INSIDE PARTNER ECOSYSTEM ONLY` means current `deepsprout-ecosystem-demo-v1` data is connected among partner routes; `SIMULATED` means local interaction without real external/auth/financial service; `BROKEN CROSS-WORKSPACE` means the agreed regular Individual destination does not share the state; `NOT IMPLEMENTED` means no supporting path found; `TARGET REQUIREMENT` is the contract in §§1–28. Prior tests are not promoted to current full-system verification.
 
@@ -1418,6 +1423,8 @@ The regular Individual and partner Participant are different products in current
 
 # 30. Implementation dependency roadmap and handoff
 
+> **Historical handoff:** Several slices below were subsequently implemented in the browser demo and the EF Core/SQL Server database milestone. Reassess remaining work against the [current guide](docs/current-product-guide.md) before planning another slice. The planned server application is ASP.NET Core MVC.
+
 This is **future work**, not authorization to modify application files in the documentation task. Each slice ends with a real regular-Individual-to-owner browser walkthrough from a clean fixture, relevant negative states and recorded evidence. Keep all agreed role and personal features in scope.
 
 1. **Smallest first technical slice:** define one browser-demo identity/resource/publication/application contract over the current member and partner data seams, with stable IDs and reset/seed behavior. Reuse the existing partner Institution builder/commands. Publish one unique Initiative into regular `explore.html`; apply as a regular Individual; show the **same Application ID** and state in Representative/Supervisor and My Initiatives. Draft remains hidden. Exercise cancellation and reload. Do not create another independent listing copy.
@@ -1426,7 +1433,7 @@ This is **future work**, not authorization to modify application files in the do
 4. Implement attendance/QR rendering and typed/manual/online verification, separate excuses/completion, source-linked Personal/Group Garden effects and neutral no-data behavior.
 5. Connect Provider publication, booking and full clock-driven Waiting List to regular Individual; retain Provider ownership, Camp completion and birdhouse.
 6. Unify Admin capabilities by measured parity, preserve legacy Individual effects, harden page states, notices and six demos; repair four-baseline→plan activation and weekly Lab as their own verified personal slice.
-7. Design and implement the eventual Angular client and ASP.NET Core/C#/EF Core/SQL Server services with secure identity, permissions, transactional capacity, durable audits, real notification delivery and validated extension integration. Real payments wait for commercial decisions.
+7. Design and implement the ASP.NET Core MVC application over the EF Core/SQL Server foundation, with secure identity, permissions, transactional capacity, durable audits, real notification delivery and validated extension integration. Decide separately how the specification's proposed Angular client integrates with MVC. Real payments wait for commercial decisions.
 
 Before each technical slice, compare its target acceptance with current code and decide remaining open policy parameters explicitly. Do not backdate a local simulation as a verified production guarantee. Maintain source, UI and test evidence, including affected roles and regular Individual impact.
 

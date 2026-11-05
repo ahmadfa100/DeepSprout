@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DeepSprout.Application/DeepSprout.Application.csproj" />
+    <Project Path="src/DeepSprout.Domain/DeepSprout.Domain.csproj" />
+    <Project Path="src/DeepSprout.Infrastructure/DeepSprout.Infrastructure.csproj" />
+    <Project Path="src/DeepSprout.Web/DeepSprout.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DeepSprout.DatabaseValidation/DeepSprout.DatabaseValidation.csproj" />
+  </Folder>
+</Solution>

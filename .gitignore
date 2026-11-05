@@ -8,3 +8,19 @@ __pycache__/
 .env.*
 !.env.example
 .claude/settings.local.json
+
+# .NET build and local tooling
+**/bin/
+**/obj/
+Server/.dotnet/
+Server/.nuget/
+Server/.tools/
+Server/*.log
+Server/validation-results.jsonl
+Server/validation-errors.txt
+Server/src/DeepSprout.Web/.keys/
+
+# Visual Studio local state
+.vs/
+*.suo
+*.user

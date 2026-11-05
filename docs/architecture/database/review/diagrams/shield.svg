@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 549" role="img" aria-label="shield table relationships">
+<style>text{font-family:Segoe UI,Arial,sans-serif;fill:#294734}.head{font-weight:bold;font-size:25px}.sub{font-size:13px;fill:#5b745f}.table{font-size:15px;font-weight:600}.edge{font-family:Consolas,monospace;font-size:12px}.muted{fill:#6b806d}</style>
+<rect width="1700" height="549" fill="#fbfaf5"/><text class="head" x="32" y="44">shield / actual SQL relationships</text>
+<text class="sub" x="32" y="68">6 tables · 11 incoming/outgoing FK paths · + marks composite columns</text>
+<text class="sub" x="32" y="101">TABLES</text><text class="sub" x="470" y="101">FOREIGN KEY PATHS (child → parent)</text>
+<rect x="28" y="114" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="137">shield.BrowserUsageDomain</text>
+<rect x="28" y="157" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="180">shield.BrowserUsagePeriod</text>
+<rect x="28" y="200" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="223">shield.ExtensionInstallation</text>
+<rect x="28" y="243" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="266">shield.ProtectionSession</text>
+<rect x="28" y="286" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="309">shield.ShieldConfiguration</text>
+<rect x="28" y="329" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="352">shield.ShieldSelectedDomain</text>
+<rect x="466" y="114" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="134">shield.BrowserUsageDomain (UsagePeriodId + ConfigurationId) → shield.BrowserUsagePeriod (Id + ConfigurationId)</text>
+<rect x="466" y="148" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="168">shield.BrowserUsageDomain (ConfigurationId + DomainCode) → shield.ShieldSelectedDomain (ConfigurationId + DomainCode)</text>
+<rect x="466" y="182" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="202">shield.BrowserUsagePeriod (InstallationId + PersonId) → shield.ExtensionInstallation (Id + PersonId)</text>
+<rect x="466" y="216" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="236">shield.BrowserUsagePeriod (PersonId) → iam.Person (Id)</text>
+<rect x="466" y="250" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="270">shield.BrowserUsagePeriod (ConfigurationId + PersonId) → shield.ShieldConfiguration (Id + PersonId)</text>
+<rect x="466" y="284" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="304">shield.ExtensionInstallation (PersonId) → iam.Person (Id)</text>
+<rect x="466" y="318" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="338">shield.ProtectionSession (InstallationId + PersonId) → shield.ExtensionInstallation (Id + PersonId)</text>
+<rect x="466" y="352" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="372">shield.ProtectionSession (PersonId) → iam.Person (Id)</text>
+<rect x="466" y="386" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="406">shield.ProtectionSession (ConfigurationId + PersonId) → shield.ShieldConfiguration (Id + PersonId)</text>
+<rect x="466" y="420" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="440">shield.ShieldConfiguration (PersonId) → iam.Person (Id)</text>
+<rect x="466" y="454" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="474">shield.ShieldSelectedDomain (ConfigurationId) → shield.ShieldConfiguration (Id)</text>
+</svg>

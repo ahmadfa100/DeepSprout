@@ -1,0 +1,234 @@
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 980
+Incorrect syntax near the keyword 'OR'.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 984
+Must declare the scalar variable "@NowUtc".
+Msg 102, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 986
+Incorrect syntax near ';'.
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 993
+Incorrect syntax near the keyword 'OR'.
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1010
+Incorrect syntax near the keyword 'OR'.
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1023
+Incorrect syntax near the keyword 'OR'.
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1036
+Incorrect syntax near the keyword 'OR'.
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1049
+Incorrect syntax near the keyword 'OR'.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1056
+Must declare the scalar variable "@InstitutionId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1058
+Must declare the scalar variable "@InstitutionId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1060
+Must declare the scalar variable "@InstitutionId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1061
+Must declare the scalar variable "@InitiativeId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1063
+Must declare the scalar variable "@InitiativeId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1064
+Must declare the scalar variable "@DraftId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1066
+Must declare the scalar variable "@ActorPersonId".
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1077
+Incorrect syntax near the keyword 'OR'.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1083
+Must declare the scalar variable "@Stage".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1089
+Must declare the scalar variable "@DraftId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1091
+Must declare the scalar variable "@ActorPersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1094
+Must declare the scalar variable "@Stage".
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1113
+Incorrect syntax near the keyword 'OR'.
+Msg 134, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1123
+The variable name '@InitiativeId' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1124
+Must declare the scalar variable "@PublicId".
+Msg 319, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1126
+Incorrect syntax near the keyword 'with'. If this statement is a common table expression, an xmlnamespaces clause or a change tracking context clause, the previous statement must be terminated with a semicolon.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1131
+Must declare the scalar variable "@ActorPersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1133
+Must declare the scalar variable "@Title".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1137
+Must declare the scalar variable "@DraftId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1144
+Must declare the scalar variable "@DraftId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1145
+Must declare the scalar variable "@StartsAtUtc".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1146
+Must declare the scalar variable "@RevisionNo".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1150
+Must declare the scalar variable "@RevisionNo".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1152
+Must declare the scalar variable "@RevisionId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1153
+Must declare the scalar variable "@Title".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1156
+Must declare the scalar variable "@RevisionId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1159
+Must declare the scalar variable "@ActorPersonId".
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1169
+Incorrect syntax near the keyword 'OR'.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1178
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1180
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1182
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1184
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1189
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1191
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1192
+Must declare the scalar variable "@ApplicationId".
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1202
+Incorrect syntax near the keyword 'OR'.
+Msg 134, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1208
+The variable name '@InitiativeId' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1209
+Must declare the scalar variable "@ApplicationId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1212
+Must declare the scalar variable "@PublicId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1215
+Must declare the scalar variable "@ApplicationId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1217
+Must declare the scalar variable "@ApplicationId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1220
+Must declare the scalar variable "@ActorPersonId".
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1230
+Incorrect syntax near the keyword 'OR'.
+Msg 134, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1236
+The variable name '@InitiativeId' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1237
+Must declare the scalar variable "@ApplicationId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1240
+Must declare the scalar variable "@ActorPersonId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1242
+Must declare the scalar variable "@PublicId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1245
+Must declare the scalar variable "@Block".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1246
+Must declare the scalar variable "@NewStatus".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1248
+Must declare the scalar variable "@ApplicationId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1251
+Must declare the scalar variable "@ActorPersonId".
+Msg 102, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1254
+Incorrect syntax near ';'.
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1261
+Incorrect syntax near the keyword 'OR'.
+Msg 134, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1268
+The variable name '@InitiativeId' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1269
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1271
+Must declare the scalar variable "@Capacity".
+Msg 319, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1272
+Incorrect syntax near the keyword 'with'. If this statement is a common table expression, an xmlnamespaces clause or a change tracking context clause, the previous statement must be terminated with a semicolon.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1274
+Must declare the scalar variable "@ActorPersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1275
+Must declare the scalar variable "@ActorPersonId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1277
+Must declare the scalar variable "@ApplicationPublicId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1281
+Must declare the scalar variable "@MembershipId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1282
+Must declare the scalar variable "@MembershipId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1286
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1288
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1290
+Must declare the scalar variable "@Capacity".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1292
+Must declare the scalar variable "@Cutoff".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1294
+Must declare the scalar variable "@ApplicationId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1295
+Must declare the scalar variable "@MembershipId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1296
+Must declare the scalar variable "@ApplicationId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1298
+Must declare the scalar variable "@ApplicationId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1301
+Must declare the scalar variable "@ActorPersonId".
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1311
+Incorrect syntax near the keyword 'OR'.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1316
+Must declare the scalar variable "@NewStatus".
+Msg 134, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1319
+The variable name '@InitiativeId' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1320
+Must declare the scalar variable "@MembershipId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1322
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1324
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1325
+Must declare the scalar variable "@NewStatus".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1327
+Must declare the scalar variable "@ActorPersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1333
+Must declare the scalar variable "@ActorPersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1336
+Must declare the scalar variable "@NewStatus".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1339
+Must declare the scalar variable "@ActorPersonId".
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1349
+Incorrect syntax near the keyword 'OR'.
+Msg 134, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1355
+The variable name '@InitiativeId' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1356
+Must declare the scalar variable "@MembershipId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1358
+Must declare the scalar variable "@ActorPersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1360
+Must declare the scalar variable "@MembershipId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1361
+Must declare the scalar variable "@Suspend".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1363
+Must declare the scalar variable "@Suspend".
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1374
+Incorrect syntax near the keyword 'OR'.
+Msg 134, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1380
+The variable name '@InitiativeId' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1381
+Must declare the scalar variable "@InvitationId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1384
+Must declare the scalar variable "@Role".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1386
+Must declare the scalar variable "@ExpiresAtUtc".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1387
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1389
+Must declare the scalar variable "@Role".
+Msg 102, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1390
+Incorrect syntax near '>'.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1393
+Must declare the scalar variable "@PersonId".
+Msg 137, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1394
+Must declare the scalar variable "@AppointmentId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1395
+Must declare the scalar variable "@InvitationId".
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1405
+Incorrect syntax near the keyword 'OR'.
+Msg 134, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1411
+The variable name '@InstitutionId' has already been declared. Variable names must be unique within a query batch or stored procedure.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1413
+Must declare the scalar variable "@AppointmentId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1414
+Must declare the scalar variable "@ActorPersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1417
+Must declare the scalar variable "@AppointmentId".
+Msg 156, Level 15, State 1, Server DESKTOP-A4AL2KR, Line 1428
+Incorrect syntax near the keyword 'OR'.
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1433
+Must declare the scalar variable "@FileId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1434
+Must declare the scalar variable "@ActorPersonId".
+Msg 137, Level 15, State 2, Server DESKTOP-A4AL2KR, Line 1437
+Must declare the scalar variable "@FileId".

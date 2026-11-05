@@ -1,0 +1,21 @@
+DatabaseName                                                                                                                     CompatibilityLevel ReadCommittedSnapshotOn SnapshotIsolationState                                      
+-------------------------------------------------------------------------------------------------------------------------------- ------------------ ----------------------- ------------------------------------------------------------
+DeepSprout_Validation                                                                                                                           170                       0 OFF                                                         
+M1Tables   
+-----------
+         19
+UntrustedOrDisabledForeignKeys
+------------------------------
+                             0
+UntrustedOrDisabledChecks
+-------------------------
+                        0
+MutableTablesWithRowVersion
+---------------------------
+                         15
+MigrationId                                                                                                                                            ProductVersion                  
+------------------------------------------------------------------------------------------------------------------------------------------------------ --------------------------------
+20261101044926_InitialM1                                                                                                                               10.0.0                          
+20261101045359_RescheduleInvariant                                                                                                                     10.0.0                          
+20261101050156_AdmissionDenialAudit                                                                                                                    10.0.0                          
+20261101053400_CancellationAndWithdrawalRights                                                                                                         10.0.0                          

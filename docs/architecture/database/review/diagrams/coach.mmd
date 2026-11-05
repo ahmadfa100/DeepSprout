@@ -1,0 +1,92 @@
+erDiagram
+    coach_CoachApproval {
+        bigint Id PK
+    }
+    coach_CoachProgram {
+        bigint Id PK
+    }
+    coach_GroupCoachAssignment {
+        bigint Id PK
+    }
+    coach_InitiativeGroupPlacement {
+        bigint Id PK
+    }
+    coach_OperationalGroup {
+        bigint Id PK
+    }
+    coach_ProgramCompletion {
+        bigint Id PK
+    }
+    coach_ProgramGroupInvitation {
+        bigint Id PK
+    }
+    coach_ProgramGroupMembership {
+        bigint Id PK
+    }
+    coach_ProgramRevision {
+        bigint Id PK
+    }
+    coach_ProgramStage {
+        bigint Id PK
+    }
+    evidence_EvidenceEvent {
+        bigint Id PK
+    }
+    evidence_GroupGarden {
+        bigint Id PK
+    }
+    files_SecureFile {
+        bigint Id PK
+    }
+    iam_Person {
+        bigint Id PK
+    }
+    institution_Initiative {
+        bigint Id PK
+    }
+    institution_InitiativeMembership {
+        bigint Id PK
+    }
+    institution_InitiativeStaffAppointment {
+        bigint Id PK
+    }
+    partnership_ProgramLink {
+        bigint Id PK
+    }
+    task_Assignment {
+        bigint Id PK
+    }
+    task_CoachReport {
+        bigint Id PK
+    }
+    iam_Person ||--o{ coach_CoachApproval : "FK_CoachApproval_Person_DecidedByPersonId DecidedByPersonId to Id"
+    iam_Person ||--o{ coach_CoachApproval : "FK_CoachApproval_Person_PersonId PersonId to Id"
+    files_SecureFile ||--o{ coach_CoachApproval : "FK_CoachApproval_SecureFile_EvidenceFileId EvidenceFileId to Id"
+    iam_Person ||--o{ coach_CoachProgram : "FK_CoachProgram_Person_OwnerPersonId OwnerPersonId to Id"
+    coach_CoachProgram ||--o{ coach_OperationalGroup : "FK_OperationalGroup_CoachProgram_ProgramId ProgramId to Id"
+    coach_CoachProgram ||--o{ coach_ProgramCompletion : "FK_ProgramCompletion_CoachProgram_ProgramId ProgramId to Id"
+    coach_CoachProgram ||--o{ coach_ProgramGroupMembership : "FK_ProgramGroupMembership_CoachProgram_ProgramId ProgramId to Id"
+    coach_CoachProgram ||--o{ coach_ProgramRevision : "FK_ProgramRevision_CoachProgram_ProgramId ProgramId to Id"
+    coach_CoachProgram ||--o{ evidence_GroupGarden : "FK_GroupGarden_CoachProgram_ProgramId ProgramId to Id"
+    coach_CoachProgram ||--o{ partnership_ProgramLink : "FK_ProgramLink_CoachProgram_ProgramId ProgramId to Id"
+    institution_InitiativeStaffAppointment ||--o{ coach_GroupCoachAssignment : "FK_GroupCoachAssignment_InitiativeStaffAppointment_InitiativeAppointmentId InitiativeAppointmentId to Id"
+    coach_OperationalGroup ||--o{ coach_GroupCoachAssignment : "FK_GroupCoachAssignment_OperationalGroup_GroupId GroupId to Id"
+    iam_Person ||--o{ coach_GroupCoachAssignment : "FK_GroupCoachAssignment_Person_AssignedByPersonId AssignedByPersonId to Id"
+    iam_Person ||--o{ coach_GroupCoachAssignment : "FK_GroupCoachAssignment_Person_CoachPersonId CoachPersonId to Id"
+    coach_OperationalGroup ||--o{ coach_InitiativeGroupPlacement : "FK_InitiativeGroupPlacement_Group_Initiative GroupId+InitiativeId to Id+InitiativeId"
+    institution_InitiativeMembership ||--o{ coach_InitiativeGroupPlacement : "FK_InitiativeGroupPlacement_InitiativeMembership_MembershipId_InitiativeId MembershipId+InitiativeId to Id+InitiativeId"
+    coach_OperationalGroup ||--o{ coach_InitiativeGroupPlacement : "FK_InitiativeGroupPlacement_OperationalGroup_GroupId GroupId to Id"
+    iam_Person ||--o{ coach_InitiativeGroupPlacement : "FK_InitiativeGroupPlacement_Person_MovedByPersonId MovedByPersonId to Id"
+    institution_Initiative ||--o{ coach_OperationalGroup : "FK_OperationalGroup_Initiative_InitiativeId InitiativeId to Id"
+    coach_OperationalGroup ||--o{ coach_ProgramGroupInvitation : "FK_ProgramGroupInvitation_OperationalGroup_GroupId GroupId to Id"
+    coach_OperationalGroup ||--o{ coach_ProgramGroupMembership : "FK_ProgramGroupMembership_Group_Program GroupId+ProgramId to Id+ProgramId"
+    coach_OperationalGroup ||--o{ coach_ProgramGroupMembership : "FK_ProgramGroupMembership_OperationalGroup_GroupId GroupId to Id"
+    coach_OperationalGroup ||--o{ evidence_GroupGarden : "FK_GroupGarden_OperationalGroup_IndependentGroupId_ProgramId IndependentGroupId+ProgramId to Id+ProgramId"
+    coach_OperationalGroup ||--o{ task_Assignment : "FK_Assignment_OperationalGroup_GroupId GroupId to Id"
+    coach_OperationalGroup ||--o{ task_CoachReport : "FK_CoachReport_OperationalGroup_GroupId GroupId to Id"
+    evidence_EvidenceEvent ||--o{ coach_ProgramCompletion : "FK_ProgramCompletion_EvidenceEvent_EvidenceEventId_PersonId EvidenceEventId+PersonId to Id+SubjectPersonId"
+    iam_Person ||--o{ coach_ProgramCompletion : "FK_ProgramCompletion_Person_EvaluatorPersonId EvaluatorPersonId to Id"
+    iam_Person ||--o{ coach_ProgramCompletion : "FK_ProgramCompletion_Person_PersonId PersonId to Id"
+    coach_ProgramRevision ||--o{ coach_ProgramCompletion : "FK_ProgramCompletion_ProgramRevision_ProgramRevisionId_ProgramId ProgramRevisionId+ProgramId to Id+ProgramId"
+    iam_Person ||--o{ coach_ProgramGroupMembership : "FK_ProgramGroupMembership_Person_PersonId PersonId to Id"
+    coach_ProgramRevision ||--o{ coach_ProgramStage : "FK_ProgramStage_ProgramRevision_ProgramRevisionId ProgramRevisionId to Id"

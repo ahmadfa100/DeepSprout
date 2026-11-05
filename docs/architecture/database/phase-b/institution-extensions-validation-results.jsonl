@@ -1,0 +1,16 @@
+{"timestampUtc":"2026-11-01T09:59:05.3567178Z","id":"IE-ENV","status":"PASS","detail":"DESKTOP-A4AL2KR/DeepSprout_Validation; SPID=51"}
+{"timestampUtc":"2026-11-01T09:59:05.4269228Z","id":"IE-SCHEMA","status":"PASS","detail":"13 Institution tables, 19 migrations, trusted FK/CHECK"}
+{"timestampUtc":"2026-11-01T09:59:05.525274Z","id":"IE-OFFER-CAPACITY","status":"PASS","detail":"SQL 64003; Initiative capacity exceeded by active memberships and offers"}
+{"timestampUtc":"2026-11-01T09:59:05.5733085Z","id":"IE-APPROVE-HELD","status":"PASS","detail":"SQL 51212; Initiative capacity is full"}
+{"timestampUtc":"2026-11-01T09:59:05.5817203Z","id":"IE-APPROVE-TRANSFER","status":"PASS","detail":"own held offer became one membership within approval transaction"}
+{"timestampUtc":"2026-11-01T09:59:05.5838286Z","id":"IE-APPROVE-FULL","status":"PASS","detail":"SQL 51212; Initiative capacity is full"}
+{"timestampUtc":"2026-11-01T09:59:05.5996209Z","id":"IE-CONTENT-ORDER","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the CHECK constraint \u0022CK_InitiativeContent_Order\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022institution.InitiativeContent\u0022, column \u0027SortOrder\u0027."}
+{"timestampUtc":"2026-11-01T09:59:05.6191906Z","id":"IE-CANCEL-AUTH","status":"PASS","detail":"SQL 51705; Actor has no cancellation authority"}
+{"timestampUtc":"2026-11-01T09:59:05.620446Z","id":"IE-CANCEL-AUTH-STATE","status":"PASS","detail":"unauthorized request preserved offer"}
+{"timestampUtc":"2026-11-01T09:59:05.6494193Z","id":"IE-CANCEL-ROLLBACK","status":"PASS","detail":"injected outer failure rolled back Initiative, offer, and application"}
+{"timestampUtc":"2026-11-01T09:59:05.6545083Z","id":"IE-CANCEL-OFFER","status":"PASS","detail":"permanent cancellation closed offer and application, one offer audit"}
+{"timestampUtc":"2026-11-01T09:59:05.6552869Z","id":"IE-CANCEL-DUPLICATE","status":"PASS","detail":"SQL 51703; Initiative is already cancelled"}
+{"timestampUtc":"2026-11-01T09:59:05.6871944Z","id":"IE-OFFER-COMMAND-AUTH","status":"PASS","detail":"SQL 64007; Actor has no seat-offer authority"}
+{"timestampUtc":"2026-11-01T09:59:05.7063254Z","id":"IE-OFFER-RACE","status":"PASS","detail":"SPIDs=68,62; errors=0,64003"}
+{"timestampUtc":"2026-11-01T09:59:05.7079891Z","id":"IE-PRESERVATION","status":"PASS","detail":"M1 and Provider rows remain present"}
+{"timestampUtc":"2026-11-01T09:59:05.7080603Z","id":"IE-SUMMARY","status":"PASS","detail":"failures=0; fixtureTag=inst-ext-04da68b4af"}

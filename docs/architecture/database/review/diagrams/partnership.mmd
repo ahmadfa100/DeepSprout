@@ -1,0 +1,27 @@
+erDiagram
+    coach_CoachProgram {
+        bigint Id PK
+    }
+    iam_Person {
+        bigint Id PK
+    }
+    institution_Initiative {
+        bigint Id PK
+    }
+    partnership_ExperienceLink {
+        bigint Id PK
+    }
+    partnership_ProgramLink {
+        bigint Id PK
+    }
+    provider_Experience {
+        bigint Id PK
+    }
+    provider_Experience ||--o{ partnership_ExperienceLink : "FK_ExperienceLink_Experience_ExperienceId ExperienceId to Id"
+    institution_Initiative ||--o{ partnership_ExperienceLink : "FK_ExperienceLink_Initiative_InitiativeId InitiativeId to Id"
+    iam_Person ||--o{ partnership_ExperienceLink : "FK_ExperienceLink_Person_AcceptedByPersonId AcceptedByPersonId to Id"
+    iam_Person ||--o{ partnership_ExperienceLink : "FK_ExperienceLink_Person_RequestedByPersonId RequestedByPersonId to Id"
+    coach_CoachProgram ||--o{ partnership_ProgramLink : "FK_ProgramLink_CoachProgram_ProgramId ProgramId to Id"
+    institution_Initiative ||--o{ partnership_ProgramLink : "FK_ProgramLink_Initiative_InitiativeId InitiativeId to Id"
+    iam_Person ||--o{ partnership_ProgramLink : "FK_ProgramLink_Person_AcceptedByPersonId AcceptedByPersonId to Id"
+    iam_Person ||--o{ partnership_ProgramLink : "FK_ProgramLink_Person_RequestedByPersonId RequestedByPersonId to Id"

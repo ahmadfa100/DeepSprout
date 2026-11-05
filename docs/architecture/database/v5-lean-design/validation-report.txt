@@ -1,0 +1,70 @@
+DeepSprout v5 generator validation
+2026-11-05T19:21:38.601Z
+
+{
+  "tables": 58,
+  "modules": 18,
+  "columns": 759,
+  "foreignKeys": 147,
+  "uniqueConstraints": 92,
+  "filteredUnique": 39,
+  "checks": 105,
+  "jsonColumns": 38,
+  "rowVersionTables": 21,
+  "triggers": 0,
+  "storedProcedures": 0,
+  "mapping": {
+    "KEEP": 58,
+    "MERGE": 25,
+    "REMOVE": 4,
+    "DEFER": 9
+  },
+  "legacy": {
+    "total": 330,
+    "RETIRE": 171,
+    "RETAIN-AS-SCENARIO": 137,
+    "DEFER": 22
+  },
+  "wide": {
+    "v4": 9,
+    "v5": 6
+  }
+}
+
+Warnings (33):
+lab.AssessmentAttempt: v4 unique (PublicId) replaced by own set
+lab.AssessmentAttempt: v4 unique (PersonId,InstrumentCode WHERE Kind = 'Baseline' AND Status = 'Valid') replaced by own set
+lab.AssessmentAttempt: v4 unique (WindowId,InstrumentCode WHERE Kind = 'Official' AND Status = 'Valid') replaced by own set
+activity.PracticeAttempt: unique (EvidenceEventId) dropped (column removed)
+activity.RoutineCheckIn: unique (EvidenceEventId) dropped (column removed)
+institution.InitiativeApplication: v4 unique (PublicId) replaced by own set
+institution.InitiativeApplication: v4 unique (InitiativeId,PersonId,AttemptNo) replaced by own set
+institution.InitiativeApplication: v4 unique (InitiativeId,PersonId WHERE Status IN ('Pending','Queued','Offered',) replaced by own set
+institution.InitiativeApplication: v4 unique (PersonId WHERE Status IN ('Accepted','Suspended')) replaced by own set
+institution.InitiativeApplication: v4 unique (InitiativeId,PersonId WHERE AcceptedAtUtc IS NOT NULL) replaced by own set
+coach.GroupMembership: v4 unique (ApplicationId WHERE ApplicationId IS NOT NULL AND Status = ') replaced by own set
+coach.GroupMembership: v4 unique (GroupId,PersonId WHERE Status = 'Active') replaced by own set
+coach.GroupMembership: v4 unique (GroupId,NormalizedEmail WHERE Status = 'Invited') replaced by own set
+coach.GroupMembership: v4 unique (TokenHash WHERE TokenHash IS NOT NULL) replaced by own set
+task.SubmissionAttempt: v4 unique (RecipientId,AttemptNo) replaced by own set
+task.SubmissionAttempt: v4 unique (PracticeAttemptId WHERE PracticeAttemptId IS NOT NULL) replaced by own set
+task.ReviewDecision: v4 unique (AttemptId,DecisionNo) replaced by own set
+task.ReviewDecision: v4 unique (SupersedesId WHERE SupersedesId IS NOT NULL) replaced by own set
+task.ReviewDecision: v4 unique (EvidenceEventId WHERE EvidenceEventId IS NOT NULL) replaced by own set
+session.SessionRegistration: v4 unique (PublicId) replaced by own set
+session.SessionRegistration: v4 unique (SessionId,PersonId WHERE Status IN ('Pending','Confirmed')) replaced by own set
+session.SessionRegistration: v4 unique (CredentialHash WHERE CredentialHash IS NOT NULL) replaced by own set
+session.Attendance: unique (EvidenceEventId) dropped (column removed)
+session.Completion: v4 unique (PublicId) replaced by own set
+session.Completion: v4 unique (ApplicationId WHERE ApplicationId IS NOT NULL) replaced by own set
+session.Completion: v4 unique (ProgramId,PersonId WHERE ProgramId IS NOT NULL) replaced by own set
+session.Completion: v4 unique (BookingId WHERE BookingId IS NOT NULL) replaced by own set
+session.Completion: v4 unique (EvidenceEventId WHERE EvidenceEventId IS NOT NULL) replaced by own set
+provider.ExperienceBooking: v4 unique (PublicId) replaced by own set
+provider.ExperienceBooking: v4 unique (ExperienceId,PersonId WHERE Status IN ('Queued','Offered','Confirmed) replaced by own set
+provider.ExperienceBooking: v4 unique (CredentialHash WHERE CredentialHash IS NOT NULL) replaced by own set
+community.PostInteraction: v4 unique (PostId,PersonId,ReactionCode) replaced by own set
+ops.OutboxMessage: v4 unique (EventPublicId) replaced by own set
+
+Errors (0):
+

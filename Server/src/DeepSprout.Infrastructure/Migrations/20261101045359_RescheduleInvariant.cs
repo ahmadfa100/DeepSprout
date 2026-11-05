@@ -1,0 +1,25 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace DeepSprout.Infrastructure.Migrations
+{
+    /// <inheritdoc />
+    public partial class RescheduleInvariant : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql("IF DB_NAME() <> N'DeepSprout_Validation' THROW 51000, 'M1 migration targets only DeepSprout_Validation', 1;");
+            migrationBuilder.Sql(global::DeepSprout.Infrastructure.M1Sql.Reschedule());
+            migrationBuilder.Sql("GRANT EXECUTE ON OBJECT::institution.RescheduleInitiative TO deepsprout_runtime;");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql("IF DB_NAME() <> N'DeepSprout_Validation' THROW 51000, 'M1 migration targets only DeepSprout_Validation', 1;");
+            migrationBuilder.Sql("DROP PROCEDURE IF EXISTS institution.RescheduleInitiative;");
+        }
+    }
+}

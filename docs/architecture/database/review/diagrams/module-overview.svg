@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 599" role="img" aria-label="Actual schema module overview">
+<style>text{font-family:Segoe UI,Arial,sans-serif}.box{stroke:#8ba68d;stroke-width:1.3}.edge{stroke:#a7b7aa;stroke-width:1;fill:none;opacity:.7}.title{font-size:19px;font-weight:700;fill:#243a2b}.small{font-size:12px;fill:#5c7160}</style>
+<path class="edge" d="M170,92 L1100,218"><title>activity → iam: 3 FK</title></path>
+<path class="edge" d="M170,92 L1410,92"><title>activity → evidence: 2 FK</title></path>
+<path class="edge" d="M170,92 L170,470"><title>activity → recovery: 1 FK</title></path>
+<path class="edge" d="M480,92 L1100,218"><title>coach → iam: 9 FK</title></path>
+<path class="edge" d="M480,92 L170,218"><title>coach → files: 1 FK</title></path>
+<path class="edge" d="M480,92 L1410,218"><title>coach → institution: 3 FK</title></path>
+<path class="edge" d="M480,92 L1410,92"><title>coach → evidence: 1 FK</title></path>
+<path class="edge" d="M790,92 L1410,218"><title>commercial → institution: 2 FK</title></path>
+<path class="edge" d="M790,92 L1100,218"><title>commercial → iam: 2 FK</title></path>
+<path class="edge" d="M790,92 L1410,344"><title>commercial → provider: 2 FK</title></path>
+<path class="edge" d="M1100,92 L1100,218"><title>community → iam: 8 FK</title></path>
+<path class="edge" d="M1100,92 L1410,92"><title>community → evidence: 1 FK</title></path>
+<path class="edge" d="M1410,92 L1100,218"><title>evidence → iam: 2 FK</title></path>
+<path class="edge" d="M1410,92 L480,92"><title>evidence → coach: 2 FK</title></path>
+<path class="edge" d="M1410,92 L1410,218"><title>evidence → institution: 1 FK</title></path>
+<path class="edge" d="M170,218 L1100,218"><title>files → iam: 1 FK</title></path>
+<path class="edge" d="M480,218 L1410,218"><title>forms → institution: 2 FK</title></path>
+<path class="edge" d="M480,218 L1100,218"><title>forms → iam: 3 FK</title></path>
+<path class="edge" d="M480,218 L170,218"><title>forms → files: 2 FK</title></path>
+<path class="edge" d="M790,218 L1100,218"><title>governance → iam: 2 FK</title></path>
+<path class="edge" d="M1410,218 L1100,218"><title>institution → iam: 11 FK</title></path>
+<path class="edge" d="M1410,218 L790,218"><title>institution → governance: 1 FK</title></path>
+<path class="edge" d="M1410,218 L170,218"><title>institution → files: 1 FK</title></path>
+<path class="edge" d="M170,344 L1100,218"><title>lab → iam: 2 FK</title></path>
+<path class="edge" d="M480,344 L1100,218"><title>ops → iam: 3 FK</title></path>
+<path class="edge" d="M790,344 L1410,344"><title>partnership → provider: 1 FK</title></path>
+<path class="edge" d="M790,344 L1410,218"><title>partnership → institution: 2 FK</title></path>
+<path class="edge" d="M790,344 L1100,218"><title>partnership → iam: 4 FK</title></path>
+<path class="edge" d="M790,344 L480,92"><title>partnership → coach: 1 FK</title></path>
+<path class="edge" d="M1100,344 L170,344"><title>personal → lab: 1 FK</title></path>
+<path class="edge" d="M1100,344 L1100,218"><title>personal → iam: 1 FK</title></path>
+<path class="edge" d="M1410,344 L1410,92"><title>provider → evidence: 2 FK</title></path>
+<path class="edge" d="M1410,344 L1100,218"><title>provider → iam: 10 FK</title></path>
+<path class="edge" d="M1410,344 L170,218"><title>provider → files: 2 FK</title></path>
+<path class="edge" d="M170,470 L1100,218"><title>recovery → iam: 1 FK</title></path>
+<path class="edge" d="M170,470 L170,92"><title>recovery → activity: 2 FK</title></path>
+<path class="edge" d="M480,470 L1100,218"><title>session → iam: 9 FK</title></path>
+<path class="edge" d="M480,470 L170,218"><title>session → files: 1 FK</title></path>
+<path class="edge" d="M480,470 L1410,92"><title>session → evidence: 2 FK</title></path>
+<path class="edge" d="M480,470 L1410,218"><title>session → institution: 5 FK</title></path>
+<path class="edge" d="M790,470 L1100,218"><title>shield → iam: 4 FK</title></path>
+<path class="edge" d="M1100,470 L480,92"><title>task → coach: 2 FK</title></path>
+<path class="edge" d="M1100,470 L1100,218"><title>task → iam: 6 FK</title></path>
+<path class="edge" d="M1100,470 L170,92"><title>task → activity: 1 FK</title></path>
+<path class="edge" d="M1100,470 L1410,92"><title>task → evidence: 1 FK</title></path>
+<path class="edge" d="M1100,470 L170,218"><title>task → files: 1 FK</title></path>
+<path class="edge" d="M1100,470 L1410,218"><title>task → institution: 1 FK</title></path>
+<g><rect class="box" x="40" y="55" width="260" height="74" rx="9" fill="#e8efe6"/><text class="title" x="55" y="85">activity</text><text class="small" x="55" y="109">6 tables · 9 cross-module FK paths</text></g>
+<g><rect class="box" x="350" y="55" width="260" height="74" rx="9" fill="#f3eee5"/><text class="title" x="365" y="85">coach</text><text class="small" x="365" y="109">10 tables · 19 cross-module FK paths</text></g>
+<g><rect class="box" x="660" y="55" width="260" height="74" rx="9" fill="#e9eeed"/><text class="title" x="675" y="85">commercial</text><text class="small" x="675" y="109">5 tables · 6 cross-module FK paths</text></g>
+<g><rect class="box" x="970" y="55" width="260" height="74" rx="9" fill="#f4eee8"/><text class="title" x="985" y="85">community</text><text class="small" x="985" y="109">9 tables · 9 cross-module FK paths</text></g>
+<g><rect class="box" x="1280" y="55" width="260" height="74" rx="9" fill="#e8efe6"/><text class="title" x="1295" y="85">evidence</text><text class="small" x="1295" y="109">5 tables · 14 cross-module FK paths</text></g>
+<g><rect class="box" x="40" y="181" width="260" height="74" rx="9" fill="#f3eee5"/><text class="title" x="55" y="211">files</text><text class="small" x="55" y="235">1 tables · 9 cross-module FK paths</text></g>
+<g><rect class="box" x="350" y="181" width="260" height="74" rx="9" fill="#e9eeed"/><text class="title" x="365" y="211">forms</text><text class="small" x="365" y="235">12 tables · 7 cross-module FK paths</text></g>
+<g><rect class="box" x="660" y="181" width="260" height="74" rx="9" fill="#f4eee8"/><text class="title" x="675" y="211">governance</text><text class="small" x="675" y="235">2 tables · 3 cross-module FK paths</text></g>
+<g><rect class="box" x="970" y="181" width="260" height="74" rx="9" fill="#e8efe6"/><text class="title" x="985" y="211">iam</text><text class="small" x="985" y="235">6 tables · 81 cross-module FK paths</text></g>
+<g><rect class="box" x="1280" y="181" width="260" height="74" rx="9" fill="#f3eee5"/><text class="title" x="1295" y="211">institution</text><text class="small" x="1295" y="235">13 tables · 29 cross-module FK paths</text></g>
+<g><rect class="box" x="40" y="307" width="260" height="74" rx="9" fill="#e9eeed"/><text class="title" x="55" y="337">lab</text><text class="small" x="55" y="361">6 tables · 3 cross-module FK paths</text></g>
+<g><rect class="box" x="350" y="307" width="260" height="74" rx="9" fill="#f4eee8"/><text class="title" x="365" y="337">ops</text><text class="small" x="365" y="361">5 tables · 3 cross-module FK paths</text></g>
+<g><rect class="box" x="660" y="307" width="260" height="74" rx="9" fill="#e8efe6"/><text class="title" x="675" y="337">partnership</text><text class="small" x="675" y="361">2 tables · 8 cross-module FK paths</text></g>
+<g><rect class="box" x="970" y="307" width="260" height="74" rx="9" fill="#f3eee5"/><text class="title" x="985" y="337">personal</text><text class="small" x="985" y="361">1 tables · 2 cross-module FK paths</text></g>
+<g><rect class="box" x="1280" y="307" width="260" height="74" rx="9" fill="#e9eeed"/><text class="title" x="1295" y="337">provider</text><text class="small" x="1295" y="361">17 tables · 17 cross-module FK paths</text></g>
+<g><rect class="box" x="40" y="433" width="260" height="74" rx="9" fill="#f4eee8"/><text class="title" x="55" y="463">recovery</text><text class="small" x="55" y="487">5 tables · 4 cross-module FK paths</text></g>
+<g><rect class="box" x="350" y="433" width="260" height="74" rx="9" fill="#e8efe6"/><text class="title" x="365" y="463">session</text><text class="small" x="365" y="487">10 tables · 17 cross-module FK paths</text></g>
+<g><rect class="box" x="660" y="433" width="260" height="74" rx="9" fill="#f3eee5"/><text class="title" x="675" y="463">shield</text><text class="small" x="675" y="487">6 tables · 4 cross-module FK paths</text></g>
+<g><rect class="box" x="970" y="433" width="260" height="74" rx="9" fill="#e9eeed"/><text class="title" x="985" y="463">task</text><text class="small" x="985" y="487">8 tables · 12 cross-module FK paths</text></g>
+</svg>

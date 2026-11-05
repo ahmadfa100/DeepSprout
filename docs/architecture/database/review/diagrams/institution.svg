@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 1739" role="img" aria-label="institution table relationships">
+<style>text{font-family:Segoe UI,Arial,sans-serif;fill:#294734}.head{font-weight:bold;font-size:25px}.sub{font-size:13px;fill:#5b745f}.table{font-size:15px;font-weight:600}.edge{font-family:Consolas,monospace;font-size:12px}.muted{fill:#6b806d}</style>
+<rect width="1700" height="1739" fill="#fbfaf5"/><text class="head" x="32" y="44">institution / actual SQL relationships</text>
+<text class="sub" x="32" y="68">13 tables · 46 incoming/outgoing FK paths · + marks composite columns</text>
+<text class="sub" x="32" y="101">TABLES</text><text class="sub" x="470" y="101">FOREIGN KEY PATHS (child → parent)</text>
+<rect x="28" y="114" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="137">institution.Initiative</text>
+<rect x="28" y="157" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="180">institution.InitiativeApplication</text>
+<rect x="28" y="200" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="223">institution.InitiativeApplicationDecision</text>
+<rect x="28" y="243" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="266">institution.InitiativeContent</text>
+<rect x="28" y="286" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="309">institution.InitiativeDraft</text>
+<rect x="28" y="329" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="352">institution.InitiativeMembership</text>
+<rect x="28" y="372" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="395">institution.InitiativeRevision</text>
+<rect x="28" y="415" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="438">institution.InitiativeSeatOffer</text>
+<rect x="28" y="458" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="481">institution.InitiativeStaffAppointment</text>
+<rect x="28" y="501" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="524">institution.InitiativeStaffInvitation</text>
+<rect x="28" y="544" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="567">institution.Institution</text>
+<rect x="28" y="587" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="610">institution.InstitutionVerificationCase</text>
+<rect x="28" y="630" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="653">institution.RepresentativeMembership</text>
+<rect x="466" y="114" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="134">institution.Initiative (InstitutionId) → institution.Institution (Id)</text>
+<rect x="466" y="148" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="168">institution.Initiative (CancelledByPersonId) → iam.Person (Id)</text>
+<rect x="466" y="182" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="202">coach.OperationalGroup (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="216" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="236">evidence.GroupGarden (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="250" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="270">forms.Competition (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="284" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="304">forms.Form (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="318" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="338">institution.InitiativeApplication (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="352" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="372">institution.InitiativeContent (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="386" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="406">institution.InitiativeDraft (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="420" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="440">institution.InitiativeMembership (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="454" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="474">institution.InitiativeRevision (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="488" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="508">institution.InitiativeStaffAppointment (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="522" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="542">institution.InitiativeStaffInvitation (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="556" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="576">partnership.ExperienceLink (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="590" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="610">partnership.ProgramLink (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="624" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="644">session.Session (InitiativeId + InstitutionId) → institution.Initiative (Id + InstitutionId)</text>
+<rect x="466" y="658" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="678">task.SupervisorReport (InitiativeId) → institution.Initiative (Id)</text>
+<rect x="466" y="692" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="712">institution.InitiativeApplication (TermsRevisionId + InitiativeId) → institution.InitiativeRevision (Id + InitiativeId)</text>
+<rect x="466" y="726" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="746">institution.InitiativeApplication (PersonId) → iam.Person (Id)</text>
+<rect x="466" y="760" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="780">institution.InitiativeApplicationDecision (ApplicationId + InitiativeId + TermsRevisionId) → institution.InitiativeApplication (Id + InitiativeId + TermsRevisionId)</text>
+<rect x="466" y="794" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="814">institution.InitiativeMembership (ApplicationId + InitiativeId + PersonId) → institution.InitiativeApplication (Id + InitiativeId + PersonId)</text>
+<rect x="466" y="828" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="848">institution.InitiativeSeatOffer (ApplicationId + InitiativeId) → institution.InitiativeApplication (Id + InitiativeId)</text>
+<rect x="466" y="862" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="882">institution.InitiativeApplicationDecision (ActorPersonId) → iam.Person (Id)</text>
+<rect x="466" y="896" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="916">institution.InitiativeContent (ContentReleaseId) → governance.ContentRelease (Id)</text>
+<rect x="466" y="930" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="950">institution.InitiativeDraft (BaseRevisionId + InitiativeId) → institution.InitiativeRevision (Id + InitiativeId)</text>
+<rect x="466" y="964" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="984">institution.InitiativeDraft (PublishedRevisionId + InitiativeId) → institution.InitiativeRevision (Id + InitiativeId)</text>
+<rect x="466" y="998" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1018">institution.InitiativeDraft (UpdatedByPersonId) → iam.Person (Id)</text>
+<rect x="466" y="1032" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1052">institution.InitiativeMembership (PersonId) → iam.Person (Id)</text>
+<rect x="466" y="1066" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="1086">coach.InitiativeGroupPlacement (MembershipId + InitiativeId) → institution.InitiativeMembership (Id + InitiativeId)</text>
+<rect x="466" y="1100" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="1120">session.InitiativeCompletion (MembershipId + InitiativeId) → institution.InitiativeMembership (Id + InitiativeId)</text>
+<rect x="466" y="1134" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="1154">session.InitiativeCompletion (RuleRevisionId + InitiativeId) → institution.InitiativeRevision (Id + InitiativeId)</text>
+<rect x="466" y="1168" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="1188">institution.InitiativeStaffAppointment (InvitationId + InitiativeId + Role) → institution.InitiativeStaffInvitation (Id + InitiativeId + Role)</text>
+<rect x="466" y="1202" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1222">institution.InitiativeStaffAppointment (PersonId) → iam.Person (Id)</text>
+<rect x="466" y="1236" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1256">coach.GroupCoachAssignment (InitiativeAppointmentId) → institution.InitiativeStaffAppointment (Id)</text>
+<rect x="466" y="1270" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="1290">session.InitiativeSessionDuty (AppointmentId + InitiativeId) → institution.InitiativeStaffAppointment (Id + InitiativeId)</text>
+<rect x="466" y="1304" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1324">institution.InitiativeStaffInvitation (InvitedByPersonId) → iam.Person (Id)</text>
+<rect x="466" y="1338" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1358">commercial.EntitlementAllocation (InstitutionId) → institution.Institution (Id)</text>
+<rect x="466" y="1372" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1392">commercial.Subscription (InstitutionPayerId) → institution.Institution (Id)</text>
+<rect x="466" y="1406" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1426">institution.InstitutionVerificationCase (InstitutionId) → institution.Institution (Id)</text>
+<rect x="466" y="1440" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1460">institution.RepresentativeMembership (InstitutionId) → institution.Institution (Id)</text>
+<rect x="466" y="1474" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1494">session.Session (InstitutionId) → institution.Institution (Id)</text>
+<rect x="466" y="1508" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1528">institution.InstitutionVerificationCase (ApplicantPersonId) → iam.Person (Id)</text>
+<rect x="466" y="1542" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1562">institution.InstitutionVerificationCase (DecidedByPersonId) → iam.Person (Id)</text>
+<rect x="466" y="1576" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1596">institution.InstitutionVerificationCase (EvidenceFileId) → files.SecureFile (Id)</text>
+<rect x="466" y="1610" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1630">institution.RepresentativeMembership (GrantedByPersonId) → iam.Person (Id)</text>
+<rect x="466" y="1644" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="1664">institution.RepresentativeMembership (PersonId) → iam.Person (Id)</text>
+</svg>

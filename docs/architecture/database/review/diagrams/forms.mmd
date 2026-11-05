@@ -1,0 +1,66 @@
+erDiagram
+    files_SecureFile {
+        bigint Id PK
+    }
+    forms_Competition {
+        bigint Id PK
+    }
+    forms_CompetitionCriterion {
+        bigint Id PK
+    }
+    forms_CompetitionCriterionScore {
+        bigint Id PK
+    }
+    forms_CompetitionEntry {
+        bigint Id PK
+    }
+    forms_CompetitionJudgment {
+        bigint Id PK
+    }
+    forms_Form {
+        bigint Id PK
+    }
+    forms_FormAnswer {
+        bigint Id PK
+    }
+    forms_FormAnswerChoice {
+        bigint Id PK
+    }
+    forms_FormQuestion {
+        bigint Id PK
+    }
+    forms_FormQuestionOption {
+        bigint Id PK
+    }
+    forms_FormResponse {
+        bigint Id PK
+    }
+    forms_FormVersion {
+        bigint Id PK
+    }
+    iam_Person {
+        bigint Id PK
+    }
+    institution_Initiative {
+        bigint Id PK
+    }
+    institution_Initiative ||--o{ forms_Competition : "FK_Competition_Initiative_InitiativeId InitiativeId to Id"
+    forms_Competition ||--o{ forms_CompetitionCriterion : "FK_CompetitionCriterion_Competition_CompetitionId CompetitionId to Id"
+    forms_Competition ||--o{ forms_CompetitionEntry : "FK_CompetitionEntry_Competition_CompetitionId CompetitionId to Id"
+    forms_CompetitionCriterion ||--o{ forms_CompetitionCriterionScore : "FK_CompetitionCriterionScore_CompetitionCriterion_CriterionId_CompetitionId_RubricVersion CriterionId+CompetitionId+RubricVersion to Id+CompetitionId+RubricVersion"
+    forms_CompetitionJudgment ||--o{ forms_CompetitionCriterionScore : "FK_CompetitionCriterionScore_CompetitionJudgment_JudgmentId_CompetitionId_RubricVersion JudgmentId+CompetitionId+RubricVersion to Id+CompetitionId+RubricVersion"
+    iam_Person ||--o{ forms_CompetitionEntry : "FK_CompetitionEntry_Person_PersonId PersonId to Id"
+    files_SecureFile ||--o{ forms_CompetitionEntry : "FK_CompetitionEntry_SecureFile_FileId FileId to Id"
+    forms_CompetitionEntry ||--o{ forms_CompetitionJudgment : "FK_CompetitionJudgment_CompetitionEntry_EntryId_CompetitionId EntryId+CompetitionId to Id+CompetitionId"
+    iam_Person ||--o{ forms_CompetitionJudgment : "FK_CompetitionJudgment_Person_JudgePersonId JudgePersonId to Id"
+    institution_Initiative ||--o{ forms_Form : "FK_Form_Initiative_InitiativeId InitiativeId to Id"
+    forms_Form ||--o{ forms_FormVersion : "FK_FormVersion_Form_FormId FormId to Id"
+    forms_FormQuestion ||--o{ forms_FormAnswer : "FK_FormAnswer_FormQuestion_QuestionId_FormVersionId QuestionId+FormVersionId to Id+FormVersionId"
+    forms_FormResponse ||--o{ forms_FormAnswer : "FK_FormAnswer_FormResponse_ResponseId_FormVersionId ResponseId+FormVersionId to Id+FormVersionId"
+    files_SecureFile ||--o{ forms_FormAnswer : "FK_FormAnswer_SecureFile_FileId FileId to Id"
+    forms_FormAnswer ||--o{ forms_FormAnswerChoice : "FK_FormAnswerChoice_FormAnswer_AnswerId_QuestionId AnswerId+QuestionId to Id+QuestionId"
+    forms_FormQuestionOption ||--o{ forms_FormAnswerChoice : "FK_FormAnswerChoice_FormQuestionOption_OptionId_QuestionId OptionId+QuestionId to Id+QuestionId"
+    forms_FormVersion ||--o{ forms_FormQuestion : "FK_FormQuestion_FormVersion_FormVersionId FormVersionId to Id"
+    forms_FormQuestion ||--o{ forms_FormQuestionOption : "FK_FormQuestionOption_FormQuestion_QuestionId QuestionId to Id"
+    forms_FormVersion ||--o{ forms_FormResponse : "FK_FormResponse_FormVersion_FormVersionId FormVersionId to Id"
+    iam_Person ||--o{ forms_FormResponse : "FK_FormResponse_Person_PersonId PersonId to Id"

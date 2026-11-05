@@ -1,0 +1,34 @@
+{
+  "00-environment-readonly.sql": {
+    "size_bytes": 1282,
+    "sha256": "cdbcd0bc8e60ed06d4d9200d607fff4db6b6aba8c46980fe1df3052335879b54"
+  },
+  "01-create-isolated-validation-db.sql": {
+    "size_bytes": 646,
+    "sha256": "e26940557668d4fe04d6645574a89ee25c472e073154d854cd831cd85d3a85e0"
+  },
+  "02-schema-contract-readonly.sql": {
+    "size_bytes": 7400,
+    "sha256": "e34010e45a7cc074cdbb23be9bf752eee004fe9de1b4c08ed9224a694146275a"
+  },
+  "03-reproducible-canonical-dictionary-check.py": {
+    "size_bytes": 3279,
+    "sha256": "8443c95a1d82799c93bc775b6c3d5bef5e7b904ae35f810627f81183ffc87847"
+  },
+  "04-acceptance-matrix.md": {
+    "size_bytes": 7186,
+    "sha256": "eaa3053ff255f6e2f8946c000f0239293c6a3a3286851c97dc5517974519e9de"
+  },
+  "05-owner-decisions-handoff.md": {
+    "size_bytes": 6570,
+    "sha256": "cc51a4128de30e23917c2d963d58e50b8bb46166d1addd1d69fb3b24d002f8fb"
+  },
+  "README-AR.md": {
+    "size_bytes": 4732,
+    "sha256": "926796b588817eec7594d30aacd86e3546c8818b6da94aa301e1cee14e007aa7"
+  },
+  "static-canonical-current-results.csv": {
+    "size_bytes": 1321,
+    "sha256": "e9708b58d01cae6e01c42d15868763345bf33ddf37a846e1841b8e26405310b3"
+  }
+}

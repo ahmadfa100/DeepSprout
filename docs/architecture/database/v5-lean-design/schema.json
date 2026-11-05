@@ -1,0 +1,8398 @@
+{
+ "version": "v5-lean-1",
+ "generatedFrom": "generator/model.mjs + v4 schema.json (read-only)",
+ "tableCount": 58,
+ "stats": {
+  "tables": 58,
+  "modules": 18,
+  "columns": 759,
+  "foreignKeys": 147,
+  "uniqueConstraints": 92,
+  "filteredUnique": 39,
+  "checks": 105,
+  "jsonColumns": 38,
+  "rowVersionTables": 21,
+  "triggers": 0,
+  "storedProcedures": 0,
+  "mapping": {
+   "KEEP": 58,
+   "MERGE": 25,
+   "REMOVE": 4,
+   "DEFER": 9
+  },
+  "legacy": {
+   "total": 330,
+   "RETIRE": 171,
+   "RETAIN-AS-SCENARIO": 137,
+   "DEFER": 22
+  },
+  "wide": {
+   "v4": 9,
+   "v5": 6
+  }
+ },
+ "tables": [
+  {
+   "table": "iam.Person",
+   "module": "iam",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "DisplayName",
+     "type": "nvarchar(160)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "NormalizedEmail",
+     "type": "nvarchar(320)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EmailVerifiedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": "'Active'",
+     "note": ""
+    },
+    {
+     "name": "IndividualEnabledAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "PasswordHash",
+     "type": "nvarchar(400)",
+     "nullable": true,
+     "default": null,
+     "note": "Output of ASP.NET Core PasswordHasher. NULL for an invited student who has not set a password yet."
+    },
+    {
+     "name": "FailedLoginCount",
+     "type": "smallint",
+     "nullable": false,
+     "default": "0",
+     "note": "Consecutive failed sign-ins; reset on success."
+    },
+    {
+     "name": "LockedUntilUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": "Sign-in is refused until this time."
+    },
+    {
+     "name": "PlatformRole",
+     "type": "nvarchar(16)",
+     "nullable": true,
+     "default": null,
+     "note": "NULL for normal people. Admin / Moderator / ContentEditor for platform staff."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "NormalizedEmail"
+     ],
+     "filter": "NormalizedEmail IS NOT NULL"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_Person_Status",
+     "expression": "Status IN ('Active','Suspended','Closed')"
+    },
+    {
+     "name": "CK_Person_PlatformRole",
+     "expression": "PlatformRole IS NULL OR PlatformRole IN ('Admin','Moderator','ContentEditor')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "One identity for every person, in every workspace. Also holds the password hash and the platform-staff role.",
+   "absorbs": [
+    "iam.PasswordCredential",
+    "iam.GlobalGrant"
+   ],
+   "base": "iam.Person"
+  },
+  {
+   "table": "iam.OtpChallenge",
+   "module": "iam",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "NormalizedEmail",
+     "type": "nvarchar(320)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Purpose",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CodeHash",
+     "type": "varbinary(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AttemptCount",
+     "type": "smallint",
+     "nullable": false,
+     "default": "0",
+     "note": ""
+    },
+    {
+     "name": "ExpiresAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ConsumedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": "'Issued'",
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [],
+   "checks": [
+    {
+     "name": "CK_OtpChallenge_Purpose",
+     "expression": "Purpose IN ('SignUp','SignIn','Invitation','EmailChange','Recovery')"
+    },
+    {
+     "name": "CK_OtpChallenge_Status",
+     "expression": "Status IN ('Issued','Consumed','Expired','Locked')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "NormalizedEmail",
+      "Purpose"
+     ],
+     "filter": "Status = 'Issued'"
+    }
+   ],
+   "purpose": "Short-lived one-time codes for email verification, email change and password reset.",
+   "absorbs": [],
+   "base": "iam.OtpChallenge"
+  },
+  {
+   "table": "iam.ConsentRecord",
+   "module": "iam",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PurposeCode",
+     "type": "nvarchar(80)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "NoticeVersion",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Decision",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DecidedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PersonId",
+      "PurposeCode",
+      "DecidedAtUtc"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_ConsentRecord_Decision",
+     "expression": "Decision IN ('Accepted','Withdrawn')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "PersonId",
+      "PurposeCode",
+      "DecidedAtUtc"
+     ],
+     "filter": null
+    }
+   ],
+   "purpose": "What a person agreed to (privacy notice, Digital Shield telemetry), which text version, and when.",
+   "absorbs": [],
+   "base": "iam.ConsentRecord"
+  },
+  {
+   "table": "org.Organization",
+   "module": "org",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "Kind",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Name",
+     "type": "nvarchar(200)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": "'Applied'",
+     "note": ""
+    },
+    {
+     "name": "CountryCode",
+     "type": "char(2)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "HeadquartersCity",
+     "type": "nvarchar(120)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OfficialContactEmail",
+     "type": "nvarchar(320)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ProfileJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SettingsJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_Organization_Kind",
+     "expression": "Kind IN ('Institution','Provider')"
+    },
+    {
+     "name": "CK_Organization_Status",
+     "expression": "Status IN ('Applied','Verified','Suspended','Closed')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "An Institution or a Provider (Kind). Name, status, profile and settings.",
+   "absorbs": [],
+   "base": "org.Organization"
+  },
+  {
+   "table": "org.OrganizationMember",
+   "module": "org",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "OrganizationId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Active'",
+     "note": ""
+    },
+    {
+     "name": "GrantedByPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "GrantedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RevokedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RevokeReason",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "OrganizationId",
+     "references": "org.Organization"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "GrantedByPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "OrganizationId",
+      "PersonId"
+     ],
+     "filter": "Status = 'Active'"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_OrganizationMember_Status",
+     "expression": "Status IN ('Active','Revoked')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "Which people may act for an organization (representatives, provider members).",
+   "absorbs": [],
+   "base": "org.OrganizationMember"
+  },
+  {
+   "table": "org.VerificationCase",
+   "module": "org",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "Kind",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OrganizationId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ApplicantPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": "'Submitted'",
+     "note": ""
+    },
+    {
+     "name": "ClaimJson",
+     "type": "nvarchar(max)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EvidenceFileId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SubmittedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DecidedByPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DecidedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DecisionReason",
+     "type": "nvarchar(1000)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "MessagesJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": "The more-information thread between Admin and applicant (Client: Application.messages)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "OrganizationId",
+     "references": "org.Organization"
+    },
+    {
+     "column": "ApplicantPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "DecidedByPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "EvidenceFileId",
+     "references": "files.SecureFile"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "OrganizationId"
+     ],
+     "filter": "OrganizationId IS NOT NULL AND Status IN ('Submitted','MoreInfo')"
+    },
+    {
+     "columns": [
+      "ApplicantPersonId"
+     ],
+     "filter": "Kind = 'Coach' AND Status IN ('Submitted','MoreInfo','Approved','Suspended')"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_VerificationCase_Kind",
+     "expression": "Kind IN ('Institution','Provider','Coach')"
+    },
+    {
+     "name": "CK_VerificationCase_Status",
+     "expression": "Status IN ('Submitted','MoreInfo','Approved','Rejected','Suspended')"
+    },
+    {
+     "name": "CK_VerificationCase_Subject",
+     "expression": "(Kind = 'Coach' AND OrganizationId IS NULL) OR (Kind IN ('Institution','Provider') AND OrganizationId IS NOT NULL)"
+    }
+   ],
+   "indexes": [],
+   "purpose": "Admin review of a Coach, Institution or Provider application, including \"more information\" rounds.",
+   "absorbs": [],
+   "base": "org.VerificationCase"
+  },
+  {
+   "table": "org.StaffAppointment",
+   "module": "org",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "InitiativeId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ExperienceId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Role",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RequestedByPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "NormalizedEmail",
+     "type": "nvarchar(320)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "TokenHash",
+     "type": "varbinary(64)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ExpiresAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "InvitedByPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "InvitedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AcceptedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndReason",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CanManageCohorts",
+     "type": "bit",
+     "nullable": false,
+     "default": "0",
+     "note": "Provider supervisors only: may create and manage cohorts (Client: cohortPermission)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "InitiativeId",
+     "references": "institution.Initiative"
+    },
+    {
+     "column": "ExperienceId",
+     "references": "provider.Experience"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "RequestedByPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "InvitedByPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "InitiativeId",
+      "NormalizedEmail",
+      "Role"
+     ],
+     "filter": "InitiativeId IS NOT NULL AND Status = 'Pending'"
+    },
+    {
+     "columns": [
+      "ExperienceId",
+      "NormalizedEmail"
+     ],
+     "filter": "ExperienceId IS NOT NULL AND Status = 'Pending'"
+    },
+    {
+     "columns": [
+      "InitiativeId",
+      "PersonId",
+      "Role"
+     ],
+     "filter": "InitiativeId IS NOT NULL AND Status = 'Active'"
+    },
+    {
+     "columns": [
+      "ExperienceId",
+      "PersonId"
+     ],
+     "filter": "ExperienceId IS NOT NULL AND Status = 'Active'"
+    },
+    {
+     "columns": [
+      "TokenHash"
+     ],
+     "filter": "TokenHash IS NOT NULL"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_StaffAppointment_Scope",
+     "expression": "(InitiativeId IS NOT NULL AND ExperienceId IS NULL) OR (InitiativeId IS NULL AND ExperienceId IS NOT NULL)"
+    },
+    {
+     "name": "CK_StaffAppointment_Role",
+     "expression": "Role IN ('Supervisor','Coach') AND (ExperienceId IS NULL OR Role = 'Supervisor')"
+    },
+    {
+     "name": "CK_StaffAppointment_Status",
+     "expression": "Status IN ('Requested','Pending','Active','Declined','Expired','Cancelled','Revoked')"
+    },
+    {
+     "name": "CK_StaffAppointment_Invited",
+     "expression": "Status IN ('Requested','Cancelled') OR (NormalizedEmail IS NOT NULL AND TokenHash IS NOT NULL AND ExpiresAtUtc IS NOT NULL AND InvitedByPersonId IS NOT NULL AND InvitedAtUtc IS NOT NULL)"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "InitiativeId",
+      "Role"
+     ],
+     "filter": "Status = 'Active'"
+    }
+   ],
+   "purpose": "Invitation, acceptance and removal of supervisors and coaches for one initiative, or supervisors for one experience.",
+   "absorbs": [],
+   "base": "org.StaffAppointment"
+  },
+  {
+   "table": "personal.IndividualProfile",
+   "module": "personal",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OnboardingStage",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": "'Started'",
+     "note": ""
+    },
+    {
+     "name": "GoalCode",
+     "type": "nvarchar(64)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SetupAnswersJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SetupAnswersVersion",
+     "type": "int",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PreferencesJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PreferredTimeZone",
+     "type": "nvarchar(80)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "LastAssessmentAttemptId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "JourneyStartedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OnboardingCompletedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "ShieldSettingsJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": "Digital Shield reminder settings (replaces the v4 ShieldConfiguration + ShieldSelectedDomain tables)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "LastAssessmentAttemptId",
+     "references": "lab.AssessmentAttempt"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PersonId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_IndividualProfile_Stage",
+     "expression": "OnboardingStage IN ('Started','Introduced','Setup','Baselines','Results','Preview','Activated','TourDone')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "The personal (Individual) workspace: onboarding stage, goal, setup answers, preferences, Shield settings.",
+   "absorbs": [
+    "shield.ShieldConfiguration",
+    "shield.ShieldSelectedDomain"
+   ],
+   "base": "personal.IndividualProfile"
+  },
+  {
+   "table": "lab.InstrumentVersion",
+   "module": "lab",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "InstrumentCode",
+     "type": "nvarchar(32)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "VersionNo",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Title",
+     "type": "nvarchar(160)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ContentRef",
+     "type": "nvarchar(300)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ContentJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ProtocolVersion",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ScoringVersion",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ComparabilityGroup",
+     "type": "nvarchar(64)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "PublishedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [],
+   "unique": [
+    {
+     "columns": [
+      "InstrumentCode",
+      "VersionNo"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_InstrumentVersion_Instrument",
+     "expression": "InstrumentCode IN ('DigitalHabits','SustainedAttention','InhibitoryControl','DepthChallenge')"
+    },
+    {
+     "name": "CK_InstrumentVersion_Status",
+     "expression": "Status IN ('Draft','Published','Retired')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "The four assessments (Digital Habits, Sustained Attention, Inhibitory Control, Depth Challenge) with their scoring version.",
+   "absorbs": [],
+   "base": "lab.InstrumentVersion"
+  },
+  {
+   "table": "lab.AssessmentAttempt",
+   "module": "lab",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "InstrumentVersionId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "InstrumentCode",
+     "type": "nvarchar(32)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Kind",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Started'",
+     "note": ""
+    },
+    {
+     "name": "StartedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "LastSavedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "FinishedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ValidityCode",
+     "type": "nvarchar(40)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AccessibilityMode",
+     "type": "nvarchar(40)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "IsLate",
+     "type": "bit",
+     "nullable": false,
+     "default": "0",
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "WindowKey",
+     "type": "nvarchar(40)",
+     "nullable": true,
+     "default": null,
+     "note": "ISO week key (for example 2026-W45). Set only for Official attempts; the weekly window itself is derived from it."
+    },
+    {
+     "name": "ScoringVersion",
+     "type": "nvarchar(64)",
+     "nullable": true,
+     "default": null,
+     "note": "Scoring version used for the stored result."
+    },
+    {
+     "name": "PrimaryScore",
+     "type": "decimal(12,4)",
+     "nullable": true,
+     "default": null,
+     "note": "Headline score for lists and comparisons."
+    },
+    {
+     "name": "ScoresJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": "All metrics with a Comparable flag."
+    },
+    {
+     "name": "ResponsesJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": "Item/trial responses, saved incrementally for pause and resume."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "InstrumentVersionId",
+     "references": "lab.InstrumentVersion"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PersonId",
+      "InstrumentCode"
+     ],
+     "filter": "Kind = 'Baseline' AND Status = 'Valid'"
+    },
+    {
+     "columns": [
+      "PersonId",
+      "InstrumentCode",
+      "WindowKey"
+     ],
+     "filter": "Kind = 'Official' AND Status = 'Valid'"
+    },
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_AssessmentAttempt_Kind",
+     "expression": "Kind IN ('Baseline','Official','Practice')"
+    },
+    {
+     "name": "CK_AssessmentAttempt_Status",
+     "expression": "Status IN ('Started','Paused','Submitted','Valid','Invalid','Abandoned')"
+    },
+    {
+     "name": "CK_AssessmentAttempt_Window",
+     "expression": "(Kind = 'Official' AND WindowKey IS NOT NULL) OR (Kind <> 'Official' AND WindowKey IS NULL)"
+    }
+   ],
+   "indexes": [],
+   "purpose": "One attempt at an assessment: kind (Baseline / Official / Practice), progress, responses and score.",
+   "absorbs": [
+    "lab.AssessmentWindow",
+    "lab.AssessmentResponse",
+    "lab.AssessmentScore"
+   ],
+   "base": "lab.AssessmentAttempt"
+  },
+  {
+   "table": "recovery.RecoveryCycle",
+   "module": "recovery",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CycleNo",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Kind",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Standard'",
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "PolicyVersion",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "TimeZoneId",
+     "type": "nvarchar(80)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "StartLocalDate",
+     "type": "date",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndLocalDate",
+     "type": "date",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ActivatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ReviewedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "NextStepCode",
+     "type": "nvarchar(24)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "PersonId",
+      "CycleNo"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "PersonId"
+     ],
+     "filter": "Status IN ('Draft','Preview','Active','ReviewDue','Paused')"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_RecoveryCycle_Kind",
+     "expression": "Kind IN ('Standard','Maintenance')"
+    },
+    {
+     "name": "CK_RecoveryCycle_Status",
+     "expression": "Status IN ('Draft','Preview','Active','ReviewDue','Paused','Ended','Reviewed','Cancelled')"
+    },
+    {
+     "name": "CK_RecoveryCycle_Activated",
+     "expression": "Status IN ('Draft','Preview','Cancelled') OR ActivatedAtUtc IS NOT NULL"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A recovery cycle (about 28 days): Preview → Active → Review → Ended.",
+   "absorbs": [],
+   "base": "recovery.RecoveryCycle"
+  },
+  {
+   "table": "recovery.PlanRevision",
+   "module": "recovery",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "CycleId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RevisionNo",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ChangeKind",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "GoalCode",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PolicyVersion",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EffectiveFromLocalDate",
+     "type": "date",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Reason",
+     "type": "nvarchar(500)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PlanJson",
+     "type": "nvarchar(max)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "AcceptedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "CycleId",
+     "references": "recovery.RecoveryCycle"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "CycleId",
+      "RevisionNo"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "CycleId"
+     ],
+     "filter": "Status = 'Accepted'"
+    },
+    {
+     "columns": [
+      "CycleId"
+     ],
+     "filter": "Status = 'Draft'"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_PlanRevision_ChangeKind",
+     "expression": "ChangeKind IN ('Initial','Preference','Schedule','Load','Goal','WeeklyReview','Return')"
+    },
+    {
+     "name": "CK_PlanRevision_Status",
+     "expression": "Status IN ('Draft','Accepted','Superseded')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "The accepted plan and each adjustment of it (Draft → Accepted → Superseded).",
+   "absorbs": [],
+   "base": "recovery.PlanRevision"
+  },
+  {
+   "table": "recovery.ScheduledAction",
+   "module": "recovery",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "CycleId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PlanRevisionId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ActionKind",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PracticeVersionId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RoutineId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "LocalDate",
+     "type": "date",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "IsOptional",
+     "type": "bit",
+     "nullable": false,
+     "default": "0",
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Due'",
+     "note": ""
+    },
+    {
+     "name": "CompletedAttemptId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RescheduledToActionId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "CycleId",
+     "references": "recovery.RecoveryCycle"
+    },
+    {
+     "column": "PlanRevisionId",
+     "references": "recovery.PlanRevision"
+    },
+    {
+     "column": "PracticeVersionId",
+     "references": "activity.PracticeVersion"
+    },
+    {
+     "column": "RoutineId",
+     "references": "activity.OfflineRoutine"
+    },
+    {
+     "column": "CompletedAttemptId",
+     "references": "activity.PracticeAttempt"
+    },
+    {
+     "column": "RescheduledToActionId",
+     "references": "recovery.ScheduledAction"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "CompletedAttemptId"
+     ],
+     "filter": "CompletedAttemptId IS NOT NULL"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_ScheduledAction_Kind",
+     "expression": "ActionKind IN ('Practice','Routine','WeeklyReview','Protection')"
+    },
+    {
+     "name": "CK_ScheduledAction_Status",
+     "expression": "Status IN ('Due','Completed','Missed','Rescheduled','Cancelled','Excluded')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "PersonId",
+      "LocalDate"
+     ],
+     "filter": null
+    }
+   ],
+   "purpose": "A dated, measurable action of the plan (a practice or an offline routine) and whether it was done.",
+   "absorbs": [],
+   "base": "recovery.ScheduledAction"
+  },
+  {
+   "table": "recovery.WeeklyReview",
+   "module": "recovery",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "CycleId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "WeekNo",
+     "type": "tinyint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ResultingRevisionId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ManageabilityCode",
+     "type": "nvarchar(40)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "FitCode",
+     "type": "nvarchar(40)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ReportedPhoneMinutesPerDay",
+     "type": "smallint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DecisionCode",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ReviewedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "CycleId",
+     "references": "recovery.RecoveryCycle"
+    },
+    {
+     "column": "ResultingRevisionId",
+     "references": "recovery.PlanRevision"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "CycleId",
+      "WeekNo"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_WeeklyReview_Decision",
+     "expression": "DecisionCode IN ('AcceptNext','KeepPace','Adjust','AutoContinued')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "The weekly review decision (and the self-reported phone minutes).",
+   "absorbs": [],
+   "base": "recovery.WeeklyReview"
+  },
+  {
+   "table": "activity.PracticeDefinition",
+   "module": "activity",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "Code",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PracticeType",
+     "type": "nvarchar(32)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Title",
+     "type": "nvarchar(160)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [],
+   "unique": [
+    {
+     "columns": [
+      "Code"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_PracticeDefinition_Type",
+     "expression": "PracticeType IN ('DepthPractice','ListeningRecall','PracticalMicroChallenge','ProtectedWork')"
+    },
+    {
+     "name": "CK_PracticeDefinition_Status",
+     "expression": "Status IN ('Draft','Published','Deprecated','Retired')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "The catalog of practices (code, type, title, status). Content lives in PracticeVersion.",
+   "absorbs": [],
+   "base": "activity.PracticeDefinition"
+  },
+  {
+   "table": "activity.PracticeVersion",
+   "module": "activity",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "DefinitionId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "VersionNo",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ContentRef",
+     "type": "nvarchar(300)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ContentJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DifficultyTier",
+     "type": "smallint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EstimatedMinutes",
+     "type": "smallint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EvidenceTier",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ValidationVersion",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RulesJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PublishedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "DefinitionId",
+     "references": "activity.PracticeDefinition"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "DefinitionId",
+      "VersionNo"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_PracticeVersion_Evidence",
+     "expression": "EvidenceTier IN ('SystemScored','BrowserObserved','SelfReported','Reviewed')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "Immutable content of one version of a practice. Plans, attempts and assignments point at the version they used, so the original content can always be re-opened (audit B1; provisional owner assumption restored in the submission).",
+   "absorbs": [],
+   "base": "activity.PracticeVersion"
+  },
+  {
+   "table": "activity.PracticeAttempt",
+   "module": "activity",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PracticeVersionId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Source",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ScheduledActionId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Started'",
+     "note": ""
+    },
+    {
+     "name": "Valid",
+     "type": "bit",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OutcomeCode",
+     "type": "nvarchar(40)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ScoreValue",
+     "type": "decimal(9,4)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "StartedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "Title",
+     "type": "nvarchar(160)",
+     "nullable": true,
+     "default": null,
+     "note": "Practice title at the time, so History keeps showing what was done after a catalog edit."
+    },
+    {
+     "name": "ResultingTier",
+     "type": "smallint",
+     "nullable": true,
+     "default": null,
+     "note": "The person's tier for this practice type after this attempt (set when the attempt completes)."
+    },
+    {
+     "name": "ProgressionOutcome",
+     "type": "nvarchar(12)",
+     "nullable": true,
+     "default": null,
+     "note": "Advanced / Stayed / Regressed. Level-up and level-down history is read from these two columns."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "PracticeVersionId",
+     "references": "activity.PracticeVersion"
+    },
+    {
+     "column": "ScheduledActionId",
+     "references": "recovery.ScheduledAction"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_PracticeAttempt_Source",
+     "expression": "Source IN ('Plan','OnDemand','Assignment')"
+    },
+    {
+     "name": "CK_PracticeAttempt_Status",
+     "expression": "Status IN ('Started','Paused','Submitted','Completed','Invalid','Cancelled')"
+    },
+    {
+     "name": "CK_PracticeAttempt_Progression",
+     "expression": "ProgressionOutcome IS NULL OR ProgressionOutcome IN ('Advanced','Stayed','Regressed')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "PersonId",
+      "StartedAtUtc"
+     ],
+     "filter": null
+    }
+   ],
+   "purpose": "One run of a practice, with its outcome, score and the resulting tier change.",
+   "absorbs": [
+    "activity.PracticeProgressionDecision"
+   ],
+   "base": "activity.PracticeAttempt"
+  },
+  {
+   "table": "activity.OfflineRoutine",
+   "module": "activity",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Title",
+     "type": "nvarchar(160)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Hint",
+     "type": "nvarchar(300)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ScheduleRuleJson",
+     "type": "nvarchar(400)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "IsInitialCommitment",
+     "type": "bit",
+     "nullable": false,
+     "default": "0",
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Active'",
+     "note": ""
+    },
+    {
+     "name": "ArchivedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [],
+   "checks": [
+    {
+     "name": "CK_OfflineRoutine_Status",
+     "expression": "Status IN ('Active','Paused','Archived')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A routine the person wants to keep away from the screen.",
+   "absorbs": [],
+   "base": "activity.OfflineRoutine"
+  },
+  {
+   "table": "activity.RoutineCheckIn",
+   "module": "activity",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "RoutineId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "LocalDate",
+     "type": "date",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "State",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RecordedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "RoutineId",
+     "references": "activity.OfflineRoutine"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "RoutineId",
+      "LocalDate"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_RoutineCheckIn_State",
+     "expression": "State IN ('Done','Skipped')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "Done / Skipped for a routine on one local date.",
+   "absorbs": [],
+   "base": "activity.RoutineCheckIn"
+  },
+  {
+   "table": "shield.ExtensionInstallation",
+   "module": "shield",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "InstallationPublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "BrowserCode",
+     "type": "nvarchar(40)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ExtensionVersion",
+     "type": "nvarchar(40)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SyncKeyHash",
+     "type": "varbinary(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Connected'",
+     "note": ""
+    },
+    {
+     "name": "PairedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "LastSeenAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RevokedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "InstallationPublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_ExtensionInstallation_Status",
+     "expression": "Status IN ('Connected','Disconnected','Revoked')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A browser extension explicitly paired to a person.",
+   "absorbs": [],
+   "base": "shield.ExtensionInstallation"
+  },
+  {
+   "table": "shield.ProtectionSession",
+   "module": "shield",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "InstallationId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DomainCodesJson",
+     "type": "nvarchar(1000)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "LockMode",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Standard'",
+     "note": ""
+    },
+    {
+     "name": "StartedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndsAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Requested'",
+     "note": ""
+    },
+    {
+     "name": "FailureCode",
+     "type": "nvarchar(40)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "InstallationId",
+     "references": "shield.ExtensionInstallation"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "InstallationId"
+     ],
+     "filter": "Status IN ('Requested','Active')"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_ProtectionSession_Status",
+     "expression": "Status IN ('Requested','Active','Expired','Failed','Disconnected','Cancelled')"
+    },
+    {
+     "name": "CK_ProtectionSession_LockMode",
+     "expression": "LockMode IN ('Standard','Locked')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A timed website-protection session.",
+   "absorbs": [],
+   "base": "shield.ProtectionSession"
+  },
+  {
+   "table": "shield.BrowserUsagePeriod",
+   "module": "shield",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "InstallationId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "LocalDate",
+     "type": "date",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "TimeZoneId",
+     "type": "nvarchar(80)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ObservedSeconds",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CoverageSeconds",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SequenceNo",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ReceivedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "DomainsJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": "Seconds per supported site family for this batch (replaces the v4 BrowserUsageDomain table)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "InstallationId",
+     "references": "shield.ExtensionInstallation"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "InstallationId",
+      "SequenceNo"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_BrowserUsagePeriod_Seconds",
+     "expression": "ObservedSeconds >= 0 AND CoverageSeconds >= 0 AND ObservedSeconds <= 86400 AND CoverageSeconds <= 86400"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "PersonId",
+      "LocalDate"
+     ],
+     "filter": null
+    }
+   ],
+   "purpose": "One batch of browser-usage facts from the extension for one local day, with per-site-family seconds.",
+   "absorbs": [
+    "shield.BrowserUsageDomain"
+   ],
+   "base": "shield.BrowserUsagePeriod"
+  },
+  {
+   "table": "institution.Initiative",
+   "module": "institution",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "InstitutionId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "CurrentRevisionId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DraftJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DraftLastSavedStage",
+     "type": "tinyint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DraftUpdatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "FirstPublishedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CompletedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CancelledAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CancellationReason",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "InstitutionId",
+     "references": "org.Organization"
+    },
+    {
+     "column": "CurrentRevisionId",
+     "references": "institution.InitiativeRevision"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_Initiative_Status",
+     "expression": "Status IN ('Draft','Published','RegistrationClosed','Suspended','Completed','Cancelled','Archived')"
+    },
+    {
+     "name": "CK_Initiative_Published",
+     "expression": "Status IN ('Draft','Cancelled','Archived') OR CurrentRevisionId IS NOT NULL"
+    }
+   ],
+   "indexes": [],
+   "purpose": "The initiative itself: owner organization, lifecycle status, current revision pointer, Builder draft and cancellation.",
+   "absorbs": [],
+   "base": "institution.Initiative"
+  },
+  {
+   "table": "institution.InitiativeRevision",
+   "module": "institution",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "InitiativeId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RevisionNo",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ChangeKind",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ChangeReason",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Title",
+     "type": "nvarchar(200)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Summary",
+     "type": "nvarchar(1200)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "TopicCode",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OperatingMode",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ParticipationMode",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AudienceCode",
+     "type": "nvarchar(80)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CoverageCode",
+     "type": "nvarchar(120)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Capacity",
+     "type": "smallint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "WaitlistEnabled",
+     "type": "bit",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OfferHoldHours",
+     "type": "smallint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ApplicationOpensAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ApplicationClosesAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "TimeZoneId",
+     "type": "nvarchar(80)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "StartsAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndsAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CostKind",
+     "type": "nvarchar(8)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Price",
+     "type": "decimal(19,4)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Currency",
+     "type": "char(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ConsentNoticeVersion",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CompletionPolicyRef",
+     "type": "nvarchar(120)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RegistrationFormVersionId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PublishedSnapshotJson",
+     "type": "nvarchar(max)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PublishedByPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PublishedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "InitiativeId",
+     "references": "institution.Initiative"
+    },
+    {
+     "column": "RegistrationFormVersionId",
+     "references": "forms.FormVersion"
+    },
+    {
+     "column": "PublishedByPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "InitiativeId",
+      "RevisionNo"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_InitiativeRevision_ChangeKind",
+     "expression": "ChangeKind IN ('Publish','Reschedule','TermsUpdate')"
+    },
+    {
+     "name": "CK_InitiativeRevision_OperatingMode",
+     "expression": "OperatingMode IN ('Awareness','Structured')"
+    },
+    {
+     "name": "CK_InitiativeRevision_ParticipationMode",
+     "expression": "ParticipationMode IN ('Online','InPerson','Hybrid')"
+    },
+    {
+     "name": "CK_InitiativeRevision_Capacity",
+     "expression": "Capacity BETWEEN 1 AND 135"
+    }
+   ],
+   "indexes": [],
+   "purpose": "Immutable published terms of an initiative (capacity, dates, cost, audience, form). An edit with a reason creates a new row; applications point at the revision they applied on.",
+   "absorbs": [],
+   "base": "institution.InitiativeRevision"
+  },
+  {
+   "table": "institution.InitiativeApplication",
+   "module": "institution",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "InitiativeId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AttemptNo",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "TermsRevisionId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RegistrationResponseId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ParticipationMode",
+     "type": "nvarchar(16)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Pending'",
+     "note": ""
+    },
+    {
+     "name": "SubmittedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ConsentAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "QueuedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OfferedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OfferExpiresAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OfferRespondedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AcceptedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "WithdrawalCutoffAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndReason",
+     "type": "nvarchar(32)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "InitiativeId",
+     "references": "institution.Initiative"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "TermsRevisionId",
+     "references": "institution.InitiativeRevision"
+    },
+    {
+     "column": "RegistrationResponseId",
+     "references": "forms.FormResponse"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "InitiativeId",
+      "PersonId",
+      "AttemptNo"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "InitiativeId",
+      "PersonId"
+     ],
+     "filter": "Status IN ('Pending','Queued','Offered','Accepted','Suspended','Blocked')"
+    },
+    {
+     "columns": [
+      "PersonId"
+     ],
+     "filter": "Status IN ('Accepted','Suspended')"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_InitiativeApplication_Status",
+     "expression": "Status IN ('Pending','Queued','Offered','Accepted','Suspended','Rejected','Withdrawn','OfferDeclined','OfferExpired','Removed','Completed','Cancelled','Blocked','BlockLifted')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "InitiativeId"
+     ],
+     "filter": "Status IN ('Offered','Accepted','Suspended')"
+    },
+    {
+     "columns": [
+      "InitiativeId",
+      "QueuedAtUtc"
+     ],
+     "filter": "Status = 'Queued'"
+    }
+   ],
+   "purpose": "A person's application to an initiative, its waiting-list offer and its membership, in one row with a status.",
+   "absorbs": [],
+   "base": "institution.InitiativeApplication"
+  },
+  {
+   "table": "coach.CoachProgram",
+   "module": "coach",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "OwnerPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "DraftJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DraftUpdatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SuspendedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Title",
+     "type": "nvarchar(200)",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 ProgramRevision"
+    },
+    {
+     "name": "PublishedJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": "The published program: objective, eligibility, dates, stages, due policy, completion rule, consent notice."
+    },
+    {
+     "name": "PublishedVersionNo",
+     "type": "int",
+     "nullable": true,
+     "default": null,
+     "note": "Incremented on each publish."
+    },
+    {
+     "name": "PublishedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": "Last publish time."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "OwnerPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_CoachProgram_Status",
+     "expression": "Status IN ('Draft','Published','Paused','Suspended','Completed','Archived')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "An independent coach program: owner, status, title, draft and the current published content.",
+   "absorbs": [
+    "coach.ProgramRevision"
+   ],
+   "base": "coach.CoachProgram"
+  },
+  {
+   "table": "coach.OperationalGroup",
+   "module": "coach",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "InitiativeId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ProgramId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Name",
+     "type": "nvarchar(160)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Open'",
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CoachPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": "Current coach of the group."
+    },
+    {
+     "name": "CoachStaffAppointmentId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": "For initiative groups: the coach's active appointment."
+    },
+    {
+     "name": "CoachAssignedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": "When the current coach took over."
+    },
+    {
+     "name": "Purpose",
+     "type": "nvarchar(300)",
+     "nullable": true,
+     "default": null,
+     "note": "Why the group exists (required by the Program group form)."
+    },
+    {
+     "name": "Description",
+     "type": "nvarchar(1000)",
+     "nullable": true,
+     "default": null,
+     "note": null
+    },
+    {
+     "name": "Capacity",
+     "type": "smallint",
+     "nullable": true,
+     "default": null,
+     "note": "Maximum active members (checked in C# when someone joins or is placed)."
+    },
+    {
+     "name": "RequiresApproval",
+     "type": "bit",
+     "nullable": false,
+     "default": "0",
+     "note": "Program groups: a student who accepts an invitation waits for the coach to approve (membership status Pending)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "InitiativeId",
+     "references": "institution.Initiative"
+    },
+    {
+     "column": "ProgramId",
+     "references": "coach.CoachProgram"
+    },
+    {
+     "column": "CoachPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "CoachStaffAppointmentId",
+     "references": "org.StaffAppointment"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_OperationalGroup_Parent",
+     "expression": "(InitiativeId IS NOT NULL AND ProgramId IS NULL) OR (InitiativeId IS NULL AND ProgramId IS NOT NULL)"
+    },
+    {
+     "name": "CK_OperationalGroup_Status",
+     "expression": "Status IN ('Open','Closed','Archived')"
+    },
+    {
+     "name": "CK_OperationalGroup_Capacity",
+     "expression": "Capacity IS NULL OR (Capacity > 0 AND Capacity <= 500)"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A group under one initiative or one program, with its current coach.",
+   "absorbs": [
+    "coach.GroupCoachAssignment"
+   ],
+   "base": "coach.OperationalGroup"
+  },
+  {
+   "table": "coach.GroupMembership",
+   "module": "coach",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "GroupId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ApplicationId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "NormalizedEmail",
+     "type": "nvarchar(320)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "TokenHash",
+     "type": "varbinary(64)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "InviteExpiresAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "InvitedByPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "StartedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndReason",
+     "type": "nvarchar(24)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "GroupId",
+     "references": "coach.OperationalGroup"
+    },
+    {
+     "column": "ApplicationId",
+     "references": "institution.InitiativeApplication"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "InvitedByPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "GroupId",
+      "PersonId"
+     ],
+     "filter": "Status IN ('Pending','Active')"
+    },
+    {
+     "columns": [
+      "ApplicationId"
+     ],
+     "filter": "ApplicationId IS NOT NULL AND Status = 'Active'"
+    },
+    {
+     "columns": [
+      "GroupId",
+      "NormalizedEmail"
+     ],
+     "filter": "Status = 'Invited'"
+    },
+    {
+     "columns": [
+      "TokenHash"
+     ],
+     "filter": "TokenHash IS NOT NULL"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_GroupMembership_Status",
+     "expression": "Status IN ('Invited','Pending','Active','Ended','Declined','Expired','Revoked')"
+    },
+    {
+     "name": "CK_GroupMembership_Identity",
+     "expression": "(Status = 'Invited' AND PersonId IS NULL AND NormalizedEmail IS NOT NULL AND TokenHash IS NOT NULL) OR (Status IN ('Declined','Expired','Revoked') AND (PersonId IS NOT NULL OR (NormalizedEmail IS NOT NULL AND TokenHash IS NOT NULL))) OR (Status IN ('Pending','Active','Ended') AND PersonId IS NOT NULL)"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "PersonId"
+     ],
+     "filter": "Status = 'Active'"
+    }
+   ],
+   "purpose": "Invitation to, membership in, and placement in a group (program invitation by email, or initiative placement by application).",
+   "absorbs": [],
+   "base": "coach.GroupMembership"
+  },
+  {
+   "table": "task.Assignment",
+   "module": "task",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "GroupId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AuthorPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "CancelledAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CancelReason",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Title",
+     "type": "nvarchar(200)",
+     "nullable": false,
+     "default": null,
+     "note": "from v4 AssignmentRevision"
+    },
+    {
+     "name": "PracticeVersionId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 AssignmentRevision"
+    },
+    {
+     "name": "Instructions",
+     "type": "nvarchar(max)",
+     "nullable": false,
+     "default": null,
+     "note": "from v4 AssignmentRevision"
+    },
+    {
+     "name": "ReviewMode",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": "from v4 AssignmentRevision"
+    },
+    {
+     "name": "IsRequired",
+     "type": "bit",
+     "nullable": false,
+     "default": null,
+     "note": "from v4 AssignmentRevision"
+    },
+    {
+     "name": "StartsAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 AssignmentRevision"
+    },
+    {
+     "name": "DueAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 AssignmentRevision"
+    },
+    {
+     "name": "AllowLate",
+     "type": "bit",
+     "nullable": false,
+     "default": "0",
+     "note": "from v4 AssignmentRevision"
+    },
+    {
+     "name": "RevisionNo",
+     "type": "int",
+     "nullable": false,
+     "default": "1",
+     "note": "Incremented when the coach edits or reschedules."
+    },
+    {
+     "name": "HistoryJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": "Earlier versions: title, instructions, due date, reason, time. Recipients keep the version they were assigned."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PracticeVersionId",
+     "references": "activity.PracticeVersion"
+    },
+    {
+     "column": "GroupId",
+     "references": "coach.OperationalGroup"
+    },
+    {
+     "column": "AuthorPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_Assignment_Status",
+     "expression": "Status IN ('Draft','Published','Cancelled','Closed')"
+    },
+    {
+     "name": "CK_Assignment_ReviewMode",
+     "expression": "ReviewMode IN ('SystemRule','CoachReview')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A task a coach gives to a group, with its current text and due date.",
+   "absorbs": [
+    "task.AssignmentRevision"
+   ],
+   "base": "task.Assignment"
+  },
+  {
+   "table": "task.AssignmentRecipient",
+   "module": "task",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "AssignmentId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Assigned'",
+     "note": ""
+    },
+    {
+     "name": "LastAttemptNo",
+     "type": "int",
+     "nullable": false,
+     "default": "0",
+     "note": ""
+    },
+    {
+     "name": "AssignedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "AssignedRevisionNo",
+     "type": "int",
+     "nullable": false,
+     "default": "1",
+     "note": "Assignment.RevisionNo this student was given."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "AssignmentId",
+     "references": "task.Assignment"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "AssignmentId",
+      "PersonId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_AssignmentRecipient_Status",
+     "expression": "Status IN ('Assigned','InProgress','Submitted','NeedsRevision','Approved','Rejected','Cancelled','Expired')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "PersonId",
+      "Status"
+     ],
+     "filter": null
+    }
+   ],
+   "purpose": "One student's copy of an assignment and its progress state.",
+   "absorbs": [],
+   "base": "task.AssignmentRecipient"
+  },
+  {
+   "table": "task.SubmissionAttempt",
+   "module": "task",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "RecipientId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AttemptNo",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Body",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "FileId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PracticeAttemptId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SubmittedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "RecipientId",
+     "references": "task.AssignmentRecipient"
+    },
+    {
+     "column": "PracticeAttemptId",
+     "references": "activity.PracticeAttempt"
+    },
+    {
+     "column": "FileId",
+     "references": "files.SecureFile"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "RecipientId",
+      "AttemptNo"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "PracticeAttemptId"
+     ],
+     "filter": "PracticeAttemptId IS NOT NULL"
+    }
+   ],
+   "checks": [],
+   "indexes": [],
+   "purpose": "Each submission and resubmission by a student (text, file or linked practice).",
+   "absorbs": [],
+   "base": "task.SubmissionAttempt"
+  },
+  {
+   "table": "task.ReviewDecision",
+   "module": "task",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "AttemptId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SupersedesId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ReviewerPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Decision",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Feedback",
+     "type": "nvarchar(2000)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DecidedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "PrivateNote",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 ReviewPrivateNote"
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "AttemptId",
+     "references": "task.SubmissionAttempt"
+    },
+    {
+     "column": "SupersedesId",
+     "references": "task.ReviewDecision"
+    },
+    {
+     "column": "ReviewerPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "SupersedesId"
+     ],
+     "filter": "SupersedesId IS NOT NULL"
+    },
+    {
+     "columns": [
+      "AttemptId"
+     ],
+     "filter": "SupersedesId IS NULL"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_ReviewDecision_Decision",
+     "expression": "Decision IN ('Approved','NeedsRevision','Rejected')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A coach's decision on a submission (Approved / NeedsRevision / Rejected) with feedback and an internal note. A correction is a new row that supersedes the old one.",
+   "absorbs": [
+    "task.ReviewPrivateNote"
+   ],
+   "base": "task.ReviewDecision"
+  },
+  {
+   "table": "task.OperationalReport",
+   "module": "task",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "Kind",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "GroupId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "InitiativeId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ExperienceId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AuthorPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PeriodStartDate",
+     "type": "date",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PeriodEndDate",
+     "type": "date",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "MetricsSnapshotJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SubmittedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "IncludedInReportId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ReviewedByPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ReviewedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "BodyJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": "Narrative sections of the report."
+    },
+    {
+     "name": "ReviewJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": "Reviewer note and correction."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "GroupId",
+     "references": "coach.OperationalGroup"
+    },
+    {
+     "column": "InitiativeId",
+     "references": "institution.Initiative"
+    },
+    {
+     "column": "ExperienceId",
+     "references": "provider.Experience"
+    },
+    {
+     "column": "IncludedInReportId",
+     "references": "task.OperationalReport"
+    },
+    {
+     "column": "AuthorPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "ReviewedByPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_OperationalReport_Kind",
+     "expression": "Kind IN ('Coach','InitiativeSupervisor','ProviderSupervisor')"
+    },
+    {
+     "name": "CK_OperationalReport_Scope",
+     "expression": "(Kind = 'Coach' AND GroupId IS NOT NULL AND ExperienceId IS NULL) OR (Kind = 'InitiativeSupervisor' AND InitiativeId IS NOT NULL AND GroupId IS NULL AND ExperienceId IS NULL) OR (Kind = 'ProviderSupervisor' AND ExperienceId IS NOT NULL AND GroupId IS NULL AND InitiativeId IS NULL)"
+    },
+    {
+     "name": "CK_OperationalReport_Status",
+     "expression": "Status IN ('Draft','Submitted')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "InitiativeId",
+      "Kind",
+      "PeriodEndDate"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "ExperienceId",
+      "PeriodEndDate"
+     ],
+     "filter": "ExperienceId IS NOT NULL"
+    }
+   ],
+   "purpose": "Coach, initiative-supervisor and provider-supervisor reports; coach reports are reviewed and included in a supervisor report.",
+   "absorbs": [],
+   "base": "task.OperationalReport"
+  },
+  {
+   "table": "session.Session",
+   "module": "session",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "InitiativeId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ExperienceId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Purpose",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Session'",
+     "note": ""
+    },
+    {
+     "name": "Title",
+     "type": "nvarchar(200)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Mode",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "TimeZoneId",
+     "type": "nvarchar(80)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "StartsAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndsAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AttendanceRequired",
+     "type": "bit",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OnlineCapacity",
+     "type": "int",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "InPersonCapacity",
+     "type": "int",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "MeetingAudience",
+     "type": "nvarchar(16)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "MeetingAudiencePersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CancelledAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CancelReason",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Venue",
+     "type": "nvarchar(300)",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 SessionRevision"
+    },
+    {
+     "name": "ProtectedLinkRef",
+     "type": "nvarchar(300)",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 SessionRevision"
+    },
+    {
+     "name": "CheckInBeforeMinutes",
+     "type": "smallint",
+     "nullable": false,
+     "default": null,
+     "note": "from v4 SessionRevision"
+    },
+    {
+     "name": "CheckInAfterMinutes",
+     "type": "smallint",
+     "nullable": false,
+     "default": null,
+     "note": "from v4 SessionRevision"
+    },
+    {
+     "name": "CompletionRuleRef",
+     "type": "nvarchar(120)",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 SessionRevision"
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "InitiativeId",
+     "references": "institution.Initiative"
+    },
+    {
+     "column": "ExperienceId",
+     "references": "provider.Experience"
+    },
+    {
+     "column": "MeetingAudiencePersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_Session_Owner",
+     "expression": "(InitiativeId IS NOT NULL AND ExperienceId IS NULL) OR (InitiativeId IS NULL AND ExperienceId IS NOT NULL)"
+    },
+    {
+     "name": "CK_Session_Purpose",
+     "expression": "Purpose IN ('Session','Meeting')"
+    },
+    {
+     "name": "CK_Session_Mode",
+     "expression": "Mode IN ('Online','InPerson','Hybrid')"
+    },
+    {
+     "name": "CK_Session_Status",
+     "expression": "Status IN ('Draft','Published','Cancelled','Completed')"
+    },
+    {
+     "name": "CK_Session_Capacity",
+     "expression": "(OnlineCapacity IS NULL OR OnlineCapacity > 0) AND (InPersonCapacity IS NULL OR InPersonCapacity > 0)"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "InitiativeId",
+      "StartsAtUtc"
+     ],
+     "filter": "InitiativeId IS NOT NULL"
+    },
+    {
+     "columns": [
+      "ExperienceId",
+      "StartsAtUtc"
+     ],
+     "filter": "ExperienceId IS NOT NULL"
+    }
+   ],
+   "purpose": "A session (or meeting) of an initiative or an experience, with time, mode, capacity per mode, venue and check-in window.",
+   "absorbs": [
+    "session.SessionRevision"
+   ],
+   "base": "session.Session"
+  },
+  {
+   "table": "session.SessionDuty",
+   "module": "session",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "SessionId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "StaffAppointmentId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Active'",
+     "note": ""
+    },
+    {
+     "name": "AssignedByPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AssignedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RevokedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "SessionId",
+     "references": "session.Session"
+    },
+    {
+     "column": "StaffAppointmentId",
+     "references": "org.StaffAppointment"
+    },
+    {
+     "column": "AssignedByPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "SessionId",
+      "StaffAppointmentId"
+     ],
+     "filter": "Status = 'Active'"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_SessionDuty_Status",
+     "expression": "Status IN ('Active','Revoked')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "Which supervisors are responsible for a session.",
+   "absorbs": [],
+   "base": "session.SessionDuty"
+  },
+  {
+   "table": "session.SessionRegistration",
+   "module": "session",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "SessionId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Mode",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Pending'",
+     "note": ""
+    },
+    {
+     "name": "RegistrationResponseId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CredentialHash",
+     "type": "varbinary(32)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RegisteredAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CancelledAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "SessionId",
+     "references": "session.Session"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "RegistrationResponseId",
+     "references": "forms.FormResponse"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "SessionId",
+      "PersonId"
+     ],
+     "filter": "Status IN ('Pending','Confirmed')"
+    },
+    {
+     "columns": [
+      "CredentialHash"
+     ],
+     "filter": "CredentialHash IS NOT NULL"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_SessionRegistration_Mode",
+     "expression": "Mode IN ('Online','InPerson')"
+    },
+    {
+     "name": "CK_SessionRegistration_Status",
+     "expression": "Status IN ('Pending','Confirmed','Cancelled')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "SessionId",
+      "Mode"
+     ],
+     "filter": "Status IN ('Pending','Confirmed')"
+    }
+   ],
+   "purpose": "A member's registration to a session and the mode (online or on-site).",
+   "absorbs": [],
+   "base": "session.SessionRegistration"
+  },
+  {
+   "table": "session.Attendance",
+   "module": "session",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "SessionId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RegistrationId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "BookingId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Method",
+     "type": "nvarchar(24)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "MethodReason",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RecordedByPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RecordedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OutcomeCode",
+     "type": "nvarchar(16)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OutcomeNotes",
+     "type": "nvarchar(2000)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "SessionId",
+     "references": "session.Session"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "RegistrationId",
+     "references": "session.SessionRegistration"
+    },
+    {
+     "column": "BookingId",
+     "references": "provider.ExperienceBooking"
+    },
+    {
+     "column": "RecordedByPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "SessionId",
+      "PersonId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_Attendance_Status",
+     "expression": "Status IN ('Present','Late','Absent','NotRecorded')"
+    },
+    {
+     "name": "CK_Attendance_Source",
+     "expression": "(RegistrationId IS NOT NULL AND BookingId IS NULL) OR (RegistrationId IS NULL AND BookingId IS NOT NULL)"
+    }
+   ],
+   "indexes": [],
+   "purpose": "What actually happened: Present / Late / Absent / NotRecorded, how it was recorded, and the outcome.",
+   "absorbs": [],
+   "base": "session.Attendance"
+  },
+  {
+   "table": "session.AbsenceExcuse",
+   "module": "session",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "AttendanceId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Reason",
+     "type": "nvarchar(1000)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "FileId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Submitted'",
+     "note": ""
+    },
+    {
+     "name": "Recommendation",
+     "type": "nvarchar(8)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RecommendationNote",
+     "type": "nvarchar(1000)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RecommendedByPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RecommendedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DecidedByPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DecisionReason",
+     "type": "nvarchar(1000)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DecidedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "AttendanceId",
+     "references": "session.Attendance"
+    },
+    {
+     "column": "FileId",
+     "references": "files.SecureFile"
+    },
+    {
+     "column": "RecommendedByPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "DecidedByPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "AttendanceId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_AbsenceExcuse_Status",
+     "expression": "Status IN ('Submitted','MoreInfo','Recommended','Accepted','Rejected','Withdrawn')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A student's excuse for an absence, the supervisor's recommendation and the representative's decision.",
+   "absorbs": [],
+   "base": "session.AbsenceExcuse"
+  },
+  {
+   "table": "session.Completion",
+   "module": "session",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "Kind",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ApplicationId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ProgramId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "BookingId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Pending'",
+     "note": ""
+    },
+    {
+     "name": "EvaluatorPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EvaluatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "BasisJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "ApplicationId",
+     "references": "institution.InitiativeApplication"
+    },
+    {
+     "column": "ProgramId",
+     "references": "coach.CoachProgram"
+    },
+    {
+     "column": "BookingId",
+     "references": "provider.ExperienceBooking"
+    },
+    {
+     "column": "EvaluatorPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "ApplicationId"
+     ],
+     "filter": "ApplicationId IS NOT NULL"
+    },
+    {
+     "columns": [
+      "ProgramId",
+      "PersonId"
+     ],
+     "filter": "ProgramId IS NOT NULL"
+    },
+    {
+     "columns": [
+      "BookingId"
+     ],
+     "filter": "BookingId IS NOT NULL"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_Completion_Kind",
+     "expression": "Kind IN ('Initiative','Program','Camp')"
+    },
+    {
+     "name": "CK_Completion_Status",
+     "expression": "Status IN ('Pending','Completed','NotMet')"
+    },
+    {
+     "name": "CK_Completion_Subject",
+     "expression": "(Kind = 'Initiative' AND ApplicationId IS NOT NULL AND ProgramId IS NULL AND BookingId IS NULL) OR (Kind = 'Program' AND ProgramId IS NOT NULL AND ApplicationId IS NULL AND BookingId IS NULL) OR (Kind = 'Camp' AND BookingId IS NOT NULL AND ApplicationId IS NULL AND ProgramId IS NULL)"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "PersonId",
+      "Kind"
+     ],
+     "filter": null
+    }
+   ],
+   "purpose": "Completion of an initiative, a coach program or a provider camp.",
+   "absorbs": [],
+   "base": "session.Completion"
+  },
+  {
+   "table": "provider.Experience",
+   "module": "provider",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "ProviderId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Kind",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "CurrentRevisionId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DraftJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DraftLastSavedStage",
+     "type": "tinyint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DraftUpdatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CancelledAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CancellationReason",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "ProviderId",
+     "references": "org.Organization"
+    },
+    {
+     "column": "CurrentRevisionId",
+     "references": "provider.ExperienceRevision"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_Experience_Kind",
+     "expression": "Kind IN ('Experience','Camp')"
+    },
+    {
+     "name": "CK_Experience_Status",
+     "expression": "Status IN ('Draft','Published','Suspended','Completed','Cancelled','Archived')"
+    },
+    {
+     "name": "CK_Experience_Published",
+     "expression": "Status IN ('Draft','Archived','Cancelled') OR CurrentRevisionId IS NOT NULL"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A provider experience or camp: owner provider, kind, lifecycle status, current revision pointer, Builder draft and cancellation.",
+   "absorbs": [],
+   "base": "provider.Experience"
+  },
+  {
+   "table": "provider.ExperienceRevision",
+   "module": "provider",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "ExperienceId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RevisionNo",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Title",
+     "type": "nvarchar(200)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Venue",
+     "type": "nvarchar(300)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "City",
+     "type": "nvarchar(120)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "TimeZoneId",
+     "type": "nvarchar(80)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "StartsAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndsAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "BookingOpensAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "BookingClosesAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Capacity",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "WaitlistEnabled",
+     "type": "bit",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OfferHoldHours",
+     "type": "smallint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AudienceCode",
+     "type": "nvarchar(80)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "MinAge",
+     "type": "tinyint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "MaxAge",
+     "type": "tinyint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ConsentNoticeVersion",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SafetyRef",
+     "type": "nvarchar(300)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CancellationPolicyRef",
+     "type": "nvarchar(300)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CostKind",
+     "type": "nvarchar(8)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Price",
+     "type": "decimal(19,4)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Currency",
+     "type": "char(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CompletionRuleRef",
+     "type": "nvarchar(120)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ParticipantFormVersionId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ChangeReason",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PublishedSnapshotJson",
+     "type": "nvarchar(max)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PublishedByPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PublishedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RequiresApproval",
+     "type": "bit",
+     "nullable": false,
+     "default": "0",
+     "note": "A booking waits for provider approval (status Pending) and takes no seat until approved (Client: experience.approval)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "ExperienceId",
+     "references": "provider.Experience"
+    },
+    {
+     "column": "ParticipantFormVersionId",
+     "references": "forms.FormVersion"
+    },
+    {
+     "column": "PublishedByPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "ExperienceId",
+      "RevisionNo"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_ExperienceRevision_Capacity",
+     "expression": "Capacity > 0"
+    }
+   ],
+   "indexes": [],
+   "purpose": "Immutable published terms of an experience (place, time, price, capacity, eligibility, forms). An edit creates a new row; a booking records the revision it was made on.",
+   "absorbs": [],
+   "base": "provider.ExperienceRevision"
+  },
+  {
+   "table": "provider.ExperienceBooking",
+   "module": "provider",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "ExperienceId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RevisionId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Mode",
+     "type": "nvarchar(16)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ConsentAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ParticipantResponseId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "QueuedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OfferedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OfferExpiresAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OfferRespondedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ConfirmedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CancelledAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CancelReason",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CredentialHash",
+     "type": "varbinary(32)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "BookedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CohortId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": "Current cohort of a confirmed booking (replaces the v4 ProviderCohortMember table)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "ExperienceId",
+     "references": "provider.Experience"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "RevisionId",
+     "references": "provider.ExperienceRevision"
+    },
+    {
+     "column": "ParticipantResponseId",
+     "references": "forms.FormResponse"
+    },
+    {
+     "column": "CohortId",
+     "references": "provider.ProviderCohort"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "ExperienceId",
+      "PersonId"
+     ],
+     "filter": "Status IN ('Pending','Queued','Offered','Confirmed')"
+    },
+    {
+     "columns": [
+      "CredentialHash"
+     ],
+     "filter": "CredentialHash IS NOT NULL"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_ExperienceBooking_Status",
+     "expression": "Status IN ('Pending','Queued','Offered','Confirmed','Cancelled','OfferDeclined','OfferExpired','Rejected')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "ExperienceId"
+     ],
+     "filter": "Status IN ('Offered','Confirmed')"
+    },
+    {
+     "columns": [
+      "ExperienceId",
+      "QueuedAtUtc"
+     ],
+     "filter": "Status = 'Queued'"
+    }
+   ],
+   "purpose": "A person's booking, waiting-list offer and confirmation for an experience, in one row with a status.",
+   "absorbs": [
+    "provider.ProviderCohortMember"
+   ],
+   "base": "provider.ExperienceBooking"
+  },
+  {
+   "table": "provider.ProviderCohort",
+   "module": "provider",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "ExperienceId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SupervisorAppointmentId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Name",
+     "type": "nvarchar(160)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Active'",
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Description",
+     "type": "nvarchar(500)",
+     "nullable": true,
+     "default": null,
+     "note": null
+    },
+    {
+     "name": "Capacity",
+     "type": "smallint",
+     "nullable": true,
+     "default": null,
+     "note": "Maximum members (checked in C# when a participant joins)."
+    },
+    {
+     "name": "JoinTokenHash",
+     "type": "varbinary(64)",
+     "nullable": true,
+     "default": null,
+     "note": "Participants join a cohort with a token (Client: participant.cohort.join)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "ExperienceId",
+     "references": "provider.Experience"
+    },
+    {
+     "column": "SupervisorAppointmentId",
+     "references": "org.StaffAppointment"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "JoinTokenHash"
+     ],
+     "filter": "JoinTokenHash IS NOT NULL"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_ProviderCohort_Status",
+     "expression": "Status IN ('Active','Closed')"
+    },
+    {
+     "name": "CK_ProviderCohort_Capacity",
+     "expression": "Capacity IS NULL OR (Capacity > 0 AND Capacity <= 500)"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A cohort (group) of confirmed bookings under one supervisor.",
+   "absorbs": [],
+   "base": "provider.ProviderCohort"
+  },
+  {
+   "table": "provider.ProviderIncident",
+   "module": "provider",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "ExperienceId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SessionId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "BookingId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ReportedByPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Summary",
+     "type": "nvarchar(2000)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "FileId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Open'",
+     "note": ""
+    },
+    {
+     "name": "OccurredAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ResolutionNote",
+     "type": "nvarchar(2000)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "ExperienceId",
+     "references": "provider.Experience"
+    },
+    {
+     "column": "SessionId",
+     "references": "session.Session"
+    },
+    {
+     "column": "BookingId",
+     "references": "provider.ExperienceBooking"
+    },
+    {
+     "column": "ReportedByPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "FileId",
+     "references": "files.SecureFile"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_ProviderIncident_Status",
+     "expression": "Status IN ('Open','Reviewed','Closed')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A safety incident reported by provider staff and its resolution.",
+   "absorbs": [],
+   "base": "provider.ProviderIncident"
+  },
+  {
+   "table": "forms.Form",
+   "module": "forms",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "InitiativeId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ExperienceId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Purpose",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Title",
+     "type": "nvarchar(200)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(24)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "CurrentVersionId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DraftJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ResultsPublishedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "InitiativeId",
+     "references": "institution.Initiative"
+    },
+    {
+     "column": "ExperienceId",
+     "references": "provider.Experience"
+    },
+    {
+     "column": "CurrentVersionId",
+     "references": "forms.FormVersion"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_Form_Owner",
+     "expression": "(InitiativeId IS NOT NULL AND ExperienceId IS NULL) OR (InitiativeId IS NULL AND ExperienceId IS NOT NULL)"
+    },
+    {
+     "name": "CK_Form_Purpose",
+     "expression": "Purpose IN ('Registration','Survey','Quiz','Feedback','Competition')"
+    },
+    {
+     "name": "CK_Form_Status",
+     "expression": "Status IN ('Draft','Published','Closed','ResultsPublished','Archived')"
+    },
+    {
+     "name": "CK_Form_Published",
+     "expression": "Status IN ('Draft','Archived') OR CurrentVersionId IS NOT NULL"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A registration form, survey or competition owned by an initiative or an experience.",
+   "absorbs": [],
+   "base": "forms.Form"
+  },
+  {
+   "table": "forms.FormVersion",
+   "module": "forms",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "FormId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "VersionNo",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ConsentNoticeVersion",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OpensAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ClosesAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AllowMultipleResponses",
+     "type": "bit",
+     "nullable": false,
+     "default": "0",
+     "note": ""
+    },
+    {
+     "name": "RulesText",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EntryPolicyJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PublishedByPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PublishedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "DefinitionJson",
+     "type": "nvarchar(max)",
+     "nullable": false,
+     "default": null,
+     "note": "Questions, options, validation and competition criteria of this version."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "FormId",
+     "references": "forms.Form"
+    },
+    {
+     "column": "PublishedByPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "FormId",
+      "VersionNo"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [],
+   "indexes": [],
+   "purpose": "A published, immutable version of a form. Responses point at the version they answered.",
+   "absorbs": [
+    "forms.FormQuestion",
+    "forms.FormQuestionOption",
+    "forms.CompetitionCriterion"
+   ],
+   "base": "forms.FormVersion"
+  },
+  {
+   "table": "forms.FormResponse",
+   "module": "forms",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "FormVersionId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ResponseNo",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "ConsentAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "SubmittedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "WithdrawnAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AnswersJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": "Answers keyed by question key (replaces the v4 FormAnswer table)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "FormVersionId",
+     "references": "forms.FormVersion"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "FormVersionId",
+      "PersonId",
+      "ResponseNo"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_FormResponse_Status",
+     "expression": "Status IN ('Draft','Submitted','Withdrawn')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "FormVersionId"
+     ],
+     "filter": "Status = 'Submitted'"
+    }
+   ],
+   "purpose": "One person's response (or competition entry) to a form version, with all answers.",
+   "absorbs": [
+    "forms.FormAnswer"
+   ],
+   "base": "forms.FormResponse"
+  },
+  {
+   "table": "forms.CompetitionJudgment",
+   "module": "forms",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "ResponseId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "JudgePersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Decision",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Feedback",
+     "type": "nvarchar(2000)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DecidedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "ScoresJson",
+     "type": "nvarchar(max)",
+     "nullable": false,
+     "default": null,
+     "note": "Score per criterion for this judge and entry (replaces the v4 CompetitionCriterionScore table)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "ResponseId",
+     "references": "forms.FormResponse"
+    },
+    {
+     "column": "JudgePersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "ResponseId",
+      "JudgePersonId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_CompetitionJudgment_Decision",
+     "expression": "Decision IN ('Scored','Disqualified','Abstained')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A judge's decision and criterion scores for one competition entry.",
+   "absorbs": [
+    "forms.CompetitionCriterionScore"
+   ],
+   "base": "forms.CompetitionJudgment"
+  },
+  {
+   "table": "community.Post",
+   "module": "community",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "AuthorPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "TopicCode",
+     "type": "nvarchar(40)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Body",
+     "type": "nvarchar(max)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ImageFileId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "PublishedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "SharedAchievementJson",
+     "type": "nvarchar(1000)",
+     "nullable": true,
+     "default": null,
+     "note": "Optional \"Share Achievement\" card (a text snapshot, no reward)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "AuthorPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "ImageFileId",
+     "references": "files.SecureFile"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_Post_Status",
+     "expression": "Status IN ('Draft','Published','Hidden','Removed')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "PublishedAtUtc"
+     ],
+     "filter": "Status = 'Published'"
+    }
+   ],
+   "purpose": "A community post.",
+   "absorbs": [],
+   "base": "community.Post"
+  },
+  {
+   "table": "community.Comment",
+   "module": "community",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PostId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AuthorPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Body",
+     "type": "nvarchar(2000)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Published'",
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PostId",
+     "references": "community.Post"
+    },
+    {
+     "column": "AuthorPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [],
+   "checks": [
+    {
+     "name": "CK_Comment_Status",
+     "expression": "Status IN ('Published','Hidden','Removed')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "PostId",
+      "CreatedAtUtc"
+     ],
+     "filter": null
+    }
+   ],
+   "purpose": "A comment under a post.",
+   "absorbs": [],
+   "base": "community.Comment"
+  },
+  {
+   "table": "community.PostInteraction",
+   "module": "community",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PostId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ReactionCode",
+     "type": "nvarchar(24)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "Kind",
+     "type": "nvarchar(12)",
+     "nullable": false,
+     "default": "'Reaction'",
+     "note": "Reaction or Bookmark."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PostId",
+     "references": "community.Post"
+    },
+    {
+     "column": "PersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PostId",
+      "PersonId",
+      "Kind",
+      "ReactionCode"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_PostInteraction_Kind",
+     "expression": "Kind IN ('Reaction','Bookmark')"
+    },
+    {
+     "name": "CK_PostInteraction_Code",
+     "expression": "(Kind = 'Reaction' AND ReactionCode IS NOT NULL) OR (Kind = 'Bookmark' AND ReactionCode IS NULL)"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A reaction or a bookmark of one person on one post.",
+   "absorbs": [
+    "community.Bookmark"
+   ],
+   "base": "community.Reaction"
+  },
+  {
+   "table": "community.ContentReport",
+   "module": "community",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PostId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CommentId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ReporterPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ReasonCode",
+     "type": "nvarchar(40)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Details",
+     "type": "nvarchar(1000)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Submitted'",
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ResolvedByPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 ModerationDecision"
+    },
+    {
+     "name": "Resolution",
+     "type": "nvarchar(16)",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 ModerationDecision"
+    },
+    {
+     "name": "ResolutionReason",
+     "type": "nvarchar(1000)",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 ModerationDecision"
+    },
+    {
+     "name": "ResolvedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": "from v4 ModerationDecision"
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "ResolvedByPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "PostId",
+     "references": "community.Post"
+    },
+    {
+     "column": "CommentId",
+     "references": "community.Comment"
+    },
+    {
+     "column": "ReporterPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PostId",
+      "ReporterPersonId"
+     ],
+     "filter": "PostId IS NOT NULL AND Status <> 'Resolved'"
+    },
+    {
+     "columns": [
+      "CommentId",
+      "ReporterPersonId"
+     ],
+     "filter": "CommentId IS NOT NULL AND Status <> 'Resolved'"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_ContentReport_Target",
+     "expression": "(PostId IS NOT NULL AND CommentId IS NULL) OR (PostId IS NULL AND CommentId IS NOT NULL)"
+    },
+    {
+     "name": "CK_ContentReport_Status",
+     "expression": "Status IN ('Submitted','Reviewing','Resolved')"
+    },
+    {
+     "name": "CK_ContentReport_Resolution",
+     "expression": "Resolution IN ('Hide','Remove','Restore','Dismiss')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A report of a post or comment, and the moderator's resolution. Hide/restore actions without a report are recorded in AuditEvent.",
+   "absorbs": [
+    "community.ModerationDecision"
+   ],
+   "base": "community.ContentReport"
+  },
+  {
+   "table": "partnership.PartnershipLink",
+   "module": "partnership",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "InitiativeId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ProgramId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ExperienceId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Purpose",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DataSharingScopeJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "StartsOnLocalDate",
+     "type": "date",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndsOnLocalDate",
+     "type": "date",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Requested'",
+     "note": ""
+    },
+    {
+     "name": "RequestedByPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RespondedByPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "RespondedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndedByPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EndReason",
+     "type": "nvarchar(800)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "InitiativeId",
+     "references": "institution.Initiative"
+    },
+    {
+     "column": "ProgramId",
+     "references": "coach.CoachProgram"
+    },
+    {
+     "column": "ExperienceId",
+     "references": "provider.Experience"
+    },
+    {
+     "column": "RequestedByPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "RespondedByPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "EndedByPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "InitiativeId",
+      "ProgramId"
+     ],
+     "filter": "ProgramId IS NOT NULL AND Status IN ('Requested','Accepted')"
+    },
+    {
+     "columns": [
+      "InitiativeId",
+      "ExperienceId"
+     ],
+     "filter": "ExperienceId IS NOT NULL AND Status IN ('Requested','Accepted')"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_PartnershipLink_Target",
+     "expression": "(ProgramId IS NOT NULL AND ExperienceId IS NULL) OR (ProgramId IS NULL AND ExperienceId IS NOT NULL)"
+    },
+    {
+     "name": "CK_PartnershipLink_Status",
+     "expression": "Status IN ('Requested','Accepted','Declined','Ended')"
+    },
+    {
+     "name": "CK_PartnershipLink_Scope",
+     "expression": "DataSharingScopeJson IS NULL OR ISJSON(DataSharingScopeJson) = 1"
+    }
+   ],
+   "indexes": [],
+   "purpose": "A link between an initiative and a coach program or provider experience, without moving ownership.",
+   "absorbs": [],
+   "base": "partnership.PartnershipLink"
+  },
+  {
+   "table": "governance.ContentRelease",
+   "module": "governance",
+   "rowKind": "mutable",
+   "rv": true,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "TargetCode",
+     "type": "nvarchar(120)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "VersionNo",
+     "type": "int",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Draft'",
+     "note": ""
+    },
+    {
+     "name": "PayloadJson",
+     "type": "nvarchar(max)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PublishedByPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "PublishedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "RowVersion",
+     "type": "rowversion",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "PublishedByPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "TargetCode",
+      "VersionNo"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "TargetCode"
+     ],
+     "filter": "Status = 'Draft'"
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_ContentRelease_Status",
+     "expression": "Status IN ('Draft','Published','Superseded')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "Admin-edited content with draft and published versions. Also stores the Garden Rules.",
+   "absorbs": [
+    "evidence.RewardPolicyVersion"
+   ],
+   "base": "governance.ContentRelease"
+  },
+  {
+   "table": "ops.AuditEvent",
+   "module": "ops",
+   "rowKind": "append-only",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "ActorPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ActorCapacity",
+     "type": "nvarchar(24)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ResourceKind",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Action",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "BeforeStatus",
+     "type": "nvarchar(40)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AfterStatus",
+     "type": "nvarchar(40)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Reason",
+     "type": "nvarchar(1000)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DetailJson",
+     "type": "nvarchar(max)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "AtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "ResourceId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": "Id of the row the event is about."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "ActorPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [],
+   "checks": [],
+   "indexes": [
+    {
+     "columns": [
+      "ActorPersonId",
+      "AtUtc"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "ResourceKind",
+      "ResourceId",
+      "AtUtc"
+     ],
+     "filter": null
+    }
+   ],
+   "purpose": "The one history log: who did what to which row, with before/after status, reason and details. Timelines in the UI are read from it.",
+   "absorbs": [
+    "institution.InitiativeApplicationDecision",
+    "session.AttendanceCorrection"
+   ],
+   "base": "ops.AuditEvent"
+  },
+  {
+   "table": "ops.Notification",
+   "module": "ops",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "RecipientPersonId",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EventPublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "TemplateCode",
+     "type": "nvarchar(80)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ResourceKind",
+     "type": "nvarchar(64)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Ready'",
+     "note": ""
+    },
+    {
+     "name": "ReadAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EmailOutboxMessageId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "ResourceId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": "Row the notification is about."
+    },
+    {
+     "name": "ParamsJson",
+     "type": "nvarchar(2000)",
+     "nullable": true,
+     "default": null,
+     "note": "Template parameters (for example the removal reason)."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "RecipientPersonId",
+     "references": "iam.Person"
+    },
+    {
+     "column": "EmailOutboxMessageId",
+     "references": "ops.OutboxMessage"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "RecipientPersonId",
+      "EventPublicId",
+      "TemplateCode"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_Notification_Status",
+     "expression": "Status IN ('Pending','Ready','Read','Withdrawn')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "RecipientPersonId",
+      "CreatedAtUtc"
+     ],
+     "filter": "Status IN ('Ready','Read')"
+    }
+   ],
+   "purpose": "An in-app notification to one person (for example \"you were removed from the initiative\").",
+   "absorbs": [],
+   "base": "ops.Notification"
+  },
+  {
+   "table": "ops.OutboxMessage",
+   "module": "ops",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "EventPublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "EventType",
+     "type": "nvarchar(120)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Channel",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Internal'",
+     "note": ""
+    },
+    {
+     "name": "PayloadJson",
+     "type": "nvarchar(max)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "OccurredAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Pending'",
+     "note": ""
+    },
+    {
+     "name": "Attempts",
+     "type": "int",
+     "nullable": false,
+     "default": "0",
+     "note": ""
+    },
+    {
+     "name": "NextAttemptAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "LastError",
+     "type": "nvarchar(1000)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "DeliveredAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    },
+    {
+     "name": "DedupKey",
+     "type": "nvarchar(160)",
+     "nullable": false,
+     "default": null,
+     "note": "Per-recipient delivery key (for example \"<recipientPersonId>:<templateCode>\"). One event may fan out to many recipients; (EventPublicId, DedupKey) is unique."
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [],
+   "unique": [
+    {
+     "columns": [
+      "EventPublicId",
+      "DedupKey"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_OutboxMessage_Channel",
+     "expression": "Channel IN ('Internal','Email')"
+    },
+    {
+     "name": "CK_OutboxMessage_Status",
+     "expression": "Status IN ('Pending','Delivered','DeadLetter')"
+    }
+   ],
+   "indexes": [
+    {
+     "columns": [
+      "NextAttemptAtUtc"
+     ],
+     "filter": "Status = 'Pending'"
+    }
+   ],
+   "purpose": "Emails waiting to be sent reliably (OTP, invitations, removal notices).",
+   "absorbs": [],
+   "base": "ops.OutboxMessage"
+  },
+  {
+   "table": "files.SecureFile",
+   "module": "files",
+   "rowKind": "mutable",
+   "rv": false,
+   "columns": [
+    {
+     "name": "Id",
+     "type": "bigint",
+     "nullable": false,
+     "default": "IDENTITY(1,1)",
+     "note": ""
+    },
+    {
+     "name": "PublicId",
+     "type": "uniqueidentifier",
+     "nullable": false,
+     "default": "NEWSEQUENTIALID()",
+     "note": ""
+    },
+    {
+     "name": "OwnerPersonId",
+     "type": "bigint",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Purpose",
+     "type": "nvarchar(32)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "ObjectKey",
+     "type": "nvarchar(300)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "MimeType",
+     "type": "nvarchar(120)",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Bytes",
+     "type": "bigint",
+     "nullable": false,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "Status",
+     "type": "nvarchar(16)",
+     "nullable": false,
+     "default": "'Pending'",
+     "note": ""
+    },
+    {
+     "name": "DeletedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": true,
+     "default": null,
+     "note": ""
+    },
+    {
+     "name": "CreatedAtUtc",
+     "type": "datetime2(3)",
+     "nullable": false,
+     "default": "SYSUTCDATETIME()",
+     "note": ""
+    }
+   ],
+   "primaryKey": [
+    "Id"
+   ],
+   "foreignKeys": [
+    {
+     "column": "OwnerPersonId",
+     "references": "iam.Person"
+    }
+   ],
+   "unique": [
+    {
+     "columns": [
+      "PublicId"
+     ],
+     "filter": null
+    },
+    {
+     "columns": [
+      "ObjectKey"
+     ],
+     "filter": null
+    }
+   ],
+   "checks": [
+    {
+     "name": "CK_SecureFile_Purpose",
+     "expression": "Purpose IN ('VerificationEvidence','ExcuseAttachment','SubmissionAttachment','FormAnswer','IncidentAttachment','PostImage')"
+    },
+    {
+     "name": "CK_SecureFile_Status",
+     "expression": "Status IN ('Pending','Available','Quarantined','Deleted')"
+    }
+   ],
+   "indexes": [],
+   "purpose": "Every uploaded private file (verification proofs, excuses, incident files, submissions, post images).",
+   "absorbs": [],
+   "base": "files.SecureFile"
+  }
+ ]
+}

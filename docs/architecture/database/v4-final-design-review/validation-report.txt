@@ -1,0 +1,29 @@
+DeepSprout v4 generator validation
+2026-11-03T07:05:51.807Z
+
+{
+  "tables": 87,
+  "columns": 1116,
+  "foreignKeys": 234,
+  "compositeForeignKeys": 85,
+  "uniqueConstraints": 172,
+  "filteredUnique": 53,
+  "checks": 294,
+  "appendOnlyTables": 33,
+  "migration": {
+    "KEEP": 87,
+    "MERGE": 33,
+    "REMOVE": 0,
+    "DEFER": 9
+  },
+  "tests": {
+    "REGENERATE": 61,
+    "REWRITE": 101,
+    "CARRY": 140,
+    "STRUCTURAL": 6,
+    "DEFER": 22
+  }
+}
+
+Errors: 0
+

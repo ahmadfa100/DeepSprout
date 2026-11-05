@@ -1,0 +1,34 @@
+erDiagram
+    iam_Person {
+        bigint Id PK
+    }
+    lab_AssessmentAttempt {
+        bigint Id PK
+    }
+    lab_AssessmentInstrument {
+        bigint Id PK
+    }
+    lab_AssessmentResponse {
+        bigint Id PK
+    }
+    lab_AssessmentScore {
+        bigint Id PK
+    }
+    lab_AssessmentWindow {
+        bigint Id PK
+    }
+    lab_InstrumentVersion {
+        bigint Id PK
+    }
+    personal_IndividualProfile {
+        bigint Id PK
+    }
+    lab_AssessmentInstrument ||--o{ lab_AssessmentAttempt : "FK_AssessmentAttempt_AssessmentInstrument_InstrumentId InstrumentId to Id"
+    lab_AssessmentWindow ||--o{ lab_AssessmentAttempt : "FK_AssessmentAttempt_AssessmentWindow_WindowId_PersonId WindowId+PersonId to Id+PersonId"
+    lab_InstrumentVersion ||--o{ lab_AssessmentAttempt : "FK_AssessmentAttempt_InstrumentVersion_InstrumentVersionId_InstrumentId InstrumentVersionId+InstrumentId to Id+InstrumentId"
+    iam_Person ||--o{ lab_AssessmentAttempt : "FK_AssessmentAttempt_Person_PersonId PersonId to Id"
+    lab_AssessmentAttempt ||--o{ lab_AssessmentResponse : "FK_AssessmentResponse_AssessmentAttempt_AttemptId AttemptId to Id"
+    lab_AssessmentAttempt ||--o{ lab_AssessmentScore : "FK_AssessmentScore_AssessmentAttempt_AttemptId AttemptId to Id"
+    lab_AssessmentAttempt ||--o{ personal_IndividualProfile : "FK_IndividualProfile_AssessmentAttempt_LastAssessmentAttemptId_PersonId LastAssessmentAttemptId+PersonId to Id+PersonId"
+    lab_AssessmentInstrument ||--o{ lab_InstrumentVersion : "FK_InstrumentVersion_AssessmentInstrument_InstrumentId InstrumentId to Id"
+    iam_Person ||--o{ lab_AssessmentWindow : "FK_AssessmentWindow_Person_PersonId PersonId to Id"

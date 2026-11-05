@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../../../../assets/brand/logo.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f9fcf5">
+  <meta name="description" content="The DeepSprout Lab: four short assessments that mark your starting point.">
+  <title>Check-in — DeepSprout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@@400;500;600;700;800&family=Fraunces:opsz,wght@@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../../src/styles/style.css">
+  <link rel="stylesheet" href="../../../../src/styles/member-page.css">
+  <link rel="stylesheet" href="lab.css">
+  <link rel="stylesheet" href="../../../../src/styles/page-hero.css">
+  <link rel="stylesheet" href="../../../../src/layouts/member-layout/member-layout.css">
+  <script src="../../../js/data/personal-access.js" defer></script>
+  <script src="../../../../src/js/data/account.js" defer></script>
+  <script src="assessment-data.js" defer></script>
+  <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
+  <script src="lab.js" defer></script>
+</head>
+<body data-page="lab" data-root="../../../../">
+  <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M9 11V5a1.5 1.5 0 0 1 3 0v6m0-1V4a1.5 1.5 0 0 1 3 0v7m0-2a1.5 1.5 0 0 1 3 0v6a6 6 0 0 1-6 6h-1a6 6 0 0 1-5.2-3L5 15a1.6 1.6 0 0 1 2.6-1.8L9 15"/></symbol>
+    <symbol id="i-book" viewBox="0 0 32 32"><path d="M16 7c-4-3-9-3-13-2v19c5-1 10 0 13 3 3-3 8-4 13-3V5c-4-1-9-1-13 2Zm0 0v20"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M10 3v7L4.5 19A2 2 0 0 0 6.2 22h11.6a2 2 0 0 0 1.7-3L14 10V3M9 3h6M7.5 15h9"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V13m5 7V7m5 13v-9m5 9V4"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8.5v.5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+  </svg>
+
+  <div data-site-header></div>
+
+  <main>
+    <header class="ds-hero" aria-labelledby="lab-title">
+      <div class="ds-hero-copy">
+        <p class="ds-hero-eyebrow" data-name="checkIn">Check-in</p>
+        <h1 id="lab-title"><span data-name="checkInPage">Your Check-in</span><br><em>Measured, not chased.</em></h1>
+        <p class="ds-hero-text">Four short measurement tasks. They mark your starting point, then a free weekly pair records later measurements. Never a diagnosis, never one combined score.</p>
+        <div class="btn-row lab-hero-actions" id="lab-actions"></div>
+      </div>
+      <figure class="ds-hero-art is-cutout"><img src="../../../../assets/hero-v2/bimo-focus.png" alt="Green in a calm, focused pose"></figure>
+    </header>
+
+    <div class="page-shell lab-body">
+      <section class="ci-window" id="ci-window" aria-live="polite" aria-labelledby="ci-window-title"></section>
+
+      <section class="ci-schedule card" aria-labelledby="ci-schedule-title">
+        <div class="ci-section-head">
+          <div><p class="eyebrow">The schedule</p><h2 id="ci-schedule-title">When you are measured again</h2></div>
+          <p>Repeating a task raises the score through practice alone, so official checks open on a schedule — never on demand.</p>
+        </div>
+        <ol class="ci-timeline" id="ci-timeline"></ol>
+      </section>
+
+      <details class="card" id="personal-lab-controls" hidden>
+        <summary>Personal Lab demo controls</summary><p id="personal-lab-source"></p>
+        <form id="personal-clock-form"><label>Personal date (Asia/Amman) <input type="date" name="day" required></label><button type="submit" class="btn btn-ghost">Set personal demo date</button></form>
+        <form id="lab-policy-form"><label>Interim weekly window (1–7 days) <input type="number" name="days" min="1" max="7" required></label><button type="submit" class="btn btn-ghost">Save local window setting</button></form>
+        <p role="alert" id="lab-demo-error"></p>
+      </details>
+      <section aria-labelledby="instruments-title">
+        <div class="lab-section-head">
+          <h2 id="instruments-title">The four tasks</h2>
+          <p>Each records its own result, version and date. Time estimates include instructions and untimed answers; actual duration varies. Practice rounds are open any time and never counted.</p>
+        </div>
+        <div class="lab-grid" id="lab-grid"></div>
+      </section>
+
+      <section class="lab-notes" aria-labelledby="notes-title">
+        <div class="card">
+          <div class="card-head">
+            <span class="badge-icon sky"><svg><use href="#i-info"/></svg></span>
+            <h2 id="notes-title">How to read these results</h2>
+          </div>
+          <ul class="lab-note-list">
+            <li><strong>Four tasks, not four diagnoses.</strong> Each measures something different. There is no combined percentage and no brain-health score.</li>
+            <li><strong>Practice effects are real.</strong> Repeating a task often improves the score without anything else changing. That is why official checks open on a schedule.</li>
+            <li><strong>Comparisons need a real re-measurement.</strong> A comparison appears only for a task that was actually measured again. Practice rounds are never compared.</li>
+            <li><strong>Re-checking is free.</strong> Seeing your own progress is never placed behind a paid plan.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <span class="badge-icon lilac"><svg><use href="#i-lock"/></svg></span>
+            <h2>Who can see this</h2>
+          </div>
+          <p>Your results are private by default. Mentors, institutions and outdoor providers do not see them.</p>
+          <p class="card-note">In this client preview nothing is sent anywhere.</p>
+          <div class="btn-row" style="margin-top:18px">
+            <a class="btn btn-ghost" href="../insights/insights.html#checkins">Results in Insights <svg><use href="#i-chart"/></svg></a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div data-site-footer></div>
+
+  <dialog class="ds-dialog" id="detail-dialog" aria-labelledby="detail-title">
+    <button class="ds-dialog-close" type="button" data-close-dialog aria-label="Close">&times;</button>
+    <div class="ds-dialog-inner">
+      <p class="eyebrow" id="detail-eyebrow"></p>
+      <h2 id="detail-title"></h2>
+      <div id="detail-body"></div>
+    </div>
+  </dialog>
+</body>
+</html>

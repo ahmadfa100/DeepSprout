@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 390" role="img" aria-label="ops table relationships">
+<style>text{font-family:Segoe UI,Arial,sans-serif;fill:#294734}.head{font-weight:bold;font-size:25px}.sub{font-size:13px;fill:#5b745f}.table{font-size:15px;font-weight:600}.edge{font-family:Consolas,monospace;font-size:12px}.muted{fill:#6b806d}</style>
+<rect width="1700" height="390" fill="#fbfaf5"/><text class="head" x="32" y="44">ops / actual SQL relationships</text>
+<text class="sub" x="32" y="68">5 tables · 4 incoming/outgoing FK paths · + marks composite columns</text>
+<text class="sub" x="32" y="101">TABLES</text><text class="sub" x="470" y="101">FOREIGN KEY PATHS (child → parent)</text>
+<rect x="28" y="114" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="137">ops.AuditEvent</text>
+<rect x="28" y="157" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="180">ops.DeliveryAttempt</text>
+<rect x="28" y="200" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="223">ops.IdempotencyRecord</text>
+<rect x="28" y="243" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="266">ops.Notification</text>
+<rect x="28" y="286" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="309">ops.OutboxMessage</text>
+<rect x="466" y="114" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="134">ops.AuditEvent (ActorPersonId) → iam.Person (Id)</text>
+<rect x="466" y="148" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="168">ops.DeliveryAttempt (NotificationId) → ops.Notification (Id)</text>
+<rect x="466" y="182" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="202">ops.IdempotencyRecord (ActorPersonId) → iam.Person (Id)</text>
+<rect x="466" y="216" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="236">ops.Notification (RecipientPersonId) → iam.Person (Id)</text>
+</svg>

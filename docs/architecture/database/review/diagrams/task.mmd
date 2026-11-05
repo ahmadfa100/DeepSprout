@@ -1,0 +1,63 @@
+erDiagram
+    activity_PracticeVersion {
+        bigint Id PK
+    }
+    coach_OperationalGroup {
+        bigint Id PK
+    }
+    evidence_EvidenceEvent {
+        bigint Id PK
+    }
+    files_SecureFile {
+        bigint Id PK
+    }
+    iam_Person {
+        bigint Id PK
+    }
+    institution_Initiative {
+        bigint Id PK
+    }
+    task_Assignment {
+        bigint Id PK
+    }
+    task_AssignmentRecipient {
+        bigint Id PK
+    }
+    task_AssignmentRevision {
+        bigint Id PK
+    }
+    task_CoachReport {
+        bigint Id PK
+    }
+    task_ReviewDecision {
+        bigint Id PK
+    }
+    task_ReviewPrivateNote {
+        bigint Id PK
+    }
+    task_SubmissionAttempt {
+        bigint Id PK
+    }
+    task_SupervisorReport {
+        bigint Id PK
+    }
+    coach_OperationalGroup ||--o{ task_Assignment : "FK_Assignment_OperationalGroup_GroupId GroupId to Id"
+    iam_Person ||--o{ task_Assignment : "FK_Assignment_Person_AuthorPersonId AuthorPersonId to Id"
+    task_Assignment ||--o{ task_AssignmentRecipient : "FK_AssignmentRecipient_Assignment_AssignmentId AssignmentId to Id"
+    task_Assignment ||--o{ task_AssignmentRevision : "FK_AssignmentRevision_Assignment_AssignmentId AssignmentId to Id"
+    task_AssignmentRevision ||--o{ task_AssignmentRecipient : "FK_AssignmentRecipient_AssignmentRevision_AssignedRevisionId_AssignmentId AssignedRevisionId+AssignmentId to Id+AssignmentId"
+    iam_Person ||--o{ task_AssignmentRecipient : "FK_AssignmentRecipient_Person_PersonId PersonId to Id"
+    task_AssignmentRecipient ||--o{ task_SubmissionAttempt : "FK_SubmissionAttempt_AssignmentRecipient_RecipientId_AssignmentId RecipientId+AssignmentId to Id+AssignmentId"
+    activity_PracticeVersion ||--o{ task_AssignmentRevision : "FK_AssignmentRevision_PracticeVersion_PracticeVersionId PracticeVersionId to Id"
+    task_AssignmentRevision ||--o{ task_SubmissionAttempt : "FK_SubmissionAttempt_AssignmentRevision_AssignmentRevisionId_AssignmentId AssignmentRevisionId+AssignmentId to Id+AssignmentId"
+    coach_OperationalGroup ||--o{ task_CoachReport : "FK_CoachReport_OperationalGroup_GroupId GroupId to Id"
+    iam_Person ||--o{ task_CoachReport : "FK_CoachReport_Person_AuthorPersonId AuthorPersonId to Id"
+    evidence_EvidenceEvent ||--o{ task_ReviewDecision : "FK_ReviewDecision_EvidenceEvent_EvidenceEventId EvidenceEventId to Id"
+    iam_Person ||--o{ task_ReviewDecision : "FK_ReviewDecision_Person_ReviewerPersonId ReviewerPersonId to Id"
+    task_ReviewDecision ||--o{ task_ReviewDecision : "FK_ReviewDecision_ReviewDecision_SupersedesId_AttemptId SupersedesId+AttemptId to Id+AttemptId"
+    task_SubmissionAttempt ||--o{ task_ReviewDecision : "FK_ReviewDecision_SubmissionAttempt_AttemptId AttemptId to Id"
+    task_ReviewDecision ||--o{ task_ReviewPrivateNote : "FK_ReviewPrivateNote_ReviewDecision_DecisionId DecisionId to Id"
+    iam_Person ||--o{ task_ReviewPrivateNote : "FK_ReviewPrivateNote_Person_AuthorPersonId AuthorPersonId to Id"
+    files_SecureFile ||--o{ task_SubmissionAttempt : "FK_SubmissionAttempt_SecureFile_FileId FileId to Id"
+    institution_Initiative ||--o{ task_SupervisorReport : "FK_SupervisorReport_Initiative_InitiativeId InitiativeId to Id"
+    iam_Person ||--o{ task_SupervisorReport : "FK_SupervisorReport_Person_AuthorPersonId AuthorPersonId to Id"

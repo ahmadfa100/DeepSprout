@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 515" role="img" aria-label="recovery table relationships">
+<style>text{font-family:Segoe UI,Arial,sans-serif;fill:#294734}.head{font-weight:bold;font-size:25px}.sub{font-size:13px;fill:#5b745f}.table{font-size:15px;font-weight:600}.edge{font-family:Consolas,monospace;font-size:12px}.muted{fill:#6b806d}</style>
+<rect width="1700" height="515" fill="#fbfaf5"/><text class="head" x="32" y="44">recovery / actual SQL relationships</text>
+<text class="sub" x="32" y="68">5 tables · 10 incoming/outgoing FK paths · + marks composite columns</text>
+<text class="sub" x="32" y="101">TABLES</text><text class="sub" x="470" y="101">FOREIGN KEY PATHS (child → parent)</text>
+<rect x="28" y="114" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="137">recovery.PlanRevision</text>
+<rect x="28" y="157" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="180">recovery.RecoveryCycle</text>
+<rect x="28" y="200" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="223">recovery.RecoveryJourney</text>
+<rect x="28" y="243" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="266">recovery.ScheduledAction</text>
+<rect x="28" y="286" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="309">recovery.WeeklyReview</text>
+<rect x="466" y="114" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="134">recovery.PlanRevision (CycleId) → recovery.RecoveryCycle (Id)</text>
+<rect x="466" y="148" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="168">recovery.ScheduledAction (PlanRevisionId + CycleId) → recovery.PlanRevision (Id + CycleId)</text>
+<rect x="466" y="182" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="202">recovery.WeeklyReview (PlanRevisionId + CycleId) → recovery.PlanRevision (Id + CycleId)</text>
+<rect x="466" y="216" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="236">recovery.RecoveryCycle (JourneyId + PersonId) → recovery.RecoveryJourney (Id + PersonId)</text>
+<rect x="466" y="250" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="270">recovery.ScheduledAction (CycleId + PersonId) → recovery.RecoveryCycle (Id + PersonId)</text>
+<rect x="466" y="284" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="304">recovery.WeeklyReview (CycleId) → recovery.RecoveryCycle (Id)</text>
+<rect x="466" y="318" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="338">recovery.RecoveryJourney (PersonId) → iam.Person (Id)</text>
+<rect x="466" y="352" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="372">recovery.ScheduledAction (CompletedAttemptId + PersonId) → activity.PracticeAttempt (Id + PersonId)</text>
+<rect x="466" y="386" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="406">recovery.ScheduledAction (PracticeVersionId) → activity.PracticeVersion (Id)</text>
+<rect x="466" y="420" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="440">activity.PracticeAttempt (ScheduledActionId + PersonId) → recovery.ScheduledAction (Id + PersonId)</text>
+</svg>

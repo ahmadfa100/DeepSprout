@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 753" role="img" aria-label="community table relationships">
+<style>text{font-family:Segoe UI,Arial,sans-serif;fill:#294734}.head{font-weight:bold;font-size:25px}.sub{font-size:13px;fill:#5b745f}.table{font-size:15px;font-weight:600}.edge{font-family:Consolas,monospace;font-size:12px}.muted{fill:#6b806d}</style>
+<rect width="1700" height="753" fill="#fbfaf5"/><text class="head" x="32" y="44">community / actual SQL relationships</text>
+<text class="sub" x="32" y="68">9 tables · 17 incoming/outgoing FK paths · + marks composite columns</text>
+<text class="sub" x="32" y="101">TABLES</text><text class="sub" x="470" y="101">FOREIGN KEY PATHS (child → parent)</text>
+<rect x="28" y="114" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="137">community.Bookmark</text>
+<rect x="28" y="157" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="180">community.Comment</text>
+<rect x="28" y="200" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="223">community.ContentReport</text>
+<rect x="28" y="243" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="266">community.JointGoal</text>
+<rect x="28" y="286" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="309">community.JointGoalCheckIn</text>
+<rect x="28" y="329" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="352">community.JointGoalMember</text>
+<rect x="28" y="372" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="395">community.ModerationDecision</text>
+<rect x="28" y="415" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="438">community.Post</text>
+<rect x="28" y="458" width="390" height="34" rx="6" fill="#eaf1e8" stroke="#bacfba"/>
+<text class="table" x="42" y="481">community.Reaction</text>
+<rect x="466" y="114" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="134">community.Bookmark (PersonId) → iam.Person (Id)</text>
+<rect x="466" y="148" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="168">community.Bookmark (PostId) → community.Post (Id)</text>
+<rect x="466" y="182" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="202">community.Comment (AuthorPersonId) → iam.Person (Id)</text>
+<rect x="466" y="216" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="236">community.Comment (PostId) → community.Post (Id)</text>
+<rect x="466" y="250" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="270">community.ContentReport (CommentId) → community.Comment (Id)</text>
+<rect x="466" y="284" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="304">community.ContentReport (ReporterPersonId) → iam.Person (Id)</text>
+<rect x="466" y="318" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="338">community.ContentReport (PostId) → community.Post (Id)</text>
+<rect x="466" y="352" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="372">community.ModerationDecision (ReportId) → community.ContentReport (Id)</text>
+<rect x="466" y="386" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="406">community.JointGoal (CreatorPersonId) → iam.Person (Id)</text>
+<rect x="466" y="420" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="440">community.JointGoalMember (GoalId) → community.JointGoal (Id)</text>
+<rect x="466" y="454" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="474">community.JointGoalCheckIn (GoalId + PersonId) → community.JointGoalMember (GoalId + PersonId)</text>
+<rect x="466" y="488" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="508">community.JointGoalMember (PersonId) → iam.Person (Id)</text>
+<rect x="466" y="522" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="542">community.ModerationDecision (ModeratorPersonId) → iam.Person (Id)</text>
+<rect x="466" y="556" width="1205" height="29" rx="4" fill="#e9efe9"/>
+<text class="edge" x="478" y="576">community.Post (SharedEvidenceEventId + AuthorPersonId) → evidence.EvidenceEvent (Id + SubjectPersonId)</text>
+<rect x="466" y="590" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="610">community.Post (AuthorPersonId) → iam.Person (Id)</text>
+<rect x="466" y="624" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="644">community.Reaction (PostId) → community.Post (Id)</text>
+<rect x="466" y="658" width="1205" height="29" rx="4" fill="#f3f5ef"/>
+<text class="edge" x="478" y="678">community.Reaction (PersonId) → iam.Person (Id)</text>
+</svg>

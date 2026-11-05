@@ -1,0 +1,23 @@
+erDiagram
+    iam_Person {
+        bigint Id PK
+    }
+    ops_AuditEvent {
+        bigint Id PK
+    }
+    ops_DeliveryAttempt {
+        bigint Id PK
+    }
+    ops_IdempotencyRecord {
+        bigint Id PK
+    }
+    ops_Notification {
+        bigint Id PK
+    }
+    ops_OutboxMessage {
+        bigint Id PK
+    }
+    iam_Person ||--o{ ops_AuditEvent : "FK_AuditEvent_Person_ActorPersonId ActorPersonId to Id"
+    ops_Notification ||--o{ ops_DeliveryAttempt : "FK_DeliveryAttempt_Notification_NotificationId NotificationId to Id"
+    iam_Person ||--o{ ops_IdempotencyRecord : "FK_IdempotencyRecord_Person_ActorPersonId ActorPersonId to Id"
+    iam_Person ||--o{ ops_Notification : "FK_Notification_Person_RecipientPersonId RecipientPersonId to Id"

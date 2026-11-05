@@ -12,6 +12,7 @@ import {platformCommand} from './commands/platform.js';
 import {id,now,nowMs,setClockOffset,requireThat,find,textRequired,expireOffers,audit,notify as notifyPerson} from './domain.js';
 import {migrate} from './migrate.js';
 import {busyInitiative} from './data/busy-initiative.js';
+import {addReportInboxDemo} from './data/report-inbox-demo.js';
 import {adminDemo,seedCommunity} from './data/admin-demo.js';
 import {supervisorDemo} from './data/supervisor-demo.js';
 import {expireInitiativeOffers} from './commands/initiative.js';
@@ -90,6 +91,7 @@ const EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function dispatch(action,p={}) {
   const s=read(),actor=s.session.personId;
   if(action==='demo.signin'){requireThat(demoEnabled,'Demo identities are available only in local development.');find(s.people,p.personId);s.session.personId=p.personId;persist(s);return p.personId;}
+  if(action==='demo.report-inbox'){requireThat(demoEnabled,'Sample reports are available only in local development.');requireThat(s.organizations.some(o=>o.id==='org-horizon'&&o.memberIds.includes(actor)),'Open the Institution workspace to preview sample reports.');requireThat(addReportInboxDemo(s),'The Start Today initiative is needed for this sample.');persist(s);return;}
   if(action==='auth.logout'){s.session.personId=null;persist(s);return;}
   if(action==='demo.clock'){requireThat(demoEnabled,'The demo clock is a local development control.');s.clock||={offsetMs:0};if(p.reset)s.clock.offsetMs=0;else if(p.at){const at=Date.parse(p.at);requireThat(Number.isFinite(at),'Choose a valid demo date and time.');s.clock.offsetMs=at-Date.now();}else{const hours=Number(p.hours);requireThat(Number.isFinite(hours)&&Math.abs(hours)<=24*60,'Choose a clock change of at most 60 days.');s.clock.offsetMs+=hours*3600000;}setClockOffset(s.clock.offsetMs);expireOffers(s);expireInitiativeOffers(s);persist(s);return s.clock.offsetMs;}
   if(action==='demo.reset'){requireThat(demoEnabled,'Reset is available only in local development.');const fresh=seed();if(p.keepClock)fresh.clock={...s.clock};setClockOffset(fresh.clock?.offsetMs);persist(fresh);return;}

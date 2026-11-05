@@ -1,0 +1,35 @@
+erDiagram
+    commercial_EntitlementAllocation {
+        bigint Id PK
+    }
+    commercial_PlanFeature {
+        bigint Id PK
+    }
+    commercial_PlanVersion {
+        bigint Id PK
+    }
+    commercial_Subscription {
+        bigint Id PK
+    }
+    commercial_UsageLedger {
+        bigint Id PK
+    }
+    iam_Person {
+        bigint Id PK
+    }
+    institution_Institution {
+        bigint Id PK
+    }
+    provider_Provider {
+        bigint Id PK
+    }
+    institution_Institution ||--o{ commercial_EntitlementAllocation : "FK_EntitlementAllocation_Institution_InstitutionId InstitutionId to Id"
+    iam_Person ||--o{ commercial_EntitlementAllocation : "FK_EntitlementAllocation_Person_PersonId PersonId to Id"
+    provider_Provider ||--o{ commercial_EntitlementAllocation : "FK_EntitlementAllocation_Provider_ProviderId ProviderId to Id"
+    commercial_Subscription ||--o{ commercial_EntitlementAllocation : "FK_EntitlementAllocation_Subscription_SubscriptionId SubscriptionId to Id"
+    commercial_EntitlementAllocation ||--o{ commercial_UsageLedger : "FK_UsageLedger_EntitlementAllocation_AllocationId AllocationId to Id"
+    commercial_PlanVersion ||--o{ commercial_PlanFeature : "FK_PlanFeature_PlanVersion_PlanVersionId PlanVersionId to Id"
+    commercial_PlanVersion ||--o{ commercial_Subscription : "FK_Subscription_PlanVersion_PlanVersionId PlanVersionId to Id"
+    institution_Institution ||--o{ commercial_Subscription : "FK_Subscription_Institution_InstitutionPayerId InstitutionPayerId to Id"
+    iam_Person ||--o{ commercial_Subscription : "FK_Subscription_Person_PersonPayerId PersonPayerId to Id"
+    provider_Provider ||--o{ commercial_Subscription : "FK_Subscription_Provider_ProviderPayerId ProviderPayerId to Id"

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../DeepSprout.Application/DeepSprout.Application.csproj" />
+    <ProjectReference Include="../DeepSprout.Infrastructure/DeepSprout.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="../../../Client/assets/**" Link="wwwroot/assets/%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="Never" />
+    <Content Include="../../../Client/src/**" Exclude="../../../Client/src/**/*.html" Link="wwwroot/src/%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+</Project>

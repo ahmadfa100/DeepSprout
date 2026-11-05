@@ -7,6 +7,7 @@
 import * as u from '../../ui.js';
 import {esc,nameOf,pill,head,stats,stat,card,personCell,emptyState,summary,initiativeSwitcher,withInitiative,fmtDate,sessionWhen,tabs} from './common.js';
 import {needsSupervisor,assignedActiveSupervisors,activeGrantsFor,isActiveSupervisor,confirmedInMode,modeCapacity,today,checkInWindow,windowMessage} from '../../initiative-rules.js';
+import {mapEmbedUrl,mapUrl,meetingUrl} from '../../session-access.js';
 
 const pickInitiative = (ctx, initiatives) => { const i = initiatives.find(x => x.id === (ctx.route.query.get('initiative') || ctx.localUI.initiativeId)) || initiatives.find(x => x.status === 'Published') || initiatives[0]; if (i) ctx.localUI.initiativeId = i.id; return i; };
 const roster = (s, ss) => s.sessionRegistrations.filter(r => r.sessionId === ss.id && r.status === 'Confirmed');
@@ -89,7 +90,7 @@ export function renderSessionDetail(ctx, id, role, initiatives) {
   return `<p class="breadcrumbs">${u.link(role === 'rep' ? 'Sessions & workshops' : 'Schedule', withInitiative(`${r.area}/${r.page}`, i), 'text-link')} / ${esc(ss.title)}</p>`
     + head({eyebrow:`${i.title.toUpperCase()} · SESSION`, title:ss.title, lead:ss.description || '', meta:`${pill(ss.status)} ${supervisorChip(s, ss)}`, actions:[role === 'rep' && ss.status === 'Draft' ? u.button('Publish', 'session-publish', {id:ss.id}) : '', role === 'rep' && ss.status !== 'Cancelled' ? u.button('Edit / reschedule', 'session-edit', {id:ss.id}, 'button quiet') : '', ss.status !== 'Cancelled' && ss.attendanceRequired ? u.button('Assign supervisor', 'session-assign', {id:ss.id}, 'button quiet') : '', role === 'rep' && ['Draft','Published'].includes(ss.status) ? u.button('Cancel session', 'session-cancel', {id:ss.id}, 'button danger') : '', role === 'supervisor' && (ss.supervisorIds || []).includes(ctx.person.id) && ss.status === 'Published' ? u.link('Open attendance', `supervisor/attendance?session=${ss.id}`, 'button primary') : ''].join('')})
     + (needsSupervisor(s, ss) ? `<div class="iw-banner is-warning iw-reveal">${u.icon('shield')}<div><strong>Needs Supervisor</strong><p>Attendance confirmation is disabled for this session until an active Supervisor is assigned.</p></div></div>` : '')
-    + `<div class="iw-split">${card('Details', `<dl class="iw-facts"><div><dt>When</dt><dd>${esc(sessionWhen(ss))} · ${esc(ss.timezone || 'Asia/Amman')}</dd></div><div><dt>Mode</dt><dd>${esc(ss.format)}</dd></div>${ss.venue ? `<div><dt>Venue</dt><dd>${esc(ss.venue)}</dd></div>` : ''}${ss.format !== 'In-person' ? `<div><dt>Online access</dt><dd>${esc(ss.meeting || 'Shared with confirmed registrants')}</dd></div>` : ''}<div><dt>Seats</dt><dd>${esc(seatsText(s, ss))}</dd></div><div><dt>Registration window</dt><dd>${esc(ss.registrationOpen ? fmtDate(ss.registrationOpen) : 'Now')} – ${esc(fmtDate(ss.registrationClose || ss.date))}</dd></div><div><dt>Agenda</dt><dd>${esc(ss.agenda || '—')}</dd></div><div><dt>Completion rule</dt><dd>${esc(ss.completionRule || 'Attendance only')}</dd></div><div><dt>Check-in window</dt><dd>${esc(windowMessage(checkInWindow(s, ss)))}</dd></div></dl>${ss.cancelReason ? `<p class="iw-muted">Cancelled: ${esc(ss.cancelReason)}</p>` : ''}`)}
+    + `<div class="iw-split">${card('Details', `<dl class="iw-facts"><div><dt>When</dt><dd>${esc(sessionWhen(ss))} · ${esc(ss.timezone || 'Asia/Amman')}</dd></div><div><dt>Mode</dt><dd>${esc(ss.format)}</dd></div>${ss.venue ? `<div><dt>Venue</dt><dd>${esc(ss.venue)}${ss.address && ss.address !== ss.venue ? `<br>${esc(ss.address)}` : ''}<br><a class="text-link" href="${esc(mapUrl(ss.address || ss.venue))}" target="_blank" rel="noopener noreferrer">Open map ↗</a></dd></div>` : ''}${ss.format !== 'In-person' ? `<div><dt>Online access</dt><dd>${meetingUrl(ss.meeting) ? `<a class="text-link" href="${esc(meetingUrl(ss.meeting))}" target="_blank" rel="noopener noreferrer">Open meeting link ↗</a>` : esc(ss.meeting || 'Shared with confirmed registrants')}</dd></div>` : ''}<div><dt>Seats</dt><dd>${esc(seatsText(s, ss))}</dd></div><div><dt>Registration window</dt><dd>${esc(ss.registrationOpen ? fmtDate(ss.registrationOpen) : 'Now')} – ${esc(fmtDate(ss.registrationClose || ss.date))}</dd></div><div><dt>Agenda</dt><dd>${esc(ss.agenda || '—')}</dd></div><div><dt>Completion rule</dt><dd>${esc(ss.completionRule || 'Attendance only')}</dd></div><div><dt>Check-in window</dt><dd>${esc(windowMessage(checkInWindow(s, ss)))}</dd></div></dl>${ss.cancelReason ? `<p class="iw-muted">Cancelled: ${esc(ss.cancelReason)}</p>` : ''}`)}
       ${card('Change history', `<ol class="iw-history">${(ss.history || []).map(h => `<li><time>${esc(fmtDate(h.at))}</time><span>${esc(h.change)}${h.reason ? ` · ${esc(h.reason)}` : ''}</span><small>${esc(nameOf(s, h.actorId))}</small></li>`).join('') || '<li><span>No changes recorded.</span></li>'}</ol>`)}</div>`
     + card(`Confirmed roster · ${regs.length}`, regs.length ? u.table(['Participant','Mode','Booking code','Factual attendance','Excuse'], rows) : '<p class="iw-muted">No confirmed registrations yet. Accepted students register from My Initiatives.</p>', {extra:role === 'rep' ? '<small class="iw-muted">Read-only: attendance is recorded by the assigned Supervisor.</small>' : ''});
 }
@@ -97,13 +98,40 @@ export function renderSessionDetail(ctx, id, role, initiatives) {
 function sessionForm(ctx, ss, initiativeId) {
   const i = ctx.s.initiatives.find(x => x.id === initiativeId);
   const supervisors = activeGrantsFor(ctx.s, initiativeId, 'supervisor');
-  return `${u.field('title', 'Session title', ss.title || '', 'text', true)}${u.field('speaker', 'Host / facilitator', ss.speaker || ctx.person.name, 'text', true)}${u.area('description', 'Short description', ss.description || '')}${u.area('agenda', 'Agenda', ss.agenda || '')}
-    <div class="form-grid">${u.field('date', 'Date', ss.date || i.start, 'date', true)}${u.select('format', 'Mode', ['Online','In-person','Hybrid'], ss.format || 'Online')}${u.field('time', 'Start', ss.time || '17:00', 'time', true)}${u.field('endTime', 'End', ss.endTime || '18:00', 'time', true)}${u.field('onlineCapacity', 'Online seats', ss.onlineCapacity || 30, 'number', false, 'min="0"')}${u.field('inPersonCapacity', 'In-person seats', ss.inPersonCapacity || 20, 'number', false, 'min="0"')}${u.field('registrationOpen', 'Registration opens', ss.registrationOpen || i.registrationOpen || '', 'date')}${u.field('registrationClose', 'Registration closes', ss.registrationClose || '', 'date')}</div>
-    ${u.field('venue', 'Venue (in-person or hybrid)', ss.venue || i.venue || '')}${u.field('meeting', 'Online access note (protected link shared later)', ss.meeting || 'Protected meeting link shared with confirmed registrants')}${u.field('completionRule', 'Completion rule', ss.completionRule || 'Attendance only')}
+  const selected = ss.format === 'In-person' || (ss.format === 'Hybrid' && ss.venue) ? 'In-person' : 'Online';
+  return `<div class="iw-session-intro"><p class="eyebrow">SESSION DETAILS</p><p>Choose how students will join. Their local confirmation preview will include only the relevant map or meeting link.</p></div>
+    ${u.field('title', 'Session title', ss.title || '', 'text', true)}${u.field('speaker', 'Host / facilitator', ss.speaker || ctx.person.name, 'text', true)}${u.area('description', 'Short description', ss.description || '')}${u.area('agenda', 'Agenda', ss.agenda || '')}
+    <div class="form-grid">${u.field('date', 'Date', ss.date || i.start, 'date', true)}${u.field('time', 'Start', ss.time || '17:00', 'time', true)}${u.field('endTime', 'End', ss.endTime || '18:00', 'time', true)}${u.field('registrationOpen', 'Registration opens', ss.registrationOpen || i.registrationOpen || '', 'date')}${u.field('registrationClose', 'Registration closes', ss.registrationClose || '', 'date')}</div>
+    <fieldset class="iw-session-mode"><legend>Where will this session happen?</legend><div class="iw-session-options">
+      <label><input type="radio" name="format" value="Online" ${selected === 'Online' ? 'checked' : ''}><span><strong>Remote</strong><small>Share a Google Meet or Zoom link</small></span></label>
+      <label><input type="radio" name="format" value="In-person" ${selected === 'In-person' ? 'checked' : ''}><span><strong>On-site</strong><small>Show the address and map</small></span></label>
+    </div></fieldset>
+    <section class="iw-session-access" data-session-panel="Online" aria-label="Remote access">${u.field('meeting', 'Google Meet or Zoom link', meetingUrl(ss.meeting), 'url', false, 'placeholder="https://meet.google.com/..."')}<div class="form-grid">${u.field('onlineCapacity', 'Remote seats', ss.onlineCapacity || 30, 'number', false, 'min="1"')}</div><p class="iw-session-hint">The student preview will show this link after the session is published and when a booking is confirmed.</p></section>
+    <section class="iw-session-access" data-session-panel="In-person" aria-label="On-site location">${u.field('venue', 'Venue name', ss.venue || i.venue || '', 'text', false, 'placeholder="Horizon Youth Center"')}${u.field('address', 'Street address or map location', ss.address || ss.venue || i.venue || '', 'text', false, 'placeholder="Street, city, country"')}<div class="form-grid">${u.field('inPersonCapacity', 'On-site seats', ss.inPersonCapacity || 20, 'number', false, 'min="1"')}</div><div class="iw-session-map"><div class="iw-session-map-head"><strong>Location preview</strong><a data-session-map-link href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Open in Google Maps ↗</a></div><p data-session-map-empty>Enter the location to preview it on the map.</p><iframe title="Session location preview" data-session-map-frame loading="lazy" referrerpolicy="no-referrer-when-downgrade" hidden></iframe><p class="iw-session-map-foot">Map preview needs an internet connection. Use “Open in Google Maps” if it does not load.</p></div></section>
+    ${u.field('completionRule', 'Completion rule', ss.completionRule || 'Attendance only')}
     ${u.checkbox('attendanceRequired', 'This session records attendance (needs an active Supervisor)', ss.attendanceRequired !== false)}
     <fieldset class="iw-fieldset"><legend>Check-in window policy</legend><div class="form-grid">${u.select('checkInMode', 'Policy', [['window','Window around the session'],['anytime','Any time (explicit exception)']], ss.checkInPolicy?.mode || 'window')}${u.field('checkInBefore', 'Opens · minutes before start', ss.checkInPolicy?.before ?? 30, 'number', false, 'min="0" max="240"')}${u.field('checkInAfter', 'Closes · minutes after end', ss.checkInPolicy?.after ?? 30, 'number', false, 'min="0" max="720"')}</div><small class="iw-muted">QR, code and online roster check-in work only inside the window. After it closes, the Supervisor can still record a reasoned manual exception or a correction.</small></fieldset>
     ${supervisors.length ? `<fieldset class="iw-fieldset"><legend>Responsible Supervisor(s)</legend>${supervisors.map(g => u.checkbox('supervisorIds', nameOf(ctx.s, g.personId), (ss.supervisorIds || []).includes(g.personId), g.personId)).join('')}</fieldset>` : '<p class="iw-muted">No active Supervisor yet — the session will show “Needs Supervisor” until one is assigned.</p>'}
     ${ss.status === 'Published' ? u.area('reason', 'Reason for the change (sent to registrants if the time or place moves)', '') : ''}`;
+}
+function syncSessionAccess(form) {
+  const mode = form.querySelector('input[name="format"]:checked')?.value || 'Online';
+  form.querySelectorAll('[data-session-panel]').forEach(panel => {
+    const active = panel.dataset.sessionPanel === mode;
+    panel.hidden = !active;
+    panel.querySelectorAll('input').forEach(input => { input.disabled = !active; input.required = active && ['meeting','venue','address'].includes(input.name); });
+  });
+  const address = form.elements.address?.value.trim();
+  const frame = form.querySelector('[data-session-map-frame]');
+  const empty = form.querySelector('[data-session-map-empty]');
+  const link = form.querySelector('[data-session-map-link]');
+  if (frame && address && mode === 'In-person') {
+    const src = mapEmbedUrl(address);
+    if (frame.getAttribute('src') !== src) frame.src = src;
+    frame.hidden = false; empty.hidden = true; link.href = mapUrl(address); link.hidden = false;
+  } else if (frame) {
+    frame.hidden = true; empty.hidden = false; link.hidden = true;
+  }
 }
 export function sessionAction(action, target, ctx) {
   const d = target.dataset, s = ctx.s;
@@ -111,12 +139,16 @@ export function sessionAction(action, target, ctx) {
     const ss = s.sessions.find(x => x.id === d.id) || {};
     const initiativeId = ss.initiativeId || d.initiative || ctx.localUI.initiativeId;
     u.modal(ss.id ? 'Edit or reschedule session' : 'Create a session', sessionForm(ctx, ss, initiativeId), (v, f) => {
-      const id = ctx.run('initiative.session.save', {...v, id:ss.id, initiativeId, attendanceRequired:f.elements.attendanceRequired.checked, supervisorIds:[...f.querySelectorAll('input[name="supervisorIds"]:checked')].map(x => x.value)}, ss.id ? 'Session updated. Registrants are notified of time or place changes.' : 'Session saved as a draft.');
+      const id = ctx.run('initiative.session.save', {...v, id:ss.id, initiativeId, attendanceRequired:f.elements.attendanceRequired.checked, supervisorIds:[...f.querySelectorAll('input[name="supervisorIds"]:checked')].map(x => x.value)}, ss.id ? 'Session updated. Registrants are notified of access changes.' : 'Session saved as a draft.');
       ctx.go(`${ctx.route.area}/sessions/${id}`);
-    }, ss.id ? 'Save changes' : 'Save draft');
+    }, ss.id ? 'Save changes' : 'Save draft', {wide:true});
+    const form = document.getElementById('dialog-form');
+    form.onchange = () => syncSessionAccess(form);
+    form.oninput = event => { if (event.target.name === 'address') syncSessionAccess(form); };
+    syncSessionAccess(form);
     return true;
   }
-  if (action === 'session-publish') { ctx.run('initiative.session.publish', {id:d.id}, 'Session published. Accepted students can register.'); ctx.render(); return true; }
+  if (action === 'session-publish') { ctx.run('initiative.session.publish', {id:d.id}, 'Session published. Accepted students have a local notice and email preview.'); ctx.render(); return true; }
   if (action === 'session-cancel') { u.modal('Cancel this session?', `<p>Registrants are notified. Existing registrations and attendance stay in history.</p>${u.area('reason', 'Reason', '', true)}`, v => { ctx.run('initiative.session.cancel', {id:d.id, reason:v.reason}, 'Session cancelled and registrants notified.'); ctx.render(); }, 'Cancel session'); return true; }
   if (action === 'session-assign') {
     const ss = s.sessions.find(x => x.id === d.id), sups = activeGrantsFor(s, ss.initiativeId, 'supervisor');

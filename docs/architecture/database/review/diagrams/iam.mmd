@@ -1,0 +1,316 @@
+erDiagram
+    activity_OfflineRoutine {
+        bigint Id PK
+    }
+    activity_PracticeAttempt {
+        bigint Id PK
+    }
+    activity_PracticeProgressionDecision {
+        bigint Id PK
+    }
+    coach_CoachApproval {
+        bigint Id PK
+    }
+    coach_CoachProgram {
+        bigint Id PK
+    }
+    coach_GroupCoachAssignment {
+        bigint Id PK
+    }
+    coach_InitiativeGroupPlacement {
+        bigint Id PK
+    }
+    coach_ProgramCompletion {
+        bigint Id PK
+    }
+    coach_ProgramGroupMembership {
+        bigint Id PK
+    }
+    commercial_EntitlementAllocation {
+        bigint Id PK
+    }
+    commercial_Subscription {
+        bigint Id PK
+    }
+    community_Bookmark {
+        bigint Id PK
+    }
+    community_Comment {
+        bigint Id PK
+    }
+    community_ContentReport {
+        bigint Id PK
+    }
+    community_JointGoal {
+        bigint Id PK
+    }
+    community_JointGoalMember {
+        bigint Id PK
+    }
+    community_ModerationDecision {
+        bigint Id PK
+    }
+    community_Post {
+        bigint Id PK
+    }
+    community_Reaction {
+        bigint Id PK
+    }
+    evidence_EvidenceEvent {
+        bigint Id PK
+    }
+    evidence_PersonalRewardEntry {
+        bigint Id PK
+    }
+    files_SecureFile {
+        bigint Id PK
+    }
+    forms_CompetitionEntry {
+        bigint Id PK
+    }
+    forms_CompetitionJudgment {
+        bigint Id PK
+    }
+    forms_FormResponse {
+        bigint Id PK
+    }
+    governance_ContentRelease {
+        bigint Id PK
+    }
+    governance_GovernanceAction {
+        bigint Id PK
+    }
+    iam_ConsentRecord {
+        bigint Id PK
+    }
+    iam_GlobalGrant {
+        bigint Id PK
+    }
+    iam_OtpChallenge {
+        bigint Id PK
+    }
+    iam_PasswordCredential {
+        bigint Id PK
+    }
+    iam_Person {
+        bigint Id PK
+    }
+    iam_PersonEmail {
+        bigint Id PK
+    }
+    institution_Initiative {
+        bigint Id PK
+    }
+    institution_InitiativeApplication {
+        bigint Id PK
+    }
+    institution_InitiativeApplicationDecision {
+        bigint Id PK
+    }
+    institution_InitiativeDraft {
+        bigint Id PK
+    }
+    institution_InitiativeMembership {
+        bigint Id PK
+    }
+    institution_InitiativeStaffAppointment {
+        bigint Id PK
+    }
+    institution_InitiativeStaffInvitation {
+        bigint Id PK
+    }
+    institution_InstitutionVerificationCase {
+        bigint Id PK
+    }
+    institution_RepresentativeMembership {
+        bigint Id PK
+    }
+    lab_AssessmentAttempt {
+        bigint Id PK
+    }
+    lab_AssessmentWindow {
+        bigint Id PK
+    }
+    ops_AuditEvent {
+        bigint Id PK
+    }
+    ops_IdempotencyRecord {
+        bigint Id PK
+    }
+    ops_Notification {
+        bigint Id PK
+    }
+    partnership_ExperienceLink {
+        bigint Id PK
+    }
+    partnership_ProgramLink {
+        bigint Id PK
+    }
+    personal_IndividualProfile {
+        bigint Id PK
+    }
+    provider_CampCompletion {
+        bigint Id PK
+    }
+    provider_ExperienceBooking {
+        bigint Id PK
+    }
+    provider_ProviderAttendance {
+        bigint Id PK
+    }
+    provider_ProviderAttendanceCorrection {
+        bigint Id PK
+    }
+    provider_ProviderIncident {
+        bigint Id PK
+    }
+    provider_ProviderMembership {
+        bigint Id PK
+    }
+    provider_ProviderStaffAppointment {
+        bigint Id PK
+    }
+    provider_ProviderStaffInvitation {
+        bigint Id PK
+    }
+    provider_ProviderVerificationCase {
+        bigint Id PK
+    }
+    recovery_RecoveryJourney {
+        bigint Id PK
+    }
+    session_AbsenceExcuse {
+        bigint Id PK
+    }
+    session_AttendanceCorrection {
+        bigint Id PK
+    }
+    session_InitiativeCompletion {
+        bigint Id PK
+    }
+    session_SessionAttendance {
+        bigint Id PK
+    }
+    session_SessionRegistration {
+        bigint Id PK
+    }
+    session_StandaloneSessionSupervisorAppointment {
+        bigint Id PK
+    }
+    shield_BrowserUsagePeriod {
+        bigint Id PK
+    }
+    shield_ExtensionInstallation {
+        bigint Id PK
+    }
+    shield_ProtectionSession {
+        bigint Id PK
+    }
+    shield_ShieldConfiguration {
+        bigint Id PK
+    }
+    task_Assignment {
+        bigint Id PK
+    }
+    task_AssignmentRecipient {
+        bigint Id PK
+    }
+    task_CoachReport {
+        bigint Id PK
+    }
+    task_ReviewDecision {
+        bigint Id PK
+    }
+    task_ReviewPrivateNote {
+        bigint Id PK
+    }
+    task_SupervisorReport {
+        bigint Id PK
+    }
+    iam_Person ||--o{ iam_ConsentRecord : "FK_ConsentRecord_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ iam_GlobalGrant : "FK_GlobalGrant_Person_GrantedByPersonId GrantedByPersonId to Id"
+    iam_Person ||--o{ iam_GlobalGrant : "FK_GlobalGrant_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ iam_OtpChallenge : "FK_OtpChallenge_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ iam_PasswordCredential : "FK_PasswordCredential_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ activity_OfflineRoutine : "FK_OfflineRoutine_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ activity_PracticeAttempt : "FK_PracticeAttempt_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ activity_PracticeProgressionDecision : "FK_PracticeProgressionDecision_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ coach_CoachApproval : "FK_CoachApproval_Person_DecidedByPersonId DecidedByPersonId to Id"
+    iam_Person ||--o{ coach_CoachApproval : "FK_CoachApproval_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ coach_CoachProgram : "FK_CoachProgram_Person_OwnerPersonId OwnerPersonId to Id"
+    iam_Person ||--o{ coach_GroupCoachAssignment : "FK_GroupCoachAssignment_Person_AssignedByPersonId AssignedByPersonId to Id"
+    iam_Person ||--o{ coach_GroupCoachAssignment : "FK_GroupCoachAssignment_Person_CoachPersonId CoachPersonId to Id"
+    iam_Person ||--o{ coach_InitiativeGroupPlacement : "FK_InitiativeGroupPlacement_Person_MovedByPersonId MovedByPersonId to Id"
+    iam_Person ||--o{ coach_ProgramCompletion : "FK_ProgramCompletion_Person_EvaluatorPersonId EvaluatorPersonId to Id"
+    iam_Person ||--o{ coach_ProgramCompletion : "FK_ProgramCompletion_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ coach_ProgramGroupMembership : "FK_ProgramGroupMembership_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ commercial_EntitlementAllocation : "FK_EntitlementAllocation_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ commercial_Subscription : "FK_Subscription_Person_PersonPayerId PersonPayerId to Id"
+    iam_Person ||--o{ community_Bookmark : "FK_Bookmark_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ community_Comment : "FK_Comment_Person_AuthorPersonId AuthorPersonId to Id"
+    iam_Person ||--o{ community_ContentReport : "FK_ContentReport_Person_ReporterPersonId ReporterPersonId to Id"
+    iam_Person ||--o{ community_JointGoal : "FK_JointGoal_Person_CreatorPersonId CreatorPersonId to Id"
+    iam_Person ||--o{ community_JointGoalMember : "FK_JointGoalMember_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ community_ModerationDecision : "FK_ModerationDecision_Person_ModeratorPersonId ModeratorPersonId to Id"
+    iam_Person ||--o{ community_Post : "FK_Post_Person_AuthorPersonId AuthorPersonId to Id"
+    iam_Person ||--o{ community_Reaction : "FK_Reaction_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ evidence_EvidenceEvent : "FK_EvidenceEvent_Person_SubjectPersonId SubjectPersonId to Id"
+    iam_Person ||--o{ evidence_PersonalRewardEntry : "FK_PersonalRewardEntry_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ files_SecureFile : "FK_SecureFile_Person_OwnerPersonId OwnerPersonId to Id"
+    iam_Person ||--o{ forms_CompetitionEntry : "FK_CompetitionEntry_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ forms_CompetitionJudgment : "FK_CompetitionJudgment_Person_JudgePersonId JudgePersonId to Id"
+    iam_Person ||--o{ forms_FormResponse : "FK_FormResponse_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ governance_ContentRelease : "FK_ContentRelease_Person_PublishedByPersonId PublishedByPersonId to Id"
+    iam_Person ||--o{ governance_GovernanceAction : "FK_GovernanceAction_Person_ActorPersonId ActorPersonId to Id"
+    iam_Person ||--o{ iam_PersonEmail : "FK_PersonEmail_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ institution_Initiative : "FK_Initiative_Person_CancelledByPersonId CancelledByPersonId to Id"
+    iam_Person ||--o{ institution_InitiativeApplication : "FK_InitiativeApplication_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ institution_InitiativeApplicationDecision : "FK_InitiativeApplicationDecision_Person_ActorPersonId ActorPersonId to Id"
+    iam_Person ||--o{ institution_InitiativeDraft : "FK_InitiativeDraft_Person_UpdatedByPersonId UpdatedByPersonId to Id"
+    iam_Person ||--o{ institution_InitiativeMembership : "FK_InitiativeMembership_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ institution_InitiativeStaffAppointment : "FK_InitiativeStaffAppointment_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ institution_InitiativeStaffInvitation : "FK_InitiativeStaffInvitation_Person_InvitedByPersonId InvitedByPersonId to Id"
+    iam_Person ||--o{ institution_InstitutionVerificationCase : "FK_InstitutionVerificationCase_Person_ApplicantPersonId ApplicantPersonId to Id"
+    iam_Person ||--o{ institution_InstitutionVerificationCase : "FK_InstitutionVerificationCase_Person_DecidedByPersonId DecidedByPersonId to Id"
+    iam_Person ||--o{ institution_RepresentativeMembership : "FK_RepresentativeMembership_Person_GrantedByPersonId GrantedByPersonId to Id"
+    iam_Person ||--o{ institution_RepresentativeMembership : "FK_RepresentativeMembership_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ lab_AssessmentAttempt : "FK_AssessmentAttempt_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ lab_AssessmentWindow : "FK_AssessmentWindow_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ ops_AuditEvent : "FK_AuditEvent_Person_ActorPersonId ActorPersonId to Id"
+    iam_Person ||--o{ ops_IdempotencyRecord : "FK_IdempotencyRecord_Person_ActorPersonId ActorPersonId to Id"
+    iam_Person ||--o{ ops_Notification : "FK_Notification_Person_RecipientPersonId RecipientPersonId to Id"
+    iam_Person ||--o{ partnership_ExperienceLink : "FK_ExperienceLink_Person_AcceptedByPersonId AcceptedByPersonId to Id"
+    iam_Person ||--o{ partnership_ExperienceLink : "FK_ExperienceLink_Person_RequestedByPersonId RequestedByPersonId to Id"
+    iam_Person ||--o{ partnership_ProgramLink : "FK_ProgramLink_Person_AcceptedByPersonId AcceptedByPersonId to Id"
+    iam_Person ||--o{ partnership_ProgramLink : "FK_ProgramLink_Person_RequestedByPersonId RequestedByPersonId to Id"
+    iam_Person ||--o{ personal_IndividualProfile : "FK_IndividualProfile_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ provider_CampCompletion : "FK_CampCompletion_Person_EvaluatorPersonId EvaluatorPersonId to Id"
+    iam_Person ||--o{ provider_ExperienceBooking : "FK_ExperienceBooking_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ provider_ProviderAttendance : "FK_ProviderAttendance_Person_RecordedByPersonId RecordedByPersonId to Id"
+    iam_Person ||--o{ provider_ProviderAttendanceCorrection : "FK_ProviderAttendanceCorrection_Person_CorrectedByPersonId CorrectedByPersonId to Id"
+    iam_Person ||--o{ provider_ProviderIncident : "FK_ProviderIncident_Person_ReportedByPersonId ReportedByPersonId to Id"
+    iam_Person ||--o{ provider_ProviderMembership : "FK_ProviderMembership_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ provider_ProviderStaffAppointment : "FK_ProviderStaffAppointment_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ provider_ProviderStaffInvitation : "FK_ProviderStaffInvitation_Person_InvitedByPersonId InvitedByPersonId to Id"
+    iam_Person ||--o{ provider_ProviderVerificationCase : "FK_ProviderVerificationCase_Person_ApplicantPersonId ApplicantPersonId to Id"
+    iam_Person ||--o{ provider_ProviderVerificationCase : "FK_ProviderVerificationCase_Person_DecidedByPersonId DecidedByPersonId to Id"
+    iam_Person ||--o{ recovery_RecoveryJourney : "FK_RecoveryJourney_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ session_AbsenceExcuse : "FK_AbsenceExcuse_Person_DecidedByPersonId DecidedByPersonId to Id"
+    iam_Person ||--o{ session_AbsenceExcuse : "FK_AbsenceExcuse_Person_RecommendedByPersonId RecommendedByPersonId to Id"
+    iam_Person ||--o{ session_AbsenceExcuse : "FK_AbsenceExcuse_Person_SubmittedByPersonId SubmittedByPersonId to Id"
+    iam_Person ||--o{ session_AttendanceCorrection : "FK_AttendanceCorrection_Person_CorrectedByPersonId CorrectedByPersonId to Id"
+    iam_Person ||--o{ session_InitiativeCompletion : "FK_InitiativeCompletion_Person_EvaluatorPersonId EvaluatorPersonId to Id"
+    iam_Person ||--o{ session_SessionAttendance : "FK_SessionAttendance_Person_RecordedByPersonId RecordedByPersonId to Id"
+    iam_Person ||--o{ session_SessionRegistration : "FK_SessionRegistration_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ session_StandaloneSessionSupervisorAppointment : "FK_StandaloneSessionSupervisorAppointment_Person_InvitedByPersonId InvitedByPersonId to Id"
+    iam_Person ||--o{ session_StandaloneSessionSupervisorAppointment : "FK_StandaloneSessionSupervisorAppointment_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ shield_BrowserUsagePeriod : "FK_BrowserUsagePeriod_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ shield_ExtensionInstallation : "FK_ExtensionInstallation_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ shield_ProtectionSession : "FK_ProtectionSession_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ shield_ShieldConfiguration : "FK_ShieldConfiguration_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ task_Assignment : "FK_Assignment_Person_AuthorPersonId AuthorPersonId to Id"
+    iam_Person ||--o{ task_AssignmentRecipient : "FK_AssignmentRecipient_Person_PersonId PersonId to Id"
+    iam_Person ||--o{ task_CoachReport : "FK_CoachReport_Person_AuthorPersonId AuthorPersonId to Id"
+    iam_Person ||--o{ task_ReviewDecision : "FK_ReviewDecision_Person_ReviewerPersonId ReviewerPersonId to Id"
+    iam_Person ||--o{ task_ReviewPrivateNote : "FK_ReviewPrivateNote_Person_AuthorPersonId AuthorPersonId to Id"
+    iam_Person ||--o{ task_SupervisorReport : "FK_SupervisorReport_Person_AuthorPersonId AuthorPersonId to Id"

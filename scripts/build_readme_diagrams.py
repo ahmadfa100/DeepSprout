@@ -101,19 +101,18 @@ for x in (220,600,980):
     body.append(line(x,533,x,471))
 write("workspaces-diagram.svg", "DeepSprout workspaces", "Individual, Coach, Student, Institution, Supervisor and Outdoor Provider share platform records under Admin governance.", 1200, 710, "".join(body))
 
-body=[txt(48,65,"Architecture: present and target",34,INK,700),txt(48,103,"The repository is a static, browser-local demonstration today.",20,MUTED),
+body=[txt(48,65,"Architecture: present and target",34,INK,700),txt(48,103,"The website is a browser-local demo; database validation is a separate milestone.",20,MUTED),
       rect(45,139,1110,191),txt(70,182,"CURRENT / STATIC DEMO",18,GREEN,700),
       txt(70,230,"HTML + CSS + JavaScript",25,INK,700),txt(415,230,"→",27,GREEN,700),
       txt(475,230,"Browser-local journals + shared records",23,INK,600),
-      txt(70,282,"Client/ pages, assets and hash-routed workspaces; local preview server only.",19,MUTED),
+      txt(70,282,"Client/ pages and workspaces; Server/ has EF Core + SQL Server validation.",19,MUTED),
       rect(45,370,1110,266,PALE),txt(70,414,"TARGET / PRODUCTION ARCHITECTURE",18,GREEN,700),
-      txt(70,470,"Angular client",25,INK,700),txt(318,470,"→",27,GREEN,700),
-      txt(372,470,"ASP.NET Core API + services",24,INK,700),txt(735,470,"→",27,GREEN,700),
-      txt(790,470,"EF Core + SQL Server",23,INK,700),
+      txt(70,470,"ASP.NET Core MVC",25,INK,700),txt(365,470,"→",27,GREEN,700),
+      txt(420,470,"EF Core + SQL Server",24,INK,700),
       txt(70,523,"Authenticated identity · role and resource scopes · versioned transitions · audit trail",19,MUTED),
       txt(70,569,"Optional validated browser extension",21,INK,600),
-      txt(70,601,"Separate hosting is required for APIs and data; GitHub Pages serves static files only.",18,MUTED)]
-write("architecture.svg", "DeepSprout current and target architecture", "Current browser-local HTML, CSS and JavaScript compared with proposed Angular, ASP.NET Core, Entity Framework Core and SQL Server services.", 1200, 680, "".join(body))
+      txt(70,601,"MVC hosting and a database are required; GitHub Pages serves static files only.",18,MUTED)]
+write("architecture.svg", "DeepSprout current and target architecture", "The browser-local website and separate database milestone compared with the planned ASP.NET Core MVC application using EF Core and SQL Server.", 1200, 680, "".join(body))
 
 body=[txt(48,65,"Operational cycles share original records",33,INK,700),txt(48,100,"Publication, participation, evidence and review cross workspace boundaries.",20,MUTED)]
 flows=[("INSTITUTION", "Initiative published", "Apply · assign · attend", "Review · report · Group Garden"),

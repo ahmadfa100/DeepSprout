@@ -1,0 +1,17 @@
+{"timestampUtc":"2026-11-01T10:14:40.9363484Z","id":"COMM-ENV","status":"PASS","detail":"DESKTOP-A4AL2KR/DeepSprout_Validation; SPID=79"}
+{"timestampUtc":"2026-11-01T10:14:40.9892378Z","id":"COMM-SCHEMA","status":"PASS","detail":"9 community tables, 14 migrations, trusted FK/CHECK"}
+{"timestampUtc":"2026-11-01T10:14:41.0163298Z","id":"COMM-POST-EVIDENCE-OWNER","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the FOREIGN KEY constraint \u0022FK_Post_EvidenceEvent_SharedEvidenceEventId_AuthorPersonId\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022evidence.EvidenceEvent\u0022."}
+{"timestampUtc":"2026-11-01T10:14:41.0190098Z","id":"COMM-POST-PUBLISH-TIME","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the CHECK constraint \u0022CK_Post_Published\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022community.Post\u0022."}
+{"timestampUtc":"2026-11-01T10:14:41.0278915Z","id":"COMM-POST-OWNER","status":"PASS","detail":"SQL 60001; Post author is immutable"}
+{"timestampUtc":"2026-11-01T10:14:41.0306528Z","id":"COMM-COMMENT-STATUS","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the CHECK constraint \u0022CK_Comment_Status\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022community.Comment\u0022, column \u0027Status\u0027."}
+{"timestampUtc":"2026-11-01T10:14:41.0364544Z","id":"COMM-COMMENT-OWNER","status":"PASS","detail":"SQL 60002; Comment owner and post are immutable"}
+{"timestampUtc":"2026-11-01T10:14:41.0553509Z","id":"COMM-REACTION-RACE","status":"PASS","detail":"SPIDs=81,80; errors=2601,0"}
+{"timestampUtc":"2026-11-01T10:14:41.0576947Z","id":"COMM-BOOKMARK-UNIQUE","status":"PASS","detail":"SQL 2601; Cannot insert duplicate key row in object \u0027community.Bookmark\u0027 with unique index \u0027IX_Bookmark_PostId_PersonId\u0027. The duplicate key value is (12, 1953)."}
+{"timestampUtc":"2026-11-01T10:14:41.0610771Z","id":"COMM-REPORT-XOR","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the CHECK constraint \u0022CK_ContentReport_Target\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022community.ContentReport\u0022."}
+{"timestampUtc":"2026-11-01T10:14:41.0674494Z","id":"COMM-REPORT-TARGET-IMMUTABLE","status":"PASS","detail":"SQL 60003; Content report target and reporter are immutable"}
+{"timestampUtc":"2026-11-01T10:14:41.0713295Z","id":"COMM-MODERATION-IMMUTABLE","status":"PASS","detail":"SQL 60004; Moderation decision is append-only"}
+{"timestampUtc":"2026-11-01T10:14:41.0752456Z","id":"COMM-CHECKIN-MEMBER-FK","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the FOREIGN KEY constraint \u0022FK_JointGoalCheckIn_JointGoalMember_GoalId_PersonId\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022community.JointGoalMember\u0022."}
+{"timestampUtc":"2026-11-01T10:14:41.0829017Z","id":"COMM-CHECKIN-ACTIVE","status":"PASS","detail":"SQL 60006; Joint goal check-in requires active goal membership"}
+{"timestampUtc":"2026-11-01T10:14:41.0895877Z","id":"COMM-CHECKIN-IMMUTABLE","status":"PASS","detail":"SQL 60005; Joint goal check-in is append-only"}
+{"timestampUtc":"2026-11-01T10:14:41.0908729Z","id":"COMM-PRESERVATION","status":"PASS","detail":"Task and M1 rows remain present"}
+{"timestampUtc":"2026-11-01T10:14:41.0910186Z","id":"COMM-SUMMARY","status":"PASS","detail":"failures=0; fixtureTag=community-b61c5a3ef0"}

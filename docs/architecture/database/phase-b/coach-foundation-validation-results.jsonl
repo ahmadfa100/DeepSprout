@@ -1,0 +1,16 @@
+{"timestampUtc":"2026-11-01T05:55:46.9199948Z","id":"COACH-ENV","status":"PASS","detail":"DESKTOP-A4AL2KR/DeepSprout_Validation; SPID=51"}
+{"timestampUtc":"2026-11-01T05:55:46.9465508Z","id":"COACH-SCHEMA","status":"PASS","detail":"5 Coach foundation tables, 9 migrations, all FK/CHECK trusted"}
+{"timestampUtc":"2026-11-01T05:55:46.9649791Z","id":"COACH-APPROVAL-STATUS","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the CHECK constraint \u0022CK_CoachApproval_Status\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022coach.CoachApproval\u0022, column \u0027Status\u0027."}
+{"timestampUtc":"2026-11-01T05:55:46.9669375Z","id":"COACH-PUBLISH-GUARD","status":"PASS","detail":"SQL 55002; Published Program requires a revision"}
+{"timestampUtc":"2026-11-01T05:55:46.9823702Z","id":"COACH-REVISION-RACE","status":"PASS","detail":"SPIDs=55,53; errors=0,2601"}
+{"timestampUtc":"2026-11-01T05:55:46.9832899Z","id":"COACH-STAGE-TIMES","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the CHECK constraint \u0022CK_ProgramStage_Times\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022coach.ProgramStage\u0022."}
+{"timestampUtc":"2026-11-01T05:55:46.9844563Z","id":"COACH-STAGE-IMMUTABLE","status":"PASS","detail":"SQL 55004; Program stage is immutable"}
+{"timestampUtc":"2026-11-01T05:55:46.9850008Z","id":"COACH-REVISION-IMMUTABLE","status":"PASS","detail":"SQL 55003; Program revision is immutable"}
+{"timestampUtc":"2026-11-01T05:55:46.9860815Z","id":"COACH-STAGE-SEALED","status":"PASS","detail":"SQL 55005; Program stages cannot be added after publication"}
+{"timestampUtc":"2026-11-01T05:55:46.9867404Z","id":"COACH-OWNER-IMMUTABLE","status":"PASS","detail":"SQL 55001; Coach Program owner is immutable"}
+{"timestampUtc":"2026-11-01T05:55:46.9878942Z","id":"COACH-GROUP-XOR","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the CHECK constraint \u0022CK_OperationalGroup_Parent\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022coach.OperationalGroup\u0022."}
+{"timestampUtc":"2026-11-01T05:55:46.9885366Z","id":"COACH-GROUP-NULLABLE","status":"PASS","detail":"nullable parent and XOR hold for Program group"}
+{"timestampUtc":"2026-11-01T05:55:46.9893499Z","id":"COACH-GROUP-PARENT-IMMUTABLE","status":"PASS","detail":"SQL 55006; Operational Group parent cannot change"}
+{"timestampUtc":"2026-11-01T05:55:47.8335355Z","id":"COACH-EF-OUTPUT","status":"PASS","detail":"EF Core inserted triggered Program and Group with generated IDs"}
+{"timestampUtc":"2026-11-01T05:55:47.8368645Z","id":"COACH-M1-PRESERVATION","status":"PASS","detail":"M1, Lab, and Shield rows remain present"}
+{"timestampUtc":"2026-11-01T05:55:47.8369454Z","id":"COACH-SUMMARY","status":"PASS","detail":"failures=0; fixtureTag=coach-2d8cd67fe9"}

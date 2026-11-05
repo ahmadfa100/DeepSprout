@@ -12,13 +12,14 @@
 
 ![Editorial DeepSprout illustration: a short-form feed gives way to a growing sprout](docs/assets/readme/deepsprout-hero.svg)
 
-DeepSprout joins a **personal Recovery Journey** with practice, browser support, real-world opportunities, and guided group work. The [product specification](DeepSprout.md) describes the intended platform. This repository currently runs a substantial **static demonstration** with browser-local records; it is not a deployed health service or production multi-user system.
+DeepSprout joins a **personal Recovery Journey** with practice, browser support, real-world opportunities, and guided group work. Start with the [current product guide](docs/current-product-guide.md) for every page and connected cycle; the [product specification](DeepSprout.md) records intended rules and older decisions. The website can now be served by ASP.NET Core MVC from `Server/`. Its existing interactions still use browser-local demo records; server authentication and durable product persistence remain future work.
 
 **Explore the demo:** [Home](index.html) · [Individual activities](Client/src/pages/member/training/training.html) · [Partner workspaces](Client/workspaces.html#/auth/login) · [System Journey walkthrough](Client/workspaces.html#/admin/system-journey)
 
 ## Contents
 
 - [Why DeepSprout](#why-deepsprout)
+- [Current page and cycle guide](#current-page-and-cycle-guide)
 - [Product preview](#product-preview)
 - [What the platform does](#what-the-platform-does)
 - [The Recovery Journey](#the-recovery-journey)
@@ -41,11 +42,15 @@ Short-form feeds can consume time a person meant to spend on rest, relationships
 
 The personal journey is supported by four distinct systems: **Recovery Plan** schedules and adapts actions; **Activities** holds practice and an optional offline routine; **Digital Shield** offers browser-scoped protection and usage reminders; **Lab and Insights** retain measurement and its source. **Explore** brings institution initiatives, workshops, and provider experiences into the same participation journey. Community and the original companion Bimo make the experience more welcoming. See [master §§1–2](DeepSprout.md#1-vision-positioning-users-and-product-boundaries) for product boundaries.
 
+## Current page and cycle guide
+
+The [3 November 2026 guide](docs/current-product-guide.md) inventories the public and access pages, every Individual destination, partner and Admin workspaces, and the personal, Institution, Coach, Student, Provider, Supervisor and governance cycles. It distinguishes what the browser demo does now from the database milestone and intended MVC server.
+
 ## Product preview
 
 ![Actual desktop render of the current DeepSprout home page, with Bimo beside the introductory message](docs/assets/readme/home-preview.png)
 
-The image above is a **real local browser capture** of the current homepage at 1440 × 900 with its seeded demo account. It is distinct from the conceptual diagrams below. The [root entry](index.html) and [Client source](Client/index.html) render the same page.
+The image above is a **local browser capture** of the homepage at 1440 × 900 with a seeded demo account, taken for an earlier documentation pass. The current page may have changed since that capture. The [root entry](index.html) and [Client source](Client/index.html) use the same page markup.
 
 ## What the platform does
 
@@ -56,7 +61,7 @@ The image above is a **real local browser capture** of the current homepage at 1
 | Meaningful Practices | Depth Practice, Listening & Recall, Practical Micro-Challenge, and Protected Work; independent levels and evidence | Four local players and versioned content; [Round 2B report](docs/implementation/deepsprout-round2b-meaningful-practices-report.md) |
 | Offline Routine | Small personally chosen real-world commitments | Local self-report, separate from system-scored practice |
 | Digital Shield | Manual Website Protection and one shared selected-site Usage Reminder | Optional **local Chrome extension**; supported-domain, browser-only coverage and pairing limits in its [guide](Client/extensions/digital-shield/README.md). No Pages pairing or production sync is claimed |
-| Personal Garden | Earned visual growth from eligible practice and selected participation records | Four practice-type trees and bounded details in the current demo; source rules remain subject to product review |
+| Personal Garden | Earned visual growth from eligible practice and selected participation records | Four practice-type trees and bounded details in the current demo; a later one-main-plant design direction is a separate Garden task |
 | Lab and Insights | Four baselines, periodic rechecks, source-labelled progress and missing-data context | Weekly demo Lab window and local source-labelled views; no clinical measurement claim |
 | Explore and Community | Discover initiatives, workshops, experiences and community participation | Local opportunity, registration and community flows; no public multi-user service |
 | Notifications, profile and account | Next steps, operational notices, profile settings and workspace entry | In-app/browser-local notices and demo identities; no real email, OTP or server authentication |
@@ -81,7 +86,7 @@ Bimo is DeepSprout's **original approved companion**. Bimo welcomes people, guid
 
 ![Illustrative diagram of four practice trees growing from qualifying evidence](docs/assets/readme/garden-growth.svg)
 
-The Garden makes earned participation visible. Valid, eligible original practice attempts contribute to their corresponding four practice-type trees; routine and verified participation can produce bounded details under different rules. It does not grow merely because an app was opened, a timer elapsed, or a booking was made. Missing observations should remain unknown rather than be treated as failure. The illustration explains the source model; it is **not a screenshot** of the current Garden page. See [the live Garden](Client/src/pages/member/garden/garden.html) and [master §9](DeepSprout.md#9-personal-garden-and-group-garden). The owner’s proposed single-plant visual direction remains a separately scoped design decision; this documentation does not alter the current scene.
+The Garden makes earned participation visible. Valid, eligible original practice attempts contribute to their corresponding four practice-type trees; routine and verified participation can produce bounded details under different rules. It does not grow merely because an app was opened, a timer elapsed, or a booking was made. Missing observations should remain unknown rather than be treated as failure. The illustration explains the current source model; it is **not a screenshot** of the Garden. See [the live Garden](Client/src/pages/member/garden/garden.html). The later design guidance calls for one clean ivory scene with one main plant; the current four-tree implementation remains until a separately scoped Garden task resolves its visual and evidence mapping.
 
 ## Connected workspaces
 
@@ -92,7 +97,7 @@ The Garden makes earned participation visible. Valid, eligible original practice
 | **Individual** | [Home](index.html), [Recovery Plan](Client/src/pages/member/recovery-plan/recovery-plan.html), [Activities](Client/src/pages/member/training/training.html), [Lab](Client/src/pages/member/lab/lab.html), [Shield](Client/src/pages/member/shield/shield.html), [Garden](Client/src/pages/member/garden/garden.html), [Insights](Client/src/pages/member/insights/insights.html), [Explore](Client/src/pages/member/explore/explore.html) | Receives its own assignments, applications, bookings and attributed outcomes |
 | **Coach / Mentor** | [Dashboard, Programs, Groups, Assignments, Reviews, Group Garden, Reports](Client/workspaces.html#/mentor/dashboard) | Runs an independent Program or reviews scoped group work |
 | **Invited Student** | [Dashboard, My Tasks, My Group, Progress, Group Garden](Client/workspaces.html#/student/dashboard) | Joins a group through invitation; can later upgrade the same person identity to Individual |
-| **Institution Representative** | [Dashboard, Initiatives, Applications, Team, Sessions, Forms, Reports](Client/workspaces.html#/organization/dashboard) | Publishes and runs youth initiatives, assigns staff, reviews participation |
+| **Institution Representative** | [Dashboard, Initiatives, Applications, Team, Sessions, Forms, Reports](Client/workspaces.html#/organization/dashboard) | Publishes and runs youth initiatives, assigns staff, reviews participation and received Supervisor reports |
 | **Outdoor Provider** | [Overview, Experiences, Registrations, Waiting List, Evaluations, Reports](Client/workspaces.html#/provider/overview) | Owns experiences and camps, bookings, offers, completion rules |
 | **Supervisor** | [Dashboard, Schedule, Attendance, Excuses, Reports](Client/workspaces.html#/supervisor/dashboard) | Acts only on assigned Institution or Provider resources; confirms operational evidence |
 | **Platform Admin** | [Overview, approvals, catalog, policy, CMS, moderation, reports, audit](Client/workspaces.html#/admin/overview) | Governs publication and platform policy; [legacy Admin](Client/admin.html#/dashboard) still holds some separate demo capabilities |
@@ -105,7 +110,7 @@ A person can have multiple **role grants**, each scoped to the relevant resource
 
 - **Individual recovery:** baseline → plan → practice and routine → weekly review → Insights and earned Garden growth → next decision. Evidence stays tied to its original person, attempt and cycle.
 - **Independent Coach Program:** Admin approves a Coach; the Coach publishes an invite-only Program and owns groups; an invited Student submits assigned work; Coach review, reports and a Group Garden reflect eligible outcomes. Upgrade keeps the same person identity and history. [Implementation report](docs/implementation/independent-coach-cycle-implementation-report.md).
-- **Institution Initiative:** an approved Representative publishes an Initiative into regular Explore; an Individual applies; admission, groups, Coach tasks, sessions, forms and reports refer to shared records. Supervisor check-in and excuse decisions remain separate from registration. [Institution report](docs/implementation/institution-cycle-implementation-report.md) · [Supervisor report](docs/implementation/supervisor-cycle-implementation-report.md).
+- **Institution Initiative:** an approved Representative publishes an Initiative into regular Explore; an Individual applies; admission, groups, Coach tasks, sessions, forms and reports refer to shared records. The Representative's current Reports route is a received Supervisor-report inbox with attached Coach reports. Supervisor check-in and excuse decisions remain separate from registration. [Institution report](docs/implementation/institution-cycle-implementation-report.md) · [Supervisor report](docs/implementation/supervisor-cycle-implementation-report.md).
 - **Outdoor experience:** a Provider publishes a versioned experience or camp; an Individual books or joins a waiting list. Offers have expiry and capacity rules; an assigned Supervisor verifies attendance; completion follows the published criteria, then reports and eligible Garden effects read the original record. [Provider report](docs/implementation/deepsprout-round1-outdoor-provider-report.md).
 - **Admin governance:** application approval, publication, policy, moderation and audit views span these flows. The two Admin demos still require measured consolidation before production.
 
@@ -120,7 +125,7 @@ These flows share person, resource and participation identities in the newer bro
 | Individual ongoing | [Recovery Plan](Client/recovery-plan.html), [Weekly Review](Client/weekly-review.html), [Activities](Client/training.html), [Shield](Client/shield.html), [Garden](Client/garden.html), [Insights](Client/insights.html), [Explore](Client/explore.html), [Community](Client/community.html), [Profile](Client/profile.html) | Most short `Client/*.html` URLs forward to corresponding `Client/src/pages/member/...` pages |
 | Partner and administration | [Partner workspaces](Client/workspaces.html#/auth/login), [legacy Admin](Client/admin.html#/dashboard) | Hash routes such as `#/mentor/dashboard`, `#/organization/initiatives`, `#/provider/waitlist`, `#/supervisor/attendance`, `#/admin/overview` |
 
-The workspace [navigation source](Client/src/workspaces/navigation.js) is the exact current menu inventory. The [client guide](Client/README.md) records other page and experiment entry points.
+The workspace [navigation source](Client/src/workspaces/navigation.js) is the exact current menu inventory. The [current product guide](docs/current-product-guide.md) describes every destination and cycle; the [client guide](Client/README.md) records local preview and experiment entry points.
 
 ## Architecture and technology
 
@@ -128,14 +133,14 @@ The workspace [navigation source](Client/src/workspaces/navigation.js) is the ex
 
 | Layer | Running in this repository | Planned production direction |
 | --- | --- | --- |
-| Frontend | Static HTML, CSS and JavaScript in `Client/`; page files plus hash-routed `workspaces.html` | Angular client with deliberate routing and accessible states |
-| State | Browser-local person journals, ecosystem graph, seeded JSON and some separate legacy Admin data | ASP.NET Core Web API and C# domain services; Entity Framework Core with Microsoft SQL Server |
+| Web experience | 46 Razor views and MVC routing in `Server/src/DeepSprout.Web`; existing CSS, JavaScript and hash-routed `workspaces.html` from `Client/` | Server-backed MVC actions; the older Angular client direction needs a separate integration decision |
+| State | Browser-local person journals, ecosystem graph, seeded JSON and some separate legacy Admin data; separate EF Core/SQL Server schema and validation solution | ASP.NET Core MVC application with C# domain services and EF Core/SQL Server persistence |
 | Identity and access | Demo identity selector and browser-side scoped guards | Authenticated identity, role and resource-scoped server authorization |
 | Business changes | Local commands and projections; some original records bridge Individual and partner screens | Versioned workflows, transactions, service-layer invariants and durable audit trails |
 | Browser protection | Optional Chrome extension with local-origin pairing and restricted site coverage | Technically validated extension and authenticated, consent-aware sync |
-| Hosting | Static files from a local HTTP server or GitHub Pages | Separately hosted frontend, API, database and extension distribution |
+| Hosting | Static files from a local HTTP server or GitHub Pages; validation database is separate | Hosted ASP.NET Core MVC application, database and optional extension distribution |
 
-The root [`index.html`](index.html) is generated from `Client/index.html` by [`scripts/build_root_home.py`](scripts/build_root_home.py). It adds `<base href="./Client/">` so the **same homepage markup** resolves its relative CSS, scripts, media and links when served at `/DeepSprout/`; a small handler keeps same-page anchors on the root URL. The normal `Client/` entry remains usable. Generated output is checked with `--check`. No Angular, ASP.NET Core service, SQL Server database, production authentication, email delivery or payment processor is present in this checkout.
+The root [`index.html`](index.html) is generated from `Client/index.html` by [`scripts/build_root_home.py`](scripts/build_root_home.py). It adds `<base href="./Client/">` so the **same homepage markup** resolves its relative CSS, scripts, media and links when served at `/DeepSprout/`; a small handler keeps same-page anchors on the root URL. The normal `Client/` entry remains usable. Generated output is checked with `--check`. The [MVC website](Server/README.md) serves page views at the original client URLs; production authentication, email delivery and payment processing remain unconnected.
 
 ## Repository structure
 
@@ -155,7 +160,7 @@ The root [`index.html`](index.html) is generated from `Client/index.html` by [`s
 │   ├── tests/                 # Model, wiring and browser checks
 │   ├── docs/                  # Client architecture and validation records
 │   └── serve.py               # Client-root preview with custom 404
-├── Server/README.md           # Reserved location; no backend implementation
+├── Server/                    # MVC website, EF Core/SQL Server schema and validation
 ├── docs/
 │   ├── assets/readme/         # README diagrams and illustrations
 │   ├── cycles/                # Cross-workspace audits and route inventories
@@ -167,7 +172,13 @@ The root [`index.html`](index.html) is generated from `Client/index.html` by [`s
 
 ## Run locally
 
-**Prerequisites:** Python 3 for the static server. Node.js and an installed browser are needed only for selected tests; the website itself has no npm build step.
+**MVC website:** open [`DeepSprout.sln`](DeepSprout.sln) in Visual Studio, set `DeepSprout.Web` as the startup project, and press F5. With .NET SDK 10, the command-line equivalent from the repository root is:
+
+```sh
+dotnet run --project Server/src/DeepSprout.Web/DeepSprout.Web.csproj
+```
+
+Open `http://127.0.0.1:8765/`. The separate static preview remains available with Python 3; Node.js and an installed browser are needed for selected tests.
 
 ```sh
 git clone https://github.com/ahmadfa100/DeepSprout.git
@@ -189,18 +200,19 @@ This project uses **branch publishing from the repository root**; no build servi
 3. After GitHub reports publication, open the expected project URL: `https://ahmadfa100.github.io/DeepSprout/`. This is an **expected URL**, not a claim that publication has already happened.
 4. After future homepage edits, run `python3 scripts/build_root_home.py` and `python3 scripts/build_root_home.py --check` before pushing.
 
-The root homepage is a full rendered page, not a redirect. Relative links enter `Client/` and continue resolving under the `/DeepSprout/` project prefix. Partner `#/...` routes stay on `Client/workspaces.html`; query strings and hashes on those destinations are preserved by normal relative links. GitHub Pages can only serve static files. It cannot run ASP.NET Core or SQL Server, provide real multi-user persistence, secure cross-device authorization, email, payments, or browser extension pairing. The current extension's allowlist is for local demo origins, so Pages does **not** provide live Shield enforcement or telemetry pairing. A future API/database will need separate hosting and a reviewed integration boundary.
+The root homepage is a full rendered page, not a redirect. Relative links enter `Client/` and continue resolving under the `/DeepSprout/` project prefix. Partner `#/...` routes stay on `Client/workspaces.html`; query strings and hashes on those destinations are preserved by normal relative links. GitHub Pages can only serve static files. It cannot run ASP.NET Core MVC or SQL Server, provide real multi-user persistence, secure cross-device authorization, email, payments, or browser extension pairing. The current extension's allowlist is for local demo origins, so Pages does **not** provide live Shield enforcement or telemetry pairing. A future MVC application and database need separate hosting and a reviewed integration boundary.
 
 ## Status and roadmap
 
-The spec's [§29 snapshot](DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) predates some newer rounds. Read the dated reports alongside it rather than treating that older gap table as the final state of this working checkout.
+The spec's [§29 snapshot](DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) is dated 15 October and predates substantial client and database work. Use the [current product guide](docs/current-product-guide.md) and milestone evidence for this working tree.
 
 | Status | Scope |
 | --- | --- |
-| **Implemented in the local demo** | Static public/member pages; Bimo onboarding; four baseline task interfaces and local activation; four practice players; local Recovery cycles and reviews; institution/Coach/Student/Supervisor/Provider records, routes and tested example flows; community interactions; root Pages-ready homepage |
+| **Implemented in the local demo** | Static public/member pages; Bimo onboarding; four baseline task interfaces and local activation; four practice players; local Recovery cycles and reviews; institution/Coach/Student/Supervisor/Provider records and example flows; received Institution report inbox; community interactions; root Pages-ready homepage |
 | **Partial or simulated** | Local identity, permissions, QR/code checks, notices, demo capacity and clocks, payment acknowledgements, Admin split, source coverage and some cross-workspace edge cases. Extension pairing/enforcement is restricted to supported local Chrome conditions |
 | **Next validation and product work** | Re-run cross-workspace acceptance after active changes; consolidate Admin by capability; settle Garden direction and thresholds; test additional accessibility, responsive and error states; validate extension distribution and consent policy |
-| **Planned production engineering** | Angular migration, ASP.NET Core/EF Core/SQL Server services, real authentication and resource authorization, transactional capacity, durable audits, secure notifications, deployment/operations and threat review |
+| **Implemented MVC presentation and database foundation** | 46 routed Razor views, existing static assets, EF Core SQL Server schema, migrations, domain/application code and integration validation in `Server/`; product records remain browser-local |
+| **Planned production engineering** | Server-backed MVC commands with EF Core/SQL Server persistence, real authentication and resource authorization, transactional capacity, durable audits, secure notifications, deployment/operations and threat review; any Angular client work is a separate target described in the specification |
 
 For precise evidence and remaining limitations see the [Round 0](docs/implementation/deepsprout-round0-stabilization-report.md), [Provider](docs/implementation/deepsprout-round1-outdoor-provider-report.md), [Round 2A](docs/implementation/deepsprout-round2a-individual-onboarding-lab-report.md), [Round 2B](docs/implementation/deepsprout-round2b-meaningful-practices-report.md), and [Round 2C](docs/implementation/deepsprout-round2c-adaptive-recovery-report.md) reports. Earlier [cycle audits](docs/cycles/README.md) remain useful for route inventories and historical gaps.
 
@@ -219,6 +231,8 @@ node tests/pages-browser.test.cjs  # requires Playwright Chromium; checks deskto
 ```
 
 Browser suites in `Client/tests/` need Playwright and Chrome. The [client guide](Client/README.md) lists the relevant `BASE_URL`, `CHROME_PATH` and `NODE_PATH` settings. Some existing browser tests write screenshots under validation folders; choose a temporary `SHOTS_DIR` when supported and inspect the test before running it. The root `package.json` has a placeholder `npm test` command, so use the actual test commands above.
+
+During the 3 November documentation review, page wiring passed for 14 pages. The combined Institution, Supervisor, Coach and Provider domain run passed 37 of 41 cases; four Institution/Supervisor cases stopped at the newly required “remote or on-site” session-booking value in their test fixture. See the [current guide](docs/current-product-guide.md#current-implementation-and-evidence-limits) for the verification boundary.
 
 Responsive layouts, keyboard controls and reduced-motion states have targeted implementation evidence, but no complete assistive-technology audit is claimed. Avoid using the demo for sensitive personal information: browser-local records are not a production privacy or security boundary. Insights should distinguish system-scored, self-reported, browser-observed and Supervisor-confirmed sources; missing evidence should remain unknown. The [master safety and accessibility section](DeepSprout.md#24-safety-accessibility-privacy-measurement-and-operational-quality) defines the intended safeguards.
 

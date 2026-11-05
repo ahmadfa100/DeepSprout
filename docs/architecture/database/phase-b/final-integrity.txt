@@ -1,0 +1,52 @@
+ServerName DatabaseName ProductVersion
+---------- ------------ --------------
+DESKTOP-A4AL2KR DeepSprout_Validation 17.0.1000.7
+SchemaName TargetTables
+---------- ------------
+activity 6
+coach 10
+commercial 5
+community 9
+evidence 5
+files 1
+forms 12
+governance 2
+iam 6
+institution 13
+lab 6
+ops 5
+partnership 2
+personal 1
+provider 17
+recovery 5
+session 10
+shield 6
+task 8
+TargetTables AppliedMigrations ForeignKeys CompositeForeignKeys CheckConstraints UniqueIndexes RowVersionColumns BadForeignKeys BadChecks
+------------ ----------------- ----------- -------------------- ---------------- ------------- ----------------- -------------- ---------
+129 23 261 70 185 480 87 0 0
+MigrationId
+-----------
+20261101044926_InitialM1
+20261101045359_RescheduleInvariant
+20261101050156_AdmissionDenialAudit
+20261101053400_CancellationAndWithdrawalRights
+20261101054044_LabAndIndividualProfile
+20261101054346_ShieldOwnership
+20261101054654_GovernanceAndOperations
+20261101055204_CoachFoundation
+20261101055459_TriggerCompatibleEfWrites
+20261101055726_EvidenceLedger
+20261101060117_RecoveryAndActivity
+20261101093409_CoachParticipation
+20261101093844_TaskWorkflow
+20261101094219_CommunityParticipation
+20261101094534_SessionOperations
+20261101094901_ProviderFoundation
+20261101095150_ProviderOperations
+20261101095514_InstitutionExtensions
+20261101095826_SerializedInitiativeSeatOffers
+20261101100010_PartnershipLinks
+20261101100238_CommercialEntitlements
+20261101100611_FormsAndCompetitions
+20261101101313_RestoreHistoricalTimeFields

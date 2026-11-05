@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: DeepSprout
-description: "Starter visual system for the DeepSprout Angular digital-wellbeing platform. Proposed numeric tokens must be reconciled with the existing UI before adoption."
+description: "Starter visual system for DeepSprout. Proposed numeric tokens must be reconciled with the existing static client before adoption."
 colors:
   primary: "#305B48"
   primary-hover: "#254936"
@@ -93,7 +93,7 @@ components:
 
 **Art direction:** calm, premium, friendly, credible, botanical and highly readable. Use warm ivory/cream, pastel sage, dark forest headings, generous whitespace, restrained original illustrations, and a clear hierarchy. Avoid gamified visual noise, repetitive generic cards, and unverifiable progress displays. English UI copy is the current product direction; support future Arabic RTL.
 
-**Important status:** The visual direction is derived from the DeepSprout product specification. The exact hex values, sizes, Inter font choice, and radii above are **starter proposals**, NOT final approved brand tokens. Before changing the running Angular application, inspect its current fonts/assets/CSS variables and compare them with actual screenshots. Reconcile with the project owner or preserve the established implementation where it differs. Never replace original Bimo art with a generated imitation.
+**Important status:** The visual direction is derived from the DeepSprout product specification. The exact hex values, sizes, Inter font choice, and radii above are **starter proposals**, NOT final approved brand tokens. Before changing the running static client, inspect its fonts/assets/CSS variables and compare them with actual screenshots. Reconcile with the project owner or preserve the established implementation where it differs. Never replace original Bimo art with a generated imitation. The planned server application is ASP.NET Core MVC; no MVC page design is implemented here yet.
 
 ## Colors
 
@@ -110,7 +110,7 @@ components:
 - Calm editorial hierarchy. Headlines feel composed rather than oversized or loud.
 - Default proposed font: Inter, subject to audit of the currently licensed/loaded project typeface. If the current UI already has an established coherent font, preserve it pending review.
 - Do not mix unrelated font families or decorative text treatments. Use clear headings, legible body copy, readable labels, and restrained technical metadata.
-- Establish typography with reusable Angular/CSS design tokens; mobile sizes should scale down without wrapping crucial buttons awkwardly.
+- Establish typography with reusable CSS design tokens; mobile sizes should scale down without wrapping crucial buttons awkwardly.
 
 ## Layout
 
@@ -150,12 +150,12 @@ components:
 
 ## Do's and Don'ts
 
-- **Do** inspect the current Angular project and screenshots before editing style tokens; adapt proposals to existing brand decisions.
-- **Do** keep existing Angular routing, state management, API contracts and ASP.NET Core workflow intact during visual refactors.
+- **Do** inspect the current static client and screenshots before editing style tokens; adapt proposals to existing brand decisions.
+- **Do** keep current client routes and behavior intact during visual refactors; preserve the intended ASP.NET Core MVC workflow when that application is built.
 - **Do** compare small laptop, desktop and mobile viewport behavior; check contrast, focus states and reduced-motion behavior.
 - **Do** preserve source distinctions: registration is not attendance, participation is not completion, and activity records are not a clinical recovery score.
 - **Do** treat Garden as a deliberately minimal central one-plant composition.
-- **Don't** rebuild the project in React/Next.js to match a generic skill example. DeepSprout uses Angular.
+- **Don't** rebuild the project in React/Next.js to match a generic skill example. The current client is static HTML/CSS/JavaScript; Angular is a separate future direction in the older specification.
 - **Don't** introduce invented Bimo art, paid-gated recovery, fake metrics, generic gamification, endlessly scrolling feed or arbitrary extra features.
 - **Don't** transform every page into the same pastel bento dashboard; distinguish marketing/Individual vs professional/Admin information density.
 - **Don't** apply a reference website's palette wholesale; references are inspiration, not DeepSprout's approved brand.

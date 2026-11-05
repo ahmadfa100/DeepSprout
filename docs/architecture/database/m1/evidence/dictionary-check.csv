@@ -1,0 +1,12 @@
+iam.PersonEmail,VerifiedAtUtc,PASS
+iam.OtpChallenge,ExpiresAtUtc,PASS
+iam.GlobalGrant,RevokedAtUtc,PASS
+iam.ConsentRecord,DecidedAtUtc,PASS
+institution.RepresentativeMembership,RevokedAtUtc,PASS
+institution.Initiative,StartsAtUtc,PASS
+institution.Initiative,EndsAtUtc,PASS
+institution.InitiativeApplication,SubmittedAtUtc,PASS
+institution.InitiativeMembership,EndedAtUtc,PASS
+institution.InitiativeStaffInvitation,ExpiresAtUtc,PASS
+ops.AuditEvent,AtUtc,PASS
+institution.InitiativeApplicationDecision,AtUtc,PASS

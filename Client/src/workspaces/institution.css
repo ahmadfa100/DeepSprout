@@ -498,6 +498,36 @@ td .actions .button { white-space: nowrap; }
 
 /* Dialogs ---------------------------------------------------------------- */
 #workspace-dialog.is-wide { width: min(760px, calc(100vw - 28px)); }
+
+/* Session access stays within the existing ivory and sage workspace language. */
+.iw-session-intro { margin: -3px 0 24px; padding-bottom: 17px; border-bottom: 1px solid var(--iw-line); }
+.iw-session-intro .eyebrow { margin-bottom: 5px; }
+.iw-session-intro p:last-child { margin: 0; color: var(--iw-muted); font-size: 13px; }
+.iw-session-mode { border: 0; padding: 0; margin: 8px 0 18px; }
+.iw-session-mode legend { font-size: 14px; font-weight: 700; color: var(--iw-forest); margin-bottom: 11px; }
+.iw-session-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+.iw-session-options label { display: flex; align-items: flex-start; gap: 12px; min-height: 78px; padding: 15px; background: var(--iw-ivory); border: 1px solid var(--iw-line); border-radius: var(--iw-radius-sm); cursor: pointer; transition: border-color 180ms, background 180ms; }
+.iw-session-options label:has(input:checked) { border-color: var(--iw-leaf); background: var(--iw-sage-50); }
+.iw-session-options label:focus-within { outline: 3px solid #588473; outline-offset: 2px; }
+.iw-session-options input { accent-color: var(--iw-leaf); width: 19px; height: 19px; margin: 2px 0 0; flex: none; }
+.iw-session-options strong,.iw-session-options small { display: block; }
+.iw-session-options strong { color: var(--iw-forest); font-size: 14px; }
+.iw-session-options small { font-size: 11px; line-height: 1.5; }
+.iw-session-access { padding: 19px 20px 5px; margin-bottom: 20px; background: var(--iw-paper); border: 1px solid var(--iw-line); border-radius: var(--iw-radius-sm); }
+.iw-session-access .form-grid { margin-bottom: 0; }
+.iw-session-hint { font-size: 11px; color: var(--iw-muted); margin-top: 0; }
+.iw-session-map { overflow: hidden; margin: 2px 0 18px; border: 1px solid var(--iw-line); border-radius: 12px; background: var(--iw-ivory); }
+.iw-session-map-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 12px 15px; }
+.iw-session-map-head strong { font-size: 12px; }
+.iw-session-map-head a { color: var(--iw-leaf); font-size: 11px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.iw-session-map > p { margin: 0; padding: 30px 15px; border-top: 1px solid var(--iw-line); font-size: 12px; }
+.iw-session-map > p.iw-session-map-foot { padding: 9px 15px; font-size: 10px; color: var(--iw-muted); }
+.iw-session-map iframe { display: block; width: 100%; height: 230px; border: 0; border-top: 1px solid var(--iw-line); }
+.iw-email-preview { margin: 12px 0; padding: 12px 14px; background: var(--iw-sage-50); border-radius: 11px; }
+.iw-email-preview summary { cursor: pointer; font-size: 12px; font-weight: 700; }
+.iw-email-preview strong { display: block; margin-top: 12px; font-size: 12px; }
+.iw-email-preview pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.7 'DM Sans',sans-serif; color: var(--iw-ink); }
+@media (max-width: 520px) { .iw-session-options { grid-template-columns: 1fr; } .iw-session-access { padding: 16px 15px 2px; } }
 #workspace-dialog.is-readonly .dialog-actions .button.quiet[data-dialog-close] { display: none; }
 #workspace-dialog .dialog-heading .eyebrow { display: none; }
 

@@ -1,0 +1,41 @@
+{"timestampUtc":"2026-11-01T05:06:06.3019778Z","id":"ENV-01","status":"PASS","detail":"DESKTOP-A4AL2KR/DeepSprout_Validation; version=17.0.1000.7; SPID=53"}
+{"timestampUtc":"2026-11-01T05:06:06.3441519Z","id":"BLD-01","status":"PASS","detail":"titleless stage-one draft saved"}
+{"timestampUtc":"2026-11-01T05:06:06.3482679Z","id":"BLD-02","status":"PASS","detail":"SQL 51105; Draft rowversion conflict"}
+{"timestampUtc":"2026-11-01T05:06:06.3493656Z","id":"BLD-03","status":"PASS","detail":"SQL 51107; Six builder stages are incomplete"}
+{"timestampUtc":"2026-11-01T05:06:06.3558605Z","id":"BLD-04","status":"PASS","detail":"root/revision/draft/audit committed; revision=63"}
+{"timestampUtc":"2026-11-01T05:06:06.3566101Z","id":"BLD-05","status":"PASS","detail":"SQL 51041; Published initiative revisions are immutable"}
+{"timestampUtc":"2026-11-01T05:06:06.357308Z","id":"SQL-CK-01","status":"PASS","detail":"SQL 547; The UPDATE statement conflicted with the CHECK constraint \u0022CK_Initiative_Capacity\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022institution.Initiative\u0022, column \u0027Capacity\u0027."}
+{"timestampUtc":"2026-11-01T05:06:06.3585329Z","id":"SQL-CK-02","status":"PASS","detail":"SQL 547; The UPDATE statement conflicted with the CHECK constraint \u0022CK_InitiativeDraft_Json1\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022institution.InitiativeDraft\u0022, column \u0027Stage1Json\u0027."}
+{"timestampUtc":"2026-11-01T05:06:06.363151Z","id":"SQL-04","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the FOREIGN KEY constraint \u0022FK_InitiativeApplicationDecision_InitiativeApplication_ApplicationId_InitiativeId_TermsRevisionId\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022institution.InitiativeApplication\u0022."}
+{"timestampUtc":"2026-11-01T05:06:06.3639944Z","id":"SQL-03","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the FOREIGN KEY constraint \u0022FK_InitiativeMembership_InitiativeApplication_ApplicationId_InitiativeId_PersonId\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022institution.InitiativeApplication\u0022."}
+{"timestampUtc":"2026-11-01T05:06:06.3652369Z","id":"BLD-03-GUARD","status":"PASS","detail":"SQL 51040; Published initiative requires a matching revision"}
+{"timestampUtc":"2026-11-01T05:06:06.3662477Z","id":"HIST-01","status":"PASS","detail":"SQL 51042; Application decisions are append-only"}
+{"timestampUtc":"2026-11-01T05:06:06.3677132Z","id":"APP-01","status":"PASS","detail":"pending withdrawal without membership"}
+{"timestampUtc":"2026-11-01T05:06:06.3692274Z","id":"APP-02","status":"PASS","detail":"attempts=764,765; AttemptNo=2"}
+{"timestampUtc":"2026-11-01T05:06:06.370437Z","id":"APP-03","status":"PASS","detail":"SQL 51204; Applicant is blocked"}
+{"timestampUtc":"2026-11-01T05:06:06.3714353Z","id":"APP-04","status":"PASS","detail":"SQL 51205; Open or accepted application already exists"}
+{"timestampUtc":"2026-11-01T05:06:06.372358Z","id":"APP-05","status":"PASS","detail":"SQL 51209; Actor has no current admission authority"}
+{"timestampUtc":"2026-11-01T05:06:06.3725843Z","id":"APP-05-STATE","status":"PASS","detail":"no unauthorized membership; one denial audit"}
+{"timestampUtc":"2026-11-01T05:06:06.3733542Z","id":"APP-06","status":"PASS","detail":"retry returned one membership and one decision"}
+{"timestampUtc":"2026-11-01T05:06:06.3737983Z","id":"SQL-CK-03","status":"PASS","detail":"SQL 547; The UPDATE statement conflicted with the CHECK constraint \u0022CK_InitiativeMembership_EndRelease\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022institution.InitiativeMembership\u0022."}
+{"timestampUtc":"2026-11-01T05:06:06.3806149Z","id":"MEM-02","status":"PASS","detail":"withdrawal released capacity before cutoff"}
+{"timestampUtc":"2026-11-01T05:06:06.3807918Z","id":"MEM-03-FUNCTION","status":"PASS","detail":"exact boundary rejected by SQL function; command timing is not injected"}
+{"timestampUtc":"2026-11-01T05:06:06.3876006Z","id":"MEM-04","status":"PASS","detail":"SQL 51303; Voluntary withdrawal is unavailable at or after the pinned cutoff"}
+{"timestampUtc":"2026-11-01T05:06:06.3941046Z","id":"MEM-05","status":"PASS","detail":"SQL 51212; Initiative capacity is full"}
+{"timestampUtc":"2026-11-01T05:06:06.3945064Z","id":"MEM-05-AUTH","status":"PASS","detail":"SQL 51102; Representative grant is not active"}
+{"timestampUtc":"2026-11-01T05:06:06.3956775Z","id":"MEM-05-RESTORE","status":"PASS","detail":"active representative restored suspended membership"}
+{"timestampUtc":"2026-11-01T05:06:06.3961005Z","id":"MEM-06-REMOVED","status":"PASS","detail":"removed immediately releases capacity"}
+{"timestampUtc":"2026-11-01T05:06:06.3969394Z","id":"MEM-06-COMPLETED","status":"PASS","detail":"completed immediately releases capacity"}
+{"timestampUtc":"2026-11-01T05:06:06.4031362Z","id":"MEM-07","status":"PASS","detail":"earlier start did not remove existing withdrawal right"}
+{"timestampUtc":"2026-11-01T05:06:06.4155026Z","id":"SUP-03","status":"PASS","detail":"SQL 51033; Verified email does not match invitation"}
+{"timestampUtc":"2026-11-01T05:06:06.4185866Z","id":"SUP-01","status":"PASS","detail":"third supervisor accepted"}
+{"timestampUtc":"2026-11-01T05:06:06.4189139Z","id":"SUP-02","status":"PASS","detail":"SQL 51034; Three active supervisors already assigned"}
+{"timestampUtc":"2026-11-01T05:06:06.4202981Z","id":"SUP-04","status":"PASS","detail":"SQL 51209; Actor has no current admission authority"}
+{"timestampUtc":"2026-11-01T05:06:06.4207836Z","id":"SEC-01-DB","status":"PASS","detail":"SQL 51501; Secure file access denied"}
+{"timestampUtc":"2026-11-01T05:06:06.421591Z","id":"BLD-05-RUNTIME","status":"PASS","detail":"direct UPDATE denied with SQL 229"}
+{"timestampUtc":"2026-11-01T05:06:06.6042408Z","id":"CAP-01","status":"PASS","detail":"135th acceptance occupied the last seat"}
+{"timestampUtc":"2026-11-01T05:06:06.6056759Z","id":"CAP-02","status":"PASS","detail":"SQL 51212; Initiative capacity is full"}
+{"timestampUtc":"2026-11-01T05:06:06.6303964Z","id":"CAP-03","status":"PASS","detail":"SPIDs=55,54; errors=0,51212; occupied=1; decisions=1; audits=1"}
+{"timestampUtc":"2026-11-01T05:06:06.641736Z","id":"MEM-01","status":"PASS","detail":"SPIDs=55,54; errors=51211,0; active=1; decisions=1; audits=1"}
+{"timestampUtc":"2026-11-01T05:06:06.6486698Z","id":"SQL-05","status":"PASS","detail":"SQL 2601; Cannot insert duplicate key row in object \u0027institution.InitiativeMembership\u0027 with unique index \u0027IX_InitiativeMembership_PersonId\u0027. The duplicate key value is (945)."}
+{"timestampUtc":"2026-11-01T05:06:06.6487561Z","id":"SUMMARY","status":"PASS","detail":"failures=0; fixtureTag=m1-0072907f24"}

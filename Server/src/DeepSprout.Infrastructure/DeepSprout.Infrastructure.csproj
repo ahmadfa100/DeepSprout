@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" PrivateAssets="all" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.14" />
+    <ProjectReference Include="../DeepSprout.Domain/DeepSprout.Domain.csproj" />
+    <ProjectReference Include="../DeepSprout.Application/DeepSprout.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Sql/M1Commands.sql" />
+    <EmbeddedResource Include="Sql/M1Reschedule.sql" />
+    <EmbeddedResource Include="Sql/M1ApprovalDenialAudit.sql" />
+    <EmbeddedResource Include="Sql/M1Cancellation.sql" />
+    <EmbeddedResource Include="Sql/M1RescheduleV2.sql" />
+    <EmbeddedResource Include="Sql/M1ApprovalV2.sql" />
+    <EmbeddedResource Include="Sql/LabGuards.sql" />
+    <EmbeddedResource Include="Sql/ShieldCommands.sql" />
+    <EmbeddedResource Include="Sql/OperationsGuards.sql" />
+    <EmbeddedResource Include="Sql/CoachFoundationGuards.sql" />
+    <EmbeddedResource Include="Sql/EvidenceGuards.sql" />
+    <EmbeddedResource Include="Sql/RecoveryActivityGuards.sql" />
+    <EmbeddedResource Include="Sql/CoachParticipationGuards.sql" />
+    <EmbeddedResource Include="Sql/TaskGuards.sql" />
+    <EmbeddedResource Include="Sql/CommunityGuards.sql" />
+    <EmbeddedResource Include="Sql/SessionGuards.sql" />
+    <EmbeddedResource Include="Sql/ProviderFoundationGuards.sql" />
+    <EmbeddedResource Include="Sql/ProviderOperationsGuards.sql" />
+    <EmbeddedResource Include="Sql/InstitutionExtensionsGuards.sql" />
+    <EmbeddedResource Include="Sql/M1ApprovalV3.sql" />
+    <EmbeddedResource Include="Sql/InstitutionSeatOfferCommands.sql" />
+    <EmbeddedResource Include="Sql/PartnershipGuards.sql" />
+    <EmbeddedResource Include="Sql/CommercialGuards.sql" />
+    <EmbeddedResource Include="Sql/FormGuards.sql" />
+  </ItemGroup>
+
+</Project>

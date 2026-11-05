@@ -1,0 +1,16 @@
+{"timestampUtc":"2026-11-01T09:47:19.7522286Z","id":"SESS-ENV","status":"PASS","detail":"DESKTOP-A4AL2KR/DeepSprout_Validation; SPID=54"}
+{"timestampUtc":"2026-11-01T09:47:19.8368043Z","id":"SESS-SCHEMA","status":"PASS","detail":"10 session tables, 15 migrations, all FK/CHECK trusted"}
+{"timestampUtc":"2026-11-01T09:47:19.8689495Z","id":"SESS-TIME","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the CHECK constraint \u0022CK_Session_Times\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022session.Session\u0022."}
+{"timestampUtc":"2026-11-01T09:47:19.8822082Z","id":"SESS-REV-IMMUTABLE","status":"PASS","detail":"SQL 61001; Session revision is immutable"}
+{"timestampUtc":"2026-11-01T09:47:19.8989105Z","id":"SESS-DRAFT-REGISTER","status":"PASS","detail":"SQL 61012; Published Session capacity pool not found"}
+{"timestampUtc":"2026-11-01T09:47:19.9290372Z","id":"SESS-CAPACITY-RACE","status":"PASS","detail":"SPIDs=61,55; errors=0,61005"}
+{"timestampUtc":"2026-11-01T09:47:19.9421059Z","id":"SESS-POOL-OWNER","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the FOREIGN KEY constraint \u0022FK_SessionRegistration_SessionCapacityPool_PoolId_SessionId\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022session.SessionCapacityPool\u0022."}
+{"timestampUtc":"2026-11-01T09:47:19.9431646Z","id":"SESS-REV-OWNER","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the FOREIGN KEY constraint \u0022FK_SessionRegistration_SessionRevision_SessionRevisionId_SessionId\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022session.SessionRevision\u0022."}
+{"timestampUtc":"2026-11-01T09:47:19.9704963Z","id":"SESS-POOL-SHRINK","status":"PASS","detail":"SQL 61003; Capacity cannot shrink below confirmed registrations"}
+{"timestampUtc":"2026-11-01T09:47:19.9744816Z","id":"SESS-ATTENDANCE-OWNER","status":"PASS","detail":"SQL 547; The INSERT statement conflicted with the FOREIGN KEY constraint \u0022FK_SessionAttendance_SessionRegistration_RegistrationId_SessionId_PersonId\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022session.SessionRegistration\u0022."}
+{"timestampUtc":"2026-11-01T09:47:19.9836306Z","id":"SESS-EXCUSE-FACT","status":"PASS","detail":"SQL 61010; Absence excuse requires absent attendance and matching person/file"}
+{"timestampUtc":"2026-11-01T09:47:19.9939006Z","id":"SESS-EXCUSE-PERSON","status":"PASS","detail":"SQL 61010; Absence excuse requires absent attendance and matching person/file"}
+{"timestampUtc":"2026-11-01T09:47:20.0000578Z","id":"SESS-CORRECTION-IMMUTABLE","status":"PASS","detail":"SQL 61009; Attendance correction is append-only"}
+{"timestampUtc":"2026-11-01T09:47:20.0086134Z","id":"SESS-STANDALONE-EMAIL","status":"PASS","detail":"SQL 61008; Active standalone supervisor requires matching verified email"}
+{"timestampUtc":"2026-11-01T09:47:20.0106917Z","id":"SESS-PRESERVATION","status":"PASS","detail":"M1 and Community rows retained"}
+{"timestampUtc":"2026-11-01T09:47:20.0108216Z","id":"SESS-SUMMARY","status":"PASS","detail":"failures=0; fixtureTag=session-1551bde468"}

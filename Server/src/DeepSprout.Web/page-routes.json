@@ -1,0 +1,186 @@
+[
+  {
+    "path": "404.html",
+    "view": "Shared/NotFound"
+  },
+  {
+    "path": "admin.html",
+    "view": "Admin/Index"
+  },
+  {
+    "path": "community.html",
+    "view": "Entry/Community"
+  },
+  {
+    "path": "dashboard.html",
+    "view": "Entry/Dashboard"
+  },
+  {
+    "path": "demo.html",
+    "view": "Entry/Demo"
+  },
+  {
+    "path": "explore.html",
+    "view": "Entry/Explore"
+  },
+  {
+    "path": "garden.html",
+    "view": "Entry/Garden"
+  },
+  {
+    "path": "hero-lab-v2.html",
+    "view": "Labs/HeroV2"
+  },
+  {
+    "path": "hero-lab.html",
+    "view": "Labs/Hero"
+  },
+  {
+    "path": "hero-reels-lab.html",
+    "view": "Labs/HeroReels"
+  },
+  {
+    "path": "index.html",
+    "view": "Home/Index"
+  },
+  {
+    "path": "insights.html",
+    "view": "Entry/Insights"
+  },
+  {
+    "path": "join.html",
+    "view": "Workspaces/Join"
+  },
+  {
+    "path": "lab.html",
+    "view": "Entry/Lab"
+  },
+  {
+    "path": "landing.html",
+    "view": "Entry/Landing"
+  },
+  {
+    "path": "login.html",
+    "view": "Entry/Login"
+  },
+  {
+    "path": "onboarding.html",
+    "view": "Entry/Onboarding"
+  },
+  {
+    "path": "partners.html",
+    "view": "Entry/Partners"
+  },
+  {
+    "path": "pricing.html",
+    "view": "Entry/Pricing"
+  },
+  {
+    "path": "profile.html",
+    "view": "Entry/Profile"
+  },
+  {
+    "path": "recovery-plan.html",
+    "view": "Entry/RecoveryPlan"
+  },
+  {
+    "path": "register.html",
+    "view": "Entry/Register"
+  },
+  {
+    "path": "shield.html",
+    "view": "Entry/Shield"
+  },
+  {
+    "path": "src/pages/auth/login/login.html",
+    "view": "Auth/Login"
+  },
+  {
+    "path": "src/pages/auth/register/register.html",
+    "view": "Auth/Register"
+  },
+  {
+    "path": "src/pages/demo/presenter.html",
+    "view": "Demo/Presenter"
+  },
+  {
+    "path": "src/pages/member/community/community.html",
+    "view": "Member/Community"
+  },
+  {
+    "path": "src/pages/member/dashboard/dashboard.html",
+    "view": "Member/Dashboard"
+  },
+  {
+    "path": "src/pages/member/explore/explore.html",
+    "view": "Member/Explore"
+  },
+  {
+    "path": "src/pages/member/garden/garden.html",
+    "view": "Member/Garden"
+  },
+  {
+    "path": "src/pages/member/insights/insights.html",
+    "view": "Member/Insights"
+  },
+  {
+    "path": "src/pages/member/lab/assessment.html",
+    "view": "Member/Assessment"
+  },
+  {
+    "path": "src/pages/member/lab/lab.html",
+    "view": "Member/Lab"
+  },
+  {
+    "path": "src/pages/member/onboarding/onboarding.html",
+    "view": "Member/Onboarding"
+  },
+  {
+    "path": "src/pages/member/onboarding/starting-point.html",
+    "view": "Member/StartingPoint"
+  },
+  {
+    "path": "src/pages/member/profile/profile.html",
+    "view": "Member/Profile"
+  },
+  {
+    "path": "src/pages/member/recovery-plan/recovery-plan.html",
+    "view": "Member/RecoveryPlan"
+  },
+  {
+    "path": "src/pages/member/shield/shield.html",
+    "view": "Member/Shield"
+  },
+  {
+    "path": "src/pages/member/training/training.html",
+    "view": "Member/Training"
+  },
+  {
+    "path": "src/pages/member/weekly-review/weekly-review.html",
+    "view": "Member/WeeklyReview"
+  },
+  {
+    "path": "src/pages/public/home/home.html",
+    "view": "Public/HomeEntry"
+  },
+  {
+    "path": "src/pages/public/landing/home.html",
+    "view": "Public/Landing"
+  },
+  {
+    "path": "src/pages/public/pricing/pricing.html",
+    "view": "Public/Pricing"
+  },
+  {
+    "path": "training.html",
+    "view": "Entry/Training"
+  },
+  {
+    "path": "weekly-review.html",
+    "view": "Entry/WeeklyReview"
+  },
+  {
+    "path": "workspaces.html",
+    "view": "Workspaces/Index"
+  }
+]

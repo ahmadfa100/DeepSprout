@@ -1,0 +1,40 @@
+erDiagram
+    coach_CoachApproval {
+        bigint Id PK
+    }
+    files_SecureFile {
+        bigint Id PK
+    }
+    forms_CompetitionEntry {
+        bigint Id PK
+    }
+    forms_FormAnswer {
+        bigint Id PK
+    }
+    iam_Person {
+        bigint Id PK
+    }
+    institution_InstitutionVerificationCase {
+        bigint Id PK
+    }
+    provider_ProviderIncident {
+        bigint Id PK
+    }
+    provider_ProviderVerificationCase {
+        bigint Id PK
+    }
+    session_AbsenceExcuse {
+        bigint Id PK
+    }
+    task_SubmissionAttempt {
+        bigint Id PK
+    }
+    iam_Person ||--o{ files_SecureFile : "FK_SecureFile_Person_OwnerPersonId OwnerPersonId to Id"
+    files_SecureFile ||--o{ coach_CoachApproval : "FK_CoachApproval_SecureFile_EvidenceFileId EvidenceFileId to Id"
+    files_SecureFile ||--o{ forms_CompetitionEntry : "FK_CompetitionEntry_SecureFile_FileId FileId to Id"
+    files_SecureFile ||--o{ forms_FormAnswer : "FK_FormAnswer_SecureFile_FileId FileId to Id"
+    files_SecureFile ||--o{ institution_InstitutionVerificationCase : "FK_InstitutionVerificationCase_SecureFile_EvidenceFileId EvidenceFileId to Id"
+    files_SecureFile ||--o{ provider_ProviderIncident : "FK_ProviderIncident_SecureFile_FileId FileId to Id"
+    files_SecureFile ||--o{ provider_ProviderVerificationCase : "FK_ProviderVerificationCase_SecureFile_EvidenceFileId EvidenceFileId to Id"
+    files_SecureFile ||--o{ session_AbsenceExcuse : "FK_AbsenceExcuse_SecureFile_FileId FileId to Id"
+    files_SecureFile ||--o{ task_SubmissionAttempt : "FK_SubmissionAttempt_SecureFile_FileId FileId to Id"

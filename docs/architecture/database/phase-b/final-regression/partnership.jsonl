@@ -1,0 +1,10 @@
+{"timestampUtc":"2026-11-01T10:14:45.8530496Z","id":"PART-ENV","status":"PASS","detail":"DESKTOP-A4AL2KR/DeepSprout_Validation; SPID=79"}
+{"timestampUtc":"2026-11-01T10:14:45.9251303Z","id":"PART-SCHEMA","status":"PASS","detail":"2 Partnership tables, 20 migrations, trusted FK/CHECK"}
+{"timestampUtc":"2026-11-01T10:14:45.961687Z","id":"PART-PROGRAM-ACCEPTED-BY","status":"PASS","detail":"SQL 547; The UPDATE statement conflicted with the CHECK constraint \u0022CK_ProgramLink_AcceptedBy\u0022. The conflict occurred in database \u0022DeepSprout_Validation\u0022, table \u0022partnership.ProgramLink\u0022."}
+{"timestampUtc":"2026-11-01T10:14:45.9658472Z","id":"PART-PROGRAM-OWNER","status":"PASS","detail":"SQL 65002; Program link requires acceptance by Program owner"}
+{"timestampUtc":"2026-11-01T10:14:45.969738Z","id":"PART-PROGRAM-ACTIVE-UNIQUE","status":"PASS","detail":"SQL 2601; Cannot insert duplicate key row in object \u0027partnership.ProgramLink\u0027 with unique index \u0027IX_ProgramLink_InitiativeId_ProgramId\u0027. The duplicate key value is (1, 37)."}
+{"timestampUtc":"2026-11-01T10:14:45.9984209Z","id":"PART-EXPERIENCE-OWNER","status":"PASS","detail":"SQL 65004; Experience link requires acceptance by active Provider member"}
+{"timestampUtc":"2026-11-01T10:14:46.0011985Z","id":"PART-OWNERS-RETAINED","status":"PASS","detail":"accepted link did not transfer Program or Experience ownership"}
+{"timestampUtc":"2026-11-01T10:14:46.0403634Z","id":"PART-LINK-RACE","status":"PASS","detail":"SPIDs=86,80; errors=2601,0"}
+{"timestampUtc":"2026-11-01T10:14:46.043823Z","id":"PART-PRESERVATION","status":"PASS","detail":"Provider and M1 rows retained"}
+{"timestampUtc":"2026-11-01T10:14:46.0439137Z","id":"PART-SUMMARY","status":"PASS","detail":"failures=0; fixtureTag=partner-d508951b07"}

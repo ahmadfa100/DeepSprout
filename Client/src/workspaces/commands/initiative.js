@@ -13,6 +13,7 @@ import {MAX_SUPERVISORS,SEATED,REAPPLY_BLOCKED,seatCap,seatsUsed,queue,activeGra
 import {startTask,submitTask} from './mentorship.js';
 import {respondToForm,enterCompetition} from './institution.js';
 import {assertWindow,checkInWindow,initiativeOfResource,canViewExcuseEvidence,ATTACHMENT_RULES} from '../initiative-rules.js';
+import {meetingUrl,sessionAccess,sessionEmailPreview} from '../session-access.js';
 
 const HOUR = 3600000;
 const LIVE = ['Published'];
@@ -306,21 +307,27 @@ export function initiativeCommand(s, action, p, actor) {
     const initiative = initiativeOf(s, p.initiativeId); requireRep(s, initiative, actor); requireOperational(initiative, s);
     const title = textRequired(p.title, 'Session title'), speaker = textRequired(p.speaker, 'Host / facilitator');
     requireThat(p.date && p.time && p.endTime && p.endTime > p.time, 'Choose a date and a valid start and end time.');
-    requireThat(['Online','In-person','Hybrid'].includes(p.format), 'Choose online, in-person or hybrid.');
-    requireThat(p.format === 'Online' || String(p.venue || '').trim(), 'Add a venue for in-person or hybrid participation.');
+    requireThat(['Online','In-person'].includes(p.format), 'Choose remote or on-site.');
+    const venue = p.format === 'In-person' ? textRequired(p.venue, 'Venue name') : '';
+    const address = p.format === 'In-person' ? textRequired(p.address, 'Street address or map location') : '';
+    const meeting = p.format === 'Online' ? meetingUrl(p.meeting) : '';
+    requireThat(p.format !== 'Online' || meeting, 'Enter a valid HTTPS Google Meet or Zoom link.');
     const onlineCapacity = p.format === 'In-person' ? 0 : numberIn(p.onlineCapacity, 1, 1000, 'Online seats');
     const inPersonCapacity = p.format === 'Online' ? 0 : numberIn(p.inPersonCapacity, 1, 1000, 'In-person seats');
     if (p.registrationOpen && p.registrationClose) requireThat(p.registrationClose >= p.registrationOpen, 'Registration must close after it opens.');
     const supervisorIds = (p.supervisorIds || []).filter(pid => isActiveSupervisor(s, initiative.id, pid));
-    const fields = {initiativeId:initiative.id, ownerId:initiative.ownerId, title, speaker, description:String(p.description || ''), agenda:String(p.agenda || ''), date:p.date, time:p.time, endTime:p.endTime, timezone:p.timezone || initiative.timezone || 'Asia/Amman', format:p.format, venue:String(p.venue || ''), meeting:String(p.meeting || ''), onlineCapacity, inPersonCapacity, capacity:onlineCapacity + inPersonCapacity, registrationOpen:p.registrationOpen || '', registrationClose:p.registrationClose || p.date, attendanceRequired:p.attendanceRequired !== false, completionRule:String(p.completionRule || 'Attendance only'), instructions:String(p.instructions || ''), eligibility:'Accepted participants of this initiative', supervisorIds, checkInPolicy:p.checkInMode === 'anytime' ? {mode:'anytime', before:0, after:0} : {mode:'window', before:numberIn(p.checkInBefore ?? 30, 0, 240, 'Minutes before start'), after:numberIn(p.checkInAfter ?? 30, 0, 720, 'Minutes after end')}};
+    const fields = {initiativeId:initiative.id, ownerId:initiative.ownerId, title, speaker, description:String(p.description || ''), agenda:String(p.agenda || ''), date:p.date, time:p.time, endTime:p.endTime, timezone:p.timezone || initiative.timezone || 'Asia/Amman', format:p.format, venue, address, meeting, onlineCapacity, inPersonCapacity, capacity:onlineCapacity + inPersonCapacity, registrationOpen:p.registrationOpen || '', registrationClose:p.registrationClose || p.date, attendanceRequired:p.attendanceRequired !== false, completionRule:String(p.completionRule || 'Attendance only'), instructions:String(p.instructions || ''), eligibility:'Accepted participants of this initiative', supervisorIds, checkInPolicy:p.checkInMode === 'anytime' ? {mode:'anytime', before:0, after:0} : {mode:'window', before:numberIn(p.checkInBefore ?? 30, 0, 240, 'Minutes before start'), after:numberIn(p.checkInAfter ?? 30, 0, 720, 'Minutes after end')}};
     if (p.id) {
       const ss = find(s.sessions, p.id); requireThat(ss.initiativeId === initiative.id, 'This session belongs to another initiative.');
       requireThat(ss.status !== 'Cancelled', 'A cancelled session cannot be edited.');
-      const moved = ss.status === 'Published' && (ss.date !== fields.date || ss.time !== fields.time || ss.venue !== fields.venue || ss.format !== fields.format);
+      const moved = ss.status === 'Published' && (ss.date !== fields.date || ss.time !== fields.time || ss.venue !== fields.venue || ss.address !== fields.address || ss.meeting !== fields.meeting || ss.format !== fields.format);
       if (ss.status === 'Published') requireThat(fields.onlineCapacity >= confirmedInMode(s, ss, 'Online') && fields.inPersonCapacity >= confirmedInMode(s, ss, 'In-person'), 'Seats cannot drop below confirmed registrations.');
       const before = `${ss.date} ${ss.time} · ${ss.format} · ${ss.venue}`;
       Object.assign(ss, fields); (ss.history ||= []).push({at:now(), actorId:actor, change:moved ? `Rescheduled from ${before}` : 'Details updated', reason:p.reason || ''});
-      if (moved) noticeAll(s, s.sessionRegistrations.filter(r => r.sessionId === ss.id && r.status === 'Confirmed').map(r => r.personId), `${ss.title} changed: now ${ss.date} ${ss.time} · ${ss.format}${ss.venue ? ` · ${ss.venue}` : ''}.`, memberLink);
+      if (moved) for (const r of s.sessionRegistrations.filter(r => r.sessionId === ss.id && r.status === 'Confirmed')) {
+        const access = sessionAccess(ss, r.mode);
+        notify(s, r.personId, `${ss.title} changed: ${ss.date} ${ss.time}. ${access.label}: ${access.detail}`, memberLink, 'session', {emailPreview:sessionEmailPreview(ss, r.mode, r.code)});
+      }
       return ss.id;
     }
     const ss = {...fields, id:id('session'), status:'Draft', history:[{at:now(), actorId:actor, change:'Created'}], closedOut:false};
@@ -333,7 +340,13 @@ export function initiativeCommand(s, action, p, actor) {
     const ss = find(s.sessions, p.id), initiative = ss.initiativeId ? initiativeOf(s, ss.initiativeId) : null;
     if (initiative) requireRep(s, initiative, actor); else return false;
     requireThat(ss.status === 'Draft', 'This session is already published.');
+    requireThat(ss.format !== 'Online' || meetingUrl(ss.meeting), 'Add a Google Meet or Zoom link before publishing.');
+    requireThat(ss.format !== 'In-person' || (ss.venue && (ss.address || ss.venue)), 'Add the on-site location before publishing.');
     ss.status = 'Published'; ss.history.push({at:now(), actorId:actor, change:'Published'});
+    const access = sessionAccess(ss);
+    for (const pid of new Set(s.admissions.filter(a => a.initiativeId === initiative.id && a.status === 'Accepted').map(a => a.personId))) {
+      notify(s, pid, `New session: ${ss.title}, ${ss.date} ${ss.time}. ${access.label}: ${access.detail}`, memberLink, 'session', {emailPreview:sessionEmailPreview(ss)});
+    }
     return;
   }
   if (action === 'initiative.session.cancel') {
@@ -369,6 +382,8 @@ export function initiativeCommand(s, action, p, actor) {
     const r = {id:id('session-registration'), sessionId:ss.id, personId:actor, mode, status:'Confirmed', attendance:'Not attended', completion:'Pending', created:now()};
     r.code = bookingCode(r.id);
     s.sessionRegistrations.push(r);
+    const access = sessionAccess(ss, mode);
+    notify(s, actor, `Booking confirmed for ${ss.title}. ${access.label}: ${access.detail}`, memberLink, 'session', {emailPreview:sessionEmailPreview(ss, mode, r.code)});
     return r.id;
   }
   if (['member.session.cancel','participant.session.cancel'].includes(action)) {

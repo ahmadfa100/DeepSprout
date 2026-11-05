@@ -1,0 +1,35 @@
+erDiagram
+    activity_PracticeAttempt {
+        bigint Id PK
+    }
+    activity_PracticeVersion {
+        bigint Id PK
+    }
+    iam_Person {
+        bigint Id PK
+    }
+    recovery_PlanRevision {
+        bigint Id PK
+    }
+    recovery_RecoveryCycle {
+        bigint Id PK
+    }
+    recovery_RecoveryJourney {
+        bigint Id PK
+    }
+    recovery_ScheduledAction {
+        bigint Id PK
+    }
+    recovery_WeeklyReview {
+        bigint Id PK
+    }
+    recovery_RecoveryCycle ||--o{ recovery_PlanRevision : "FK_PlanRevision_RecoveryCycle_CycleId CycleId to Id"
+    recovery_PlanRevision ||--o{ recovery_ScheduledAction : "FK_ScheduledAction_PlanRevision_PlanRevisionId_CycleId PlanRevisionId+CycleId to Id+CycleId"
+    recovery_PlanRevision ||--o{ recovery_WeeklyReview : "FK_WeeklyReview_PlanRevision_PlanRevisionId_CycleId PlanRevisionId+CycleId to Id+CycleId"
+    recovery_RecoveryJourney ||--o{ recovery_RecoveryCycle : "FK_RecoveryCycle_RecoveryJourney_JourneyId_PersonId JourneyId+PersonId to Id+PersonId"
+    recovery_RecoveryCycle ||--o{ recovery_ScheduledAction : "FK_ScheduledAction_RecoveryCycle_CycleId_PersonId CycleId+PersonId to Id+PersonId"
+    recovery_RecoveryCycle ||--o{ recovery_WeeklyReview : "FK_WeeklyReview_RecoveryCycle_CycleId CycleId to Id"
+    iam_Person ||--o{ recovery_RecoveryJourney : "FK_RecoveryJourney_Person_PersonId PersonId to Id"
+    activity_PracticeAttempt ||--o{ recovery_ScheduledAction : "FK_ScheduledAction_PracticeAttempt_CompletedAttemptId_PersonId CompletedAttemptId+PersonId to Id+PersonId"
+    activity_PracticeVersion ||--o{ recovery_ScheduledAction : "FK_ScheduledAction_PracticeVersion_PracticeVersionId PracticeVersionId to Id"
+    recovery_ScheduledAction ||--o{ activity_PracticeAttempt : "FK_PracticeAttempt_ScheduledAction_ScheduledActionId_PersonId ScheduledActionId+PersonId to Id+PersonId"
