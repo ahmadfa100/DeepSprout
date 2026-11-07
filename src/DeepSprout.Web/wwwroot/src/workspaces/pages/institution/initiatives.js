@@ -6,79 +6,20 @@
 import * as u from '../../ui.js';
 import {esc,nameOf,pill,head,stats,stat,card,attention,emptyState,ring,tabs,summary,initiativeSwitcher,withInitiative,fmtDate,sessionWhen} from './common.js';
 import {seatCap,MAX_SUPERVISORS,representativeOrg} from '../../initiative-rules.js';
+import {renderRepDashboard,renderInitiativeCards} from './rep-dashboard.js';
+import {deliveryLabel} from '../../commands/institution.js';
+import * as ds from '../../ds.js';
+import {builderChoice} from '../../builders/controls.js';
 
 const cover = i => i.cover?.image ? `<img class="iw-cover" src="${esc(i.cover.image)}" alt="${esc(i.cover.alt || '')}">` : `<div class="iw-cover is-blank" aria-hidden="true">${u.icon('nodes')}</div>`;
 // One status pill (the state that matters now) plus a quiet line of detail — not three competing pills.
 const statusLine = (s, i) => { const sum = summary(s, i); if (i.status !== 'Published') return pill(i.status); return `${pill(sum.phase === 'Running' ? 'Running' : sum.phase, sum.phase)}<span class="iw-status-note">Published · applications ${esc(sum.registration.toLowerCase())}</span>`; };
 
-function attentionFor(s, i) {
-  const sum = summary(s, i), items = [];
-  for (const ss of sum.needsSupervisor) items.push({tone:'critical', title:`Needs Supervisor · ${ss.title}`, text:`${sessionWhen(ss)} — attendance confirmation is disabled until an active Supervisor is assigned.`, href:withInitiative(sum.supervisors.length ? `organization/sessions/${ss.id}` : 'organization/team', i), action:sum.supervisors.length ? 'Assign duty' : 'Invite Supervisor'});
-  if (sum.pending) items.push({title:`${sum.pending} application${sum.pending === 1 ? '' : 's'} waiting`, text:'You or an active Supervisor can approve; only you can reject.', href:withInitiative('organization/participants?status=pending', i), action:'Review'});
-  if (sum.excusesForRep.length) items.push({title:`${sum.excusesForRep.length} excuse${sum.excusesForRep.length === 1 ? '' : 's'} awaiting your final decision`, text:'Each has a Supervisor recommendation.', href:withInitiative('organization/attendance', i), action:'Decide'});
-  if (sum.unallocated.length) items.push({title:`${sum.unallocated.length} accepted student${sum.unallocated.length === 1 ? '' : 's'} without a group`, href:withInitiative('organization/team?tab=groups', i), action:'Allocate'});
-  const noCoach = sum.groups.filter(g => !g.coachId);
-  if (noCoach.length) items.push({title:`${noCoach.length} group${noCoach.length === 1 ? '' : 's'} without a Coach`, text:noCoach.map(g => g.name).join(', '), href:withInitiative('organization/team?tab=groups', i), action:'Assign'});
-  if (sum.seatsUsed >= sum.cap && i.status === 'Published') items.push({tone:'attention', title:'All seats are taken', text:`${sum.queued} on the waiting list. Raising capacity (max 135) offers seats in order.`, href:`organization/initiatives/${i.id}`, action:'Manage'});
-  const requests = (s.staffRequests || []).filter(x => x.initiativeId === i.id && x.status === 'Open');
-  if (requests.length) items.push({title:`${requests.length} staffing request${requests.length === 1 ? '' : 's'} from Supervisors`, href:withInitiative('organization/team', i), action:'Open'});
-  if (i.status === 'Draft') items.push({tone:'attention', title:'This initiative is still a draft', text:'Drafts never appear in Explore.', href:`organization/initiatives/${i.id}/edit`, action:'Continue'});
-  return items;
-}
-function recentActivity(s, initiativeIds) {
-  const items = [];
-  const applicationLabels={Pending:'submitted an application',Accepted:'was accepted into the initiative',Rejected:'had their application declined',Suspended:'had their participation suspended',Removed:'was removed from the initiative',Withdrawn:'withdrew their application',Queued:'joined the waiting list',Offered:'received a seat offer',Completed:'completed the initiative'};
-  for(const application of s.admissions.filter(x=>initiativeIds.includes(x.initiativeId)))for(const event of application.history||[]){
-    const migrated=/^Migrated /i.test(event.reason||'');
-    items.push({at:event.at,name:nameOf(s,application.personId),action:applicationLabels[event.to]||`application updated to ${event.to}`,kind:'Application',status:event.to,icon:event.to==='Accepted'?'check':'people',description:migrated?'Existing registration confirmed.':event.reason==='Application submitted'?'':event.reason||'',reference:application.code,originalReason:migrated?event.reason:''});
-  }
-  for(const grant of(s.grants||[]).filter(x=>initiativeIds.includes(x.scopeId)))for(const event of grant.history||[]){
-    const change=String(event.change||'Access updated'),accepted=/accept/i.test(change),role=grant.role==='coach'?'Coach':'Supervisor';
-    items.push({at:event.at,name:nameOf(s,grant.personId),action:accepted?`joined the team as a ${role}`:`${role} access updated`,kind:'Team invitation',status:accepted?'Accepted':/revok/i.test(change)?'Revoked':'Updated',icon:'people',description:event.reason||(accepted?'':change)});
-  }
-  for(const excuse of(s.excuses||[]).filter(x=>initiativeIds.includes(x.initiativeId)))for(const event of excuse.history||[])items.push({at:event.at,name:nameOf(s,excuse.personId),action:`absence request · ${event.change}`,kind:'Absence request',icon:'form',description:s.sessions.find(x=>x.id===excuse.sessionId)?.title||'',status:''});
-  for(const attendance of(s.sessionAttendance||[]).filter(x=>initiativeIds.includes(x.initiativeId)))items.push({at:attendance.at,name:nameOf(s,attendance.personId),action:'had their attendance recorded',kind:'Session attendance',icon:'check',status:attendance.status,description:s.sessions.find(x=>x.id===attendance.sessionId)?.title||'',recordedBy:attendance.actorId?nameOf(s,attendance.actorId):''});
-  return items.map((item,sequence)=>({...item,sequence})).filter(x=>x.at).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)||b.sequence-a.sequence).slice(0,8);
-}
-function activityTimeline(items) {
-  if(!items.length)return '<p class="iw-muted">Recent updates will appear here as your initiative progresses.</p>';
-  const groups=new Map(),dayKey=at=>/^\d{4}-\d{2}-\d{2}$/.test(at)?at:new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Amman',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(at));
-  for(const item of items){const day=dayKey(item.at);if(!groups.has(day))groups.set(day,[]);groups.get(day).push(item);}
-  return `<div class="iw-activity-timeline">${[...groups].map(([date,events])=>`<section class="iw-activity-day"><header><h3><time datetime="${esc(date)}">${esc(fmtDate(date))}</time></h3><span>${events.length} ${events.length===1?'update':'updates'}</span></header><ol>${events.map(event=>{
-    const time=String(event.at).includes('T')?new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Amman',hour:'2-digit',minute:'2-digit'}).format(new Date(event.at)):null;
-    return `<li><time class="iw-activity-time" datetime="${esc(event.at)}">${time||'<span aria-label="Time not recorded">—</span>'}</time><span class="iw-activity-node is-${event.icon}" aria-hidden="true">${u.icon(event.icon)}</span><div class="iw-activity-content"><div class="iw-activity-kind">${esc(event.kind)}</div><div class="iw-activity-title"><h4><strong>${esc(event.name)}</strong><span>${esc(event.action)}</span></h4>${event.status?pill(event.status):''}</div>${event.description?`<p>${esc(event.description)}</p>`:''}${event.reference||event.recordedBy?`<div class="iw-activity-meta">${event.reference?`<span>Application ${esc(event.reference)}</span>`:''}${event.recordedBy?`<span>Recorded by ${esc(event.recordedBy)}</span>`:''}</div>`:''}${event.originalReason?`<details class="iw-activity-source"><summary>Original record note</summary><p>${esc(event.originalReason)}</p></details>`:''}</div></li>`;
-  }).join('')}</ol></section>`).join('')}<p class="iw-activity-timezone">Newest first · Times in Asia/Amman</p></div>`;
-}
+/** Dashboard and listing live in rep-dashboard.js (shared design system); detail and lifecycle stay here. */
+export function renderDashboard(ctx, initiatives) { return renderRepDashboard(ctx, initiatives); }
+export function renderInitiativeList(ctx, initiatives) { return renderInitiativeCards(ctx, initiatives); }
 
-export function renderDashboard(ctx, initiatives) {
-  const {s, person:p} = ctx, org = representativeOrg(s, p.id);
-  // One calm header: who you are, that you are verified, and what to do next.
-  const current = initiatives.find(x => x.id === (ctx.route.query.get('initiative') || ctx.localUI.initiativeId)) || initiatives.find(x => x.status === 'Published') || initiatives[0];
-  const lead = current ? `Here is where <strong>${esc(current.title)}</strong> stands today.` : 'Publish an initiative and it appears in Explore right away.';
-  const hero = `<header class="iw-dash-head iw-reveal"><div class="iw-dash-copy"><p class="iw-org"><span>${esc(org.name)}</span><span class="iw-verified-mark" title="Verified by DeepSprout: initiatives publish straight to Explore">${u.icon('shield')}Verified institution</span></p><h1>Good to see you, ${esc(p.name.split(' ')[0])}.</h1><p class="iw-lead">${lead}</p></div><div class="iw-dash-actions">${initiatives.length > 1 ? initiativeSwitcher(ctx, initiatives, current) : ''}${initiatives.length ? u.link('All initiatives', 'organization/initiatives', 'button quiet') : ''}${u.link('Create Initiative', 'organization/initiatives/new', 'button primary')}</div></header>`;
-  if (!initiatives.length) return hero + emptyState('Launch your first initiative.', 'Six guided steps: purpose, audience and cost, components, team, rules, then a preview of exactly what Individuals will see in Explore.', u.link('Create Initiative', 'organization/initiatives/new', 'button primary'));
-  const i = initiatives.find(x => x.id === (ctx.route.query.get('initiative') || ctx.localUI.initiativeId)) || initiatives.find(x => x.status === 'Published') || initiatives[0];
-  ctx.localUI.initiativeId = i.id;
-  const sum = summary(s, i);
-  const approvedTasks = sum.submissions.filter(x => x.status === 'Approved').length, toReview = sum.submissions.filter(x => x.status === 'Submitted').length;
-  const att = sum.attendance;
-  return hero
-    + stats([stat(sum.accepted, 'Accepted students', {of:sum.cap, href:withInitiative('organization/participants?status=accepted', i)}), stat(sum.supervisors.length, 'Active Supervisors', {of:MAX_SUPERVISORS, href:withInitiative('organization/team', i), tone:sum.needsSupervisor.length ? 'attention' : ''}), stat(sum.pending, 'Pending applications', {href:withInitiative('organization/participants?status=pending', i), tone:sum.pending ? 'attention' : ''}), stat(sum.groups.length, 'Active groups', {hint:`${sum.coaches.length} Coach${sum.coaches.length === 1 ? '' : 'es'} allocated`, href:withInitiative('organization/team?tab=groups', i)}), stat(sum.upcoming.length, 'Upcoming sessions', {href:withInitiative('organization/sessions', i)})])
-    + `<div class="iw-split is-wide">${card('Needs your attention', attention(attentionFor(s, i)), {eyebrow:'ACTION QUEUE'})}
-      ${card('Progress', `<div class="iw-ring-row">${ring(approvedTasks, Math.max(sum.submissions.length, approvedTasks, 1), 'Tasks approved')}${ring(att.filter(a => a.status !== 'Absent').length, Math.max(att.length, 1), 'Attendance records present')}</div><dl class="iw-facts is-compact"><div><dt>Awaiting Coach review</dt><dd>${toReview}</dd></div><div><dt>Absences (factual)</dt><dd>${att.filter(a => a.status === 'Absent').length}</dd></div><div><dt>Excuses to decide</dt><dd>${sum.excusesForRep.length}</dd></div><div><dt>Coach reports · Supervisor summaries</dt><dd>${sum.coachReports.length} · ${sum.summaries.length}</dd></div></dl>${u.link('Open reports', withInitiative('organization/reports', i), 'text-link')}`, {eyebrow:'FROM THE RECORDS'})}</div>`
-    + card('Upcoming sessions', sum.upcoming.length ? `<ol class="iw-agenda">${sum.upcoming.slice(0, 4).map(ss => `<li><time><b>${esc(new Date(ss.date + 'T12:00').getDate())}</b><span>${esc(new Date(ss.date + 'T12:00').toLocaleDateString('en-GB', {month:'short'}))}</span></time><div><strong>${esc(ss.title)}</strong><small>${esc(ss.time)} · ${esc(ss.format)}</small></div>${summary(s, i).needsSupervisor.some(x => x.id === ss.id) ? pill('Needs Supervisor') : pill('Active', 'Supervised')}</li>`).join('')}</ol>` : '<p class="iw-muted">No upcoming published sessions.</p>', {extra:u.link('Schedule', withInitiative('organization/sessions', i), 'text-link')})
-    + card('Recent activity', activityTimeline(recentActivity(s, [i.id])), {eyebrow:'LATEST UPDATES'});
-}
-
-export function renderInitiativeList(ctx, initiatives) {
-  const {s} = ctx;
-  return head({eyebrow:'IDEAS WITH A PLACE TO GROW', title:'Initiatives', lead:'Drafts stay private. Published initiatives appear in the regular Explore page immediately.', actions:u.link('Create Initiative', 'organization/initiatives/new', 'button primary')})
-    + `<div class="iw-card iw-reveal">${u.filterBar(['Draft','Published','Completed','Cancelled','Archived','Suspended'])}</div>`
-    + (initiatives.length ? `<div class="iw-initiatives">${initiatives.slice().sort((a, b) => String(b.start).localeCompare(String(a.start))).map((i, n) => { const sum = summary(s, i); return `<article class="iw-initiative iw-reveal" style="--i:${n}" data-search="${esc(`${i.title} ${i.topic}`)}" data-status="${esc(i.status)}">${cover(i)}<div class="iw-initiative-body"><div class="actions">${statusLine(s, i)}</div><h2>${esc(i.title)}</h2><p>${esc(i.summary || i.objective || '')}</p><dl class="iw-facts is-inline"><div><dt>Dates</dt><dd>${esc(fmtDate(i.start))} – ${esc(fmtDate(i.end))}</dd></div><div><dt>Students</dt><dd>${sum.accepted}/${seatCap(i)}</dd></div><div><dt>Pending</dt><dd>${sum.pending}</dd></div><div><dt>Staff</dt><dd>${sum.supervisors.length} Sup · ${sum.coaches.length} Coach</dd></div><div><dt>Cost</dt><dd>${esc(i.cost?.type === 'Paid' ? `${i.cost.price} ${i.cost.currency}` : 'Free')}</dd></div></dl><div class="actions">${u.link('Open', `organization/initiatives/${i.id}`, 'button quiet small')}${i.status === 'Draft' ? u.link('Continue editing', `organization/initiatives/${i.id}/edit`, 'button primary small') : ''}</div></div></article>`; }).join('')}</div><p class="no-results" hidden>No initiatives match.</p>`
-      : emptyState('Launch your first initiative.', 'Begin with a purpose and an audience.', u.link('Create Initiative', 'organization/initiatives/new', 'button primary')));
-}
-
-const componentHref = c => { const path = c.type === 'Session' ? `organization/sessions/${c.resourceId}` : c.type === 'Survey or Quiz' ? `organization/forms/${c.resourceId}` : c.type === 'Competition' ? `organization/competitions/${c.resourceId}` : ''; return path ? u.link('Open', path, 'text-link') : '<small>Linked</small>'; };
+const componentHref = c => { const path = c.type === 'Session' ? `organization/sessions/${c.resourceId}` : c.type === 'Survey or Quiz' ? `organization/forms/${c.resourceId}` : c.type === 'Competition' ? `organization/competitions/${c.resourceId}` : c.type === 'Outdoor Activity' ? `organization/activities/${c.resourceId}` : ''; return path ? u.link('Open', path, 'text-link') : '<small>Linked</small>'; };
 export function renderInitiativeDetail(ctx, i) {
   const {s, route:r} = ctx;
   const sum = summary(s, i), tab = r.query.get('tab') || 'overview';
@@ -95,19 +36,45 @@ export function renderInitiativeDetail(ctx, i) {
   if (!['Cancelled','Archived','Completed'].includes(i.status)) more.push(u.button('Cancel initiative…', 'initiative-cancel', {id:i.id}, 'iw-menu-item is-danger'));
   const manage = [...primary, more.length ? `<details class="iw-menu"><summary class="button quiet">More<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></summary><div class="iw-menu-panel">${more.join('')}</div></details>` : ''];
   const tabsBar = tabs([['Overview', `organization/initiatives/${i.id}`, 'overview'], ['Applications', withInitiative('organization/participants', i), 'x', sum.pending], ['Staff', withInitiative('organization/team', i), 'x'], ['Groups', withInitiative('organization/team?tab=groups', i), 'x'], ['Agenda', withInitiative('organization/sessions', i), 'x'], ['Attendance & excuses', withInitiative('organization/attendance', i), 'x', sum.excusesForRep.length], ['Reports', withInitiative('organization/reports', i), 'x'], ['History', `organization/initiatives/${i.id}?tab=history`, 'history']], tab);
-  const heroBlock = `<p class="breadcrumbs">${u.link('Initiatives', 'organization/initiatives', 'text-link')} / ${esc(i.title)}</p><section class="iw-detail-hero iw-reveal">${cover(i)}<div><div class="actions">${statusLine(s, i)}</div><h1>${esc(i.title)}</h1><p class="iw-lead">${esc(i.summary || '')}</p><div class="actions">${manage.join('')}</div>${i.status === 'Published' ? `<p class="iw-muted">${u.icon('mountain')} Visible now in the regular Individual Explore page.</p>` : i.status === 'Draft' ? `<p class="iw-muted">Draft — not visible in Explore.</p>` : ''}${i.cancelReason ? `<p class="iw-muted">Cancelled: ${esc(i.cancelReason)}</p>` : ''}</div></section>`;
+  const mode = i.deliveryMode || (i.modes?.length > 1 ? 'Hybrid' : i.modes?.[0]) || 'Online';
+  const justPublished = r.query.get('published') === '1' && i.status === 'Published' ? ds.banner('positive', 'Published to Explore.', `Individuals can now discover and apply to <strong>${esc(i.title)}</strong> in the regular Explore page. ${sum.supervisors.length ? '' : 'Invite a Supervisor so attendance-bearing sessions can open check-in.'}`, `<a class="button primary small" href="src/pages/member/explore/explore.html">Open Explore</a>${u.link('Invite staff', withInitiative('organization/team', i), 'button quiet small')}${u.link('Create another', 'organization/create', 'button quiet small')}`) : '';
+  const heroBlock = `<p class="breadcrumbs">${u.link('Initiatives', 'organization/initiatives', 'text-link')} / ${esc(i.title)}</p>${justPublished}<section class="iw-detail-hero iw-reveal">${cover(i)}<div><div class="actions">${statusLine(s, i)}${ds.chip('Mode', deliveryLabel(mode))}</div><h1>${esc(i.title)}</h1><p class="iw-lead">${esc(i.summary || '')}</p><div class="actions">${manage.join('')}</div>${i.status === 'Published' ? `<p class="iw-muted">${u.icon('mountain')} Visible now in the regular Individual Explore page.</p>` : i.status === 'Draft' ? `<p class="iw-muted">Draft — not visible in Explore.</p>` : ''}${i.cancelReason ? `<p class="iw-muted">Cancelled: ${esc(i.cancelReason)}</p>` : ''}</div></section>`;
   if (tab === 'history') return heroBlock + tabsBar + card('Version & decision history', `<ol class="iw-history">${(i.history || []).slice().reverse().map(h => `<li><time>${esc(fmtDate(h.at))}</time><span><strong>v${esc(h.version || i.version)}</strong> · ${esc(h.change)}${h.reason ? ` · ${esc(h.reason)}` : ''}${h.before ? `<small>${esc(Object.entries(h.before).map(([k, v]) => `${k}: ${v} → ${h.after[k]}`).join(' · '))}</small>` : ''}</span><small>${esc(h.actorId === 'system' ? 'System' : nameOf(s, h.actorId))}</small></li>`).join('')}</ol>`);
-  const comp = (i.components || []).map(c => `<li><span class="iw-comp-type">${esc(c.type)}</span><strong>${esc(c.title)}</strong>${c.resourceId ? componentHref(c) : '<small>Created when you publish</small>'}</li>`).join('');
+  const comp = (i.components || []).map(c => `<li><span class="iw-comp-type">${esc(c.type)}</span><strong>${esc(c.title || `New ${c.type}`)}</strong>${c.planned ? `<small>Planned · details can be added later</small>${i.status === 'Published' ? u.button('Add details', 'initiative-component-edit', {id:i.id, component:c.id}, 'button quiet small') : ''}` : c.resourceId ? componentHref(c) : '<small>Part of this initiative</small>'}</li>`).join('');
   return heroBlock + tabsBar
     + stats([stat(sum.accepted, 'Accepted students', {of:sum.cap}), stat(sum.pending, 'Pending'), stat(sum.queued + sum.offered, 'Waiting list'), stat(sum.supervisors.length, 'Active Supervisors', {of:MAX_SUPERVISORS}), stat(sum.coaches.length, 'Coaches'), stat(sum.sessions.filter(x => x.status === 'Published').length, 'Published sessions')])
-    + `<div class="iw-split">${card('The invitation', `<p>${esc(i.objective || '')}</p>${i.description ? `<p>${esc(i.description)}</p>` : ''}<dl class="iw-facts"><div><dt>Topic</dt><dd>${esc(i.topic)}</dd></div><div><dt>Dates</dt><dd>${esc(fmtDate(i.start))} – ${esc(fmtDate(i.end))} · ${esc(i.timezone)}</dd></div><div><dt>Audience</dt><dd>${esc(i.audience)} · ages ${esc(i.minAge || 0)}–${esc(i.maxAge || 'any')}</dd></div><div><dt>Eligible area</dt><dd>${esc(i.coverage || '')} (${esc(i.country || '')})</dd></div><div><dt>Modes</dt><dd>${esc((i.modes || []).join(' · '))}${i.venue ? ` · ${esc(i.venue)}` : ''}</dd></div><div><dt>Applications</dt><dd>${esc(fmtDate(i.registrationOpen))} – ${esc(fmtDate(i.registrationClose))} · ${esc(sum.registration)}</dd></div><div><dt>Cost</dt><dd>${esc(i.cost?.type === 'Paid' ? `${i.cost.price} ${i.cost.currency} (simulated payment)` : 'Free')}</dd></div></dl>`, {eyebrow:'PUBLIC DETAILS'})}
-      ${card('Components', `<ul class="iw-components">${comp || '<li>No components.</li>'}</ul><p class="iw-muted">Joining the initiative never books its sessions; each component keeps its own lifecycle.</p>`, {eyebrow:'WHAT IT CONTAINS'})}</div>`
+    + invitationCard(i, sum)
+    + card('Components', `<ul class="iw-components">${comp || '<li>No components.</li>'}</ul><p class="iw-muted">Joining the initiative never books its sessions; each component keeps its own lifecycle.</p>`, {eyebrow:'WHAT IT CONTAINS'})
     + linkedResources(s, i)
-    + card('Participation rules', `<dl class="iw-facts">${Object.entries({Admission:i.policies?.admission, 'Waiting list':i.policies?.waitlist ? `On · offers held ${i.policies.offerHours || 24} h (configurable)` : 'Off', Withdrawal:i.withdrawal, Discipline:i.policies?.discipline, Attendance:i.policies?.attendance, Excuses:i.policies?.excuse, 'Make-up / waiver':i.policies?.makeup, Completion:i.policies?.completion, Privacy:i.policies?.privacy, Notifications:i.policies?.notifications, Consent:i.consent}).filter(([, v]) => v).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`, {eyebrow:'PUBLISHED RULES'});
+    + rulesCard(i);
+}
+
+function invitationCard(i, sum) {
+  const fact = (icon, label, value, secondary = '') => `<div class="inv-fact"><span class="inv-icon" aria-hidden="true">${u.icon(icon)}</span><div><dt>${esc(label)}</dt><dd>${esc(value)}${secondary ? `<small>${esc(secondary)}</small>` : ''}</dd></div></div>`;
+  const area = [i.coverage, i.country].filter(Boolean).join(' · ') || 'Not restricted';
+  const mode = (i.modes || []).join(' · ') || i.deliveryMode || 'Not specified';
+  return card('The invitation', `<div class="invitation-copy"><p>${esc(i.objective || i.summary || '')}</p>${i.description ? `<p>${esc(i.description)}</p>` : ''}</div><dl class="inv-facts">${fact('nodes','Topic',i.topic || 'Not specified')}${fact('calendar','Dates',`${fmtDate(i.start)} – ${fmtDate(i.end)}`,i.timezone || '')}${fact('people','Audience',i.audience || 'Not specified',`Ages ${i.minAge ?? 0}–${i.maxAge || 'any'}`)}${fact('mountain','Modes',mode,i.venue || '')}${fact('globe','Eligible area',area)}${fact('form','Applications',`${fmtDate(i.registrationOpen)} – ${fmtDate(i.registrationClose)}`,sum.registration)}${fact('ticket','Cost',i.cost?.type === 'Paid' ? `${i.cost.price} ${i.cost.currency} · simulated` : 'Free')}</dl>`, {eyebrow:'PUBLIC DETAILS'});
+}
+
+function rulesCard(i) {
+  const rules = [
+    ['people','Admission',i.policies?.admission],['calendar','Withdrawal',i.withdrawal],['calendar','Attendance',i.policies?.attendance],
+    ['hybrid','Make-up / waiver',i.policies?.makeup],['shield','Privacy',i.policies?.privacy],
+    ['calendar','Waiting list',i.policies?.waitlist ? i.policies.offerManual ? 'On · offers end when you release them' : `On · offers held ${i.policies.offerHours || 24} h` : 'Off'],
+    ['shield','Discipline',i.policies?.discipline],['form','Excuses',i.policies?.excuse],['check','Completion',i.policies?.completion],['mail','Notifications',i.policies?.notifications]
+  ].filter(([, , value]) => value);
+  return card('Participation rules', `<p class="rules-intro">The key rules for joining and taking part in this initiative.</p><dl class="rules-grid">${rules.map(([icon, label, value]) => `<div class="rule-item"><span class="inv-icon" aria-hidden="true">${u.icon(icon)}</span><div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div></div>`).join('')}</dl>${i.consent ? `<div class="rule-consent"><span class="inv-icon" aria-hidden="true">${u.icon('check')}</span><strong>Consent</strong><p>${esc(i.consent)}</p></div>` : ''}`, {eyebrow:'PUBLISHED RULES'});
 }
 
 export function lifecycleAction(action, target, ctx) {
   const d = target.dataset, s = ctx.s, i = s.initiatives.find(x => x.id === d.id);
+  if (action === 'initiative-component-edit') {
+    const c=i.components.find(x=>x.id===d.component),orgId=i.ownerId;
+    const resources=c.type==='Session'?s.sessions.filter(x=>x.ownerId===orgId&&(!x.initiativeId||x.initiativeId===i.id)):c.type==='Survey or Quiz'?s.forms.filter(x=>x.ownerId===orgId&&(!x.initiativeId||x.initiativeId===i.id)):c.type==='Outdoor Activity'?s.experiences.filter(x=>x.ownerId===orgId&&!['Cancelled','Archived'].includes(x.status)):c.type==='Competition'?s.competitions.filter(x=>x.ownerId===orgId):c.type==='Mentor Program'?s.programs.filter(x=>(s.programLinks||[]).some(l=>l.programId===x.id&&l.institutionId===orgId&&l.status==='Active')):null;
+    const picker=resources?builderChoice('resourceId',`Link ${c.type}`, [['','Choose later'],...resources.map(x=>[x.id,`${x.title} · ${x.status}`])],c.resourceId||''):'';
+    u.modal(`Add details · ${c.type}`, `${u.field('title','Component title',c.title||'')}${u.area('description','Description',c.description||'')}${picker}<label class="builder-activation"><input type="checkbox" name="activate" value="yes"><span><strong>Make this component active</strong><small>${resources?'Choose a linked resource first.':'Its title and description will appear in the initiative.'}</small></span></label>`, (v,f)=>{ctx.run('organization.initiative.component.update',{id:i.id,componentId:c.id,title:v.title,description:v.description,resourceId:v.resourceId||'',activate:f.elements.activate?.checked||false},'Component details saved.');ctx.render();},'Save details');
+    return true;
+  }
   if (action === 'initiative-publish') { ctx.run('organization.initiative.publish', {id:i.id}, 'Published. It is now visible in the regular Explore page.'); ctx.render(); return true; }
   if (action === 'initiative-reg-close' || action === 'initiative-reg-open') { ctx.run(action.endsWith('close') ? 'initiative.registration.close' : 'initiative.registration.open', {id:i.id}, action.endsWith('close') ? 'Applications closed. Existing records are unchanged.' : 'Applications reopened.'); ctx.render(); return true; }
   if (action === 'initiative-update') {
@@ -127,12 +94,12 @@ export function lifecycleAction(action, target, ctx) {
 
 /** Linked independently owned resources (master §18): the owner keeps bookings and records; the Institution sees agreed aggregates only. */
 function linkedResources(s, i) {
-  const parts = s.partnerships.filter(p => p.initiativeId === i.id && ['Active','Accepted','Requested'].includes(p.status));
-  const programs = (i.components || []).filter(c => c.type === 'Mentor Program' && c.resourceId).map(c => s.programs.find(p => p.id === c.resourceId)).filter(Boolean);
-  if (!parts.length && !programs.length) return '';
+  const activities = (i.components || []).filter(c => !c.planned && c.type === 'Outdoor Activity' && c.resourceId).map(c => s.experiences.find(e => e.id === c.resourceId && e.ownerId === i.ownerId)).filter(Boolean);
+  const programs = (i.components || []).filter(c => !c.planned && c.type === 'Mentor Program' && c.resourceId).map(c => s.programs.find(p => p.id === c.resourceId)).filter(Boolean);
+  if (!activities.length && !programs.length) return '';
   const items = [
-    ...parts.map(p => { const e = s.experiences.find(x => x.id === p.experienceId), provider = s.providers.find(x => x.id === p.providerId); if (!e) return `<li><span class="iw-comp-type">Provider partnership</span><strong>${esc(provider?.name || 'Provider')}</strong><small>${esc(p.status)} · not yet linked to an experience — pending links never appear publicly</small></li>`; const b = s.bookings.filter(x => x.experienceId === e.id); return `<li><span class="iw-comp-type">Provider-owned experience</span><h3>${esc(e.title)}</h3><small>Bookings and safety stay with ${esc(provider?.name || 'the Provider')} · aggregate only: ${b.filter(x => ['Confirmed','Checked In','Completed'].includes(x.status)).length} confirmed, ${b.filter(x => ['Checked In','Completed'].includes(x.status)).length} checked in, ${b.filter(x => x.status === 'Completed').length} completed</small></li>`; }),
+    ...activities.map(e => { const b = s.bookings.filter(x => x.experienceId === e.id); return `<li><span class="iw-comp-type">Your Outdoor Activity</span><h3>${esc(e.title)}</h3><small>Booked separately · ${b.filter(x => ['Confirmed','Checked In','Completed'].includes(x.status)).length} confirmed, ${b.filter(x => ['Checked In','Completed'].includes(x.status)).length} checked in, ${b.filter(x => x.status === 'Completed').length} completed</small>${u.link('Open activity', `organization/activities/${e.id}`, 'text-link')}</li>`; }),
     ...programs.map(pr => `<li><span class="iw-comp-type">Coach-owned program</span><h3>${esc(pr.title)}</h3><small>Groups, tasks and reviews stay with the Coach · ${pr.groupIds.length} group(s)</small></li>`)
   ];
-  return card('Linked partner resources', `<ul class="iw-components">${items.join('')}</ul>`, {eyebrow:'INDEPENDENT OWNERS'});
+  return card('Linked resources', `<ul class="iw-components">${items.join('')}</ul>`, {eyebrow:'BOOKED OR RUN SEPARATELY'});
 }

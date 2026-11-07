@@ -16,12 +16,16 @@ import {nameOf} from '../../shared.js';
 import {clockDay} from '../../domain.js';
 import {head,stats,stat,card,pill,tabs} from '../institution/common.js';
 import {communityRecords,decideCommunity} from '../../admin-community.js';
+import {adminDashboard,activitiesGovernance,governanceAction,governanceChange} from './governance.js';
+import * as ds from '../../ds.js';
+import {kindLabel} from '../../activity-rules.js';
+export {governanceChange};
 
 const e = u.esc;
 const WAITING = ['Submitted', 'Pending Verification', 'Needs More Info'];
-const KIND = {organization:'Institution', provider:'Outdoor provider', mentor:'Coach'};
+const KIND = {organization:'Institution', provider:'Outdoor Provider (retired path)', mentor:'Coach'};
 const PATH = {organization:'organizations', provider:'providers', mentor:'mentor-applications'};
-const HIDDEN = ['activity-catalog', 'policies', 'cms', 'entitlements', 'programs', 'experiences', 'system'];
+const HIDDEN = ['activity-catalog', 'policies', 'cms', 'entitlements', 'programs', 'system'];
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const ago = (s, v) => { if (!v) return '—'; const d = Math.round((Date.parse(`${clockDay(s)}T12:00`) - Date.parse(String(v).slice(0, 10) + 'T12:00')) / 864e5); return d <= 0 ? 'Today' : d === 1 ? 'Yesterday' : d < 14 ? `${d} days ago` : u.date(v); };
 const orgAvatar = name => `<span class="ad-org-mark" style="--h:${u.hueOf(name)}">${e(u.initials(name))}</span>`;
@@ -45,36 +49,7 @@ const PHASE = {active:['Active now', 'Active'], upcoming:['Upcoming', 'Upcoming'
 
 /* ------------------------------------------------------------ dashboard */
 
-function dashboard(ctx) {
-  const {s, person:p} = ctx, n = numbers(s), comm = communityRecords();
-  const requests = s.applications.filter(a => a.type !== 'mentor' && WAITING.includes(a.status)).sort((a, b) => String(a.submitted).localeCompare(String(b.submitted)));
-  const toApprove = comm.posts.filter(x => x.status === 'pending'), reports = comm.reports.filter(r => r.status === 'pending');
-  const total = requests.length + toApprove.length + reports.length;
-  const hour = Number(new Intl.DateTimeFormat('en-GB', {hour:'numeric', hour12:false, timeZone:'Asia/Amman'}).format(new Date()));
-  const hello = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-
-  const todo = (icon, count, title, sub, href, action) => `<a class="ad-todo ${count ? 'is-open' : 'is-clear'}" href="${u.href(href)}"><span class="ad-todo-icon">${u.icon(icon)}</span><b>${count}</b><strong>${e(title)}</strong><small>${e(count ? sub : 'All clear')}</small><span class="ad-todo-go">${e(count ? action : 'Open')}${u.icon('arrow')}</span></a>`;
-  const inits = s.initiatives.map(i => n.phase(i)), count = k => inits.filter(x => x === k).length;
-  const seg = (k, cls) => count(k) ? `<i class="${cls}" style="--w:${count(k) / Math.max(1, inits.length) * 100}%" title="${count(k)} ${PHASE[k][0]}"></i>` : '';
-  const orgs = s.organizations.filter(o => o.status === 'Approved');
-  const posts = comm.posts.filter(x => x.status === 'visible').length;
-
-  const metrics = `<div class="ad-metrics iw-reveal">
-    <a class="ad-metric" href="${u.href('institutions')}"><span class="ad-metric-label">${u.icon('nodes')}Institutions</span><b>${orgs.length}</b><small>${requests.length ? `${plural(requests.length, 'request')} waiting` : 'No requests waiting'}</small><span class="ad-chips">${orgs.slice(0, 3).map(o => `<span>${e(o.name)}</span>`).join('')}</span></a>
-    <a class="ad-metric" href="${u.href('users')}"><span class="ad-metric-label">${u.icon('people')}People</span><b>${s.people.length}</b><small>registered users</small><span class="ad-split4">${[[n.reps.size, 'Representatives'], [n.coaches.size, 'Coaches'], [n.supervisors.size, 'Supervisors'], [n.students.size, 'Students']].map(([v, l]) => `<span><b>${v}</b>${l}</span>`).join('')}</span></a>
-    <a class="ad-metric" href="${u.href('moderation')}"><span class="ad-metric-label">${u.icon('form')}Community</span><b>${comm.loaded ? posts : '…'}</b><small>published posts</small><span class="ad-inline-flag ${reports.length ? 'is-alert' : ''}">${reports.length ? `${plural(reports.length, 'open report')}` : 'No open reports'}</span></a>
-    <a class="ad-metric is-wide" href="${u.href('initiatives')}"><span class="ad-metric-label">${u.icon('calendar')}Initiatives</span><b>${s.initiatives.length}</b><small>across ${plural(orgs.length, 'institution')}</small><span class="iw-stack-bar ad-phase-bar">${seg('active', 'is-present')}${seg('upcoming', 'is-excused')}${seg('completed', 'is-done')}${seg('cancelled', 'is-absent')}</span><span class="ad-legend">${['active', 'upcoming', 'completed', 'cancelled'].map(k => `<span class="is-${k}"><i></i>${PHASE[k][0]} <b>${count(k)}</b></span>`).join('')}</span></a>
-    <a class="ad-metric" href="${u.href('initiatives?tab=completed')}"><span class="ad-metric-label">${u.icon('check')}Completed</span><b>${n.completed.size}</b><small>students finished an initiative</small></a>
-  </div>`;
-
-  const reqList = requests.length ? `<ul class="ad-rows">${requests.slice(0, 4).map(a => `<li>${orgAvatar(a.name)}<div><strong>${e(a.name)}</strong><small>${e(nameOf(s, a.personId))} · ${e(ago(s, a.submitted))}</small></div>${pill(a.status === 'Needs More Info' ? 'Info Requested' : 'Pending', a.status === 'Needs More Info' ? 'Info requested' : 'New')}${u.link('View', `admin/${PATH[a.type]}/${a.id}`, 'button quiet small')}</li>`).join('')}</ul>` : calm('No requests waiting.', 'New institution requests appear here.');
-  const repList = reports.length ? `<ul class="ad-rows">${reports.slice(0, 4).map(r => { const post = comm.posts.find(x => x.id === r.postId); return `<li><span class="ad-flag-icon">${u.icon('shield')}</span><div><strong>${e(post?.title || 'Community post')}</strong><small>${e(String(r.reason).split(':')[0])} · ${e(ago(s, r.created))}</small></div>${u.link('Review', 'admin/moderation', 'button quiet small')}</li>`; }).join('')}</ul>` : calm('No open reports.', 'Reports from members appear here.');
-
-  return `<header class="iw-dash-head iw-reveal"><div class="iw-dash-copy"><p class="iw-org"><span>DeepSprout</span><span class="cw-role-mark">${u.icon('shield')}Platform owner</span></p><h1>${hello}, ${e(p.name.split(' ')[0])}.</h1><p class="iw-lead">${total ? `<strong>${plural(total, 'thing')}</strong> ${total === 1 ? 'needs' : 'need'} your decision today.` : 'Nothing needs your decision today.'}</p></div><div class="iw-dash-actions">${u.link('Decision history', 'admin/audit', 'button quiet')}</div></header>`
-    + `<section class="ad-todos iw-reveal" aria-label="Needs your decision">${todo('mail', requests.length, 'Institution requests', requests[0] ? `Oldest: ${requests[0].name}` : '', 'admin/organizations', 'Review')}${todo('form', toApprove.length, 'Posts to approve', toApprove[0] ? `“${toApprove[0].title}”` : '', 'admin/moderation?tab=posts', 'Approve')}${todo('shield', reports.length, 'Open reports', reports[0] ? String(reports[0].reason).split(':')[0] : '', 'admin/moderation', 'Review')}</section>`
-    + `<h2 class="ad-section-title">Your platform</h2>` + metrics
-    + `<div class="iw-split">${card('Latest requests', reqList, {extra:u.link('All requests', 'admin/organizations', 'text-link')})}${card('Latest reports', repList, {extra:u.link('Community', 'admin/moderation', 'text-link')})}</div>`;
-}
+/* The dashboard lives in governance.js (shared design system). */
 
 /* ------------------------------------------------------------ requests */
 
@@ -94,7 +69,7 @@ function requests(ctx) {
   return head({eyebrow:'REQUESTS', title:'Institution requests', lead:'Institutions ask to join DeepSprout. See who they are and what they want to do, then approve or reject with a reason.'})
     + tabs([['Waiting for you', 'admin/organizations', 'waiting', waiting.length], ['Decided', 'admin/organizations?tab=decided', 'decided', decided.length]], tab)
     + (list.length ? `<div class="ad-requests">${list.map(row).join('')}</div>` : card('', tab === 'decided' ? calm('No decisions yet.', 'Approved and rejected requests appear here.') : calm('No requests waiting.', 'When an institution applies, its request appears here.')))
-    + `<p class="iw-footnote">${u.icon('shield')}Approved institutions publish initiatives directly — they don’t need your approval for each one.</p>`;
+    + `<p class="iw-footnote">${u.icon('shield')}You verify the Institution and its Representative’s authority. Verified institutions then publish Initiatives and Outdoor Activities directly — no per-resource approval.</p>`;
 }
 function statusPill(a) {
   return {Submitted:pill('Pending', 'New request'), 'Pending Verification':pill('Pending', 'Answered — review again'), 'Needs More Info':pill('Info Requested', 'Waiting for their answer'), Approved:pill('Approved'), Rejected:pill('Rejected'), Suspended:pill('Suspended')}[a.status] || pill(a.status);
@@ -149,24 +124,36 @@ function institutionDetail(ctx, n) {
   if (!o) return u.missing('institution');
   const x = orgStats(s, o, n), app = orgApp(s, o), staff = (s.grants || []).filter(g => g.institutionId === o.id && g.status === 'Active');
   const initRows = x.inits.length ? `<ul class="ad-rows">${x.inits.map(i => { const ph = n.phase(i); return `<li><span class="ad-phase-dot is-${ph}"></span><div><strong>${e(i.title)}</strong><small>${e(u.date(i.start))} – ${e(u.date(i.end))}</small></div>${pill(PHASE[ph][1] === 'Active' ? 'Active' : PHASE[ph][1], PHASE[ph][0])}<span class="ad-when">${(s.admissions || []).filter(a => a.initiativeId === i.id && ['Accepted', 'Completed'].includes(a.status)).length} students</span></li>`; }).join('')}</ul>` : '<p class="iw-muted">No initiatives yet.</p>';
+  const acts = s.experiences.filter(x => x.ownerId === o.id);
+  const actRows = acts.length ? `<ul class="ad-rows">${acts.map(x => `<li><span class="ad-phase-dot is-${['Published','Active'].includes(x.status) ? 'active' : x.status === 'Draft' ? 'draft' : 'completed'}"></span><div><strong>${e(x.title)}</strong><small>${e(kindLabel(x.kind))} · ${e(u.date(x.start))}</small></div>${pill(x.status === 'Active' ? 'Published' : x.status)}<span class="ad-when">${s.bookings.filter(b => b.experienceId === x.id && ['Confirmed','Checked In','Completed'].includes(b.status)).length}/${e(x.capacity)} places</span></li>`).join('')}</ul>` : '<p class="iw-muted">No Outdoor Activities yet.</p>';
   const staffRows = staff.length ? `<ul class="ad-rows">${staff.map(g => `<li>${u.avatar(nameOf(s, g.personId))}<div><strong>${e(nameOf(s, g.personId))}</strong><small>${e(g.role === 'coach' ? 'Coach' : 'Supervisor')} · ${e(s.initiatives.find(i => i.id === g.scopeId)?.title || '')}</small></div></li>`).join('')}</ul>` : '<p class="iw-muted">No staff invited yet.</p>';
   return `<p class="breadcrumbs">${u.link('Institutions', 'admin/institutions', 'text-link')} / ${e(o.name)}</p>`
     + `<header class="ad-hero iw-reveal">${orgAvatar(o.name)}<div><p class="eyebrow">INSTITUTION</p><h1>${e(o.name)}</h1><p class="iw-lead">${e(o.description || '')}</p></div><div class="ad-hero-status">${pill(o.status)}${app ? (o.status === 'Suspended' ? u.button('Restore', 'application-decide', {id:app.id, status:'Approved'}, 'button quiet small') : u.button('Suspend institution', 'application-decide', {id:app.id, status:'Suspended'}, 'button danger small')) : ''}</div></header>`
     + stats([stat(x.inits.length, 'Initiatives'), stat(x.active, 'Running now'), stat(x.students, 'Students'), stat(x.coaches + x.supervisors, 'Staff')])
-    + `<div class="ad-detail-layout"><div class="ad-detail-main">${card('Initiatives', initRows, {eyebrow:'WHAT THEY RUN'})}${card('Staff', staffRows, {eyebrow:'INVITED BY THE REPRESENTATIVE'})}</div>
+    + `<div class="ad-detail-layout"><div class="ad-detail-main">${card('Initiatives', initRows, {eyebrow:'WHAT THEY RUN'})}${card('Outdoor Activities', actRows, {eyebrow:'ORGANIZED BY THIS INSTITUTION', extra:u.link('Govern', 'admin/activities?tab=all', 'text-link')})}${card('Staff', staffRows, {eyebrow:'INVITED BY THE REPRESENTATIVE'})}</div>
       <aside class="ad-detail-side">${card('Representative', `<div class="ad-rep">${u.avatar(o.representative || '')}<div><strong>${e(o.representative || '—')}</strong><small>${e(o.position || 'Representative')}</small></div></div>`, {eyebrow:'CONTACT PERSON'})}${card('Details', facts([['Type', o.type], ['Location', [o.city, o.country].filter(Boolean).join(', ')], ['Email', o.email], ['Phone', o.phone], ['Approved', app ? u.date(app.updated) : '']]))}</aside></div>`;
 }
 
 /* ------------------------------------------------------------ people */
 
+/** Every scoped grant a person holds: what it covers, who granted it, and its state. Choosing a workspace never adds one. */
+function scopedGrants(s, pp) {
+  const rows = [
+    ...s.organizations.filter(o => (o.memberIds || []).includes(pp.id)).map(o => ['Institution Representative', o.name, 'Platform verification', o.status === 'Approved' ? 'Active' : o.status]),
+    ...(s.grants || []).filter(g => g.personId === pp.id).map(g => [g.role === 'coach' ? 'Initiative Coach' : 'Initiative Supervisor', s.initiatives.find(i => i.id === g.scopeId)?.title || g.scopeId, s.organizations.find(o => o.id === g.institutionId)?.name || 'Institution', g.status]),
+    ...(s.appointments || []).filter(a => a.personId === pp.id).map(a => ['Outdoor Activity Supervisor', `${s.experiences.find(x => x.id === a.experienceId)?.title || ''} · ${a.sessionIds.length} session(s)`, s.organizations.find(o => o.id === s.experiences.find(x => x.id === a.experienceId)?.ownerId)?.name || 'Institution', a.status === 'Accepted' ? 'Active' : a.status])
+  ];
+  return `<h3 class="ad-subhead">Scoped grants</h3>${rows.length ? `<ul class="ad-rows">${rows.map(([role, scope, by, st]) => `<li><div><strong>${e(role)}</strong><small>${e(scope)} · granted by ${e(by)}</small></div>${pill(st)}</li>`).join('')}</ul>` : '<p class="iw-muted">No partner grants. Individual access only.</p>'}`;
+}
+
 function people(ctx) {
   const {s, route:r, person:me} = ctx, n = numbers(s), tab = r.query.get('tab') || 'all';
-  const rolesOf = pp => [n.reps.has(pp.id) && 'Representative', n.coaches.has(pp.id) && 'Coach', n.supervisors.has(pp.id) && 'Supervisor', n.students.has(pp.id) && 'Student', pp.workspaces.includes('provider') && 'Outdoor provider', pp.workspaces.includes('admin') && 'Admin', s.applications.some(x => x.personId === pp.id && WAITING.includes(x.status)) && 'Applicant'].filter(Boolean);
+  const rolesOf = pp => [n.reps.has(pp.id) && 'Representative', n.coaches.has(pp.id) && 'Coach', n.supervisors.has(pp.id) && 'Supervisor', n.students.has(pp.id) && 'Student', pp.individual && 'Individual', pp.workspaces.includes('admin') && 'Admin', s.applications.some(x => x.personId === pp.id && WAITING.includes(x.status)) && 'Applicant'].filter(Boolean);
   const groups = {all:() => true, reps:pp => n.reps.has(pp.id), coaches:pp => n.coaches.has(pp.id), supervisors:pp => n.supervisors.has(pp.id), students:pp => n.students.has(pp.id), blocked:pp => pp.status !== 'Active'};
   const list = s.people.filter(groups[tab] || groups.all);
   const orgOf = pp => s.organizations.find(o => (o.memberIds || []).includes(pp.id))?.name || s.organizations.find(o => (s.grants || []).some(g => g.personId === pp.id && g.institutionId === o.id && g.status === 'Active'))?.name || '';
   const t = (key, label, set) => [label, `admin/users${key === 'all' ? '' : `?tab=${key}`}`, key, set];
-  return head({eyebrow:'PEOPLE', title:'People', lead:'Everyone registered on DeepSprout. One person can hold more than one role.'})
+  return head({eyebrow:'PEOPLE', title:'People', lead:'Everyone registered on DeepSprout. One person can hold more than one role; each role comes from a scoped grant, never from choosing a workspace.'})
     + tabs([t('all', 'Everyone', s.people.length), t('reps', 'Representatives', n.reps.size), t('coaches', 'Coaches', n.coaches.size), t('supervisors', 'Supervisors', n.supervisors.size), t('students', 'Students', n.students.size), t('blocked', 'Blocked', s.people.filter(p => p.status !== 'Active').length || '')], tab)
     + `<div class="iw-card iw-reveal">${u.filterBar()}${u.table(['Person', 'Role', 'Institution', 'Status', ''], list.map(pp => ({search:`${pp.name} ${pp.email} ${rolesOf(pp).join(' ')}`, cells:[`<div class="iw-person">${u.avatar(pp.name)}<div><strong>${e(pp.name)}</strong><small>${e(pp.email)}</small></div></div>`, `<span class="ad-role-chips">${(rolesOf(pp).length ? rolesOf(pp) : ['Member']).map(x => `<span class="is-${x.toLowerCase().replace(/\s+/g, '-')}">${e(x)}</span>`).join('')}</span>`, e(orgOf(pp) || '—'), pp.status === 'Active' ? pill('Active') : pill('Blocked', 'Blocked'), `<div class="ad-row-actions">${u.button('View', 'person-detail', {id:pp.id}, 'button quiet small')}${pp.id !== me.id ? (pp.status === 'Active' ? u.button('Block', 'person-status', {id:pp.id, status:'Suspended'}, 'button danger small') : u.button('Unblock', 'person-status', {id:pp.id, status:'Active'}, 'button quiet small')) : ''}</div>`]})))}<p class="no-results" hidden>No matching people.</p></div>`;
 }
@@ -273,7 +260,9 @@ function history(ctx) {
 export function renderConsole(ctx) {
   const page = ctx.route.page;
   if (HIDDEN.includes(page)) return head({eyebrow:'ADMIN', title:'This page is not part of the admin workspace.', lead:'Page-editing and configuration tools are hidden so the workspace stays focused on requests, people and community.'}) + u.link('Back to dashboard', 'admin/overview', 'button primary');
-  if (page === 'overview' || page === 'reports') return dashboard(ctx);
+  if (page === 'overview' || page === 'reports') return adminDashboard(ctx);
+  if (page === 'activities' || page === 'experiences') return activitiesGovernance(ctx);
+  if (page === 'providers' && !ctx.route.id) return head({eyebrow:'RETIRED QUEUE', title:'Outdoor Provider requests are retired.', lead:'Institutions now organize Outdoor Activities directly, so there is no separate Provider verification. Earlier Provider applications stay readable under Requests → Decided.'}) + u.link('Institution requests', 'admin/organizations', 'button primary') + u.link('Outdoor Activities', 'admin/activities', 'button quiet');
   if (['organizations', 'providers', 'mentor-applications'].includes(page)) return ctx.route.id ? requestDetail(ctx) : requests(ctx);
   if (page === 'institutions') return institutions(ctx);
   if (page === 'users') return people(ctx);
@@ -286,6 +275,7 @@ export function renderConsole(ctx) {
 
 export function consoleAction(action, target, ctx) {
   const d = target.dataset, s = ctx.s;
+  if (governanceAction(action, target, ctx)) return true;
   if (action === 'application-decide') {
     const a = s.applications.find(x => x.id === d.id), first = nameOf(s, a.personId).split(' ')[0];
     const copy = {Approved:[`Approve ${a.name}?`, `${first} gets the Institution workspace and can publish initiatives right away.`, 'Note to the institution (optional)', 'Approve'], 'Needs More Info':['Ask for more information', `${first} sees your question on their request and can answer it.`, 'What do you need from them?', 'Send question'], Rejected:[`Reject ${a.name}?`, `${first} will see this reason. They can apply again later.`, 'Reason for rejecting', 'Reject request'], Suspended:[`Suspend ${a.name}?`, 'Their workspace closes and their initiatives stop accepting students. Their records are kept.', 'Reason for suspending', 'Suspend'], 'Approved-restore':[`Restore ${a.name}?`, 'Their workspace opens again.', 'Note (optional)', 'Restore']}[a.status === 'Suspended' && d.status === 'Approved' ? 'Approved-restore' : d.status];
@@ -303,7 +293,7 @@ export function consoleAction(action, target, ctx) {
     const pp = s.people.find(x => x.id === d.id), n = numbers(s);
     const inits = (s.admissions || []).filter(a => a.personId === pp.id).map(a => s.initiatives.find(i => i.id === a.initiativeId)?.title).filter(Boolean);
     const roles = [n.reps.has(pp.id) && 'Representative', n.coaches.has(pp.id) && 'Coach', n.supervisors.has(pp.id) && 'Supervisor', n.students.has(pp.id) && 'Student', pp.workspaces.includes('admin') && 'Admin'].filter(Boolean);
-    u.modal(pp.name, `<div class="ad-rep is-big">${u.avatar(pp.name)}<div><strong>${e(pp.name)}</strong><small>${e(pp.email)}</small></div>${pp.status === 'Active' ? pill('Active') : pill('Blocked')}</div>${facts([['Roles', roles.join(', ') || 'Member'], ['Institution', s.organizations.find(o => (o.memberIds || []).includes(pp.id))?.name], ['Initiatives', inits.join(', ')], ['Email verified', pp.verified ? 'Yes' : 'Not yet']])}<p class="cw-fine">${u.icon('shield')}Personal Lab, Shield and Recovery data are private and never shown here.</p>`, () => {}, 'Close', {readonly:true});
+    u.modal(pp.name, `<div class="ad-rep is-big">${u.avatar(pp.name)}<div><strong>${e(pp.name)}</strong><small>${e(pp.email)}</small></div>${pp.status === 'Active' ? pill('Active') : pill('Blocked')}</div>${facts([['Roles', roles.join(', ') || 'Member'], ['Institution', s.organizations.find(o => (o.memberIds || []).includes(pp.id))?.name], ['Initiatives', inits.join(', ')], ['Email verified', pp.verified ? 'Yes' : 'Not yet']])}${scopedGrants(s, pp)}<p class="cw-fine">${u.icon('shield')}Personal Lab, Shield and Recovery data are private and never shown here.</p>`, () => {}, 'Close', {readonly:true});
     return true;
   }
   if (action === 'ad-initiative') {

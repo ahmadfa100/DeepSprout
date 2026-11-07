@@ -14,7 +14,7 @@
 import {glyphs} from './glyphs.js';
 
 const TAU = Math.PI * 2;
-const HUBS = [['mentor', 'MENTORS'], ['organization', 'INSTITUTIONS'], ['provider', 'OUTDOOR EXPERIENCES'], ['community', 'COMMUNITIES'], ['workshop', 'WORKSHOPS'], ['initiative', 'INITIATIVES']];
+const HUBS = [['mentor', 'MENTORS'], ['organization', 'INSTITUTIONS'], ['provider', 'OUTDOOR ACTIVITIES'], ['community', 'COMMUNITIES'], ['workshop', 'WORKSHOPS'], ['initiative', 'INITIATIVES']];
 const TEXT = '.world-copy>*';
 const PANELS = '.register-card,.entry-shell,.auth-wrap>.auth-intro,.auth-wrap>.auth-form,.auth-wrap>.demo-panel,.auth-wrap>.status-scene';
 const CHROME = '.register-header,.auth-top';

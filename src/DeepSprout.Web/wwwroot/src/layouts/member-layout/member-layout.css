@@ -122,3 +122,26 @@
 .dev-switch-pill { gap: 6px; height: 30px; padding: 0 4px 0 10px; }
 .dev-switch-pill > span:not(.dev-switch-dot) { font-weight: 700; }
 .dev-switch { left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+.member-account-menu .member-review-link{display:flex;align-items:center;gap:9px;min-width:260px;padding:10px 8px;background:#f2f7ee;color:#174b37;font-weight:700;line-height:1.3}
+.member-review-link img{width:18px;height:18px;flex:none}
+.member-review-link>span:nth-child(2){flex:1}
+.member-review-due{padding:3px 6px;border-radius:999px;background:#dcecd5;color:#174b37;font-size:.67rem}
+.member-review-due[hidden]{display:none}
+.member-plan-notice{padding:11px 0 14px;margin-bottom:10px;border-bottom:1px solid #dfe8dc;min-width:min(290px,calc(100vw - 60px))}
+.member-plan-notice strong{color:#174b37}
+.member-plan-notice p{line-height:1.45}
+.member-plan-notice>div{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:11px}
+.member-plan-notice a{color:#175d40;font-size:.82rem;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.member-plan-notice button{border:0;background:none;color:#52675c;font:600 .78rem 'DM Sans',sans-serif;cursor:pointer}
+.member-plan-coach{position:absolute;top:calc(100% + 23px);right:0;z-index:5;width:min(310px,calc(100vw - 30px));padding:18px 19px;border:1px solid #d7e3d4;border-radius:18px;background:#fffefa;box-shadow:0 13px 32px rgb(18 63 52 / .13);white-space:normal;color:#173c33}
+.member-plan-coach:before{content:"";position:absolute;right:27px;top:-9px;width:16px;height:16px;border-top:1px solid #d7e3d4;border-left:1px solid #d7e3d4;background:#fffefa;transform:rotate(45deg)}
+.member-plan-coach strong{font-size:.92rem;line-height:1.3}
+.member-plan-coach p{margin:8px 0 13px;color:#52675c;font-size:.81rem;line-height:1.45}
+.member-plan-coach button{border:0;border-radius:10px;background:#175b40;color:white;padding:8px 14px;font:700 .78rem 'DM Sans',sans-serif;cursor:pointer}
+.member-plan-coach button:hover{background:#103d2f}
+.member-plan-coach button:focus-visible,.member-plan-notice button:focus-visible,.member-plan-notice a:focus-visible{outline:3px solid #286c4e;outline-offset:3px}
+@media(max-width:650px){.member-account-menu{right:-45px;max-width:calc(100vw - 24px)}.member-plan-coach{right:-44px}.member-plan-coach:before{right:73px}}
+.member-header-actions{position:relative}
+.member-header-actions>.member-plan-coach{right:0}
+.member-header-actions>.member-plan-coach:before{right:27px}
+@media(max-width:650px){.member-header-actions>.member-plan-coach{right:44px}.member-header-actions>.member-plan-coach:before{right:27px}}

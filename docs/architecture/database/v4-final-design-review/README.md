@@ -1,5 +1,7 @@
 # DeepSprout v4 — Final Database Design Review
 
+> **Historical proposal:** The [4 November v4.1 P0 decisions](../../../architecture/p0-target-v4.1.md) supersede the independent Coach/Provider ownership and Supervisor self-request assumptions in this package. The 87-table/19-schema figures below are proposal counts, not an approved replacement target. Inventory actual schema and data before any migration.
+
 **Recommendation: 87 tables** (19 schemas, one SQL Server database, one DbContext). Status: proposed, awaiting owner approval. The 129-table `DeepSprout_Validation` database remains the preserved baseline until v4 passes the validation gate.
 
 Start with the decision report, then drill down.

@@ -20,6 +20,7 @@
   <script src="weekly-review.js" defer></script>
 </head>
 <body data-page="recovery" data-root="../../../../">
+  <a class="wr-skip-link" href="#wr-main">Skip to main content</a>
   <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
@@ -39,11 +40,14 @@
     <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
     <symbol id="i-levels" viewBox="0 0 24 24"><path d="M4 20v-5m5 5V9m5 11V4m5 16v-9"/></symbol>
+    <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4 13v-2a8 8 0 0 1 16 0v2M4 13h3v7H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 1-2Zm16 0h-3v7h2a2 2 0 0 0 2-2v-3a2 2 0 0 0-1-2Z"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 4C10 4 4 7 4 15a5 5 0 0 0 5 5c8 0 11-6 11-16ZM4 20c4-6 7-8 12-11"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 2 2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4L12 2Z"/></symbol>
   </svg>
 
   <div data-site-header></div>
 
-  <main class="wr">
+  <main class="wr" id="wr-main">
 
     <!-- ------------------------------------------------------- no review due -->
     <section class="wr-stage" data-stage="none" hidden aria-labelledby="none-title">
@@ -75,8 +79,8 @@
                 <span class="badge-icon"><svg><use href="#i-check"/></svg></span>
                 <div><p class="eyebrow">Step 1 · what happened</p><h2 id="happened-title">The week as recorded</h2></div>
               </div>
-              <ul class="wr-ledger" id="ledger"></ul>
-              <p class="card-note">Completed, missed and unknown are shown separately on purpose. A day with no data is unknown — not a zero and not a relapse.</p>
+              <div class="wr-ledger" id="ledger"></div>
+              <details class="wr-source-details"><summary>Other evidence from this week</summary><div id="supporting-evidence"></div></details>
             </section>
 
             <section class="card" aria-labelledby="q1-title">
@@ -88,6 +92,7 @@
 
               <h3 class="wr-subquestion" id="q2-title">Did this week's activity choices fit you?</h3>
               <div class="choice-grid wr-answers" id="q2" role="radiogroup" aria-labelledby="q2-title"></div>
+              <p class="wr-question-note"><strong>Help shape your next week.</strong> Your answers help us suggest a pace and activity choices that better fit you.</p>
             </section>
 
             <section class="card" aria-labelledby="next-title">
@@ -96,12 +101,13 @@
                 <div><p class="eyebrow">Step 3 · next week</p><h2 id="next-title">What we'd suggest</h2></div>
               </div>
               <div class="wr-recommendation" id="recommendation">
-                <p class="wr-rec-text" id="rec-text">Answer the two questions above and a suggestion appears here, with the reason behind it.</p>
+                <p class="wr-rec-text" id="rec-text" aria-live="polite">Answer the two questions above and a suggestion appears here, with the reason behind it.</p>
                 <ul class="wr-rec-why" id="rec-why"></ul>
               </div>
-              <div class="wr-options" id="outcome-options"></div>
+              <div class="wr-options" id="outcome-options" role="radiogroup" aria-label="Choose how to set next week"></div>
               <div id="review-adjustment" hidden><label>Practice days<select id="review-days"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label><label>Time preference<select id="review-minutes"><option>5</option><option>10</option><option>15</option></select> minutes</label><label>Preferred type<select id="review-mix"><option value="depth">Depth Practice</option><option value="listening">Listening &amp; Recall</option><option value="practical">Practical Micro-Challenge</option><option value="protected-work">Protected Work</option></select></label></div>
-              <h3>Future schedule preview</h3><ol id="next-week-preview"></ol>
+              <div class="wr-timeline-heading"><span class="badge-icon"><svg><use href="#i-calendar"/></svg></span><div><h3>Future schedule preview</h3><p>Here’s what your proposed next week could look like.</p></div></div>
+              <ol id="next-week-preview" class="wr-timeline" aria-label="Proposed next week by day"></ol>
               <p class="card-note">Nothing increases on its own. Whatever you pick is saved as a plan revision with the reason, and your history is kept either way.</p>
             </section>
           </div>

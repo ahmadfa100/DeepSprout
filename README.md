@@ -12,7 +12,7 @@
 
 ![Editorial DeepSprout illustration: a short-form feed gives way to a growing sprout](docs/assets/readme/deepsprout-hero.svg)
 
-DeepSprout joins a **personal Recovery Journey** with practice, browser support, real-world opportunities, and guided group work. Start with the [current product guide](docs/current-product-guide.md) for every page and connected cycle; the [product specification](DeepSprout.md) records intended rules and older decisions. The website can now be served by ASP.NET Core MVC from `Server/`. Its existing interactions still use browser-local demo records; server authentication and durable product persistence remain future work.
+DeepSprout joins a **personal Recovery Journey** with practice, browser support, real-world opportunities, and guided group work. The [v4.1 product specification](DeepSprout.md) and [4 November P0 target map](docs/architecture/p0-target-v4.1.md) define the intended Institution-only partner model. The [current product guide](docs/current-product-guide.md) inventories the demo, including older Coach and Provider routes that require migration. The ASP.NET Core MVC website serves Razor views from `src/DeepSprout.Web`; interactions still use browser-local demo records, so Identity-backed access and durable product workflows remain future work.
 
 **Explore the demo:** [Home](http://127.0.0.1:8765/) · [Individual activities](http://127.0.0.1:8765/src/pages/member/training/training.html) · [Partner workspaces](http://127.0.0.1:8765/workspaces.html#/auth/login) · [System Journey walkthrough](http://127.0.0.1:8765/workspaces.html#/admin/system-journey)
 
@@ -39,7 +39,7 @@ DeepSprout joins a **personal Recovery Journey** with practice, browser support,
 
 Short-form feeds can consume time a person meant to spend on rest, relationships, learning, or simply being offline. DeepSprout helps people, especially young people, notice that pattern and make intentional changes. Reading or focused work can support that goal, but becoming maximally productive is not a requirement. DeepSprout is neither a clinical treatment nor a general habit tracker.
 
-The personal journey is supported by four distinct systems: **Recovery Plan** schedules and adapts actions; **Activities** holds practice and an optional offline routine; **Digital Shield** offers browser-scoped protection and usage reminders; **Lab and Insights** retain measurement and its source. **Explore** brings institution initiatives, workshops, and provider experiences into the same participation journey. Community and the original companion Bimo make the experience more welcoming. See [master §§1–2](DeepSprout.md#1-vision-positioning-users-and-product-boundaries) for product boundaries.
+The personal journey is supported by four distinct systems: **Recovery Plan** schedules and adapts actions; **Activities** holds practice and an optional offline routine; **Digital Shield** offers browser-scoped protection and usage reminders; **Lab and Insights** retain measurement and its source. **Explore** brings Institution Initiatives, workshops, and Institution-owned Outdoor Activities into the same participation journey. Community and the original companion Bimo make the experience more welcoming. See [master §§1–2](DeepSprout.md#1-vision-positioning-users-and-product-boundaries) for product boundaries.
 
 ## Current page and cycle guide
 
@@ -87,7 +87,7 @@ Bimo is DeepSprout's **original approved companion**. Bimo welcomes people, guid
 
 The Garden makes earned participation visible. Valid, eligible original practice attempts contribute to their corresponding four practice-type trees; routine and verified participation can produce bounded details under different rules. It does not grow merely because an app was opened, a timer elapsed, or a booking was made. Missing observations should remain unknown rather than be treated as failure. The illustration explains the current source model; it is **not a screenshot** of the Garden. See [the live Garden](http://127.0.0.1:8765/src/pages/member/garden/garden.html). The later design guidance calls for one clean ivory scene with one main plant; the current four-tree implementation remains until a separately scoped Garden task resolves its visual and evidence mapping.
 
-## Connected workspaces
+## Connected workspaces in the current demo
 
 ![Diagram of DeepSprout's Individual, partner, Supervisor and Admin workspaces](docs/assets/readme/workspaces-diagram.svg)
 
@@ -96,24 +96,24 @@ The Garden makes earned participation visible. Valid, eligible original practice
 | **Individual** | [Home](http://127.0.0.1:8765/), [Recovery Plan](http://127.0.0.1:8765/src/pages/member/recovery-plan/recovery-plan.html), [Activities](http://127.0.0.1:8765/src/pages/member/training/training.html), [Lab](http://127.0.0.1:8765/src/pages/member/lab/lab.html), [Shield](http://127.0.0.1:8765/src/pages/member/shield/shield.html), [Garden](http://127.0.0.1:8765/src/pages/member/garden/garden.html), [Insights](http://127.0.0.1:8765/src/pages/member/insights/insights.html), [Explore](http://127.0.0.1:8765/src/pages/member/explore/explore.html) | Receives its own assignments, applications, bookings and attributed outcomes |
 | **Coach / Mentor** | [Dashboard, Programs, Groups, Assignments, Reviews, Group Garden, Reports](http://127.0.0.1:8765/workspaces.html#/mentor/dashboard) | Runs an independent Program or reviews scoped group work |
 | **Invited Student** | [Dashboard, My Tasks, My Group, Progress, Group Garden](http://127.0.0.1:8765/workspaces.html#/student/dashboard) | Joins a group through invitation; can later upgrade the same person identity to Individual |
-| **Institution Representative** | [Dashboard, Initiatives, Applications, Team, Sessions, Forms, Reports](http://127.0.0.1:8765/workspaces.html#/organization/dashboard) | Publishes and runs youth initiatives, assigns staff, reviews participation and received Supervisor reports |
-| **Outdoor Provider** | [Overview, Experiences, Registrations, Waiting List, Evaluations, Reports](http://127.0.0.1:8765/workspaces.html#/provider/overview) | Owns experiences and camps, bookings, offers, completion rules |
-| **Supervisor** | [Dashboard, Schedule, Attendance, Excuses, Reports](http://127.0.0.1:8765/workspaces.html#/supervisor/dashboard) | Acts only on assigned Institution or Provider resources; confirms operational evidence |
+| **Institution Representative** | [Dashboard, Create new, Initiatives, Outdoor Activities, Applications, Bookings & waitlist, Team, Sessions, Forms, Reports](http://127.0.0.1:8765/workspaces.html#/organization/dashboard) | Publishes and runs Initiatives (online, hybrid or face-to-face) **and** Outdoor Activities (trips, hikes, camps), appoints staff, reviews participation and received Supervisor reports |
+| ~~Outdoor Provider~~ | Retired 6 Nov 2026 — `#/provider/*` explains the change | Institutions organize Outdoor Activities directly; see the [four-cycle redesign log](docs/DEEPSPROUT-FOUR-CYCLE-REDESIGN.md) |
+| **Supervisor** | [Dashboard, Schedule, Attendance, Excuses, Reports](http://127.0.0.1:8765/workspaces.html#/supervisor/dashboard) | Acts only on an assigned Initiative or appointed Outdoor Activity sessions; confirms field evidence |
 | **Platform Admin** | [Overview, approvals, catalog, policy, CMS, moderation, reports, audit](http://127.0.0.1:8765/workspaces.html#/admin/overview) | Governs publication and platform policy; [legacy Admin](http://127.0.0.1:8765/admin.html#/dashboard) still holds some separate demo capabilities |
 
 A person can have multiple **role grants**, each scoped to the relevant resource. A workspace switch does not grant permission. **Subscription entitlements** are a separate proposed commercial mechanism, not a substitute for identity or authorization; no real billing runs here. The current browser guards demonstrate policy, but production enforcement requires server-side checks. See [master §§2, 20, 23](DeepSprout.md#2-fundamental-concepts-authorization-and-workspaces).
 
-## Operational workflows
+## Operational workflows in the current demo
 
 ![Three connected Institution, Coach and Outdoor Provider operational cycles](docs/assets/readme/operational-workflows.svg)
 
 - **Individual recovery:** baseline → plan → practice and routine → weekly review → Insights and earned Garden growth → next decision. Evidence stays tied to its original person, attempt and cycle.
 - **Independent Coach Program:** Admin approves a Coach; the Coach publishes an invite-only Program and owns groups; an invited Student submits assigned work; Coach review, reports and a Group Garden reflect eligible outcomes. Upgrade keeps the same person identity and history. [Implementation report](docs/implementation/independent-coach-cycle-implementation-report.md).
 - **Institution Initiative:** an approved Representative publishes an Initiative into regular Explore; an Individual applies; admission, groups, Coach tasks, sessions, forms and reports refer to shared records. The Representative's current Reports route is a received Supervisor-report inbox with attached Coach reports. Supervisor check-in and excuse decisions remain separate from registration. [Institution report](docs/implementation/institution-cycle-implementation-report.md) · [Supervisor report](docs/implementation/supervisor-cycle-implementation-report.md).
-- **Outdoor experience:** a Provider publishes a versioned experience or camp; an Individual books or joins a waiting list. Offers have expiry and capacity rules; an assigned Supervisor verifies attendance; completion follows the published criteria, then reports and eligible Garden effects read the original record. [Provider report](docs/implementation/deepsprout-round1-outdoor-provider-report.md).
+- **Outdoor Activity:** a verified Institution publishes a versioned trip, hike, camp or outdoor event; an Individual books or joins a waiting list in regular Explore. Offers have expiry and capacity rules; an appointed Supervisor verifies attendance (the Representative cannot); completion follows the published criteria, then reports and eligible Garden effects read the original record. [Four-cycle redesign log](docs/DEEPSPROUT-FOUR-CYCLE-REDESIGN.md) · historical [Provider report](docs/implementation/deepsprout-round1-outdoor-provider-report.md).
 - **Admin governance:** application approval, publication, policy, moderation and audit views span these flows. The two Admin demos still require measured consolidation before production.
 
-These flows share person, resource and participation identities in the newer browser-local demo. A registration is not attendance; attendance is not completion; a self-report is not a system-scored result. Current cross-workspace status and unresolved seams are tracked in the [cycle audits](docs/cycles/README.md) and [implementation reports](docs/README.md).
+These flows document the current browser-local demo. The v4.1 target removes independent Coach and Outdoor Provider ownership: Institutions own Initiatives and Outdoor Activities, and Coaches/Supervisors serve through scoped Institution invitations. A registration is not attendance; attendance is not completion; a self-report is not a system-scored result. Current cross-workspace status and unresolved seams are tracked in the [cycle audits](docs/cycles/README.md) and [implementation reports](docs/README.md).
 
 ## Pages and navigation
 
@@ -134,7 +134,7 @@ The workspace [navigation source](src/DeepSprout.Web/wwwroot/src/workspaces/navi
 | --- | --- | --- |
 | Web experience | 46 Razor views and MVC routing in `src/DeepSprout.Web`; CSS, JavaScript and images under `wwwroot/`, and the hash-routed `workspaces.html` partner workspaces | Server-backed MVC actions; the older Angular client direction needs a separate integration decision |
 | State | Browser-local person journals, ecosystem graph, seeded JSON and some separate legacy Admin data; separate EF Core/SQL Server schema and validation solution | ASP.NET Core MVC application with C# domain services and EF Core/SQL Server persistence |
-| Identity and access | Demo identity selector and browser-side scoped guards | Authenticated identity, role and resource-scoped server authorization |
+| Identity and access | Demo identity selector and browser-side scoped guards | ASP.NET Core Identity for one human account, with server-enforced resource-scoped authorization and one Platform Admin |
 | Business changes | Local commands and projections; some original records bridge Individual and partner screens | Versioned workflows, transactions, service-layer invariants and durable audit trails |
 | Browser protection | Optional Chrome extension with local-origin pairing and restricted site coverage | Technically validated extension and authenticated, consent-aware sync |
 | Hosting | One ASP.NET Core MVC application run locally; validation database is separate | Hosted ASP.NET Core MVC application, database and optional extension distribution |
@@ -205,6 +205,7 @@ With the site running (`dotnet run --project src/DeepSprout.Web`), the checks ar
 ```sh
 node tests/mvc-smoke.mjs                      # every routed page, custom 404, every local link and asset
 node --test tests/client/partner-store.test.mjs tests/client/institution-cycle.test.mjs tests/client/supervisor-cycle.test.mjs tests/client/coach-cycle.test.mjs
+node --test tests/client/four-cycle.test.mjs tests/client/outdoor-activity-cycle.test.mjs   # Institution-owned Outdoor Activities, timeline, governance
 node --test tests/client/round2a-personal.test.mjs tests/client/round2b-practices.test.mjs tests/client/round2c-recovery.test.mjs tests/client/round2d-shield.test.mjs
 BASE_URL=http://127.0.0.1:8765 node tests/client/round0-browser.test.cjs   # Playwright suites; set CHROME_PATH
 ```

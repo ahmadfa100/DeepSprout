@@ -12,6 +12,11 @@ const web = join(root, 'src/DeepSprout.Web');
 const base = process.env.BASE_URL ?? 'http://127.0.0.1:8765';
 const routes = JSON.parse(await readFile(join(web, 'page-routes.json')));
 const norm = (text) => text.replaceAll('\r\n', '\n');
+const comparableView = text => norm(text)
+  .replace(/^@addTagHelper[^\n]*\n/m, '')
+  .replace(/ asp-append-version="true"/g, '')
+  .replace(/((?:href|src)=")~\//g, '$1/')
+  .replace(/\?v=[A-Za-z0-9_-]+(?=")/g, '');
 
 const home = await fetch(new URL('/', base));
 assert.equal(home.status, 200, 'home');
@@ -35,7 +40,7 @@ for (const { path: route, view } of routes) {
   assert.match(response.headers.get('content-type') ?? '', /text\/html/, route);
   const rendered = norm(await response.text());
   const source = norm(await readFile(join(web, 'Views', `${view}.cshtml`), 'utf8')).replaceAll('@@', '@');
-  assert.equal(rendered, source, `Rendered markup differs from view: ${route}`);
+  assert.equal(comparableView(rendered), comparableView(source), `Rendered markup differs from view: ${route}`);
 
   const pageUrl = new URL(`/${route}`, base);
   for (const match of rendered.matchAll(/\b(?:href|src)\s*=\s*"([^"]+)"/g)) {

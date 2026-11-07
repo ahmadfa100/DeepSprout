@@ -1,10 +1,10 @@
 import {renderOwner,ownerAction,ownerSubmit,mountOwner,unmountOwner} from './admin-owner.js';
-import {renderConsole,consoleAction} from './admin/console.js';
+import {renderConsole,consoleAction,governanceChange} from './admin/console.js';
 import {reportRange} from '../shared.js';
 import * as u from '../ui.js';
 import {nameOf,metrics,crumbs,renderReports,sharedAction,saveAccount} from '../shared.js';
 import * as journey from '../journey/journey.js';
-const queueType={ 'mentor-applications':'mentor',organizations:'organization',providers:'provider'};
+const queueType={ 'mentor-applications':'mentor',organizations:'organization'};
 const assets=[['assets/home-redesign/forest-hike.jpg','Woodland walk'],['assets/home-redesign/sunset-overlook.jpg','Sunset overlook'],['assets/home-redesign/pottery-workshop.jpg','Creative workshop']];
 export function render(ctx){const {s,person:p,route:r}=ctx;const view=renderConsole(ctx);if(view!==null)return view;const owner=renderOwner(ctx);if(owner!==null)return owner;
  if(r.page==='system-journey')return journey.render(ctx);
@@ -43,7 +43,7 @@ export function action(action,target,ctx){if(consoleAction(action,target,ctx)||o
 }
 function extractCMS(){const f=document.querySelector('[data-form=cms]');const v=u.formValues(f);return Object.fromEntries(['heading','text','font','color','size','image','alt'].map(key=>[key,v[key]]));}
 export function submit(form,ctx){if(ownerSubmit(form,ctx))return;if(form.dataset.form==='report-range')reportRange(form,ctx);if(form.dataset.form==='cms'){const draft=extractCMS();ctx.localUI.cmsDraft=draft;ctx.run('admin.cms.save',{draft},'Content draft saved.');ctx.render();}if(form.dataset.form==='system'){ctx.run('admin.system.save',{...u.formValues(form),emailNotices:form.elements.emailNotices.checked});ctx.render();}if(form.dataset.form==='account')saveAccount(form,ctx);}
-export function change(target,ctx){if(target.id==='cms-edit-mode'){ctx.localUI.cmsEdit=target.checked;ctx.localUI.cmsDraft=extractCMS();ctx.render();}else if(target.closest('[data-form=cms]'))input(target,ctx);}
+export function change(target,ctx){if(governanceChange(target,ctx))return;if(target.id==='cms-edit-mode'){ctx.localUI.cmsEdit=target.checked;ctx.localUI.cmsDraft=extractCMS();ctx.render();}else if(target.closest('[data-form=cms]'))input(target,ctx);}
 export function input(target,ctx){if(!target.closest('[data-form=cms]'))return;const d=ctx.localUI.cmsDraft=extractCMS();document.getElementById('cms-heading').textContent=d.heading;document.getElementById('cms-text').textContent=d.text;const image=document.getElementById('cms-image');image.src=d.image;image.alt=d.alt;document.getElementById('cms-preview').className=`cms-preview ${d.color} ${d.font} ${d.size}`;}
 /** Mount owner-workspace data refresh and draft editing safeguards. */
 export function mount(ctx){mountOwner(ctx);if(ctx.route.page==='system-journey')journey.mount(ctx);}

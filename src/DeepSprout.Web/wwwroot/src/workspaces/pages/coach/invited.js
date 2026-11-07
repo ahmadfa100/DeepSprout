@@ -13,6 +13,7 @@ import {activeGrantsFor,today} from '../../initiative-rules.js';
 import {groupMetrics} from '../../commands/initiative.js';
 import {taskState,tasksFor} from '../../coach-rules.js';
 import {institutionGroups} from './independent.js';
+import {coachInsights} from './insights.js';
 
 /* ------------------------------------------------------------ records */
 
@@ -125,7 +126,8 @@ export function dashboard(ctx) {
     + appointmentStrip(s, p.id, i, groups)
     + stats([stat(rows.length, 'Students', {href:'mentor/students'}), stat(waiting.length, 'Waiting for your review', {href:'mentor/reviews', tone:waiting.length ? 'attention' : ''}), stat(late.length, 'Overdue tasks', {tone:late.length ? 'critical' : '', hint:late.length ? 'Not submitted after the due date' : 'Nobody is behind'}), stat(approved, 'Tasks approved', {of:expected || 0})])
     + `<div class="iw-split is-wide">${card('What needs you', todoList, {eyebrow:todo.length ? `${todo.length} TO DO` : 'ALL CLEAR'})}${card(groups.length === 1 ? 'Your students' : 'Your students by group', roster, {extra:u.link('All students', 'mentor/students', 'text-link')})}</div>`
-    + (agenda ? card('Sessions', `<ol class="iw-agenda cw-agenda">${agenda}</ol>`, {eyebrow:i.title.toUpperCase(), extra:'<small class="iw-muted">Run by the institution</small>'}) : '');
+    + (agenda ? card('Sessions', `<ol class="iw-agenda cw-agenda">${agenda}</ol>`, {eyebrow:i.title.toUpperCase(), extra:'<small class="iw-muted">Run by the institution</small>'}) : '')
+    + coachInsights(ctx, groups);
 }
 
 /* ------------------------------------------------------------ groups */

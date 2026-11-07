@@ -15,7 +15,7 @@
 import {glyphs} from '../register/experience/glyphs.js';
 
 const TAU = Math.PI * 2;
-const HUBS = [['mentor', 'Mentors'], ['organization', 'Institutions'], ['provider', 'Outdoor'], ['community', 'Communities'], ['workshop', 'Workshops'], ['initiative', 'Initiatives']];
+const HUBS = [['mentor', 'Mentors'], ['organization', 'Institutions'], ['provider', 'Outdoor activities'], ['community', 'Communities'], ['workshop', 'Workshops'], ['initiative', 'Initiatives']];
 const QUIET = 'a,button,input,textarea,select,label,summary,dialog,[role=button],.login-card';
 const LINE = '86,132,118', DOT = '63,138,118', SPARK = '23,160,127', LABEL = '#4c6259';
 

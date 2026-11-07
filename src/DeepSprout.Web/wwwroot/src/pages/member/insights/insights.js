@@ -496,12 +496,12 @@
       </article>`);
     }
 
-    const providerBookings=repo&&me?repo.selectors.myProviderBookings(repo.read(),me.id):[];
+    const providerBookings=repo&&me?repo.selectors.myActivityBookings(repo.read(),me.id):[];
     if(providerBookings.length)cards.push(`<article class="ins-beyond-card" id="provider-experiences">
       <header><h3>Outdoor experiences</h3><span class="ins-badge">Supervisor-confirmed</span></header>
       <div class="ins-counts"><div class="ins-count">${num(providerBookings.length)}<small>${plural(providerBookings.length,'booking')}</small></div><div class="ins-count">${num(providerBookings.reduce((n,b)=>n+b.attendance.filter(a=>['Present','Late'].includes(a.status)).length,0))}<small>sessions attended</small></div><div class="ins-count">${num(providerBookings.filter(b=>b.completion?.status==='Completed').length)}<small>completed</small></div></div>
       <ul class="ins-facts">${providerBookings.map(b=>`<li data-booking-id="${esc(b.id)}"><strong>${esc(b.experience.title)}</strong> · ${esc(b.status)} <span class="ins-ref">Ref ${esc(b.id)}</span>${b.attendance.length?`<p>${b.attendance.map(a=>`${esc(b.experience.sessions.find(ss=>ss.id===a.sessionId)?.title||a.sessionId)}: ${esc(a.status)} <span class="ins-ref">${esc(a.id)}</span>`).join('<br>')}</p>`:''}${b.completion?`<p>Completion: ${esc(b.completion.status)} <span class="ins-ref">${esc(b.completion.id)} · criteria v${b.completion.resourceVersion}</span></p>`:''}</li>`).join('')}</ul>
-      <p class="ins-card-note">Original Provider records${help('outdoor experience records','Booking and QR check-in do not award growth. Qualifying attendance and the published Camp criteria supply bounded Garden decorations; corrections stay in the original evidence history.')}</p></article>`);
+      <p class="ins-card-note">Original Outdoor Activity records (organized by verified Institutions)${help('outdoor experience records','Booking and QR check-in do not award growth. Qualifying attendance and the published Camp criteria supply bounded Garden decorations; corrections stay in the original evidence history.')}</p></article>`);
 
     const experiences = account.experiences();
     if (!providerBookings.length || experiences.registered) cards.push(`<article class="ins-beyond-card">

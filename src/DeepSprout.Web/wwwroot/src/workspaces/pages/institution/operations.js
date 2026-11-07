@@ -5,9 +5,9 @@
  * sessions assigned to them and recommends on excuses.
  */
 import * as u from '../../ui.js';
-import {esc,nameOf,pill,head,stats,stat,card,personCell,emptyState,summary,initiativeSwitcher,withInitiative,fmtDate,sessionWhen,tabs} from './common.js';
-import {needsSupervisor,assignedActiveSupervisors,activeGrantsFor,isActiveSupervisor,confirmedInMode,modeCapacity,today,checkInWindow,windowMessage} from '../../initiative-rules.js';
-import {mapEmbedUrl,mapUrl,meetingUrl} from '../../session-access.js';
+import {esc,nameOf,pill,head,stats,stat,card,personCell,emptyState,summary,initiativeSwitcher,withInitiative,fmtDate,sessionWhen,tabs,picker} from './common.js';
+import {needsSupervisor,assignedActiveSupervisors,activeGrantsFor,representativesOf,isActiveSupervisor,confirmedInMode,modeCapacity,today,checkInWindow,windowMessage} from '../../initiative-rules.js';
+import {mapUrl,meetingUrl} from '../../session-access.js';
 
 const pickInitiative = (ctx, initiatives) => { const i = initiatives.find(x => x.id === (ctx.route.query.get('initiative') || ctx.localUI.initiativeId)) || initiatives.find(x => x.status === 'Published') || initiatives[0]; if (i) ctx.localUI.initiativeId = i.id; return i; };
 const roster = (s, ss) => s.sessionRegistrations.filter(r => r.sessionId === ss.id && r.status === 'Confirmed');
@@ -98,16 +98,30 @@ export function renderSessionDetail(ctx, id, role, initiatives) {
 function sessionForm(ctx, ss, initiativeId) {
   const i = ctx.s.initiatives.find(x => x.id === initiativeId);
   const supervisors = activeGrantsFor(ctx.s, initiativeId, 'supervisor');
+  const hosts = new Map();
+  const addHosts = (ids, role, description) => ids.forEach(pid => {
+    const person = ctx.s.people.find(p => p.id === pid && p.status === 'Active');
+    if (!person) return;
+    const existing = hosts.get(person.name);
+    if (existing) { if (!existing.tags.includes(role)) existing.tags.push(role); return; }
+    hosts.set(person.name, {value:person.name, label:person.name, sub:description, tags:[role], person:true});
+  });
+  addHosts(representativesOf(ctx.s, i), 'representative', 'Institution representative');
+  addHosts(supervisors.map(g => g.personId), 'supervisor', 'Supervisor · this initiative');
+  addHosts(activeGrantsFor(ctx.s, initiativeId, 'coach').map(g => g.personId), 'coach', 'Coach · this initiative');
+  const selectedHost = ss.speaker || ctx.person.name;
+  if (ss.speaker && !hosts.has(ss.speaker)) hosts.set(ss.speaker, {value:ss.speaker, label:ss.speaker, sub:'Previously selected host', tags:[], person:true});
+  const hostPicker = picker({attrs:'name="speaker" required', value:selectedHost, label:'Host / facilitator', options:[...hosts.values()], search:true, searchLabel:'Search people…', filters:[['representative','Representative'],['supervisor','Supervisor'],['coach','Coach']], none:'No people match this search.'});
   const selected = ss.format === 'In-person' || (ss.format === 'Hybrid' && ss.venue) ? 'In-person' : 'Online';
   return `<div class="iw-session-intro"><p class="eyebrow">SESSION DETAILS</p><p>Choose how students will join. Their local confirmation preview will include only the relevant map or meeting link.</p></div>
-    ${u.field('title', 'Session title', ss.title || '', 'text', true)}${u.field('speaker', 'Host / facilitator', ss.speaker || ctx.person.name, 'text', true)}${u.area('description', 'Short description', ss.description || '')}${u.area('agenda', 'Agenda', ss.agenda || '')}
+    ${u.field('title', 'Session title', ss.title || '', 'text', true)}<div class="field iw-session-host"><span>Host / facilitator <span class="required">*</span></span>${hostPicker}<small>Choose a representative, Supervisor or Coach for this initiative.</small></div>${u.area('description', 'Short description', ss.description || '')}${u.area('agenda', 'Agenda', ss.agenda || '')}
     <div class="form-grid">${u.field('date', 'Date', ss.date || i.start, 'date', true)}${u.field('time', 'Start', ss.time || '17:00', 'time', true)}${u.field('endTime', 'End', ss.endTime || '18:00', 'time', true)}${u.field('registrationOpen', 'Registration opens', ss.registrationOpen || i.registrationOpen || '', 'date')}${u.field('registrationClose', 'Registration closes', ss.registrationClose || '', 'date')}</div>
     <fieldset class="iw-session-mode"><legend>Where will this session happen?</legend><div class="iw-session-options">
       <label><input type="radio" name="format" value="Online" ${selected === 'Online' ? 'checked' : ''}><span><strong>Remote</strong><small>Share a Google Meet or Zoom link</small></span></label>
       <label><input type="radio" name="format" value="In-person" ${selected === 'In-person' ? 'checked' : ''}><span><strong>On-site</strong><small>Show the address and map</small></span></label>
     </div></fieldset>
     <section class="iw-session-access" data-session-panel="Online" aria-label="Remote access">${u.field('meeting', 'Google Meet or Zoom link', meetingUrl(ss.meeting), 'url', false, 'placeholder="https://meet.google.com/..."')}<div class="form-grid">${u.field('onlineCapacity', 'Remote seats', ss.onlineCapacity || 30, 'number', false, 'min="1"')}</div><p class="iw-session-hint">The student preview will show this link after the session is published and when a booking is confirmed.</p></section>
-    <section class="iw-session-access" data-session-panel="In-person" aria-label="On-site location">${u.field('venue', 'Venue name', ss.venue || i.venue || '', 'text', false, 'placeholder="Horizon Youth Center"')}${u.field('address', 'Street address or map location', ss.address || ss.venue || i.venue || '', 'text', false, 'placeholder="Street, city, country"')}<div class="form-grid">${u.field('inPersonCapacity', 'On-site seats', ss.inPersonCapacity || 20, 'number', false, 'min="1"')}</div><div class="iw-session-map"><div class="iw-session-map-head"><strong>Location preview</strong><a data-session-map-link href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Open in Google Maps ↗</a></div><p data-session-map-empty>Enter the location to preview it on the map.</p><iframe title="Session location preview" data-session-map-frame loading="lazy" referrerpolicy="no-referrer-when-downgrade" hidden></iframe><p class="iw-session-map-foot">Map preview needs an internet connection. Use “Open in Google Maps” if it does not load.</p></div></section>
+    <section class="iw-session-access" data-session-panel="In-person" aria-label="On-site location">${u.field('venue', 'Venue name', ss.venue || i.venue || '', 'text', false, 'placeholder="Horizon Youth Center"')}${u.field('address', 'Street address or map location', ss.address || '', 'text', false, 'placeholder="Choose a point on the map or enter an address"')}<div class="form-grid">${u.field('inPersonCapacity', 'On-site seats', ss.inPersonCapacity || 20, 'number', false, 'min="1"')}</div><div class="iw-session-map"><div class="iw-session-map-head"><div><strong>Choose the meeting point</strong><small>Choose a city, drag to move, then click to place the pin</small></div><a data-session-map-link href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">View in Google Maps ↗</a></div><label class="iw-session-map-city">Jump to city <select data-session-map-city>${[['Amman',31.9539,35.9106],['Irbid',32.5568,35.8469],['Zarqa',32.0728,36.088],['As-Salt',32.0392,35.7272],['Mafraq',32.3429,36.208],['Jerash',32.2819,35.8993],['Ajloun',32.3326,35.7517],['Madaba',31.7167,35.7939],['Karak',31.1853,35.7047],['Tafilah',30.8338,35.6161],['Ma’an',30.194,35.734],['Aqaba',29.5267,35.0078]].map(([city,lat,lon]) => `<option value="${lat},${lon}">${city}</option>`).join('')}</select></label><div class="iw-session-map-canvas" data-session-map role="button" tabindex="0" aria-label="Choose meeting point on map"><div class="iw-session-map-tiles"></div><span class="iw-session-map-pin" aria-hidden="true" hidden>${u.icon('pin')}</span><div class="iw-session-map-controls"><button type="button" data-map-zoom="1" aria-label="Zoom in">+</button><button type="button" data-map-zoom="-1" aria-label="Zoom out">−</button></div></div><p class="iw-session-map-status" data-session-map-status role="status">Choose a point on the map, or type a street address above.</p><small class="iw-session-map-credit">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>. Google Maps opens separately for viewing.</small></div></section>
     ${u.field('completionRule', 'Completion rule', ss.completionRule || 'Attendance only')}
     ${u.checkbox('attendanceRequired', 'This session records attendance (needs an active Supervisor)', ss.attendanceRequired !== false)}
     <fieldset class="iw-fieldset"><legend>Check-in window policy</legend><div class="form-grid">${u.select('checkInMode', 'Policy', [['window','Window around the session'],['anytime','Any time (explicit exception)']], ss.checkInPolicy?.mode || 'window')}${u.field('checkInBefore', 'Opens · minutes before start', ss.checkInPolicy?.before ?? 30, 'number', false, 'min="0" max="240"')}${u.field('checkInAfter', 'Closes · minutes after end', ss.checkInPolicy?.after ?? 30, 'number', false, 'min="0" max="720"')}</div><small class="iw-muted">QR, code and online roster check-in work only inside the window. After it closes, the Supervisor can still record a reasoned manual exception or a correction.</small></fieldset>
@@ -121,17 +135,45 @@ function syncSessionAccess(form) {
     panel.hidden = !active;
     panel.querySelectorAll('input').forEach(input => { input.disabled = !active; input.required = active && ['meeting','venue','address'].includes(input.name); });
   });
-  const address = form.elements.address?.value.trim();
-  const frame = form.querySelector('[data-session-map-frame]');
-  const empty = form.querySelector('[data-session-map-empty]');
   const link = form.querySelector('[data-session-map-link]');
-  if (frame && address && mode === 'In-person') {
-    const src = mapEmbedUrl(address);
-    if (frame.getAttribute('src') !== src) frame.src = src;
-    frame.hidden = false; empty.hidden = true; link.href = mapUrl(address); link.hidden = false;
-  } else if (frame) {
-    frame.hidden = true; empty.hidden = false; link.hidden = true;
-  }
+  const address = form.elements.address?.value.trim();
+  if (link) { link.href = mapUrl(address || 'Amman, Jordan'); link.hidden = !address; }
+}
+const mapPoint = (lat, lon, zoom) => { const scale = 256 * 2 ** zoom; return [(lon + 180) / 360 * scale, (1 - Math.asinh(Math.tan(lat * Math.PI / 180)) / Math.PI) / 2 * scale]; };
+const mapCoords = (x, y, zoom) => { const scale = 256 * 2 ** zoom; return [(180 / Math.PI) * Math.atan(Math.sinh(Math.PI * (1 - 2 * y / scale))), x / scale * 360 - 180]; };
+function mountSessionMap(form) {
+  const map = form.querySelector('[data-session-map]');
+  const address = form.elements.address;
+  const match = address.value.trim().match(/^(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)$/);
+  let lat = match ? Number(match[1]) : 31.9539, lon = match ? Number(match[2]) : 35.9106, zoom = 12;
+  let pin = match ? [lat, lon] : null, drag = null, dragged = false;
+  const paint = () => {
+    const tiles = map.querySelector('.iw-session-map-tiles'), [cx, cy] = mapPoint(lat, lon, zoom);
+    tiles.replaceChildren(); tiles.style.transform = '';
+    for (let y = Math.floor(cy / 256) - 1; y <= Math.floor(cy / 256) + 1; y++) for (let x = Math.floor(cx / 256) - 2; x <= Math.floor(cx / 256) + 2; x++) {
+      const img = document.createElement('img'); img.alt = ''; img.loading = 'lazy'; img.src = `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`;
+      img.style.left = `calc(50% + ${Math.round(x * 256 - cx)}px)`; img.style.top = `calc(50% + ${Math.round(y * 256 - cy)}px)`; tiles.append(img);
+    }
+    const marker = map.querySelector('.iw-session-map-pin'); marker.hidden = !pin;
+    if (pin) { const [px, py] = mapPoint(pin[0], pin[1], zoom); marker.style.left = `calc(50% + ${Math.round(px - cx)}px)`; marker.style.top = `calc(50% + ${Math.round(py - cy)}px)`; }
+  };
+  const select = (dx = 0, dy = 0) => {
+    const [cx, cy] = mapPoint(lat, lon, zoom); pin = mapCoords(cx + dx, cy + dy, zoom);
+    address.value = `${pin[0].toFixed(5)}, ${pin[1].toFixed(5)}`;
+    form.querySelector('[data-session-map-status]').textContent = `Meeting point selected · ${address.value}`;
+    address.dispatchEvent(new Event('input', {bubbles:true})); paint();
+  };
+  map.addEventListener('click', e => { if (e.target.closest('[data-map-zoom]')) return; if (dragged) { dragged = false; return; } const r = map.getBoundingClientRect(); select(e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2); });
+  map.addEventListener('keydown', e => { if (e.target !== map || !['Enter',' '].includes(e.key)) return; e.preventDefault(); select(); });
+  map.addEventListener('pointerdown', e => { if (e.target.closest('[data-map-zoom]')) return; drag = {id:e.pointerId, x:e.clientX, y:e.clientY, lat, lon}; map.setPointerCapture(e.pointerId); });
+  map.addEventListener('pointermove', e => { if (!drag || e.pointerId !== drag.id) return; map.querySelector('.iw-session-map-tiles').style.transform = `translate(${e.clientX - drag.x}px, ${e.clientY - drag.y}px)`; });
+  map.addEventListener('pointerup', e => { if (!drag || e.pointerId !== drag.id) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.hypot(dx, dy) > 5) { const [cx, cy] = mapPoint(drag.lat, drag.lon, zoom); [lat, lon] = mapCoords(cx - dx, cy - dy, zoom); dragged = true; setTimeout(() => { dragged = false; }, 0); } drag = null; paint(); });
+  map.addEventListener('pointercancel', () => { drag = null; paint(); });
+  map.querySelectorAll('[data-map-zoom]').forEach(button => button.addEventListener('click', () => { zoom = Math.max(8, Math.min(17, zoom + Number(button.dataset.mapZoom))); paint(); }));
+  form.querySelector('[data-session-map-city]').addEventListener('change', e => { [lat, lon] = e.target.value.split(',').map(Number); paint(); map.focus(); });
+  address.addEventListener('input', () => { const m = address.value.trim().match(/^(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)$/); if (m && Math.abs(Number(m[1])) <= 85 && Math.abs(Number(m[2])) <= 180) { pin = [Number(m[1]), Number(m[2])]; [lat, lon] = pin; paint(); } else if (pin) { pin = null; paint(); } });
+  if (pin) form.querySelector('[data-session-map-status]').textContent = `Meeting point selected · ${address.value}`;
+  paint();
 }
 export function sessionAction(action, target, ctx) {
   const d = target.dataset, s = ctx.s;
@@ -140,12 +182,25 @@ export function sessionAction(action, target, ctx) {
     const initiativeId = ss.initiativeId || d.initiative || ctx.localUI.initiativeId;
     u.modal(ss.id ? 'Edit or reschedule session' : 'Create a session', sessionForm(ctx, ss, initiativeId), (v, f) => {
       const id = ctx.run('initiative.session.save', {...v, id:ss.id, initiativeId, attendanceRequired:f.elements.attendanceRequired.checked, supervisorIds:[...f.querySelectorAll('input[name="supervisorIds"]:checked')].map(x => x.value)}, ss.id ? 'Session updated. Registrants are notified of access changes.' : 'Session saved as a draft.');
+      if (f.dataset.sessionIntent === 'publish') ctx.run('initiative.session.publish', {id}, 'Session published. Accepted students have a local notice and email preview.');
       ctx.go(`${ctx.route.area}/sessions/${id}`);
-    }, ss.id ? 'Save changes' : 'Save draft', {wide:true});
+    }, ss.status === 'Published' ? 'Save changes' : 'Save & publish', {wide:true});
     const form = document.getElementById('dialog-form');
+    const dialog = document.getElementById('workspace-dialog');
+    form.dataset.sessionIntent = ss.status === 'Published' ? 'save' : 'publish';
+    if (ss.status !== 'Published') {
+      const publish = document.getElementById('dialog-save');
+      const choosePublish = () => { form.dataset.sessionIntent = 'publish'; };
+      publish.addEventListener('click', choosePublish);
+      const draft = document.createElement('button'); draft.type = 'button'; draft.className = 'button quiet'; draft.textContent = 'Save draft';
+      draft.addEventListener('click', () => { form.dataset.sessionIntent = 'draft'; form.requestSubmit(publish); });
+      publish.before(draft);
+      dialog.addEventListener('close', () => { draft.remove(); publish.removeEventListener('click', choosePublish); delete form.dataset.sessionIntent; }, {once:true});
+    }
     form.onchange = () => syncSessionAccess(form);
     form.oninput = event => { if (event.target.name === 'address') syncSessionAccess(form); };
     syncSessionAccess(form);
+    mountSessionMap(form);
     return true;
   }
   if (action === 'session-publish') { ctx.run('initiative.session.publish', {id:d.id}, 'Session published. Accepted students have a local notice and email preview.'); ctx.render(); return true; }

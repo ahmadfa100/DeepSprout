@@ -1,164 +1,91 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="background:#fbf6ea">
 <head>
   <link rel="icon" type="image/png" href="../../../../assets/brand/logo.png">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f9fcf5">
-  <meta name="description" content="Set your direction and begin a personal DeepSprout plan with Green.">
+  <meta name="theme-color" content="#fbf6ea">
+  <meta name="view-transition" content="same-origin">
+  <meta name="description" content="Meet Bimo and set up DeepSprout with six short questions.">
   <title>Welcome — DeepSprout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../../src/styles/style.css">
-  <link rel="stylesheet" href="../../../../src/styles/member-page.css">
-  <link rel="stylesheet" href="onboarding.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@@9..40,400;9..40,500;9..40,600;9..40,700&family=Kalam:wght@@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="quick-setup.css">
+  <style>@@view-transition{navigation:auto}</style>
   <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/utils/storage.js" defer></script>
   <script src="../../../../src/js/data/account.js" defer></script>
-  <script src="onboarding.js" defer></script>
+  <script src="quick-setup.js" defer></script>
 </head>
 <body data-page="onboarding" data-root="../../../../">
-  <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
-    <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H5m6-6-6 6 6 6"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
-    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
-    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
-    <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7M8 20v-6h8v6"/></symbol>
-    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></symbol>
-    <symbol id="i-brain" viewBox="0 0 32 32"><path d="M16 8a5 5 0 0 0-9-2 5 5 0 0 0-3 8 5 5 0 0 0 1 8 5 5 0 0 0 8 5l3-2V8Zm0 0a5 5 0 0 1 9-2 5 5 0 0 1 3 8 5 5 0 0 1-1 8 5 5 0 0 1-8 5l-3-2V8Z"/></symbol>
-    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M9 11V5a1.5 1.5 0 0 1 3 0v6m0-1V4a1.5 1.5 0 0 1 3 0v7m0-2a1.5 1.5 0 0 1 3 0v6a6 6 0 0 1-6 6h-1a6 6 0 0 1-5.2-3L5 15a1.6 1.6 0 0 1 2.6-1.8L9 15"/></symbol>
-    <symbol id="i-book" viewBox="0 0 32 32"><path d="M16 7c-4-3-9-3-13-2v19c5-1 10 0 13 3 3-3 8-4 13-3V5c-4-1-9-1-13 2Zm0 0v20"/></symbol>
-    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M4 20c0-9 6-14 16-14 0 10-6 14-14 14H4Zm4-2c2-4 5-7 9-9"/></symbol>
-  </svg>
+  <div class="qs" id="qs" data-step="meet">
+    <svg class="qs-botanical qs-botanical-a" viewBox="0 0 220 260" aria-hidden="true"><path d="M30 250C40 170 70 110 130 60" fill="none" stroke="#7f9c6a" stroke-width="3" stroke-linecap="round"/><path d="M58 170c-30-6-44-26-40-50 26 2 42 22 40 50Z" fill="#c9dbb0" stroke="#7f9c6a" stroke-width="2.4"/><path d="M84 122c-6-30 8-52 34-58 6 26-8 48-34 58Z" fill="#d7e5c2" stroke="#7f9c6a" stroke-width="2.4"/><path d="M110 84c18-24 44-30 66-18-14 22-40 30-66 18Z" fill="#c9dbb0" stroke="#7f9c6a" stroke-width="2.4"/></svg>
+    <svg class="qs-botanical qs-botanical-b" viewBox="0 0 240 200" aria-hidden="true"><path d="M230 190C170 170 120 130 90 70" fill="none" stroke="#7f9c6a" stroke-width="3" stroke-linecap="round"/><path d="M160 152c4-30 26-44 50-40-2 26-22 42-50 40Z" fill="#d7e5c2" stroke="#7f9c6a" stroke-width="2.4"/><path d="M118 110c-28-10-38-34-30-56 24 6 36 30 30 56Z" fill="#c9dbb0" stroke="#7f9c6a" stroke-width="2.4"/><circle cx="92" cy="64" r="9" fill="#f6d27a" stroke="#7f9c6a" stroke-width="2.4"/></svg>
 
-  <header class="ob-topbar">
-    <div class="ob-brand"><img src="../../../../assets/brand/floral-mark.png" alt=""><span>DeepSprout</span></div>
-    <div class="ob-stage" aria-live="polite"><span class="ob-stage-label">Getting started</span><span id="ob-stage-count">01 / 04</span></div>
-  </header>
-  <main class="ob" id="ob-main">
+    <header class="qs-top">
+      <a class="qs-brand" href="../../../../index.html" aria-label="DeepSprout home"><svg viewBox="0 0 40 40" aria-hidden="true" fill="none" stroke="#1f3a2b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 36V20"/><path d="M20 22C10 22 5 16 5 7c9 0 15 5 15 15Z" fill="#a9c58c"/><path d="M20 19c0-9 6-14 15-14 0 9-6 14-15 14Z" fill="#a9c58c"/></svg><span>DeepSprout</span></a>
+      <div class="qs-progress" id="qs-progress" aria-hidden="true">
+        <p class="qs-progress-label"><span id="qs-count">Question 1 of 6</span><span class="qs-progress-saved" id="qs-saved"></span></p>
+        <div class="qs-progress-track"><span class="qs-progress-fill" id="qs-fill"></span></div>
+      </div>
+    </header>
 
-    <!-- ----------------------------------------------- Screen 01: Welcome -->
-    <section class="ob-screen ob-meet" data-step="meet" aria-labelledby="meet-title">
-      <div class="ob-meet-inner">
-        <div class="ob-meet-copy">
-          <p class="eyebrow">A MORE INTENTIONAL START</p>
-          <h1 id="meet-title">Make room for <em>what matters.</em></h1>
-          <p class="ob-lead">Choose a direction, learn your starting point, and build a plan that fits your life.</p>
-          <ol class="ob-journey" aria-label="What comes next">
-            <li><span>01</span>Set your direction</li>
-            <li><span>02</span>Find your baseline</li>
-            <li><span>03</span>Begin your plan</li>
-          </ol>
-          <div class="btn-row">
-            <button class="btn btn-primary" type="button" data-go="intro">Continue <svg><use href="#i-arrow"/></svg></button>
-            <button class="btn btn-quiet" type="button" data-skip-intro>Skip overview</button>
+    <main class="qs-main" id="qs-main">
+      <!-- Welcome: Meet Bimo -->
+      <section class="qs-scene qs-meet" data-scene="meet" aria-labelledby="meet-title">
+        <div class="qs-meet-copy">
+          <p class="qs-eyebrow" id="meet-hello">Welcome to DeepSprout</p>
+          <h1 class="qs-hand" id="meet-title">Hi, I’m Bimo.</h1>
+          <p class="qs-lead">I’ll help you make a little more room for what matters. Six short questions, a short story, and you’re in.</p>
+          <div class="qs-actions">
+            <button class="qs-btn qs-btn-primary" type="button" id="meet-begin">Let’s Begin <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button>
+            <button class="qs-btn qs-btn-quiet" type="button" id="meet-skip">Skip the introduction</button>
           </div>
-          <p class="ob-fineprint">Skipping the overview still takes you through setup and the four assessments.</p>
+          <p class="qs-fine">About a minute. Your answers stay private and you can change them later.</p>
         </div>
-        <figure class="ob-green-scene">
-          <span class="ob-green-halo" aria-hidden="true"></span>
-          <img src="../../../../assets/hero-v2/bimo-awake.png" alt="Green, the DeepSprout guide">
-          <figcaption><span>YOUR GUIDE</span><strong>Green</strong></figcaption>
+        <figure class="qs-bimo">
+          <span class="qs-bimo-halo" aria-hidden="true"></span>
+          <img src="../../../../assets/hero-v2/bimo-awake.png" alt="Bimo, the DeepSprout guide" width="700" height="860">
         </figure>
-      </div>
-    </section>
+      </section>
 
-    <!-- ----------------------------------------- Screen 02: Before We Begin -->
-    <section class="ob-screen ob-intro" data-step="intro" hidden aria-labelledby="intro-title">
-      <div class="page-shell ob-intro-inner">
-        <div class="ob-intro-copy">
-          <p class="eyebrow">THE PROCESS</p>
-          <h1 id="intro-title">Four check-ins. A clearer start.</h1>
-          <p class="ob-lead">First, a few choices about your goals. Then four short check-ins to shape your starting point.</p>
-
-          <ul class="ob-assurances">
-            <li><span class="badge-icon"><svg><use href="#i-clock"/></svg></span>
-              <span><strong>At your pace</strong><small>Pause and return whenever you need.</small></span></li>
-            <li><span class="badge-icon"><svg><use href="#i-save"/></svg></span>
-              <span><strong>Progress saved</strong><small>Your place is kept on this device.</small></span></li>
-            <li><span class="badge-icon"><svg><use href="#i-lock"/></svg></span>
-              <span><strong>Private by default</strong><small>Your results stay yours. <button type="button" class="ob-link" data-privacy>How your data is used</button></small></span></li>
-          </ul>
-
-          <div class="btn-row">
-            <button class="btn btn-primary" type="button" data-go="setup">Set my direction <svg><use href="#i-arrow"/></svg></button>
-            <button class="btn btn-quiet" type="button" data-go="meet"><svg><use href="#i-back"/></svg> Back</button>
-          </div>
-        </div>
-
-        <aside class="ob-intro-aside" aria-label="What you'll complete">
-          <p class="ob-aside-kicker">YOUR STARTING POINT</p>
-          <ol class="ob-test-list">
-            <li><span class="ob-test-number">01</span><span><strong>Digital Habits</strong><small>A few honest questions</small></span></li>
-            <li><span class="ob-test-number">02</span><span><strong>Sustained Attention</strong><small>A short response task</small></span></li>
-            <li><span class="ob-test-number">03</span><span><strong>Inhibitory Control</strong><small>Respond, or hold back</small></span></li>
-            <li><span class="ob-test-number">04</span><span><strong>Depth Challenge</strong><small>A short reading passage</small></span></li>
-          </ol>
-          <p class="ob-aside-note">Each check-in stands on its own. There is no single score.</p>
-        </aside>
-      </div>
-    </section>
-
-    <!-- ------------------------------------- Screen 03: Quick Personal Setup -->
-    <section class="ob-screen ob-setup" data-step="setup" hidden aria-labelledby="setup-title">
-      <div class="narrow-shell ob-setup-inner">
-        <header class="ob-setup-head">
-          <div class="step-rail" id="setup-rail" aria-hidden="true"></div>
-          <p class="ob-step-count" id="setup-count" aria-live="polite">Question 1 of 8</p>
-          <h1 id="setup-title">Shape your starting point.</h1>
-          <p class="ob-lead">Eight quick choices. You can change them later.</p>
-        </header>
-
-        <form id="setup-form" novalidate>
-          <div id="setup-question" class="ob-question"></div>
-          <p class="ob-why" id="setup-why"></p>
-          <div class="ob-setup-actions">
-            <button class="btn btn-quiet" type="button" id="setup-back"><svg><use href="#i-back"/></svg> Back</button>
-            <div class="btn-row">
-              <button class="btn btn-quiet" type="button" id="setup-skip">Skip this one</button>
-              <button class="btn btn-primary" type="submit" id="setup-next">Continue <svg><use href="#i-arrow"/></svg></button>
-            </div>
+      <!-- Quick Setup: six questions, one at a time -->
+      <section class="qs-scene qs-questions" data-scene="questions" hidden aria-labelledby="q-title">
+        <form class="qs-form" id="qs-form" novalidate>
+          <div class="qs-question" id="qs-question" aria-live="polite"></div>
+          <p class="qs-error" id="qs-error" role="alert"></p>
+          <div class="qs-nav">
+            <button class="qs-btn qs-btn-quiet" type="button" id="qs-back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6"/></svg> Back</button>
+            <button class="qs-btn qs-btn-primary" type="submit" id="qs-next">Continue <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button>
           </div>
         </form>
-        <p class="ob-saved" aria-live="polite" id="setup-saved"></p>
-      </div>
-    </section>
+      </section>
 
-    <!-- ------------------------------- Screen 04: Handoff to the assessments -->
-    <section class="ob-screen ob-handoff" data-step="handoff" hidden aria-labelledby="handoff-title">
-      <div class="narrow-shell ob-handoff-inner">
-        <span class="badge-icon ob-handoff-mark"><svg><use href="#i-check"/></svg></span>
-        <p class="eyebrow">READY FOR THE NEXT STEP</p>
-        <h1 id="handoff-title">Your direction is set.</h1>
-        <p class="ob-lead" id="handoff-goal"></p>
-        <p>Next are four short check-ins. You can pause between them and return anytime.</p>
-        <div class="card ob-next-card">
-          <div class="card-head">
-            <span class="badge-icon gold"><svg><use href="#i-clock"/></svg></span>
-            <div><p class="eyebrow">Up next</p><h2 id="handoff-next-title">Digital Habits</h2></div>
+      <!-- The setup has ended; the story begins -->
+      <section class="qs-scene qs-ready" data-scene="ready" hidden aria-labelledby="ready-title">
+        <div class="qs-ready-copy">
+          <h1 class="qs-hand" id="ready-title">You’re ready to begin.</h1>
+          <p class="qs-ready-lead"><em>But first, let’s take a look at how easily our attention can drift — and how we can find our way back.</em></p>
+          <div class="qs-actions qs-actions-center">
+            <button class="qs-btn qs-btn-primary" type="button" id="ready-story">Explore the Story <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button>
           </div>
-          <p class="card-note" id="handoff-next-note"></p>
+          <div class="qs-returning" id="qs-returning" hidden>
+            <a class="qs-btn qs-btn-quiet" href="../../../../index.html">Go to Home</a>
+            <a class="qs-btn qs-btn-quiet" href="?step=setup">Change my answers</a>
+          </div>
         </div>
-        <div class="btn-row ob-handoff-actions">
-          <button class="btn btn-primary" type="button" id="handoff-start">Start the assessments <svg><use href="#i-arrow"/></svg></button>
-          <a class="btn btn-ghost" href="../../../../index.html">Take a break</a>
-        </div>
-        <p class="ob-fineprint">Your progress is saved on this device.</p>
-      </div>
-    </section>
-  </main>
+      </section>
+    </main>
 
-  <dialog class="ds-dialog" id="privacy-dialog" aria-labelledby="privacy-title">
-    <button class="ds-dialog-close" type="button" data-close-dialog aria-label="Close">&times;</button>
-    <div class="ds-dialog-inner">
-      <p class="eyebrow">Your data</p>
-      <h2 id="privacy-title">What DeepSprout does with your answers</h2>
-      <p>Your setup answers and assessment results are private by default. They are used to choose which activities your plan suggests and to let you compare your own results over time.</p>
-      <p class="card-note">Mentors and institutions do not see your assessment results or browsing records. In this client preview nothing leaves your device — everything is stored locally in your browser.</p>
-      <div class="btn-row" style="margin-top:18px"><button class="btn btn-primary" type="button" data-close-dialog>Got it</button></div>
+    <!-- The horizon the story opens on: the same sun, rising as the setup ends. -->
+    <div class="qs-horizon" aria-hidden="true">
+      <svg viewBox="0 0 1600 300" preserveAspectRatio="xMidYMax slice">
+        <circle class="qs-sun" cx="800" cy="250" r="58" fill="#f8d371"/>
+        <path d="M-20 260C200 220 420 214 620 236C760 252 880 226 1040 218C1220 210 1400 232 1620 222V300H-20Z" fill="#e6ecd6"/>
+        <path d="M-20 290C240 262 520 258 760 272C1000 286 1240 262 1620 270V300H-20Z" fill="#d6e2bf"/>
+      </svg>
     </div>
-  </dialog>
+  </div>
 </body>
 </html>

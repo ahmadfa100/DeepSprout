@@ -1,6 +1,6 @@
 # DeepSprout database architecture — review package
 
-**Status:** proposed target design, 27 October 2026. No SQL Server schema, EF Core model, migration, API, or production authorization exists in this checkout. This package changes documentation only.
+**Status:** historical proposed design, 27 October 2026. It predates the [4 November v4.1 P0 scope change](../p0-target-v4.1.md). Inspect the actual EF Core model/migrations and database before implementation; this package is not the final schema or proof of production authorization.
 
 ## Reading order
 
@@ -11,7 +11,7 @@
 
 ## Authority and notation
 
-`DeepSprout.md` v4.0 is the target product contract. Its §26 D01–D48 register outranks historical audit observations. `DESIGN.md` and `DeepSprout-DESIGN.md` propose visual direction; their Garden description conflicts with v4 §9/D07–D13 and is recorded in the conflict register. Dated reports and current source establish **observed demo behavior**, never production behavior. Labels used here: **A** approved, **G** agreed direction, **I** configurable interim default, **R** recommendation, **O** open, **C** current observation.
+`DeepSprout.md` v4.1 and its [P0 map](../p0-target-v4.1.md) supersede conflicting Provider, independent Coach, self-requested Supervisor and framework assumptions here. The older §26 D01–D48 register is history where v4.1 supersedes it. `DESIGN.md` and `DeepSprout-DESIGN.md` propose visual direction; Garden change remains separately scoped. Dated reports and source establish **observed demo behavior**, never production behavior. Labels used here: **A** approved, **G** agreed direction, **I** configurable interim default, **R** recommendation, **O** open, **C** current observation.
 
 The proposed solution is one SQL Server database and an ASP.NET Core modular monolith with explicit schema/module ownership. Cross-context references are IDs and service contracts; relational foreign keys are retained where transactions share one database. Diagrams are conceptual and omit some audit columns; the data dictionary is normative for this proposal. The catalog covers the full target capability envelope; rollout slices create only the approved, needed tables in dependency order, and open commercial/community/safety details remain conditional. All status/code lists are application-owned, versioned where policy requires it; listed numeric examples are not new approved product limits.
 

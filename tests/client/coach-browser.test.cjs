@@ -82,7 +82,7 @@ async function main() {
   });
   await step('C3', 'Coach workspace activates with a first-time Program-first dashboard', async () => {
     await as(coachId); await ws('mentor/dashboard?scope=own');
-    assert.match(await text('main h1'), /Good to see you, Lina/); assert.match(await text('main'), /Build your first Program/);
+    assert.match(await text('main h1'), /Good (morning|afternoon|evening|to see you), Lina/); assert.match(await text('main'), /Build your first Program/);
     assert.match(await text('main'), /INDEPENDENT COACH · APPROVED/i);
   });
 

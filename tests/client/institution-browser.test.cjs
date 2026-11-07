@@ -64,7 +64,7 @@ async function main() {
     await as('p-leen'); await ws(`admin/organizations/${app.id}`);
     await store((m, id) => m.dispatch('admin.application.decide', {id, status:'Approved'}), app.id);
     await as(lina); await ws('organization/dashboard');
-    assert.match(await text('main'), /Good to see you, Lina/);
+    assert.match(await text('main'), /Good (morning|afternoon|evening|to see you), Lina/);
     assert.match(await text('main'), /Verified institution/);
   });
 
@@ -74,7 +74,7 @@ async function main() {
     await page.fill('[name=start]', '2026-10-20'); await page.fill('[name=end]', '2026-12-15'); await page.selectOption('[name=coverImage]', 'assets/home-redesign/forest-hike.jpg'); await page.fill('[name=coverAlt]', 'Students walking on a forest trail');
     await click('[data-action=builder-next]');
     await page.fill('[name=audience]', 'University students'); await page.fill('[name=minAge]', '17'); await page.fill('[name=maxAge]', '30');
-    await page.fill('[name=coverage]', 'Jordan-wide: online, or in person in Irbid'); await page.check('input[name=modes][value="In-person"]');
+    await page.fill('[name=coverage]', 'Jordan-wide: online, or in person in Irbid'); await page.click('label.builder-mode-option:has(input[value="Hybrid"])'); await page.waitForTimeout(300);
     // Builder validation: in-person mode without a venue blocks Continue with a named field.
     await page.fill('[name=capacity]', '135'); await page.fill('[name=venue]', '');
     await click('[data-action=builder-next]');
@@ -82,7 +82,7 @@ async function main() {
     await page.fill('[name=venue]', 'Bright Futures Hall, Irbid'); await page.fill('[name=registrationOpen]', '2026-10-01'); await page.fill('[name=registrationClose]', '2026-12-01');
     await click('[data-action=builder-next]');
     await click('[data-action=builder-component-add][data-type="Awareness Content"]'); await page.fill('[name=title-0]', 'Why attention matters');
-    await click('[data-action=builder-component-add][data-type=Session]'); await page.fill('[name=title-1]', 'Focus lab workshop'); await page.fill('[name=date-1]', '2026-10-28'); await page.selectOption('[name=format-1]', 'Hybrid'); await page.fill('[name=venue-1]', 'Bright Futures Hall, Irbid');
+    await click('[data-action=builder-component-add][data-type=Session]'); await page.fill('[name=title-1]', 'Focus lab workshop'); await page.fill('[name=date-1]', '2026-10-28'); await page.selectOption('[name=format-1]', 'In-person'); await page.fill('[name=venue-1]', 'Bright Futures Hall, Irbid');
     await click('[data-action=builder-next]');
     await click('[data-action=initiative-ensure]');
     const s = await read(); initiativeId = s.initiatives.find(i => i.title === TITLE).id;
@@ -207,8 +207,10 @@ async function main() {
     await as('p-hala'); await ws(`supervisor/reports?initiative=${initiativeId}`); assert.match(await text('main h1'), /Coach reports/);
     const s = await read(); assert.equal(s.submissions.filter(x => x.status === 'Approved' && s.assignments.find(a => a.id === x.assignmentId)?.groupId === groupId).length, 1);
     const lina = s.people.find(p => p.email === 'lina.rep@demo.example').id;
-    await as(lina); await ws(`organization/reports?initiative=${initiativeId}`);
-    assert.match(await page.locator('.iw-stat', {hasText:'Tasks approved'}).innerText(), /1/);
+    // Reports is now the received Supervisor-report inbox; the Representative's shared timeline
+    // shows the Coach's approval from the original review record (same event ID as the Coach view).
+    await as(lina); await ws(`organization/dashboard?scope=initiative:${initiativeId}`);
+    assert.match(await page.locator('.tl-lane.is-past').innerText(), /Approved/);
   });
 
   // ---------------------------------------------------------------- E
@@ -240,7 +242,7 @@ async function main() {
     const zApp = (await read()).admissions.find(a => a.initiativeId === initiativeId && a.personId === 'p-zaid').id;
     const lina = (await read()).people.find(p => p.email === 'lina.rep@demo.example').id;
     await as(lina); await ws(`organization/participants?initiative=${initiativeId}&status=pending`); await click(`[data-action=app-approve][data-id="${zApp}"]`);
-    await as('p-zaid'); await member('explore/explore.html', '#my-initiatives'); await page.selectOption(`[data-mode-for="${sessionId}"]`, 'Online'); await click(`[data-session-register="${sessionId}"]`);
+    await as('p-zaid'); await member('explore/explore.html', '#my-initiatives'); await page.selectOption(`[data-mode-for="${sessionId}"]`, 'In-person'); await click(`[data-session-register="${sessionId}"]`);
     await as('p-hala'); await ws(`supervisor/attendance?session=${sessionId}`); await click(`[data-action=att-closeout]`); await dialogSave();
     const att = (await read()).sessionAttendance.find(a => a.sessionId === sessionId && a.personId === 'p-zaid'); zaidAttendanceId = att.id; assert.equal(att.status, 'Absent');
     await as('p-zaid'); await member('explore/explore.html', '#my-initiatives');

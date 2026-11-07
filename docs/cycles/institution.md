@@ -1,6 +1,6 @@
 # Institution Representative / Institution cycle
 
-> **Dated audit, not the target contract (15 October 2026).** Routes, fields, tests and code observations below describe the inspected working tree. The [authoritative v4.0 master](../../DeepSprout.md) and its [decision register](../../DeepSprout.md#26-decision-register-authoritative-interim-and-open) govern all implementation targets, including decisions approved after this audit.
+> **Dated audit, not the target contract (15 October 2026).** Routes and code observations below describe the inspected demo. The [v4.1 P0 target](../architecture/p0-target-v4.1.md) adds Institution-owned Outdoor Activities and makes this the only public partner registration path. Old independent Coach/Provider links are superseded.
 
 **Current implementation:** `Client/workspaces.html#/organization/…`; renderer `Client/src/workspaces/pages/organization.js:1-40`, navigation `navigation.js:6`, commands `commands/institution.js:2-30`, data `data/institution.js:1-13`, initiative builder `builders/initiative.js:1-13`, form builder `builders/form.js:1-17`, shared reports `shared.js:30-51`. Entry lives in `pages/auth.js:1-36`. All listed pages are code-inspected; the six-step publish → discovery boundary was also browser-tested ([test log](README.md)). The local organization is found by current person's `memberIds`, and command ownership by `ownerId`; this is simulated scope, not secure authorization (`store.js:19-43`).
 

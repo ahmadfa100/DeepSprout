@@ -1,8 +1,10 @@
 # Outdoor Provider cycle
 
-> **Dated audit, not the target contract (15 October 2026).** Routes, fields, tests and code observations below describe the inspected working tree. The [authoritative v4.0 master](../../DeepSprout.md) and its [decision register](../../DeepSprout.md#26-decision-register-authoritative-interim-and-open) govern all implementation targets, including decisions approved after this audit.
+> **Retired in code on 6 November 2026.** The demo no longer has a Provider workspace, registration path or `provider.*` commands; Institutions own Outdoor Activities and legacy Provider records were re-homed or archived. See the [four-cycle redesign log](../DEEPSPROUT-FOUR-CYCLE-REDESIGN.md). The audit below is kept as history.
 
-**Evidence:** `Client/src/workspaces/pages/provider.js:1-35`, `builders/experience.js:1-11`, `commands/outdoor.js:2-25`, `domain.js:1-23`, `shared.js:30-51`, `data/outdoor.js:1-10`, `navigation.js:7`; desired §16. Routes use `workspaces.html#/provider/…`. Provider owns an Experience even when an Institution links it; institution reports receive aggregates only. Current scope is simulated in `store.js:35-43`.
+> **Dated audit, not the target contract (15 October 2026).** Provider routes and ownership below describe an old demo. The [v4.1 P0 target](../architecture/p0-target-v4.1.md) moves trips/camps, bookings and safety to Institution-owned Outdoor Activities and removes independent Provider registration/workspace.
+
+**Evidence:** older `provider` routes and browser-local commands below describe the inspected demo. Current scope is simulated in `store.js:35-43`; see [master §16](../../DeepSprout.md#16-institution-outdoor-activities-bookings-waiting-list-and-camp-completion) for target ownership.
 
 ## Current page-by-page inventory
 
@@ -53,4 +55,4 @@ Open decisions: waitlist priority exceptions and delivery method, cancellation c
 
 ## Approved target correction
 
-A Provider owns its Experience, booking, seats, safety and reports even when linked to an Institution. Phase-1 demo must show Queued→Offered→Accepted/Declined/Expired→reoffer, seat release and notices in regular Individual and Provider pages; use a configurable 24-hour default and test clock. In-person booking QR can be typed/pasted or manually checked with reason; online uses roster verification. Completion, check-in and rewards remain separate. No Provider camp/cohort Group Garden exists in Phase 1. See [master §16](../../DeepSprout.md#16-outdoor-provider-bookings-waiting-list-and-camp-completion).
+**Superseded target summary from the 15 October audit:** independent Provider ownership is removed. The Institution-owned Outdoor Activity retains booking, capacity, safety, waiting-list, attendance, completion and eligible Garden reward functions, with separate check-in and completion facts. See [master §16](../../DeepSprout.md#16-institution-outdoor-activities-bookings-waiting-list-and-camp-completion).

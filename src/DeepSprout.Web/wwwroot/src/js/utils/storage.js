@@ -370,16 +370,9 @@
     if (!state.onboarding.setupDone) {
       return { label: 'Finish your setup', href: path('src/pages/member/onboarding/onboarding.html'), why: 'A few quick questions left' };
     }
-    if (!assessmentsComplete()) {
-      const next = nextAssessment();
-      return {
-        label: 'Continue your assessments',
-        href: path(`src/pages/member/lab/assessment.html?test=${next.id}`),
-        why: `${next.title} is next`
-      };
-    }
+    // Onboarding 2.0: the Lab assessments are optional and never block the plan.
     if (!state.onboarding.planActivated) {
-      return { label: 'Build my Roadmap', href: path('src/pages/member/onboarding/starting-point.html'), why: 'Your results are ready' };
+      return { label: 'Review my Week 1 plan', href: path('src/pages/member/onboarding/starting-point.html'), why: 'Journey Level 0 · your proposal is ready' };
     }
     if (reviewDue()) {
       return { label: 'Review your week', href: path('src/pages/member/weekly-review/weekly-review.html'), why: `Week ${cycleWeek()} is wrapping up` };

@@ -1,6 +1,6 @@
 # Supervisor cycle
 
-> **Dated audit, not the target contract (15 October 2026).** Routes, fields, tests and code observations below describe the inspected working tree. The [authoritative v4.0 master](../../DeepSprout.md) and its [decision register](../../DeepSprout.md#26-decision-register-authoritative-interim-and-open) govern all implementation targets, including decisions approved after this audit.
+> **Dated audit, not the target contract (15 October 2026).** Provider appointments and any self-request assumptions below are historical. The [v4.1 P0 target](../architecture/p0-target-v4.1.md) requires direct Institution invitation, no `Requested` state, and only assigned Initiative or explicit Institution Activity/Session scope.
 
 **Evidence:** `Client/src/workspaces/pages/supervisor.js:1-15`, `shared.js:30-51`, `commands/outdoor.js:2-25`, `data/outdoor.js:1-10`, `navigation.js:8`; desired §17. A Supervisor receives a **resource-specific appointment** from a Provider, accepts it, and operates only the assigned experience/session/cohort. Current `assignedExperiences` and appointment checks are local simulation. No general Supervisor signup exists.
 

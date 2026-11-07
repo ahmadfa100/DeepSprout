@@ -1,0 +1,9 @@
+import {esc, icon} from '../ui.js';
+
+/** A form-backed, image-capable choice menu for the workspace builders. */
+export function builderChoice(name, label, options, value, {images = false, required = false, placeholder = 'Choose an option'} = {}) {
+  const entries = options.map(option => Array.isArray(option) ? option : [option, option]);
+  const selected = entries.find(([key]) => String(key) === String(value)) || entries[0] || ['', placeholder];
+  const visual = ([key, text], small = false) => `${images && key ? `<img src="${esc(key)}" alt="" loading="lazy">` : images ? `<span class="b-choice-no-image" aria-hidden="true">${icon('mountain')}</span>` : ''}<span class="b-choice-text">${esc(text)}</span>${small ? icon('check') : ''}`;
+  return `<div class="field b-choice-field"><span class="b-choice-label">${esc(label)}${required ? ' <span class="required">*</span>' : ''}</span><details class="b-choice" data-builder-choice><summary aria-label="${esc(label)}"><span class="b-choice-current">${visual(selected)}</span><span class="b-choice-chevron" aria-hidden="true"></span></summary><div class="b-choice-menu" aria-label="${esc(label)} choices">${entries.map(entry => `<button type="button" class="b-choice-option${String(entry[0]) === String(value) ? ' is-selected' : ''}" data-action="builder-choice-select" data-value="${esc(entry[0])}" aria-label="${esc(entry[1])}" aria-current="${String(entry[0]) === String(value) ? 'true' : 'false'}"><span class="b-choice-option-inner">${visual(entry, true)}</span></button>`).join('')}</div><select class="b-choice-native" name="${esc(name)}" tabindex="-1" aria-hidden="true">${entries.map(([key,text]) => `<option value="${esc(key)}" ${String(key) === String(value) ? 'selected' : ''}>${esc(text)}</option>`).join('')}</select></details></div>`;
+}

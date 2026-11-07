@@ -2,15 +2,15 @@
 
 ## Authoritative Product, Experience, Workflow and Technical Specification
 
-**Version:** 4.0 — final owner-decision reconciliation
-**Date:** 15 October 2026 (Asia/Amman)
-**Status:** Authoritative **target** specification; §29 preserves a dated 15 October implementation snapshot.
+**Version:** 4.1 — 4 November 2026 P0 scope reconciliation
+**Date:** 4 November 2026 (Asia/Amman)
+**Status:** Authoritative **target** specification; implementation is not claimed. §29 preserves a dated 15 October implementation snapshot.
 **Audience:** Product owner, designers, Codex/Claude Code, engineers, testers and reviewers.
-**Delivery:** Phase-1 connected static HTML/CSS/JavaScript demo; eventual ASP.NET Core MVC/C# application with EF Core and SQL Server. An Angular client remains a separate target described in this document, not a current implementation.
+**Delivery:** Existing ASP.NET Core MVC solution serves Razor views and static demonstration assets. The target uses ASP.NET Core MVC, Identity, C#, EF Core and SQL Server for authenticated, durable product workflows. Existing browser-local interactions are not proof of those workflows.
 
-> **Current implementation:** Read the [3 November 2026 page and cycle guide](docs/current-product-guide.md) for the working checkout. This v4.0 decision text is dated 15 October; §29 and §30 are historical snapshots. `Server/` now contains validated EF Core/SQL Server database work, though no running MVC website. The owner's later design instruction sets one clean ivory Garden scene with one main plant as the direction for a separately scoped Garden task; the four-tree implementation and older target language below remain here as historical context until that task reconciles the evidence mapping.
+> **Current implementation:** Read the [3 November 2026 page and cycle guide](docs/current-product-guide.md) for the working checkout, and the [4 November P0 target and deprecation map](docs/architecture/p0-target-v4.1.md) before implementing changes. §29 and §30 contain dated implementation and roadmap material. The one-main-plant Garden direction is a separately scoped design task; the current four-tree scene is not changed by this documentation update.
 
-> **Authority:** This file is the one maintained master. The owner's final approvals in the 15 October consolidation request outrank the attached blueprint's earlier open-question labels, which outrank consistent v3.1 requirements and older examples. `docs/product-specification.md` redirects here; dated audits describe observed code, not a second target contract. Historical examples, current demo defaults and design recommendations do not become approved numeric policy. No application implementation is asserted by this specification.
+> **Authority:** The owner's 4 November 2026 P0 decisions supersede conflicting v4.0 clauses and the proposed 3 November 87-table Atlas. The maintained [v4.1 target map](docs/architecture/p0-target-v4.1.md) states those decisions and marks unresolved implementation choices. Earlier D01–D48 entries remain a decision history only where superseded by v4.1. Dated audits describe observed code, not current permission to keep deprecated roles. No application or database implementation is asserted by this specification.
 
 ### Requirement labels
 
@@ -27,6 +27,7 @@
 
 | Version | Date | Record |
 |---|---|---|
+| 4.1 | 4 November 2026 | Institution-only partner registration and outdoor ownership; invitation-only Initiative Coach/Supervisor; no Supervisor self-request; one Platform Admin; Identity-first ASP.NET Core architecture. Supersedes the conflicting v4.0 independent Coach/Provider and Atlas assumptions. |
 | 4.0 documentation note | 3 November 2026 | Linked the current implementation guide, recorded the database milestone and corrected the planned server type to ASP.NET Core MVC. No new product policy or Garden implementation is asserted. |
 | 4.0 | 15 October 2026 | Reconciled v3.1 and the later owner-approved D01–D48 decisions; replaced conflicting Garden, Group ownership, Initiative/Program, capacity, attendance, staffing, survey and Lab contracts; added detailed page, workflow, permission, acceptance and evidence-limited current-state coverage. |
 | 3.1 | 15 October 2026 | Earlier master with implementation audit layer and then-current Garden/Admin decisions; superseded here. |
@@ -46,12 +47,12 @@
 10. [Insights](#10-insights-credible-sources-metrics-charts-and-recommendations)
 11. [Explore](#11-explore-discovery-availability-registration-and-location)
 12. [Community](#12-community-retained-scope-and-separation-from-recovery)
-13. [Coach, Program and assignments](#13-coach--mentor-program-and-shared-assignment-engine)
+13. [Institution Coach and assignments](#13-institution-invited-coach-and-shared-assignment-engine)
 14. [Invited Student](#14-invited-student-and-full-individual-continuity)
 15. [Institution and Initiative](#15-institution-representative-and-initiative-operations)
-16. [Outdoor Provider and Waiting List](#16-outdoor-provider-bookings-waiting-list-and-camp-completion)
+16. [Institution Outdoor Activities and Waiting List](#16-institution-outdoor-activities-bookings-waiting-list-and-camp-completion)
 17. [Supervisor](#17-supervisor-scoped-operations-attendance-excuses-and-insights)
-18. [Partnerships](#18-partnerships-and-cross-owner-links)
+18. [Cross-resource links](#18-cross-resource-links)
 19. [Platform Admin](#19-one-platform-admin-governance-publishing-and-migration)
 20. [Subscriptions and commercial boundaries](#20-subscription-plans-entitlements-and-commercial-decisions)
 21. [Pages and cross-workspace effects](#21-information-architecture-page-states-and-visible-cross-workspace-effects)
@@ -84,10 +85,9 @@ DeepSprout is **not** a general Habit Tracker, **not** a standalone Focus Tracke
 ## 1.2 Intended audience
 
 - **Individual:** a person seeking a personal recovery journey, practice, browser protection, community and experiences.
-- **Mentor:** a professional or facilitator running guided programs and groups focused on relevant goals.
+- **Coach:** a facilitator invited by an Institution to work with assigned Initiative groups and students.
 - **Invited Student/Participant:** a group member who joins without traditional registration through an authenticated invitation flow; may later become an Individual.
 - **Institution Representative:** a person acting on behalf of a verified institution, youth center, NGO, university, potentially public body or ministry. The institution itself is a governed entity, not a human login.
-- **Outdoor Provider Representative:** a person authorized by an independent trip/camp/experience organization.
 - **Supervisor:** an authorized person assigned to manage specific events, sessions, camps or participant cohorts, not a role users grant themselves.
 - **Platform Admin:** a trusted internal operator with explicit, audited platform-management access.
 - **Participants in initiatives, sessions and outdoor experiences:** may be existing Individual users, eligible invited users, or other supported verified identities according to admission rules.
@@ -96,7 +96,7 @@ The previous blueprint targeted approximately **ages 16–26**. This is a produc
 
 ## 1.3 Permanent architectural/product principles
 
-1. **One identity, multiple authorized workspaces.** An Individual may also be a Mentor or a staff member of an organization; do not duplicate their user records.
+1. **One identity, multiple authorized workspaces.** An Individual may also be an Institution-invited Coach or staff member; do not duplicate human identities or credential authority.
 2. **State-changing workflows, not page counting.** Phase 1 must visibly connect roles through consistent demo records; the later ASP.NET Core service owns production validation, permissions, transitions, rewards and booking consistency.
 3. **Evidence is labeled.** Browser-tracked time, self-reported offline action, an assessment score and supervisor-confirmed attendance are not interchangeable.
 4. **An event is not a campaign.** Distinguish organizational container, staged program, scheduled session, external experience and personal exercise.
@@ -104,7 +104,7 @@ The previous blueprint targeted approximately **ages 16–26**. This is a produc
 6. **Motivating but not manipulative.** No fabricated recovery percentage, arbitrary gamified posting, punishing app absence, or requirement to spend more time online.
 7. **All cycles must connect cleanly.** Shared Identity, Permissions, Activities/Evidence, Garden Rewards, Reporting, Notifications and Auditing; domain ownership stays explicit.
 8. **Technical limitations are part of the specification.** A Chrome extension cannot silently track all mobile-app Reels or make blocking impossible across devices.
-9. **Meaningful offline opportunities.** Explore supports online and in-person youth initiatives and independently organized physical experiences, not only opportunities in the user's home governorate.
+9. **Meaningful offline opportunities.** Explore supports online and in-person youth initiatives and Institution-organized outdoor trips and camps, not only opportunities in the user's home governorate.
 10. **No false claims of implementation.** Screenshots, UI mockups, diagrams and example numbers are illustrative until functionality is developed and tested.
 
 ---
@@ -118,12 +118,11 @@ The previous blueprint targeted approximately **ages 16–26**. This is a produc
 | **Account / Identity** | Authenticated, recoverable person, shared across contexts | One database user per role |
 | **Global role** | Server-issued platform-wide capability such as Admin | All organizational permissions |
 | **Organization** | Institution with approved representatives and governed workspace | A user's personal profile |
-| **Outdoor Provider** | Independent authorized operator of physical experiences | Automatically an Institution campaign organizer |
-| **Group** | Operational cohort with exactly one Initiative **or** independent Coach Program parent | A separate Program for an Institution internal group |
-| **Program** | Independently Coach-owned, versioned group pathway with assignments/reviews | The Institution's structured Initiative or a single event |
-| **Initiative / Campaign** | Institution-owned project, optionally structured with internal groups/tasks, sessions, identified forms, competitions and linked external resources | An independently Coach-owned Program or a single session |
+| **Institution Representative** | Human authorized to create and manage an Institution profile and its resources | An Institution login account |
+| **Group** | Operational cohort owned by one Institution Initiative | An independent Coach Program |
+| **Initiative / Campaign** | Institution-owned project with optional internal groups/tasks, sessions, identified forms and competitions | An independently Coach-owned Program or a single session |
 | **Session / Workshop** | A scheduled online, in-person or hybrid meeting, potentially tied to an initiative | A mandatory in-person event |
-| **Outdoor Experience** | Provider-operated organized trip, outing or other real-world activity | A user's self-reported offline walk |
+| **Institution Outdoor Activity** | Institution-owned organized trip, camp, outing or other real-world activity | A user's self-reported offline walk or a Provider-owned resource |
 | **Camp / Bootcamp** | Multi-session experience, with participants, schedule, supervisor and completion policy | Always a residential paid camp |
 | **Supervisor Cohort** | Participants within an assigned event/camp under an authorized supervisor | An open general-purpose tasks group |
 | **Activity** | Approved personal or program practice with execution/evidence rules | Every user-made to-do |
@@ -136,12 +135,13 @@ The previous blueprint targeted approximately **ages 16–26**. This is a produc
 
 - **Unified login:** email/password for conventional accounts, with verified recovery; authenticated existing identities can switch between authorized workspaces.
 - **Public Register top-level choices — exactly two:** `Join as Individual` and `Join as a Partner`.
-- **Partner second step — three choices:** `Mentor / Coach`, `Institution Representative`, `Outdoor Provider`.
+- **Partner path:** goes directly to Institution Representative registration; no Coach or Outdoor Provider choice.
 - **No public `Register as Admin`; no self-issued `Supervisor` role; no generic `Invited Student` register card.**
-- A representative applies for an organization/provider entity or accepts an authorized invitation to join an existing entity.
-- An independent Coach applies for professional capability under the configured verification policy. An Institution-invited Coach gains only the accepted Initiative grant without a separate Platform Admin approval.
+- A human Representative creates an Institution profile and proves authority; the Institution does not sign in.
+- Coach and Supervisor gain only scoped Institution appointments after accepting email-bound invitations; neither has a public self-registration path or needs a second Platform Admin approval.
 - An appointed Supervisor sees the Supervisor Workspace only for assigned resources.
-- Invited students may use email OTP (passwordless verification) plus invitation token and obtain authenticated, persistent limited access.
+- Students may have limited authenticated Initiative access after verified identity and approved admission; invitation links cannot bypass it.
+- Use ASP.NET Core Identity for standard credential, recovery, confirmation and lockout workflows. Evaluate any custom OTP requirement separately.
 - Server authentication and resource authorization are required for **every sensitive MVC action and request**. Client route guards are only a UI convenience.
 - `Join as Partner` is a registration **path**, not a global security role; a single person may later hold several memberships/capabilities.
 
@@ -150,12 +150,11 @@ The previous blueprint targeted approximately **ages 16–26**. This is a produc
 | Workspace | Primary navigation destinations |
 |---|---|
 | Individual | Home, Recovery Plan, Activities, Digital Shield, Garden, Lab, Insights, Explore, Community, profile/settings |
-| Mentor | Dashboard, My Groups, My Students, Program Builder/Programs, Assignments, Reviews, Reports, Group Garden, notifications/settings |
+| Coach | Dashboard, assigned Initiative Groups and Students, Assignments, Reviews, Reports, Initiative Group Garden, notifications/settings |
 | Invited Student | My Dashboard, My Tasks, My Group, **Group Garden only**, assigned Protected Work, My Progress, account/upgrade |
-| Institution | Dashboard, Initiatives/Builder, Applications & Students, Groups & Staff, Sessions, Activities overview, Attendance & Excuses, identified Forms/Surveys, Competitions, Partnerships, Reports, Settings |
-| Outdoor Provider | Overview, My Experiences, Camp Builder/Sessions, Registrations, Waiting List, Supervisors/Staff, Attendance, Evaluations, Reports, Profile |
-| Supervisor | Dashboard, assigned Initiatives/Provider Experiences, Applications, Students & Groups or Provider Cohorts, Coaches, Schedule, Attendance, Notes & Excuses, Evaluations, Group Garden where authorized, Insights/Reports |
-| Admin | Overview, accounts/approvals, organizations/providers, mentors/groups, initiatives, experiences, activity and assessment catalog, reward/rule policies, CMS/content, community moderation, reports, audit, configuration |
+| Institution | Dashboard, Institution Profile, Initiatives, Outdoor Activities/Trips/Camps, Bookings & Waiting List, Groups & Staff, Sessions, Attendance, Safety/Incidents, Completion/Reports |
+| Supervisor | Dashboard, assigned Initiative and explicitly appointed Institution Activity/Session, Applications, Students & Groups, Schedule, Attendance, Notes & Excuses, Reports |
+| Admin | Overview, accounts, Institution/Representative verification, Initiative and Institution Outdoor Activity governance, catalog, CMS/content, moderation, reports, audit, configuration |
 
 An authorized user may have a **Workspace Switcher**. A switching UI never itself grants access; effective permissions and entitlements must be checked by the MVC application for every relevant request.
 
@@ -166,9 +165,9 @@ An authorized user may have a **Workspace Switcher**. A switching UI never itsel
 ## 3.1 Public pages
 
 - Public landing/marketing page explaining the core problem, differentiators, product journey, use cases and clear entry CTA.
-- `How It Works` / `Features`, `For Individuals`, `For Mentors`, `For Organizations`, `For Outdoor Providers`, `Pricing`, a responsible `Science / References` explanation, and FAQ/help as routes or sections as appropriate.
+- `How It Works` / `Features`, `For Individuals`, `For Institutions`, `Pricing`, a responsible `Science / References` explanation, and FAQ/help as routes or sections as appropriate.
 - Real `Privacy`, `Terms`, `Contact`, `Help`, account recovery and supported-device/extension information.
-- Unified Login; two-level Register; invitation preview and OTP join routes.
+- Unified Login; two-choice Register with direct Institution Representative partner path; invitation preview and join routes for scoped staff.
 - Footer with relevant working links and valid social accounts only; preserve the creator's attribution and © 2026 as previously requested, linking to the creator's website **once a real URL is supplied**. Avoid fabricated links, generic inspirational quote panels and a visible `About` footer column if that earlier design choice remains active.
 
 ## 3.2 Register screen — exact decision and visual behavior
@@ -177,13 +176,13 @@ An authorized user may have a **Workspace Switcher**. A switching UI never itsel
 
 **Option 1:** `Join as Individual` — `Personal journey, activities, community and experiences.`
 
-**Option 2:** `Join as a Partner` — `Lead programs, represent an institution or organize experiences.`
+**Option 2:** `Join as a Partner` — `Represent an institution and organize initiatives and outdoor activities.`
 
 - Both options are presented as large, elegant selection cards. The selected card has clear visual emphasis and accessible keyboard state.
 - **Individual selected:** warm ivory/cream with sage botanical elements and a subtle, evolving organic/neural network motif suggesting personal growth.
 - **Partner selected:** same global palette/typography but background motifs shift to interconnected people, organizations, sessions and experiences.
 - Background transition is coordinated, gentle and premium; do not suddenly replace the entire identity or create visual chaos. Honor `prefers-reduced-motion`.
-- Individual continues to normal account creation. Partner continues to a **secondary path-selection screen** with Mentor / Institution Representative / Outdoor Provider; then authenticated person details and relevant application/invitation flow.
+- Individual continues to normal account creation. Partner continues directly to Institution Representative person and profile details, then the verification flow. Coach and Supervisor arrive through scoped invitations.
 - Register options are **entry intentions**, not an irrevocable lifetime classification.
 - The auth page uses the established cream/green/dark-heading identity, rounded, refined form/card, no unnecessary full marketing navbar above the card; footer stays professional.
 
@@ -193,69 +192,65 @@ After authentication, the MVC application resolves identity, onboarding state, w
 
 ---
 
-# 4. Individual onboarding: Bimo, personal setup, assessments and activation
+# 4. Individual onboarding: Bimo, six questions, the story and Journey Level 0
 
-## 4.1 End-to-end first-run sequence — latest direction supersedes old New-User Home proposal
+> **Onboarding 2.0 (November 2026) supersedes the earlier first-run sequence** (Meet Bimo → Before We Begin → eight-question setup → four mandatory assessments → Starting Point → plan). The four Lab assessments remain available as **optional** activities and historical records; they never block onboarding, Home or plan activation.
+
+## 4.1 End-to-end first-run sequence
 
 ```mermaid
 flowchart TD
   A[Individual signup] --> B[Meet Bimo]
-  B --> C[Before We Begin / assessment introduction]
-  C --> D[Quick Personal Setup]
-  D --> E[Four Lab assessments]
-  E --> F[Your Starting Point / results]
-  F --> G[Building Your Plan / separate transition]
-  G --> H[Recovery Plan Preview + goal and schedule confirmation]
-  H --> I[At least one personal offline commitment]
-  I --> J[Activate Plan]
-  J --> K[Short contextual product tour]
-  K --> L[Personalized Home]
+  B --> C[Quick Setup: exactly six questions, one at a time]
+  C --> D[Transition: You're ready to begin]
+  D --> E[HeroReels story: new illustrated opening → You're not alone onward, unchanged]
+  E --> F[Home · Journey Level 0 — New Beginning]
+  F --> G[Week 1 proposal: review, then user-chosen activation]
 ```
 
-Do **not** route a brand-new Individual directly to a marketing-like Active Home before these agreed first-run steps, unless the user is resuming an unfinished first run. Preserve return state at every meaningful stage; do not restart completed assessments after a browser close.
+- Implemented at `onboarding.html` (`Views/Member/Onboarding.cshtml`, `src/pages/member/onboarding/quick-setup.{js,css}`) and `hero-reels-lab.html?flow=onboarding` (`Views/Labs/HeroReels.cshtml`).
+- The story can be skipped at any time (**Skip to Home**); its own final invitation also leads to Home.
+- Completed users are never sent through the questions again: `onboarding.html` shows a short *Welcome back* state (story, Home, change answers). `onboarding.html?step=setup` re-opens the six questions with answers prefilled.
+- Unfinished setup resumes after a refresh on the same question with the same answers (saved after every change).
 
-## 4.2 Bimo introduction — TWO short illustrated screens (recommended precise treatment)
+## 4.2 Meet Bimo — one short welcome screen
 
-Bimo uses **approved original mascot assets**. Do not generate a new lookalike or include Bimo in every card. Use separately layered still artwork and subtle camera/CSS movement, not mandatory Rive animations.
+Original approved Bimo art only (`assets/hero-v2/bimo-awake.png`) on a warm ivory canvas with soft botanical accents and a subtle entrance. Copy: **Hi, I'm Bimo.** — *I'll help you make a little more room for what matters. Six short questions, a short story, and you're in.* One primary CTA **Let's Begin**; secondary **Skip the introduction** (skips this screen only). No marketing clutter. This screen is separate from the HeroReels story.
 
-**Screen 01 — Meet Bimo:** Main Bimo art on a light cream botanical scene, waving, clear heading and one primary action. Exact previously accepted draft copy:
+## 4.3 Quick Setup — exactly six questions
 
-> **Hey, I'm Bimo!**
-> I'll be your friend along the way. Let's discover your starting point and build a plan that fits you.
+One question per screen, Back and Continue, a slim animated progress bar at the top labelled `Question X of 6`. The bar shows **completed** questions (0/6 on the first question) and reaches exactly 100% only after Question 6.
 
-CTA: **Let's Begin**. Secondary: **Skip Introduction**. No giant explanation of every feature here.
+| # | Question | Type | Options | Stored as |
+|---|---|---|---|---|
+| 1 | What would you like to change? | single | Spend less time on Reels and Shorts · Use my phone more intentionally · Make more time for real-life activities · Improve focus on things that matter to me | `goal` (`reduce-scrolling`, `intentional-phone`, `offline-time`, `focus-objective`) |
+| 2 | Which apps pull you in the most? | multiple | Instagram · TikTok · YouTube / Shorts · Facebook · Other | `setup.distracting` |
+| 3 | Roughly how much time do you spend scrolling each day? | single | Less than 1 hour · 1–2 hours · 2–4 hours · More than 4 hours · I'm not sure | `setup.baselineMinutes` — a **self-reported estimate**, never a measurement |
+| 4 | When does scrolling usually take over? | single | Before bed · In the morning · During study or work · When I'm bored · It varies / I'm not sure | `setup.peakTime` |
+| 5 | What would you love to make more time for? | multiple | Walking / sports · Reading / learning · Drawing / creativity · Friends / family · Personal hobbies · Other | `setup.makeTimeFor` (+ compatible `offlineInterests`) |
+| 6 | How much time feels realistic for a small daily activity? | single | 5 · 10 · 15 · 20 minutes | `setup.dailyMinutes` |
 
-**Screen 02 — Before We Begin:** Bimo shifts to smaller side illustration; four assessment motifs/cards appear in the same cohesive background.
+The answers are saved with the existing `setup.save` journal event (`setup.version = 2`, the raw answers kept under `setup.answers`); answers from the earlier eight-question setup are merged, not deleted. Keyboard (native radio/checkbox semantics, arrow keys), visible focus, mobile layout and `prefers-reduced-motion` are supported.
 
-> **Let's find your starting point.**
-> We'll begin with a few questions and four short assessments.
-> Your answers and results are private by default. DeepSprout will use them to help build a plan around your goals.
-> There are no perfect answers. Just be yourself!
-> You can take a break and continue later.
+## 4.3a The questions-to-story transition
 
-Show an **honest time estimate**, provisionally **15–20 minutes** until actual test durations are validated; show how progress is saved and where privacy details can be read. CTA: **Start Assessments**. `Skip Introduction` skips only the explanatory screens, **not** the four tests. Optionally replay from Help. Screen one should never repeat on every login.
+After Question 6 the bar fills to 100%, the question leaves, and a minimal scene appears on the same ivory canvas: **You're ready to begin.** *But first, let's take a look at how easily our attention can drift — and how we can find our way back.* One CTA: **Explore the Story**. On click the copy rises out, the same hand-drawn sun rises over the horizon, and the page changes (cross-document view transition where supported) into the story, which opens on the same ivory sky with that sun rising — no white flash, no duplicated header.
 
-**Privacy qualification:** Do not promise raw answers are sent to an external AI. Results are private by default; the assessment/recommendation system uses them under the product's disclosed rules. If AI is integrated, its inputs, provider and consent boundaries must be documented separately.
+## 4.3b The HeroReels story — new first half
 
-## 4.3 Quick Personal Setup — useful questions only
+The first half (Bimo meditating, balanced stones, notifications, reels escalation, black hole) is replaced by an original hand-drawn sequence (`src/js/reels/dawn*.js`, `src/styles/reels/dawn.css`): an original faceless character in a sage sweater resting under a tree at sunrise → one Reel, then another → attention threads pulled from the sun, a flower and the tree toward the Reels → a choreographed storm of Reels around the person → night falls, the Reels fade to a few traces → one luminous thread that becomes the line *You're not alone* begins with. **Everything from "You're not alone" onward is unchanged**; a small adapter outside it (`thread-bridge.js`) carries the thread across the seam.
 
-Collect with quick choices, not long essays:
+## 4.3c Home · Journey Level 0 — New Beginning
 
-| Question | Functional reason and resulting use |
-|---|---|
-| Main goal? | Determines plan objective and relevant intervention candidates. Examples: reduce short-video scrolling, use phone more intentionally, create time for offline interests, support a specific focus objective. |
-| Which services are most distracting? | Helps build a user-selected browser site list. Must not assume mobile app blocking is available. |
-| When do you usually scroll more than intended? | Can **suggest** an intervention time; only a **self-report**, not automated inference. Include `varies / not sure`. |
-| Approximate time spent scrolling? | Optional self-reported baseline; do not treat as objective usage measurement. |
-| Where do you browse (computer Chrome or phone)? | Establish technical feature availability and honest Shield instructions. |
-| What do you enjoy offline? | Selects relevant personal alternatives, not a clinical psychological diagnosis. |
-| Time/available days for activities? | Prevents overload; supports a realistic weekly schedule. |
-| Preferred protection intensity/notification tolerance? | Suggests reasonable Shield defaults, but user controls activation and limit. |
-| **One small personal offline commitment** | Required before first plan activation under the latest discussed direction; e.g. walk five minutes, sketch, read two pages, practice music. The platform does not judge how impressive it is. |
+New users arrive at their real Individual Home at **Journey Level 0 — New Beginning**: a motivational starting point, **not** a measurement of recovery, intelligence, attention or mental health. *Assessment status: Not established yet.* No usage data, cognitive scores or improvement percentages are shown. Home shows a **preliminary Week 1 proposal** built only from the six answers (goal, chosen activities rotated through the week, the daily minutes, the tricky moment, the named apps with Shield's browser-only limit, and the self-reported estimate labelled as such). Nothing is active: **Review & activate Week 1** opens the plan preview, where the person changes anything and explicitly activates the plan.
 
-A question about *why* the user scrolls (boredom, stress, avoidance) can exist as an **optional** multiple-choice input, never a repeated interrogation each time they open Instagram. Its lack does not block a functional plan. Personalization inputs are stored separately from performance scores; liking walking does not improve an attention-test result.
+## 4.3d Optional assessments and activation
 
-## 4.4 Four baseline assessments — unchanged set
+- Plan activation no longer requires the four baselines; any already recorded are linked, none are invented (`account.js` `plan.activate`).
+- The plan preview opens directly when no baselines exist; the Quick Setup proposal pre-selects one offline commitment that the person can change before activating.
+- Lab assessments stay available and keep their full history, protocol versions and weekly windows. Next-step guidance presents them as optional.
+
+## 4.4 Four baseline assessments — unchanged set, optional since Onboarding 2.0
 
 | Assessment | Core interaction | Appropriate recorded outputs |
 |---|---|---|
@@ -272,6 +267,8 @@ A question about *why* the user scrolls (boredom, stress, avoidance) can exist a
 - **Official periodic reassessment is free and opens in a weekly eligibility window.** Reuse the existing Digital Habits + one rotating cognitive/task assessment direction pending protocol validation; do not require all four every week. Weekly Review is not a fifth test. Practice/rehearsal does not count as official reassessment; versions and valid comparison rules apply.
 
 ## 4.5 Results → separate plan-building presentation → activation
+
+> Since Onboarding 2.0 this path applies only to people who choose to take the four baselines. Without them, the Week 1 preview opens directly from Home (Journey Level 0) and activation is still an explicit choice.
 
 **Result scene:** `Your Starting Point` shows four distinct categories, valid task results and concise caveats. A clean, coordinated animation assembles the results; do not imply a medical diagnosis or common 0–100 brain score.
 
@@ -501,7 +498,7 @@ Recommended tabs: `For You`, `Explore Activities`, `Assigned`, `History`, plus a
 
 - **For You:** current eligible core practice and optional one, source from the plan, next activity CTA.
 - **Browse Practices:** approved training types with duration/type/difficulty filters; eligible on-demand access.
-- **Assigned:** Mentor or program assignments, if the current identity belongs to an active group; deadlines/status/review path.
+- **Assigned:** Initiative Coach assignments for a student in an admitted group; deadlines/status/review path.
 - **Offline Routine:** user-created simple daily hobby checklist; its records are visibly self-reported.
 - **History:** attempts, completions, pending reviews, revised submissions and associated sources; not a substitute for Insights.
 
@@ -556,19 +553,19 @@ Every activity definition is versioned and has: category, goal tags, estimated t
 
 The **Personal Garden** is one fixed, large, clean white/ivory scene. It contains **exactly four distinct, comparatively small trees**, mapped one-to-one to Depth Practice, Listening & Recall, Practical Micro-Challenge, and Protected Work. There is **no central fifth journey tree**. Each existing type tree can progress through versioned, source-backed stages; a completion never plants another tree. The scene does not expand into beds, zones, paths, biomes, or a collection inventory. Home's preview must depict this same model. Bimo may celebrate an earned change, but manual watering grants nothing.
 
-A qualifying Offline Routine record may unlock a **small flower**; actual eligible session attendance may unlock a **rabbit**; verified eligible camp completion may unlock a **birdhouse**. Decorations are bounded policy effects, not one object per check-in. Initiative Completion and independent Coach Program Completion share one achievement classification for history and reporting. Neither adds a Personal Garden tree or decoration. Display `Completed` in My Initiatives or program history and `Insights → Offline & Experiences`; show a source-backed collective milestone in the Institution Initiative Group Garden where applicable. Joining, booking, clicking, posting, a paid purchase, or an accepted absence excuse never grants an attendance reward.
+A qualifying Offline Routine record may unlock a **small flower**; actual eligible session attendance may unlock a **rabbit**; verified eligible Institution camp completion may unlock a **birdhouse**. Decorations are bounded policy effects, not one object per check-in. Initiative Completion is recorded in history/reporting and may yield an Initiative collective milestone; it does not add a Personal Garden tree or decoration. Joining, booking, clicking, posting, a paid purchase, or an accepted absence excuse never grants an attendance reward.
 
-A **Group Garden** is a distinct collective view, never a region of the Personal Garden. In Phase 1 there is exactly one Group Garden per **Institution Initiative** (contributions from all accepted participating students, aggregated across internal Coach groups) and one per **independent Coach group** owned by its Program. No Institution internal group gets its own scene; no Outdoor Provider camp/cohort gets a Group Garden. The view uses bounded, genuine collective milestones, not one object per student. An Invited Student sees only their authorized Group Garden until upgrading to a full Individual account. Upgrade preserves membership, work and earned history. An Individual may access an authorized Group Garden as a separate destination.
+A **Group Garden** is a distinct collective view, never a region of the Personal Garden. There is exactly one Group Garden per **Institution Initiative**, aggregated across its internal Coach groups. No internal group or standalone Outdoor Activity gets its own scene. The view uses bounded, genuine collective milestones, not one object per student. An Invited Student sees only their authorized Initiative Group Garden until upgrading to a full Individual account. Upgrade preserves membership, work and earned history.
 
 ## 9.2 Reward source and neutral data-status rules
 
 | Source event | Personal effect | Collective effect and evidence |
 |---|---|---|
-| Valid approved Meaningful Practice attempt or reviewed assignment | Progress only the corresponding practice-type tree under policy | Count once toward the owning Initiative or independent Coach group when eligible; preserve assignment/review IDs |
+| Valid approved Meaningful Practice attempt or reviewed assignment | Progress only the corresponding practice-type tree under policy | Count once toward the owning Initiative when eligible; preserve assignment/review IDs |
 | Eligible self-reported Offline Routine | Bounded small flower | Only if a published collective policy explicitly allows this self-report source |
 | Confirmed eligible session attendance | Bounded rabbit | Count factual attendance with session/registration/Supervisor and method references |
-| Verified eligible camp completion | Bounded birdhouse | Provider report; no Provider Group Garden |
-| Initiative or Coach Program completion | `Completed` history/Insights, **no Personal Garden object** | Appropriate source-backed Initiative collective milestone; independent group policy may recognize its own completion |
+| Verified eligible Institution camp completion | Bounded birdhouse | Institution report; no standalone Activity Group Garden |
+| Initiative completion | `Completed` history/Insights, **no Personal Garden object** | Appropriate source-backed Initiative collective milestone |
 | Mere registration, accepted excuse, login, likes, arbitrary to-do, repeated approval | None | None |
 
 Reward evaluation consumes a unique source event ID, source version, subject, beneficiary and policy version; an event can grant each eligible effect at most once. Reversal/correction must keep the original evidence and an attributed compensating decision rather than silently deleting history. Reward thresholds, repeated decoration ceilings, tree species and exact layout remain open policy values. **No recent data is neutral.** Earned growth persists; do not dim, wilt or destroy a tree solely because days passed without app activity. A genuinely known and relevant adverse event, if ever displayed, needs a separately approved rule and must not be confused with missing observation.
@@ -655,9 +652,9 @@ ASP.NET Core/C# rules and real data definitions remain authoritative for scoring
 
 - Page title, search bar and featured published opportunities.
 - Content group filters: `All`, `Initiatives`, `Sessions & Workshops`, `Outdoor Experiences / Camps`, optionally `Competitions` or general events; render on one clear discovery interface.
-- Filter by participation method `Online`, `In-person`, `Hybrid`; topic, relevant age eligibility, date, city/governorate, registration status, organizer/provider and availability where supported.
+- Filter by participation method `Online`, `In-person`, `Hybrid`; topic, relevant age eligibility, date, city/governorate, registration status, Institution organizer and availability where supported.
 - **Preferred city is a discovery preference**, not a security gate. A person in Zarqa may join an online Jordan-wide initiative from an Amman organization or book an eligible in-person experience in Amman.
-- Organization headquarters, initiative coverage, session venue, provider headquarters and user's search-location preference are **separate data fields**.
+- Institution headquarters, Initiative coverage, Activity/session venue and user's search-location preference are **separate data fields**.
 - Online initiatives can have geographically limited eligibility for legitimate reasons, but the backend checks explicit audience rules, not arbitrary physical proximity. Do not collect precise GPS by default.
 - Clearly identify real verified listings versus mock/demo data; hide expired booking CTAs but keep appropriate historical details if allowed.
 
@@ -671,7 +668,7 @@ ASP.NET Core/C# rules and real data definitions remain authoritative for scoring
 | Hybrid Session | Two participation modes and potentially separate capacity pools | Select mode, complete appropriate registration questions |
 | Competition | Rules, eligibility, submission period, judging criteria, published outcome | Submit entry if eligible; follow review/judging lifecycle |
 | Outdoor Experience | Operator, venue, schedule, safety/contact information, seats, supervisor as permitted | Register or join Waitlist |
-| Camp | Provider, multi-session timetable, group/supervisor rules, registration and completion policy | Reserve place, attend sessions, receive verified completion if eligible |
+| Camp | Verified Institution organizer, multi-session timetable, supervisor rules, registration and completion policy | Reserve place, attend sessions, receive verified completion if eligible |
 
 `My Registrations` surfaces the participant's owned commitments and states (`Pending`, `Confirmed`, `Waitlisted`, `Checked-in`, `Completed`, `Cancelled`), while `My Initiatives` surfaces initiative enrollments and components. Joining an Initiative **does not book every constituent event**. Attendance **does not always equal completion**.
 
@@ -705,269 +702,93 @@ Page sections, actual social feature policy, whether contributor ranks/weekly ch
 
 ---
 
-# 13. Coach / Mentor, Program and shared assignment engine
+# 13. Institution-invited Coach and shared assignment engine
 
-**Coach** is the canonical role name; existing routes and code may say `mentor`. An independent Coach applies through `Join as Partner → Coach/Mentor` under the configured professional verification policy and owns invite-only Programs. An Institution-invited Coach accepts an email invitation to a named Initiative after existing-account login or new identity verification; this needs **no separate Platform Admin approval**. One person retains one identity across Individual and Coach access. Independent Programs are not public Explore listings. A Program can be an approved linked component of an Institution Initiative without transfer of Coach ownership, memberships, submissions or reviews.
+**Coach** is the canonical role name; older demo routes may say `mentor`. A Coach enters through an email-bound invitation from an authorized Institution Representative to a named Initiative. There is no independent Coach registration, verification application, Program, Program Builder, directly owned group, direct Coach-to-student invitation, or Coach subscription tier. An invited Coach needs no second Platform Admin approval. One human account may also have Individual access.
 
-## 13.1 Program, Group and assignment ownership
+## 13.1 Initiative groups and assignment ownership
 
-An operational Group has exactly one parent: **Initiative OR independent Coach Program**, never both. An Institution's structured training mode is its Initiative with internal groups; do not create a redundant Program record for the same institutional cohort. Independent Coach Programs own their groups. Use one assignment/submission/review engine in both contexts, with resource grants and original owner IDs. A linked independent Program retains its own groups and task records; the Initiative may receive only agreed aggregate/report projections and cannot duplicate rewards.
+Every operational Group belongs to exactly one Institution Initiative. The Representative and active Initiative Supervisor can manage groups, accepted students, and allocation of active invited Coaches. A Coach sees only assigned groups/students and their permitted tasks, reviews and reports. Transfers change future access and responsibility while preserving submissions, authored decisions, notifications and history. One accepted student occupies one Initiative seat regardless of group transfer. No Coach group count or student ratio is approved.
 
-The Coach sees only assigned groups/students. The Institution Representative and active Initiative Supervisor can see all initiative groups/students, create/rename groups, allocate and transfer accepted students, and allocate already authorized Coaches. Only the Representative revokes a Coach or Supervisor's Initiative appointment. Transfer/replacement changes future responsibility and access, retains prior authored reviews/submissions/rewards, records handover and notifies affected people. One accepted student occupies one initiative seat regardless of group transfer. Group count, ratio and default size have **no approved numeric cap**.
+Use one versioned assignment/submission/review engine for Initiative groups. `Assigned → In Progress → Submitted → Approved | Needs Revision | Rejected` preserves each attempt and decision. Student feedback and restricted Supervisor notes have different readers. Due dates and overdue state do not overwrite evidence. The single Group Garden belongs to the Initiative, not to a Coach group.
 
-## 13.2 Coach page contracts
+## 13.2 Coach workspace
 
-All routes in this table are **current static hash routes** under `Client/workspaces.html#/mentor/`; content and actions are **target requirements**, not a claim that each exists today. Every page must show scoped empty, pending, revoked and error states, source timestamps and accessible mobile controls.
-
-| Page / route | Sections, fields and actions | Read/write, scope and visible effect |
-|---|---|---|
-| Dashboard `dashboard` | Own groups/programs, due reviews, upcoming due dates, reports due, notices; open queues | Derived from assigned records only; no institution-wide or private wellness totals |
-| My Groups `groups`, `groups/:id` | Search/status, roster, membership/invitation/program/activity tabs; create/edit/archive owned independent group; view assigned institutional group | Group/membership IDs and transfer history; institutional Coach cannot add unrelated students or revoke staff |
-| My Students `students`, `students/:id` | Assigned roster, task states, limited relevant attendance, submission/review chronology; filter/group search | Only currently assigned scope plus minimum historical handover; no unrelated Lab, Shield, personal plan or other Coach roster |
-| Programs `programs`, `programs/new`, `programs/:id`, `programs/:id/edit` | Independent builder: title, objective, audience/eligibility, dates/stages, activity versions, due/review policy, consent, invitation rules; draft/preview/publish/pause/complete/archive | Versioned independent Program owned by Coach. Institution internal structured initiative uses its own Initiative, not a copy |
-| Assignments `assignments` | Select approved practice/catalog item; title/instructions/version, group or selected students, required flag, start/due window, review method; create, future edit/reschedule, cancel with reason | Shared Assignment IDs flow to limited Student `My Tasks` and full Individual `Activities → Assigned`; reschedule notice and audit |
-| Reviews `reviews`, `reviews/:id` | Submitted evidence/attachment, version, previous attempts; Approve, Needs Revision or Reject with reason; separate student-facing feedback and Supervisor-only note | One review decision/version; prior submissions remain; approved eligible evidence processed once |
-| Reports `reports` | Period/group filters, actual assignment/submission/approval/overdue counts, qualitative observations, draft/submit/history/export | Source-backed Coach Report → Supervisor Insights and Representative authorized drilldown |
-| Group Garden `group-garden` | Collective source summary, milestones, provenance | Initiative Coach views single Initiative Garden; independent Coach group uses own Program Garden; no manual growth |
-| Notifications/Profile/Account `notifications`, `profile`, `account` | Invites, due reviews, moved students, report deadlines; contact/preferences; workspace grants | Revoked appointment removes future scope without erasing authorship |
-
-An independent group's Invitations tab records recipient email, token expiry/use limit, status, resend/revoke, consent and join rule. Wrong email cannot claim the grant. New invited students verify identity; existing users reuse theirs. A published Program or assignment change that affects already submitted work creates a new version or future obligation; it never rewrites the submitted version.
-
-## 13.3 Submission and review lifecycle
-
-`Assigned → In Progress → Submitted → Approved | Needs Revision | Rejected`; Needs Revision permits resubmission while preserving each attempt and decision. `Overdue` is derived from due time and status; `Cancelled`/`Expired` are separate controlled outcomes. A system-scored activity may approve under a published validation rule; a Coach reviews when required. Student-visible feedback and Supervisor-only internal notes are distinct fields with distinct readers. Coach reports contain interpretation, while counts come from actual records. No arbitrary academic grade or mental-health judgment is inferred from task completion.
-
----
+Dashboard, Assigned Groups, Assigned Students, Assignments, Reviews, Reports, Initiative Group Garden, Notifications and Account are scoped to active Initiative appointments. Show pending, empty, revoked and error states. Reports derive counts from original records; no unrelated personal Lab, Shield or Recovery data is disclosed. Old `mentor/programs/*`, independent group and direct student-invite routes require a reviewed redirect/deprecation and historical data mapping; their current demo existence is not authorization.
 
 # 14. Invited Student and full Individual continuity
 
-An independent Coach invites a person to a specific group/Program. The invite preview gives group, Coach, purpose and applicable policy without revealing other students. Existing user: sign in, verify matching email, accept. New person: enter minimum identity/consent fields, verify email via OTP or equivalent, accept. Expired, revoked, overused, wrong-email or ineligible invites do not grant membership. In Phase 1 the token/OTP and delivery may be locally simulated and labeled; production requires secure verification. No second identity is created for a person already registered.
+An eligible Student joins an Institution Initiative through its application and admission flow. A shared link or invitation may identify the opportunity but cannot create an independent Coach Program membership, bypass verified identity/consent, or exceed **135 accepted students per Initiative**. Existing people reuse their human account. A limited invited workspace may show authorized Initiative groups, tasks, feedback, schedule and the Initiative Group Garden. Activating the full Individual workspace preserves those records under the same identity and then offers the personal journey; it does not retroactively infer Lab, Shield or Recovery outcomes.
 
-Before full Individual upgrade, the limited Student workspace includes only the authorized Group Garden, not a Personal Garden, personal Lab, Shield or Recovery Plan. Upgrade adds access/consents and offers the personal four-assessment journey under the **same identity**, preserving group membership, assignments, submissions, reviews, program history and earned evidence.
-
-All routes below are current `Client/workspaces.html#/student/…` hash routes; listed behavior is the target contract.
-
-| Page / route | Sections, fields, controls and states | Data and effect |
-|---|---|---|
-| Dashboard `dashboard` | Group/program summary, next due task, feedback, notice/action cards; pending admission or no-task state | Assigned work only; link to task detail and Group Garden |
-| My Tasks `tasks`, `tasks/:id` | Due/status filters, approved activity instructions/version, required evidence, start/resume, submit/resubmit, review history and reason | Assignment and Submission IDs shared with Coach; invalid/late/cancelled states explained |
-| My Group `group` | Coach, permitted member context, program schedule, group milestones | No peer private work; membership changes update scope |
-| Group Garden `garden` | Collective Program-group or Initiative scene as authorized, source/milestone summary | No Personal Garden until upgrade; no manual reward |
-| Protected Work `protected-work/:assignmentId` | Assigned intention, timer controls, self-report/evidence and stop state | Local timer is not browser blocking or automatic Coach approval |
-| Progress `progress` | Own task timeline, revisions and program completion badge | No invented Lab/Recovery score |
-| Account/Upgrade `account` | Verified email, membership/access, consent, upgrade CTA, notification preferences | Upgrade preserves identity and work; revoked membership removes future view, history retained under policy |
-
-An Institution participant may be an existing full Individual who applies from regular Explore, or an invited eligible person. Their Initiative status, assigned tasks, bookings, attendance and completion appear under the same personal identity and regular Individual pages. Joining an Initiative does not force the personal four assessments merely to participate in institutional work unless an approved participation policy separately requires it.
-
----
+The Student sees only their own application, assignments, submissions, reviews, bookings, attendance and completion, plus permitted group context. Revocation or withdrawal ends future access according to published policy and retains attributable history. Admission, session registration, booking, attendance and completion remain distinct facts.
 
 # 15. Institution Representative and Initiative operations
 
-An Institution is a verified entity with an authorized human Representative. `Join as Partner → Institution Representative` collects person and organization identity, official contact, type, address/coverage, representative authority and appropriate verification evidence. Platform Admin may request information, approve or reject the **entity and representative authority**. Once approved, the Representative can create and publish Initiatives without per-Initiative Admin approval. Admin retains later moderation, unpublishing, suspension and authorized removal. Suspended resources stop new admissions but preserve historical participation/audit evidence.
+An Institution is a business profile created and represented by an authorized human, not a login account. Public Partner registration leads directly to Institution Representative registration. Collect specific typed organization and representative fields, official contact, address/coverage, authority and necessary verification evidence. One Platform Admin verifies the Institution/Representative. The verified Institution is the public organizer on Initiatives and Institution Outdoor Activities; private representative and verification details stay private. Normal publication does not need routine second Admin approval.
 
-An **Initiative** is Institution-owned. Its operating mode may be `awareness/content` or `structured` with students, internal groups, Supervisors, Coaches, assignments, sessions and reports. It may include awareness content, identified surveys/quizzes, competitions, sessions, an approved independently owned Coach Program link or a Provider Experience partnership. Internal structured work remains part of the Initiative; it does not create a redundant Program. Publication can precede Supervisor invitation acceptance. A session requiring attendance cannot record attendance until an active authorized Supervisor is assigned; show `Needs Supervisor` on session and Representative Dashboard, disable confirmation and restore warning whenever the appointment lapses. Content-only/survey-only Initiatives need no Supervisor merely to publish or deliver content.
+An Institution owns Initiatives and Outdoor Activities. Its workspace includes Dashboard, Institution Profile, Initiatives, Outdoor Activities / Trips / Camps, New Outdoor Activity, Bookings & Waiting List, Groups & Staff, Sessions, Attendance, Safety / Incidents, Completion / Reports and Account. An activity may be standalone or linked to an Initiative as an implementation recommendation; a linked activity must retain one booking and completion source.
 
-## 15.1 Representative page contracts
+## 15.1 Initiative builder and operation
 
-All current routes here use `Client/workspaces.html#/organization/…`; the columns specify the **target**, while §29 identifies current deviations. Each page must show loading/error/no-results/permission states when relevant, with data source, time and audit where a mutation occurs.
+The Representative creates, previews, publishes, revises, completes or cancels its Initiative with typed title, objective, audience, dates/time zone, coverage, mode, consent, admission, capacity, content, sessions, forms, competitions, staff, group and completion rules. The existing six-stage builder is a demo starting point, not permission to retain independent Program or Provider links. Published eligible Initiatives appear in regular Individual Explore with `Organized by <Institution Name>`. Drafts do not. Publication can precede Supervisor invitation acceptance; an attendance-bearing session requires an active authorized Supervisor before check-in.
 
-| Page / route | Hierarchy, fields, actions and states | Data ownership and downstream effect |
-|---|---|---|
-| Dashboard `dashboard` | Institution identity/verified badge, selected Initiative, Create Initiative; cards for draft/published, accepted seats (of 135), active Supervisors (of 3), applications, groups/Coaches, sessions, reviewed tasks; Needs Attention for no Supervisor, pending excuse, full seats, overdue report; upcoming and recent activity | Source-derived counts for own Institution only; alert opens precise queue |
-| Initiatives `initiatives`, `initiatives/:id` | Search/status/date filters; row title/topic/mode/price/start/end/students/staff/components; detail tabs Overview, Applications, Groups/Staff, Agenda, Activities, Forms, Competitions, Partnerships, Attendance/Excuses, Reports, History | Draft/Preview/Publish/Close Registration/Complete/Cancel/Archive/duplicate with controlled versions; Published reaches **regular Individual Explore**, draft does not; cancellation notifies affected members |
-| Builder `initiatives/new`, `initiatives/:id/edit` | Six stages in §15.2; Back/Next/Save Draft/Preview/Publish; field errors and publish blockers | Writes one Institution-owned Initiative; public version and source ID stable |
-| Applications & Students `participants` | Search/filter by Initiative, Pending, Accepted, Waitlisted/Offered, Suspended, Rejected, Removed, Blocked, Withdrawn; detail shows consent, allowed responses, eligibility, decision log, group/Coach, permitted task/attendance summary | Representative Approve/Reject/Remove/Suspend/Restore/Block with reason, assign/transfer group, export permitted fields; same Application ID as Supervisor queue and student's My Initiatives |
-| Team & Groups `team` plus Initiative detail | Supervisor/Coach invitation email, scope, status/expiry, resend/cancel/revoke; active 3-Supervisor limit per Initiative; group roster, unassigned pool, assigned Coach, progress | Invite existing/new verified identity without separate Admin approval; Rep may revoke staff. Rep or Supervisor may create/rename groups, assign/transfer accepted students and allocate active Coaches. History retained |
-| Sessions & Workshops `sessions`, `sessions/:id` | List/calendar, initiative, title/agenda/host, online/in-person/hybrid mode, date/time/timezone, venue or protected link, mode-specific seats, registration, Supervisor, check-in window, completion rule | Draft/publish/reschedule/cancel with reason and notice; session booking separate from Initiative seat; active Supervisor gate for attendance, QR/manual/online methods in §17 |
-| Forms & Surveys `forms`, `forms/new`, `forms/:id`, `forms/:id/edit`, `forms/:id/responses` | Type, title/purpose/audience/consent, version, open/close, question type/options/required/validation, duplicate rule; preview, publish revision, close, authorized identified responses/aggregate | Registration, identified survey, quiz, feedback or competition form; **no anonymous Phase-1 survey**; response pinned to version and restricted to authorized viewers |
-| Competitions `competitions`, `competitions/:id` | Initiative, rules, audience, opening/deadline, entry text/file policy, judging criteria and permitted judges; entry/review/result states | Draft/publish/close, judge with audit, publish results; student sees own status and allowed results, no automatic personal Garden farming |
-| Partners/Coaches `partners` | Separate Internal Coaches and External Partnerships; counterparty/resource/purpose/data scope/status/date, request/accept/decline/link/end | An independent Coach Program or Provider Experience retains its owner, seats, members and records; Institution gets only agreed projections |
-| Reports `reports` | Initiative/date/group filters, admission funnel, seats/waitlist, attendance and excuses, assignment status, Coach reports, Supervisor Insights/summaries, form/competition results, source/denominator | Derived from original records; drilldown/export permitted fields; no private Lab/Shield/Recovery |
-| Settings/Account `settings`, `account` | Verified identity, contact, notice/consent defaults, representative authority and own account | Contact edits allowed; material identity changes require re-verification; cannot edit platform reward or price catalog |
+## 15.2 Staff invitation and student admission
 
-## 15.2 Six-stage Initiative Builder
+An authorized Representative selects an Initiative, `Coach` or `Supervisor`, and an invited email; may send email or copy a secure link. Acceptance requires sign-in or human registration, control of the matching verified email, valid unexpired single-use invitation, Institution ownership and Initiative eligibility. A pending invitation grants no access. The Representative may cancel pending and revoke active appointments with actor, time, reason and history. No `Requested` Supervisor state, self-request route or additional Admin approval exists. At most **three active Supervisors per Initiative**, protected transactionally.
 
-Draft saves at each stage. Review shows the same card and detail that the regular Individual will see. A blocker identifies the field and how to fix it. Normal publication checks verified Institution and Representative, valid dates/eligibility/consent, at least one ready public component where appropriate, lawful ownership and capacity; **it does not demand Supervisor acceptance before publication**.
+An eligible Student applies once; Representative or active Initiative Supervisor may approve the same application after capacity and eligibility checks. The Representative alone rejects, removes, suspends, restores or blocks within its Initiative; the Student may withdraw. At most **135 accepted students per Initiative**, including safe concurrent decisions. Pending/queued applicants do not occupy accepted seats. The interim suspension-seat rule and waitlist offer expiry remain configurable, not permanent policies. Shared links cannot skip admission.
 
-| Stage | Field-level contract and validation | Result |
-|---|---|---|
-| 1. Basic Info | Required title, topic, objective, short summary, start/end and timezone; optional full description and accessible cover/alt. Owner auto-resolves to verified Institution. End after start; no unsupported medical claim | Versioned Initiative Draft and public identity |
-| 2. Audience, coverage and cost | Audience/age and consent, country/jurisdiction, coverage distinct from institution headquarters, online/in-person/hybrid modes; **capacity 1–135 accepted students per Initiative**; application dates and eligibility; Free or Paid, with positive disclosed price/currency if Paid | Public terms. Phase-1 payment is **simulated**; no claim of charge, refund or payment integration |
-| 3. Content and sessions | Add awareness content, session, identified survey/quiz, competition, internal structured assignments, approved independent Coach Program link or Provider Experience link. Session fields: title, agenda, date/time/timezone, mode, venue/link, mode capacity, registration window, attendance and completion policy | Components retain separate lifecycle. External link requires counterpart agreement; online/hybrid attendance method selected by participation mode |
-| 4. Team and groups | Supervisor/Coach email invites with Initiative scope, active/pending state; up to three **active** Supervisors per Initiative; preliminary groups and allocation of authorized Coaches; responsible session appointment | Pending invites do not impersonate or grant access. Missing active Supervisor makes attendance unavailable, with `Needs Supervisor` alert; it is not a general publish blocker |
-| 5. Rules, forms, consent and completion | Initiative application/admission, waitlist, withdrawal/discipline notice, versioned identified forms, session booking distinct from admission, absence/makeup/excuse policy, completion criteria and safety/privacy text | Published rules constrain actions; completion cannot be inferred from mere check-in or accepted excuse |
-| 6. Review and Publish | Complete summary, public preview, missing-field and staffing warnings, Save Draft, Publish/Update with reason and affected-person notice | Published resource appears in regular Explore; post-publication changes to date, cost, capacity, venue or eligibility are versioned and communicated |
+## 15.3 Forms and reporting
 
-## 15.3 Student admission, capacity and discipline
+Retain identified, versioned forms/surveys and restricted responses. Coach reports feed source-computed Supervisor summaries and Representative reports. Show application, attendance, excuse, task and completion facts separately. No unrelated Individual Lab, Shield, Recovery or private safety details are exposed to staff.
 
-An eligible person applies once from regular Explore or authorized invitation, submits required consent/form, and sees `Pending` in My Initiatives. Representative and active Initiative Supervisor see **the same Application record**. Either can execute the **single final Approve** after rechecking identity, eligibility, Initiative state and accepted-seat count. Concurrent duplicate approval yields one accepted membership and one seat. **At most 135 accepted students per Initiative**; pending and queued people do not consume seats. Each Initiative separately has its own limit. Supervisors cannot Reject, Remove, Suspend, Restore or Block. Those actions belong only to the Representative, with reason and notice; a student can Withdraw. Only Platform Admin can issue a platform-wide ban.
+# 16. Institution Outdoor Activities, bookings, Waiting List and camp completion
 
-`Pending → Accepted | Rejected | Queued | Withdrawn`; `Accepted → Suspended | Removed | Withdrawn | Completed`; `Suspended → Accepted (Restore) | Removed`; `Queued → Offered → Accepted | Declined | Expired`. Blocked is an Initiative-specific reapplication prohibition. A suspended student's historical work remains. **Interim configurable default:** suspension retains the seat until the relevant policy or authorized action changes it. Do not silently free and reoffer the seat. An offered seat counts as held for capacity while valid; expired offers release it. Registration for a component Session or Provider Experience is a separate record and seat pool.
+The verified Institution owns organized trips, camps and other Outdoor Activities. There is no independent Outdoor Provider registration, profile, dashboard, permission grant, pricing tier or public organizer. The Representative creates and operates activities within the Institution workspace. An activity may be standalone or linked to one of its Initiatives after design review; either way, preserve one source identity for booking and completion. A qualified camp completion may unlock one bounded Personal Garden birdhouse. There is no Provider or standalone camp Group Garden.
 
-## 15.4 Forms, reporting and structured mode
+> **Browser-demo implementation (6 November 2026):** the partner workspaces now implement this ownership model — Create New offers Initiative (Online / Hybrid / Face-to-Face) or Outdoor Activity; a seven-stage Outdoor Activity builder; Institution-owned bookings, waiting list, seat offers, Supervisor appointments and completion; Supervisor-only field attendance; Initiative-linked activities as components; Admin suspension/restore; and a non-destructive migration of legacy Provider records. Details, verification and open items: [four-cycle redesign log](docs/DEEPSPROUT-FOUR-CYCLE-REDESIGN.md). Production enforcement remains server work.
 
-Phase-1 forms are **identified**. Definition and response versions, required fields, format validation, consent, visibility, retention and source-based reporting apply to registration forms, surveys, quizzes, feedback and competition entries. No Anonymous Survey UI option or anonymous claim. Sensitive answers and attachments have narrow readers; a Coach sees only operational consequences needed for assigned work.
+## 16.1 Activity fields and publication
 
-In structured mode, group assignment/task/review records use the shared engine in §13. Reporting flows `Coach Reports → Supervisor Insights/Summary → Representative Reports`, with Representative access to permitted original reports. Admission, session booking, factual attendance, excuse decision and completion remain separate. Counts have explicit time window, denominator and source; Initiative participation does not alter personal Lab scores or Recovery Plan metrics.
+Use typed title, kind, description, dates/time zone, venue, eligibility/consent, capacity, registration window, actual Institution organizer, safety/contact, any approved price disclosure, supervisor/attendance and completion policy. A published activity appears in regular Explore as `Organized by <Institution Name>`. Do not expose representative evidence. Version material changes and notify affected people; preserve old booking, attendance and incident history. Public booking is disabled for draft, suspended, cancelled or closed resources under policy.
 
----
+## 16.2 Waiting List and booking
 
-# 16. Outdoor Provider, bookings, Waiting List and camp completion
+An eligible person books one capacity-limited activity or enters `Queued`. An available held seat may produce `Offered`; the person may `Accept`, `Decline` or let it `Expire`. Protect confirmed plus active held seats against capacity under concurrency; reoffer after valid decline/expiry/cancellation. Validate identity, consent, eligibility, resource state and deadline for every transition. The **24-hour offer expiry is an interim configurable demo default**. The same booking/offer status appears in authorized Institution and Individual views.
 
-An approved Outdoor Provider owns its Experience/Camp, inventory, bookings, safety information, staff, attendance, completion and reports, whether or not a verified Institution links that resource. The Provider applies through Partner registration and Platform Admin governance. An Experience is not an Individual's self-reported offline routine. A Camp contains multiple scheduled sessions with its own declared completion policy. No Provider camp/cohort Group Garden exists in Phase 1; qualifying camp completion may unlock the Personal Garden birdhouse.
+## 16.3 Attendance, safety and completion
 
-All current routes are `Client/workspaces.html#/provider/…`; target functions follow. Each page has source-backed counts, scoped access, accessible empty/full/expired/cancelled/error states and audited mutations.
-
-| Page / route | Layout, fields and actions | Data and cross-workspace result |
-|---|---|---|
-| Overview `overview` | Provider identity/verification, published/draft resources, upcoming sessions, confirmed/held/queued seats, missing staff, safety/notice alerts | Derived from own Experience, Booking, Offer, Appointment and Attendance records |
-| Experiences and Builder `experiences`, `experiences/new`, `experiences/:id`, `experiences/:id/edit` | Six-step draft/preview/publish; title, kind, description, venue/address/city, start/end/timezone, audience/age/consent, capacity, booking window, Free/Paid disclosure, cancellation/safety terms, sessions, completion rule, staff, optional agreed Initiative link | Published listing appears in **regular Explore**; draft/suspended/cancelled cannot book. Provider remains owner |
-| Calendar `calendar` | Session timetable, capacity, Supervisor duty, venue/link and check-in window; filter/date view | Schedule changes notify registered people; history/version retained |
-| Registrations `registrations` | Booking search/status/experience filters, eligible identity, form/consent summary, confirmed count, cancellation/no-show, booking detail and code | Approve/cancel/correct within policy; one shared booking ID appears on Individual My Registrations |
-| Waiting List `waitlist` | Queue rank, Offered hold and expiry, Accepted/Declined/Expired history, current confirmed+held seats; issue/reoffer/cancel controls | Full lifecycle in §16.1; participant receives visible offer/status notice |
-| Supervisors & Staff `supervisors` | Invited/accepted/expired/revoked appointments, named sessions/cohorts, email resend/cancel/revoke, assignment gaps | Provider-assigned Supervisor sees only assigned Provider resource/session scope; no Institution authority inferred |
-| Attendance `attendance` | Confirmed roster, QR code/typed code/manual exception/online mode, Present/Late/Absent/Not Recorded, actor/time/correction | Appointment-checked attendance source; check-in distinct from completion; Individual history/report updates |
-| Evaluations `evaluations` | Declared camp/session criteria, outcome, evidence and correction log | Authorized completion record, not Lab/cognitive improvement; birdhouse only if qualifying |
-| Reports `reports` | Date/resource filters, bookings/capacity/queue, factual attendance, completion, Supervisor reports, incident-safe aggregate, export | Source-backed Provider view; Institution linked report receives only agreed data |
-| Partnerships `partnerships` | Counterparty Initiative, request/accept/decline/link/end, shared scope | Link original Experience; never copy bookings or hand over capacity |
-| Profile/Account `profile`, `account` | Verified details, contact/safety info, notices and own access | Material ownership changes require review; no platform-wide rights |
-
-## 16.1 Waiting List state machine and capacity
-
-At full capacity, an eligible participant may enter `Queued` without a confirmed seat. Cancellation or authorized capacity increase releases availability. The next eligible entry receives `Offered` and a held seat. They may `Accept` into one confirmed Booking, `Decline`, or let the offer `Expire`; decline/expiry releases and reoffers to the next eligible entry. Validate identity, eligibility, resource state, booking cutoff, offer deadline and **confirmed plus active held seats ≤ capacity** at every transition. Repeated accept/QR actions are idempotent or explicitly rejected without duplicate seat/evidence. Cancelling a confirmed booking updates user and Provider screens and can trigger reoffer.
-
-**Interim configurable demo default:** 24-hour offer expiry, visibly labeled as a default rather than a final commercial policy. Provide a test/demo clock or advance-time control that exercises expiry/reoffer immediately. Queue ordering exceptions, cancellation cutoff and delivery method remain open. The Phase-1 static demo must show every transition and notification across relevant pages, while true cross-device concurrency and scheduled expiry require the later backend.
-
-## 16.2 Booking, safety and completion
-
-Experience detail in Explore discloses organizer, dates, venue, mode, capacity, eligibility, safety/contact and cancellation policy. The participant submits consent and necessary form fields, sees Confirmed/Queued/Offered/Cancelled and a real rendered booking QR for confirmed in-person sessions. The QR/typed code identifies a specific booking/session, not the person's global login. An active assigned Supervisor validates it or uses a reasoned manual exception; online participation uses roster verification. Session attendance and Camp completion are separate records. A completed camp can be recognized in Individual history and, when eligible under the policy, unlock a bounded birdhouse. Sensitive safety information is visible only to authorized operational staff, with retention and correction policy. Paid status is simulated in Phase 1.
-
-## 16.3 Experience/Camp Builder and correction contract
-
-The current `provider/experiences/new` route uses a six-stage local builder; the target keeps draft recovery and final public preview. Stage 1 records required title, kind, objective/description and Provider owner. Stage 2 records audience/age/consent, location/venue and accessibility/safety/contact details. Stage 3 records start/end/timezone, booking open/close, positive seat capacity and Free/Paid disclosure with price/currency if applicable. Stage 4 adds scheduled Camp sessions with mode, check-in window, assigned Supervisor and declared completion rule. Stage 5 records cancellation/refund **disclosure** (Phase-1 refunds are simulated), participant form/version, waitlist enablement and provider staff responsibilities. Stage 6 validates, previews and publishes. Invalid dates, missing safety/consent, unapproved owner, full/closed booking or unresolved linked-partner consent block only the affected action with a clear reason. A post-publication change to venue, time, price or eligibility creates an attributed revision and notice; cancellation disables future booking, releases or closes offers under policy, and retains valid past attendance and completion.
-
----
+An authorized appointed Supervisor validates an in-person booking QR or typed code; a reasoned manual fallback and online roster verification follow session mode. Check-in, factual attendance, excuse and completion are separate records. Replay or duplicate rewards fail. Sensitive incident details are restricted and audited; necessary safety function survives migration from old `provider/*` entities. Paid status remains disclosure or simulation until commercial terms and payment integration are approved.
 
 # 17. Supervisor: scoped operations, attendance, excuses and Insights
 
-An Institution Representative invites a Supervisor by email into a named Initiative. Existing person signs in; new person registers and verifies identity; both accept the invitation. Wrong-email, expired, cancelled or revoked invitation grants nothing. There is no separate Platform Admin approval for Institution-invited Supervisors and no public Supervisor signup. An **active Initiative Supervisor** can see all groups/students within that Initiative and approve eligible applications, manage groups and allocate active Coaches. A separately Provider-appointed Supervisor is limited to assigned Experience/session/cohort scope. Neither is Platform Admin. One person can hold multiple explicit grants and must act under the selected scope. At most **three active Supervisors per Institution Initiative**; pending invites are tracked separately.
+An authorized Institution Representative directly invites a Supervisor to an Initiative; an explicit Institution Outdoor Activity/Session appointment may be designed when standalone activity staffing requires it. The human accepts with a matching verified email. There is no public signup, self-request, `Requested` appointment state, or second Platform Admin approval. A pending invitation has no operational authority. At most three active Supervisors serve one Initiative.
 
-Current static routes are `Client/workspaces.html#/supervisor/…`; some current pages are Provider-centric and must gain the Institution mode below. Every mutation checks active appointment and resource scope, produces actor/time/reason audit, and updates other readers of the same record.
-
-| Page / route | Layout, fields, actions | Boundary and effect |
-|---|---|---|
-| Dashboard `dashboard` | Assigned Initiative(s)/Provider resources, status, accepted/queued counts, pending approvals, groups, today's sessions/check-in, Coach reports, excuses, `Needs Supervisor` and other alerts | Source-based cards/open queues; expired/revoked grant shows access-ended, no stale roster |
-| Applications (Initiative view) | Shared Pending Application queue, eligibility, capacity, applied date; Approve, Flag/Escalate | One final approval shared with Representative; no Reject/Remove/Suspend/Restore/Block |
-| Students & Groups / `cohorts`, `cohorts/:id`, `participants` | Initiative-wide roster/group counts, unallocated pool, Coaches, task/attendance summary; create/rename group, assign/transfer student, allocate active Coach. Provider mode shows only appointed cohorts | No staff invitation/revocation or unrelated private Individual data; preserve transfer history |
-| Coaches (Initiative view) | Authorized Coaches, group allocations, due reviews/reports, request staff from Representative | Allocate only already active Coach; Representative alone revokes Initiative staff |
-| Schedule/Experiences `schedule`, `experiences`, `experiences/:id` | Date, mode, venue/link, scoped duty, confirmed roster, check-in window, completion rules | Open session/check-in, flag operational issue; cannot change organizer-wide publication/price |
-| Attendance `attendance` | Session selector, confirmed roster, QR scan and typed/pasted booking-code verification, manual fallback reason, online roster verification, factual Present/Late/Absent/Not Recorded, correction history | Active authorized Supervisor only; no attendance if `Needs Supervisor`; idempotent check-in, completion separate |
-| Notes & Excuses (Initiative view) | Specific missed session, student's reason and restricted attachment, factual attendance, own note/recommendation, pending/final status | Recommend Accept/Reject or request information; Representative decides final; Coach gets only necessary consequence |
-| Evaluations `evaluations` | Provider or declared session completion criteria and evidence, authorized decisions/notes | No general academic grade or personal cognitive conclusion |
-| Reports/Insights `reports` | Overview cards/alerts; tabs Attendance, Groups, Assignment Trends, Coach Reports, Student Participation, Excuses & Notes; date/group/Coach/session filters; source/denominator; own summary draft/submit/history | Counts computed from records; Coach Reports → Supervisor Insights/Summary → Representative Reports. Rep can drill into permitted originals |
-| Group Garden `group-garden` | Initiative-wide collective scene, or authorized independent Coach Program view if a separate role grants it | No Provider cohort Garden, no personal private Garden or manual growth |
-| Account `account` | Identity, notification settings, appointment scopes/expiry | Revocation stops writes and roster access; keeps authored history |
+An active Initiative Supervisor can review the Initiative's authorized groups/students, approve an eligible application once, allocate already active Coaches, oversee sessions, confirm attendance, recommend on excuses and produce source-based reports. The Representative alone revokes Initiative staff and makes final excuse and disciplinary decisions. An Activity/Session Supervisor sees only the explicitly appointed resource and its necessary booking/attendance/safety information. Revoked appointments end future access through existing sessions without erasing authored history.
 
 ## 17.1 Attendance and excuse protocol
 
-**In person:** Individual displays a rendered QR for a confirmed session booking; Supervisor scans and validates booking, session, window, active appointment and unused check-in. Phase-1 demo also permits typed/pasted booking-code verification so a live camera is not required. Manual check-in is an exception for a confirmed roster member and requires reason, actor and timestamp. **Online:** Supervisor confirms from the participant roster and records `online-verified`; opening a meeting link alone is insufficient. **Hybrid:** apply the method for the participant's selected mode. QR confirms registration/check-in, not cognitive gain or automatic activity/program completion. A replay or duplicate confirmation must not create duplicate attendance or reward.
+For in-person check-in, validate confirmed booking, session, time window, unused code and active appointment; a typed code or reasoned manual fallback is allowed. Online uses authorized roster verification; hybrid uses the participant's mode. Factual `Present`, `Absent`, `Late`, `Not Recorded` remains separate from a restricted excuse request and Representative decision. An accepted excuse never changes `Absent` to `Present` or creates a rabbit. Corrections retain before/after, actor, time and reason. Completion follows published criteria, not mere check-in.
 
-Factual attendance values are `Present`, `Absent`, `Late`, and `Not Recorded`/pending verification. An Excuse is a **separate decision record**. Student selects a missed session, supplies short explanation and optional restricted attachment. Supervisor records context, note and recommendation. Representative accepts or rejects with reason and notifies the student. UI may display `Excused Absence`, but the underlying factual status stays `Absent`. An accepted excuse never creates attendance or a rabbit. Any makeup/waiver effect on Initiative completion must follow an explicit published policy, not a hidden default. Reports count factual attendance and excuse outcomes separately. Authorized corrections keep before/after/actor/time/reason and reassess dependent rewards transparently.
+# 18. Cross-resource links
 
----
+An Institution Outdoor Activity may be associated with an Initiative as a recommended design choice. It stays owned by the same Institution and keeps one booking, completion and reward source. The former independent Provider/Coach cross-owner partnership is out of target scope; reassess `partnership.PartnershipLink` and old partnership routes after source, data and retention review. Do not create a speculative replacement lifecycle.
 
-# 18. Partnerships and cross-owner links
+# 19. One Platform Admin: governance and migration
 
-A partnership links independently owned resources only after counterpart acceptance and permitted data-sharing terms. An Institution may link a Provider Experience or approved independent Coach Program as an Initiative component; it retains Initiative ownership and public context, while Provider retains seats/booking/safety and Coach retains Program membership/tasks/reviews. The same underlying student event and reward source ID is reused in both reporting contexts. Unlinking stops future presentation/allowed access under policy, not historical authorship or participation. Partner request/detail surfaces counterparty, resource, purpose, start/end, disclosure scope, Pending/Accepted/Declined/Ended status and reason/audit; pending links do not appear as active public components. Cross-tenant reads and writes are denied unless the grant explicitly covers them. Linked Provider registrations are not broadly visible to Institution staff; only permitted participant-specific status or aggregate data is shared.
+There is one privately provisioned, audited Platform Admin authority. Admin verifies Institution/Representative applications and governs published Institution Initiatives and Outdoor Activities, shared content/catalog, privacy-safe reports and system policies. There is no independent Coach or Provider application queue, no global grant/revoke delegate chain, and no routine per-resource Admin reapproval for a verified Institution's publication. `iam.GlobalGrant` requires a specific review before retention.
 
----
-
-# 19. One Platform Admin: governance, publishing and migration
-
-There is **one conceptual Platform Admin workspace** with privately provisioned, audited platform authority. It verifies Institutions and their Representatives, Provider entities and independent Coaches under applicable policies; oversees resources, may unpublish/suspend/remove under governance, manages shared catalogs/policies/CMS/moderation, source-based reports, system notices and entitlement configuration. Institution-invited Coach/Supervisor acceptance does **not** require another Admin approval. Approved Institution Representatives publish ordinary Initiatives without per-Initiative review. Admin actions stop future public eligibility as appropriate and preserve history, audit and affected-person notices.
-
-The current static app has **two implementations**: legacy `Client/admin.html#/…` and partner `Client/workspaces.html#/admin/…`, with separate browser stores. The partner Admin is the **migration destination**, as recorded in v3.1, because its entity approval and partner resource oversight are necessary; the legacy Admin remains until each unique function has a verified replacement. This describes a destination, not two product Admin roles. `Continue as Admin (Demo)` is permitted and visibly labeled in the static demo; local flags are not production security.
-
-| Unified destination / current route | Sections, fields, actions and required integration |
-|---|---|
-| Overview: legacy `dashboard`, partner `overview` | Source-labeled platform and partner counts, verification/attention queue, recent audit, no fabricated combined totals; action cards to correct queue |
-| Users & access: legacy `users`, partner `users` | Person identity, scoped roles/grants/status and reasoned suspend/reactivate/ban under policy; privacy-safe member preview; no second person record per role |
-| Applications: partner `mentor-applications/:id`, `organizations/:id`, `providers/:id` | Evidence, entity and Representative authority, More Info/Approve/Reject/Suspend with reason/history; publication access only after approval |
-| Resource governance: partner `programs`, `initiatives`, `experiences` | Owner/status/detail/source, unpublish/suspend/remove with reason and affected-person notification; no routine takeover of bookings or task authorship |
-| Activity/catalog: legacy `activities`, partner `activity-catalog` | Versioned approved practices/guides, clear target publication to regular Activities and shared Coach assignments; preserve legacy live guide delivery |
-| Lab, Recovery, Shield, Garden: legacy `assessments`, `plans`, `shield`, `garden`; partner `assessments`, `policies` | Preserve controlled assessment editor, Plan Simulator/templates, Shield presets, Garden rules; mark current metadata/previews as **not governing** live personal engines until validated versioned publisher exists |
-| Content Studio: legacy `content`, partner `cms` | Allowlisted visual editing, preview/draft/publish/rollback with explicit target; preserve legacy landing reach and partner discovery reach; extend to agreed member targets deliberately |
-| Community moderation: legacy `community`, partner `moderation` | Report/source/post, review/Hide/Dismiss/Remove and reason/appeal policy; preserve real member-feed effect |
-| Reports: partner `reports`; legacy Dashboard analytics | Source/time/population, allowed drilldown/CSV, partner/member distinction; legacy `#/reports` currently redirects to Subscriptions, so no dead link or false Reports claim |
-| Subscriptions & entitlements: legacy `subscriptions`, partner `entitlements` | Clearly illustrative pricing/payment tables and proposed tiers, no checkout/revenue claim or active unapproved entitlement |
-| System, Audit, Settings: legacy `settings`, `audit`; partner `system`, `audit`, `account` | Offer demo default, notices, staff/governance policy, audit with actor/time/reason, scoped reset/seed; browser log is not tamper resistant |
-| Legacy training `groups` | Preserve unique trainer/member operation for model reconciliation; do not silently conflate with Coach/Initiative Group records |
-
-Migration acceptance is capability-by-capability: old action, owner, data source, recipient page, version/history and access rule are mapped to one new destination; test from clean fixture; then retire the duplicate route. Preserve published Individual activities, four landing content regions, member preview, plan templates/simulator, Shield presets/categories, Garden rule table, legacy groups, Subscriptions & Revenue, and Community moderation. Preserve partner approvals, status oversight, reports/CSV, partner CMS, audit and system settings. Production adds real authentication/authorization, durable audit, transactional operations and secured privacy boundaries.
-
----
+The existing local Admin surfaces and old Coach/Provider queues are implementation evidence. Migration must map each old route, owner, original record, reader, audit history and recipient to an authorized destination, then retire privileged obsolete access. Admin does not become the operational owner of bookings or task authorship. Current browser-local demo shortcuts are not production authentication.
 
 # 20. Subscription plans, entitlements and commercial decisions
 
-**Pricing integrity notice:** The conversation established **tier concepts and differentiation**, but **no actual JD/USD monthly/annual amounts were finalized**. This document deliberately does **not** fabricate subscription prices, trial lengths, quota numbers, payment processing providers, billing taxes or institution contracts. The definitive public price list is **to decide**.
-
-**Critical separation:** a **Role/Workspace** determines what an actor may do; a **Subscription/Entitlement** determines which included capability/limit applies. A paying user does not become Admin, and a Provider staff member does not gain unrelated Institution records.
-
-## 20.1 Proposed subscription architecture
-
-| Audience | Proposed tiers | Price status |
-|---|---|---|
-| Individuals | **Free / Plus** | **Not set** |
-| Mentors | **Starter / Pro** | **Not set** |
-| Institutions | **Standard / Enterprise** | **Not set; public body/ministry may require negotiated agreement** |
-| Outdoor Providers | **Standard / Pro** | **Not set** |
-| Supervisor | No separately purchased supervisor tier; authorization comes from an assignment | N/A |
-| Invited Student | Limited invited access; no personal premium purchase required to receive permitted group work | N/A |
-| Admin | Internal platform privilege only | N/A |
-
-These tier names were proposed in the product discussion and positively explored, **but they are not a signed price/feature catalog**. Separate subscriptions may be attached to an Individual billing account or entity-level payer. A user may hold multiple roles without purchasing duplicate personal identity records.
-
-## 20.2 Individual Free vs Plus — desired policy
-
-| Capability | Free | Plus proposal |
-|---|---|---|
-| Initial four assessments and Starting Profile | Included | Included |
-| Scheduled official reassessments and essential result history | Included | Included |
-| Consecutive 28-day Recovery Cycles and Weekly Reviews | Included continuously | Included continuously |
-| Core practices assigned by free Recovery Plan | Included | Included |
-| Basic supported Shield blocking and reminder functions | Included | Included; possible non-essential customization only |
-| Personal Garden and earned non-paywalled rewards | Included | Same earned rewards; cosmetic customization may be extended |
-| Basic Insights | Included | More flexible comparison, export and detailed explanation |
-| Additional optional practice beyond plan | Fair usage limits to decide | Higher usage limits to decide |
-| Plan customization | Essential adjustments included | Additional non-essential scheduling/customization |
-| AI explanations | Basic/no dependency on AI | Optional enhanced interpretations if transparent and safely implemented |
-| Initiative/Event participation | Eligible regardless of Plus | No automatic booking priority just for paying |
-
-The basic recovery path, vital reassessment and qualified earned growth should **not** be locked behind Plus. Premium status does **not** make an identical activity generate more Garden growth. If plan expires, keep existing personal data, historical results, garden growth and basic access; only premium extras are restricted.
-
-## 20.3 Mentor Starter vs Pro
-
-Both support actual Mentor workflows: groups, programs, assignments/reviews, Group Garden, invited students and basic reports. Pro may raise group/student/active-program quotas, add more templates and advanced reporting/export; the **actual counts remain undecided**. Students invited by a paying Mentor do not need to pay themselves simply to carry out assigned activities.
-
-## 20.4 Institution Standard vs Enterprise
-
-Both cover verified organization workspace, initiative building, sessions, forms/surveys, eligible competitions, team, participation and fundamental reporting. Enterprise may expand simultaneous initiatives, team seats, multi-branch policies and aggregate reporting/export. Ministry/government support may require quote-based contractual arrangements, not a fabricated fixed consumer price.
-
-## 20.5 Outdoor Provider Standard vs Pro
-
-Both cover creation/management of experiences, registration, capacity, Waiting List, QR attendance, supervisor/cohort basics and reporting. Pro may increase concurrent experiences, sessions, active staff/supervisors, advanced reports/export. **Event ticket payments, booking fees, commissions, transport or lodging payments are not automatically part of these tiers.**
-
-## 20.6 Entitlement implementation contract
-
-A server-side `EntitlementService` computes effective access given identity, role, entity membership, plan and actual usage limits. This is independent of resource authorization. Keep plan definitions and prices versioned; track active subscriptions, limits, billing accounts and usage counters. If billing is integrated later, add payment provider, webhooks and retry/idempotency controls. Avoid sprinkling hardcoded `isPlus` checks across controllers.
-
-**Open commercial decisions:** currencies, price amounts, billing period, trial, renewals, cancellation/refunds, subscription owner, other unapproved tier quotas, promotional access, quota-change effect, payment integrations and institutional contracts. The **135 accepted students and three active Supervisors per Institution Initiative** are approved operational caps.
+Individual Free/Plus and Institution commercial options remain proposals with no approved price list, quotas or live checkout. Coach-specific and Outdoor Provider-specific subscription tiers are removed from the target. A Supervisor appointment is a scoped authorization, not a purchased plan. The core personal Recovery path and earned Garden outcomes must not be gated by premium status. Paid Outdoor Activity price, cancellation and refund disclosures require approved policy; a demo simulation must be labeled. Entitlements never grant role or resource authority.
 
 ---
 
 # 21. Information architecture, page states and visible cross-workspace effects
 
-The current client is a static multipage site. Root entry URLs such as `Client/explore.html`, `lab.html`, `garden.html`, `training.html`, `login.html`, `register.html`, `admin.html`, `partners.html`, `join.html` and `workspaces.html` remain stable; many redirect to files under `Client/src/pages/`. Partner workspaces use hash routes under `workspaces.html#/`. A semantic destination in this spec need not become one HTML file. A later Angular URL map is not fixed by these paths.
+The current solution serves Razor views from `src/DeepSprout.Web/Views` with runtime assets in `src/DeepSprout.Web/wwwroot`; many historical `.html` URLs and partner hash routes remain in the demo. These current route names are migration inventory, not required final names. A semantic destination in this spec need not become one physical view.
 
 ## 21.1 Individual and public page contracts
 
@@ -976,7 +797,7 @@ These are target page requirements; current implementation categories are in §2
 | Page / current entry | Sections, fields, actions and page states | Sources, permission and external effect |
 |---|---|---|
 | Public Home `index.html`, Landing `landing.html` | Product story, entry CTAs, feature/partner routes, legal/support links; responsive accessible motion | Public published content only; no fake live totals or placeholder links presented as working |
-| Register `register.html`; Partner `partners.html` / `#/auth/register` | Individual/Partner selection, Partner subtype, verified person/entity application, consent, validation, pending/rejected states | One identity; no public Admin/Supervisor role grant; Platform Admin reviews entity/independent Coach as applicable |
+| Register `register.html`; Partner `partners.html` / `#/auth/register` | Individual/Partner selection, direct Institution Representative profile/verification path, consent, validation, pending/rejected states | One human identity; no public Admin/Coach/Supervisor/Provider role grant; Platform Admin reviews Institution/Representative |
 | Login `login.html`, Invitation `join.html?token=…`, workspace switcher `#/auth/workspaces` | Credentials or demo identity, invitation preview/email match/OTP, accept/decline, expiry/recovery, allowed workspaces | Role grant only after valid scoped invitation and verification; no duplicate identity |
 | Bimo/Setup `onboarding.html` | Two short intro scenes (precise treatment recommended), goal/site/time/context/offline preference and first commitment; Skip Introduction only | Personal setup/private; four baseline tasks still required for plan activation |
 | Lab `lab.html`, `src/pages/member/lab/assessment.html?test=…` | Four baseline statuses/instructions, saved partial state, official weekly window, selected Digital Habits + rotating cognitive/task reassessment, practice label, version/history/coverage | Private versioned Attempt records; weekly eligibility distinct from 28-day plan cycle; no false comparison |
@@ -986,8 +807,8 @@ These are target page requirements; current implementation categories are in §2
 | Activities `training.html`, Offline Routine within it | Four practice families, approved definitions/difficulty, due/Assigned filters, attempt instructions/evidence, Coach review state, user-chosen routine add/edit/pause/check | Personal Attempt/Assignment/Submission records; one qualifying source effect, no arbitrary to-do farming |
 | Digital Shield `shield.html` | Manual Website Protection and shared Website Usage Reminder, supported browser/site scope, threshold/prompt Continue Anyway/Back, disconnected/unsupported states | Real extension eventually required for blocking/telemetry; current local preview must not claim to block or measure phone apps |
 | Personal Garden `garden.html` | Four practice-type trees, bounded flower/rabbit/birdhouse, source history, neutral no-data, authorized Group Garden link | Versioned Reward projections; no central fifth tree, no Group region inside scene |
-| Insights `insights.html` | Digital Usage, Plan Adherence, Meaningful Practice, Lab, Offline & Experiences; timeframe/source/denominator and contextual next step | Only valid source-backed comparisons; Initiative/Program Completed badge in history, no inferred recovery gain |
-| Explore `explore.html` | Search, kind/mode/date/availability/location filters, published Initiative/Session/Competition/Provider detail, separate Apply/Book/Waitlist CTAs, no-results/full/cancelled states | Same original published resource IDs as owners; drafts hidden; applicant/booking status in My Initiatives/My Registrations |
+| Insights `insights.html` | Digital Usage, Plan Adherence, Meaningful Practice, Lab, Offline & Experiences; timeframe/source/denominator and contextual next step | Only valid source-backed comparisons; Initiative Completed badge in history, no inferred recovery gain |
+| Explore `explore.html` | Search, kind/mode/date/availability/location filters, published Initiative/Session/Competition/Institution Outdoor Activity detail, `Organized by <Institution Name>`, separate Apply/Book/Waitlist CTAs, no-results/full/cancelled states | Same original published resource IDs as Institution; drafts hidden; applicant/booking status in My Initiatives/My Registrations |
 | Community `community.html` | Finite post/feed filters, create/reply/react/save/report, moderated states, optional opt-in achievement share | Moderation affects live feed; no reward for posts/likes or private disclosure without choice |
 | Profile `profile.html`, Pricing `pricing.html` | Identity/workspace grants, private settings, registration/program history, notifications, reset/demo labels; proposed plan catalog and price disclosure | Profile cannot issue own partner role; prices illustrative until approved, payment simulated |
 
@@ -1007,7 +828,7 @@ Every page specifies at least initial/empty, populated, pending/loading if async
 | Individual applies; Rep **or** Supervisor Approves | One Application in both queues; own My Initiatives status; accepted seat/group pool | Duplicate approval idempotent; cap/rejection/withdrawal synchronized |
 | Coach assigns/reviews | Student My Tasks and full Individual Activities → Assigned, progress, Coach queue, Supervisor Insights, Rep reports | Revision preserves attempts; cancelled/moved task does not erase history |
 | Supervisor records factual attendance; Rep decides excuse | Participant My Sessions/Insights, owner roster, Supervisor Insights, Rep Reports, possible rabbit | Excuse never rewrites Absent; correction re-evaluates reward with audit |
-| Provider publishes/books/offers/completes | Regular Explore/My Registrations, Provider inventory, appointed Supervisor roster, eligible birdhouse | Expired offer cannot confirm; cancellation releases/reoffers, preserves history |
+| Institution publishes/books/offers/completes Outdoor Activity | Regular Explore/My Registrations, Institution inventory, appointed Supervisor roster, eligible birdhouse | Expired offer cannot confirm; cancellation releases/reoffers, preserves history |
 | Qualifying source event | Personal or correct Group Garden, Insights and source history | Duplicate source ID rejected; invalidation recorded and projected consistently |
 | Admin catalog/CMS/moderation action | Explicit permitted target pages, version and publication history | Preview/draft has no public effect; rollback versioned and audited |
 
@@ -1024,8 +845,8 @@ The operational journeys below complement the page tables. A read always require
 | **E. Coach tasks** | Assigned Coach writes Assignment, Student writes versioned Submission, Coach writes Review/report | Student To-do/Activities → Assigned, Coach queue, Supervisor Insights, Rep reports; group/assignment grant checked | Revision and cancellation preserve attempts/authors; transfer changes responsible Coach with handover |
 | **F. Attendance** | Active Supervisor writes method-specific factual Attendance for confirmed Session Registration | Student My Sessions/Insights, owner roster/reports, reward evaluator; booking/window/grant/code checked | Duplicate/replay is idempotent; correction records before/after/reason and re-evaluates reward |
 | **G. Excuse** | Student writes Excuse; Supervisor writes recommendation; Rep writes final decision | Student notice, operational queue/reports; specific missed session and restricted attachment scope checked | More Info/Reject retains factual Absent; accepted decision never grants presence/rabbit |
-| **H. Group Garden** | Reward evaluator writes unique eligible source effect and collective milestone | One Initiative-wide Garden or independent Coach-group Garden; group/initiative membership checked | Source correction is attributed; duplicate effect refused; no Provider scene |
-| **I. Provider queue** | Provider writes Experience; Individual writes Booking/Queue response; system/Provider issues Offer; Supervisor writes attendance/completion | Regular Explore/My Registrations, Provider inventory/report; eligibility, held+confirmed cap, offer deadline and appointment checked | Cancel/Decline/Expire releases/reoffers; history and notices remain; camp reward only after qualified completion |
+| **H. Group Garden** | Reward evaluator writes unique eligible source effect and collective milestone | One Initiative-wide Garden; Initiative membership checked | Source correction is attributed; duplicate effect refused; no Activity scene |
+| **I. Institution Activity queue** | Representative writes Activity; Individual writes Booking/Queue response; system/Institution issues Offer; Supervisor writes attendance/completion | Regular Explore/My Registrations, Institution inventory/report; eligibility, held+confirmed cap, offer deadline and appointment checked | Cancel/Decline/Expire releases/reoffers; history and notices remain; camp reward only after qualified completion |
 | **J. Admin governance** | Admin writes entity/resource status, versioned catalog/CMS/moderation and audit | Explicit public/member/partner recipients; Admin grant and target allowlist checked | Unpublish/suspend/rollback changes future visibility, retains valid records and alerts affected people |
 | **K. Personal journey** | Individual writes Setup, four versioned baseline Attempts, Plan activation, Practice/Review; official weekly recheck later | Own Home/Recovery/Lab/Insights/Garden; identity, valid tasks/versions/window and source rules checked | Partial first run resumes; invalid comparison stays unavailable; plan changes future only |
 | **L. Cross-workspace identity** | Verified existing person accepts Coach/Supervisor/Student grant; Student upgrade adds Individual capability | Authorized switcher and same person's history; email/token/consent and active grant checked | Duplicate identity prevented; revoke scope leaves retained original records, no unrelated private access |
@@ -1036,9 +857,9 @@ The operational journeys below complement the page tables. A read always require
 
 ## 22.1 Current and target delivery boundary
 
-**Phase 1:** static HTML/CSS/JavaScript, local assets, browser-side demo records, no build/backend dependency. It must still demonstrate coherent cross-workspace IDs, publication, admission, bookings, invitations, attendance, reports and rewards from a resettable fixture. Label simulated login/OTP/email, payment, QR verification, staff authorization, capacity races and notices truthfully. Rendering a page or passing a local store unit test is not proof that the regular Individual receives the change. Payment is explicitly simulated; there is no processor, charge, refund or banking integration.
+**Current demo:** ASP.NET Core MVC serves Razor views and static HTML/CSS/JavaScript assets with browser-side records. It must still demonstrate coherent cross-workspace IDs, publication, admission, bookings, invitations, attendance, reports and rewards from a resettable fixture. Label simulated login/email, payment, QR verification, staff authorization, capacity races and notices truthfully. Rendering a page or passing a local store unit test is not proof that the regular Individual receives the change. Payment is explicitly simulated; there is no processor, charge, refund or banking integration.
 
-**Eventual architecture:** an ASP.NET Core MVC application in C#, with Entity Framework Core and SQL Server. The server owns authentication, resource authorization, validation, state transitions, idempotency, transactional seat holds, offer-expiry jobs, versioned policies/forms/catalog, durable audit, notifications, privacy/retention and reporting projections. The specification's Angular client direction needs a separate integration decision when MVC pages and actions are designed. The optional Chrome extension has a local demonstration implementation with documented limits. `Server/` now contains domain/application/infrastructure code, migrations and a validated database solution, but no running MVC website or connected client.
+**Target architecture:** ASP.NET Core MVC, ASP.NET Core Identity, C#, EF Core and SQL Server. Identity handles standard credentials, verification, recovery and lockout. The server owns resource authorization, validation, state transitions, idempotency, transactional seat holds, offer-expiry jobs, versioned policies/forms/catalog, durable audit, notifications, privacy/retention and reporting projections. EF Core maps and migrates necessary persistent entities; SQL Server enforces essential relationships, constraints, indexes and transactions. Custom `iam.PasswordCredential`, `iam.OtpChallenge` and `iam.GlobalGrant` proposals require review against actual requirements before implementation. The optional Chrome extension has a local demonstration with documented limits. The existing `src/DeepSprout.Web` MVC host does not yet prove server-backed product commands or Identity integration.
 
 ## 22.2 Domain ownership and constraints
 
@@ -1046,13 +867,13 @@ The operational journeys below complement the page tables. A read always require
 |---|---|---|
 | Person/Identity, verified email, workspace Grant | One person, multiple scoped grants; invitation acceptance checks identity/email/expiry | Own account, authorized staff, Admin |
 | Institution, Representative authority, Initiative | Verified Institution; Initiative belongs to exactly one Institution; mode awareness or structured | Rep/Admin, public projection when published |
-| Independent Coach Program, operational Group | Program belongs to Coach; Group parent is exactly one **Initiative XOR Program** | Coach, scoped staff/students; linked Initiatives only permitted projection |
+| Operational Group | Group belongs to exactly one Institution Initiative; Coach assignment requires active scoped appointment | Coach, scoped staff/students |
 | Application, Initiative Membership, Group Membership | One person/Initiative application and accepted seat; group transfer history; ≤135 accepted seats per Initiative | Person, Rep, active Initiative Supervisor, assigned Coach limited |
-| Staff Invitation/Appointment | Initiative Coach/Supervisor or Provider assignment; ≤3 active Initiative Supervisors; time/status scope | Recipient, owner and relevant operations |
+| Staff Invitation/Appointment | Institution Initiative Coach/Supervisor or explicit Institution Activity/Session Supervisor scope; no `Requested`; ≤3 active Initiative Supervisors | Recipient, Representative and relevant operations |
 | Session Registration, Booking, Seat Offer, Attendance, Excuse, Completion | Separate records and statuses; unique person/resource claims; held+confirmed ≤ applicable capacity; method/reason/audit | Participant and resource-authorized operators |
 | Assignment, Attempt, Submission, Review, Coach/Supervisor Report | Shared engine, original author/content version, distinct student/internal notes; no historical overwrite | Student, assigned Coach, Supervisor, Rep under scope |
 | Form Definition/Response, Competition Entry | Pinned published version, identified responses in Phase 1, restricted files/answers | Respondent and authorized owner/reviewer |
-| Experience/Camp, Partnership | Provider retains operational ownership; link requires both parties' agreement | Provider, authorized Institute aggregate, participant |
+| Institution Outdoor Activity/Camp | Institution owns activity, booking, safety and completion; optional Initiative link uses one source identity | Representative, assigned Supervisor, participant |
 | Practice Evidence, Reward Ledger, Garden Projection | One qualifying source event/policy effect, four Personal trees and approved decorations, correct Group owner | Person/group member, authorized operator summary |
 | Assessment Attempt, Plan/Review, Shield telemetry | Personal private sources with versions, supported-browser limits and comparable protocols | Individual, narrow explicit grant only |
 | Notification and Audit Event | Recipient, resource, event ID, actor/time/reason, delivery/status | Recipient, authorized owner/Admin |
@@ -1061,7 +882,7 @@ Relational uniqueness, foreign keys, status constraints and transaction boundari
 
 ## 22.3 MVC request and workflow contract to derive
 
-Define MVC routes, controllers/actions, view models or form contracts, validation and response behavior for identity and invitation acceptance; Institution/Coach/Provider applications and Admin decisions; Initiative/Program/Experience publication and revisions; application/approval/discipline; Group allocation; assignment/submission/review; session and experience registration/waitlist/offer; QR/typed/manual/online attendance; excuse recommendation/final decision; completion; Garden projection; source-based reporting; notice/audit. Every mutation requires actor/resource scope, anti-forgery protection, expected version or idempotency key where races occur, allowed transition, explicit validation errors and original record ID in the result. MVC route and view names are not yet fixed. A browser-only guard is a demo convenience, never proof of server permission.
+Define MVC routes, controllers/actions, view models or form contracts, validation and response behavior for Identity and scoped invitation acceptance; Institution/Representative application and Admin decision; Initiative/Institution Outdoor Activity publication and revision; student application/approval/discipline; Group allocation; assignment/submission/review; session/activity registration/waitlist/offer; QR/typed/manual/online attendance; excuse recommendation/final decision; completion; Garden projection; source-based reporting; notice/audit. Every mutation requires actor/resource scope, anti-forgery protection, expected version or idempotency key where races occur, allowed transition, explicit validation errors and original record ID in the result. MVC route and view names are not yet fixed. A browser-only guard is a demo convenience, never proof of server permission.
 
 ---
 
@@ -1069,37 +890,21 @@ Define MVC routes, controllers/actions, view models or form contracts, validatio
 
 ## 23.1 Resource permission matrix
 
-`✓` means the role may act **within an active grant to that exact resource**. `—` means denied by default. A person holding two roles selects/audits the capacity used. Platform Admin governance is distinct from routine resource operation.
-
-| Action | Representative | Initiative Supervisor | Assigned Coach | Student/Individual | Provider | Provider Supervisor | Platform Admin |
-|---|---|---|---|---|---|---|---|
-| Publish owned Institution Initiative | ✓ | — | — | — | — | — | Govern/unpublish only |
-| Invite/revoke Initiative staff | ✓ | — | — | — | — | — | Govern account only |
-| Approve pending Initiative application | ✓ | ✓ | — | — | — | — | — |
-| Reject/remove/suspend/restore/block within Initiative | ✓ | — | — | Withdraw self | — | — | Platform ban separately |
-| Create/manage Initiative groups, allocate accepted students/active Coaches | ✓ | ✓ | Assigned roster read | Own group read | — | — | Govern only |
-| Author/review assigned educational tasks | Summary read | Summary/report read | ✓ | Own submit/revise | — | — | Catalog governance only |
-| Confirm session attendance | Oversight/correction under policy | ✓ with active appointment | — | Show own booking QR | Provider oversight | ✓ for assigned Provider session | Govern only |
-| Recommend / decide absence excuse | Final decision | Recommend | Consequence only | Submit own | — | Relevant Provider policy | Govern only |
-| Provider booking/inventory/experience operations | Link/aggregate only | — | — | Own book/cancel | ✓ | Assigned operations only | Govern only |
-| View private Lab/Shield/Recovery | — | — | — | Own | — | — | Denied by default; exceptional audited legal grant only |
-| Publish Admin catalog/CMS, ban platform account | — | — | — | — | — | — | ✓ with explicit Admin capability |
-
-An Institution Supervisor sees all operational groups/students in their assigned Initiative; a Coach sees only assigned groups/students; a Provider Supervisor sees only assigned Provider resources. Application approval is a single operation on one record. Only the Representative removes Initiative staff. No Invitation email string, role label in browser storage or direct URL grants authorization.
+The maintained [v4.1 resource permission matrix](docs/cycles/permissions-matrix.md) lists the target actions and scopes. One human may hold several appointments, but each request must use an active grant to that exact Institution resource. A Representative owns Institution operations; an Initiative Supervisor sees its authorized groups/students; a Coach sees assigned groups/students; an Activity/Session Supervisor sees only the explicit appointment. The sole Platform Admin governs, but does not become booking or task owner. Pending invitations, direct URLs and browser role labels grant nothing. Server checks apply to existing sessions after suspension or revocation.
 
 ## 23.2 Distinct facts and controlled states
 
-- `Initiative membership` differs from `Session registration`, `Provider booking`, `Attendance`, `Excuse decision`, `Completion`, `Approved assignment` and `Garden reward`.
+- `Initiative membership` differs from `Session registration`, `Institution Outdoor Activity booking`, `Attendance`, `Excuse decision`, `Completion`, `Approved assignment` and `Garden reward`.
 - Attendance factual values are Present, Absent, Late and Not Recorded. `Excused Absence` is a display composition of `Absent + accepted excuse`, never a factual presence value.
 - In-person check-in uses Supervisor-validated booking QR primarily; typed/pasted booking code or reasoned manual exception is a valid fallback. Online uses `online-verified`; Hybrid follows selected mode. QR confirms check-in, not completion, learning or cognitive improvement.
 - Waitlist has `Queued → Offered → Accepted | Declined | Expired`, plus cancellation/reoffer and capacity validation. Phase-1 demo offers a controllable clock; final backend enforces transactions and scheduled expiry.
 - A suspension retains a student's seat under the **interim configurable default**; historical submissions, attendance and reviews persist. Resource closure or staff revocation removes future authority but preserves attributed history.
-- A published form, catalog activity, Program/Initiative rule or assessment cannot silently rewrite records made under its earlier version. Corrections are new events with reason and authorized actor.
+- A published form, catalog activity, Initiative rule or assessment cannot silently rewrite records made under its earlier version. Corrections are new events with reason and authorized actor.
 - Rewards have unique source and policy references. One review/attendance/completion cannot be awarded twice through two linked workspaces. Missing data is neutral; no false `0 minutes`, decline, or medical improvement claim.
 
 ## 23.3 Notifications, errors and audit
 
-Create user-visible notices for invitation sent/accepted/expired/revoked; application decision and withdrawal; seat offered/countdown/declined/expired/reoffered; assignment due/rescheduled/reviewed/revision; session change/cancellation/check-in/correction; excuse recommendation/final decision; Program/Initiative/Experience close or governance suspension. Phase 1 may show local notice previews/copyable invitation links and must label absent email/SMS. Every notice points to the actual authorized record and removes invalid action CTAs after state change.
+Create user-visible notices for invitation sent/accepted/expired/revoked; application decision and withdrawal; seat offered/countdown/declined/expired/reoffered; assignment due/rescheduled/reviewed/revision; session change/cancellation/check-in/correction; excuse recommendation/final decision; Initiative/Institution Outdoor Activity close or governance suspension. A demo may show local notice previews/copyable links and must label absent email/SMS. Every notice points to the actual authorized record and removes invalid action CTAs after state change.
 
 Failures must leave original records unchanged or produce a traceable compensating transition: stale version, full seat, expired offer, wrong identity, missing Supervisor, revoked appointment, invalid QR, duplicate approval, form closed, unsupported payment, offline/local-storage failure, unauthorized URL. Show a specific recoverable message without leaking another tenant's data. Audit actor, selected grant, resource, old/new status, source IDs, time, reason, policy/version and notification outcome. Browser-local logs are inspectable demo records, not tamper-resistant production evidence.
 
@@ -1110,7 +915,7 @@ Failures must leave original records unchanged or produce a traceable compensati
 ## 24.1 Privacy and young people
 
 - Individual assessment answers and private Results, Recovery, extension usage and personal routine are **private by default**.
-- Mentor sees **program-relevant** member participation and review material only. Institution sees only its authorized enrollment/attendance and privacy-aware aggregates. Provider sees data needed to safely run its events; Supervisor sees assigned participant operations. Do not grant all of them a universal `UserDetails` endpoint.
+- Coach sees **assigned Initiative** participation and review material only. Institution sees its authorized enrollment/attendance and privacy-aware aggregates; an appointed Activity Supervisor sees the minimum information needed for assigned duties. Do not grant staff a universal `UserDetails` endpoint.
 - Ages 16–17 require age-appropriate consent/notice and stronger safeguards under applicable local law. Do not collect location, behavior, health and guardianship information merely because it is convenient.
 - If an offline event has legally/policy required parent/guardian consent, publish this before booking and handle the consent documentation securely; do not infer laws for all events.
 - Forms may include optional accessibility accommodations; sensitive answers need narrow scopes, retention controls and explicit purposes. **Phase-1 surveys are identified** and require meaningful consent; no anonymous claim or option.
@@ -1118,11 +923,11 @@ Failures must leave original records unchanged or produce a traceable compensati
 
 ## 24.2 Real-world experience safety and liability
 
-- Approved Provider status does not automatically guarantee event safety; publish operator responsibility, contact, venue/time, eligibility and cancellation/incident rules.
+- Verified Institution status does not automatically guarantee event safety; publish organizer responsibility, contact, venue/time, eligibility and cancellation/incident rules.
 - Supervisor check-in and event criteria document what has been verified and who did it. QR represents a booking identity, not necessarily completion of a physically demanding activity.
 - No unregulated medical treatments, smoking-cessation diagnosis, or clinical evaluation from a general awareness initiative.
 - In-person location visibility to participants should be purposeful; do not broadcast private contact details unnecessarily.
-- Provider/Institution is responsible for applicable real-world supervision, permits, emergency planning and relevant participant consent; DeepSprout needs clear policy and safe reporting mechanism.
+- The Institution is responsible for applicable real-world supervision, permits, emergency planning and relevant participant consent; DeepSprout needs clear policy and a safe reporting mechanism.
 
 ## 24.3 Ethical recovery and gamification
 
@@ -1171,9 +976,9 @@ For every script record fixture, exact route/control, action, expected and actua
 | **A. Personal Individual** | Register → Bimo → all four baseline tasks → Your Starting Point → plan preview/activation → short skippable orientation → Home/Recovery → valid practice and offline routine → four-tree Garden/Insights → weekly eligibility for Digital Habits + one rotating task. No false score/usage or quiet-day decay; one event gives at most one authorized reward. |
 | **B. Institution to Individual** | Admin approves entity/Representative → Rep completes six builder stages and publishes unique structured Initiative → it appears in **regular** `explore.html` (draft hidden) → Individual applies → Rep and Supervisor see same application → Supervisor approves once → group/Coach allocated → separate session booking → in-person QR or typed code/manual exception, or online roster verification → factual attendance/report/rabbit if eligible → another student submits excuse → Supervisor recommends → Rep decides → `Absent + accepted excuse` visible, no rabbit. Test 135th/136th and 3rd/4th active Supervisor per Initiative. |
 | **C. Coach to collective Garden** | Rep invites Coach without central reapproval → active group assignment → Coach creates approved practice assignment/due/review → limited Student My Tasks and full Individual Activities → Assigned show same task semantics → submit → Needs Revision → resubmit → Approve → one corresponding type-tree effect when eligible and one Initiative-level Group Garden contribution → Coach periodic report → source-derived Supervisor Insights → Rep report and original drilldown. Other Coach roster/private Lab denied. |
-| **D. Provider, queue and camp** | Approved Provider publishes small-capacity Camp → regular Explore listing/booking → fill seats → next person Queued → cancellation creates Offered hold → Accept yields one confirmed seat, or Decline/clock-driven Expire reoffers → real rendered QR with typed-code fallback validates in-person check-in → separate completion criteria → Provider report and bounded birdhouse. No Provider Group Garden or payment claim. |
-| **E. Independent Coach and Student upgrade** | Independent approved Coach creates invite-only Program/group → valid email/OTP demo invite → Student enters limited workspace without personal Lab, sees Group Garden only → completes task → upgrades **same identity** → four-assessment personal journey and preserved program history/tasks/reviews; Program absent from public Explore unless linked Initiative presents it under permitted terms. |
-| **F. Admin and collaboration** | Admin verifies Institution/Representative → Rep publishes without per-Initiative approval → asks Provider to link its owned Experience → Provider accepts and original booking owner remains Provider → public Explore shows linked component → Admin suspends/unpublishes resource → future CTA disabled, existing history/notices retained → Content Studio approved version reaches stated member target. Legacy and workspace Admin capabilities tracked until one destination verified. |
+| **D. Institution Activity, queue and camp** | Verified Institution publishes a small-capacity standalone or Initiative-linked Camp → regular Explore shows the actual Institution organizer → bookings fill seats → next person Queued → cancellation creates Offered hold → Accept confirms one seat, or Decline/clock-driven Expire reoffers → appointed Supervisor validates check-in → separate completion criteria → Institution report and bounded birdhouse. No duplicate booking/reward or payment claim. |
+| **E. Institution invitation and Student continuity** | Representative sends a scoped Coach/Supervisor email invitation → matching verified human accepts without Admin reapproval → no Supervisor self-request or pending-grant access → Student follows Initiative admission/135-seat cap → limited group work and Group Garden → full Individual upgrade under the **same identity** preserves tasks/reviews/history. Independent Program and direct Coach enrollment are denied. |
+| **F. Admin and governance** | Sole Admin verifies Institution/Representative → Rep publishes Initiative and Outdoor Activity without routine per-item approval → both show the same organizer in regular Explore → Admin suspends/unpublishes resource → future CTA disabled, existing history/notices retained → approved content version reaches its stated member target. Old Admin capabilities are mapped before deprecated queues/routes retire. |
 
 ## 25.1 Required negative/regression families
 
@@ -1186,7 +991,7 @@ For every script record fixture, exact route/control, action, expected and actua
 | TASK-09 / EXC-10 | Assignment appears in actual student destination; duplicate approval gives one reward; Rep alone finalizes excuse; accepted absence stays Absent with no attendance rabbit |
 | ATT-11 / EXP-12 / REG-13 | QR replay idempotent; manual fallback reasoned; online-verified method; draft hidden and new publication on regular Explore; application/registration/withdrawal same IDs in owner and person views |
 | WAIT-14 | Queued→Offered→Accepted/Declined/Expired→reoffer, with demo clock, no expired acceptance or overbooking |
-| GARD-15 / GRP-16 | Exactly four Personal trees, flower/rabbit/birdhouse only from eligible sources, no fifth completion tree, neutral inactivity; one Initiative Garden and independent Coach-group Garden, no Provider Garden; limited Student Group Garden only |
+| GARD-15 / GRP-16 | Eligible sources only, no extra completion tree, neutral inactivity; one Initiative Group Garden, no Coach-only/Provider/standalone camp scene; limited Student sees authorized Initiative Garden only. The separately scoped one-main-plant Personal Garden direction remains pending. |
 | LAB-17 / PRIV-18 | Four baselines reach active plan; weekly official window and rotating set; partner staff cannot read unrelated personal data |
 | ADMIN-19 / ADMN-20 | Ordinary Initiative publish bypasses per-item Admin approval; unique legacy/workspace Admin features mapped to working destination; no dead Reports route |
 | STATE-21 / NOFAKE-22 | Cancel/close/revoke preserves history and notifies; seeded metrics labeled; no fake sent email, completed payment, production auth or concurrency guarantee |
@@ -1197,7 +1002,7 @@ Final server test family additionally requires authenticated MVC action authoriz
 
 # 26. Decision register: authoritative, interim and open
 
-This ledger reconciles **D01–D48** from the attached 15 October blueprint with the owner's later explicit approvals in the consolidation request. `Approved` means product direction; `Interim` is a configurable demonstration default, not immutable commercial policy. The blueprint's outdated “open” labels for D10, D13, D19, D28 and D38 are closed here. Recommendations remain recommendations where no approval exists.
+This ledger records **D01–D48** from 15 October. The 4 November v4.1 decisions supersede conflicting entries, including D10, D13, D15, D18, D19, D22, D24, D40 and D44. The [v4.1 target map](docs/architecture/p0-target-v4.1.md) is the current authority for those areas. `Interim` remains a configurable demonstration default, not immutable commercial policy.
 
 | ID | Final status and enforceable decision |
 |---|---|
@@ -1210,21 +1015,21 @@ This ledger reconciles **D01–D48** from the attached 15 October blueprint with
 | D07 | **Approved:** one fixed ivory Personal Garden, exactly four practice-type trees, no central fifth. |
 | D08 | **Approved:** Depth, Listening & Recall, Practical Micro-Challenge, Protected Work each owns one tree; thresholds/species open. |
 | D09 | **Approved:** eligible routine flower, session-attendance rabbit, camp-completion birdhouse; bounded instances. |
-| D10 | **Approved in this request:** Initiative and Coach Program Completion share one history/reporting classification; neither adds Personal Garden object; Initiative collective milestone where applicable. |
+| D10 | **v4.1:** Initiative completion is a history/reporting fact, with no extra Personal Garden object; independent Coach Program completion is superseded. |
 | D11 | **Approved direction:** unique automatic source-backed reward; Coach has no grow button; no farming. |
 | D12 | **Approved:** Invited Student sees only authorized Group Garden before same-identity upgrade. |
-| D13 | **Approved in this request:** one Group Garden per Institution Initiative across internal groups; one per independent Coach group; no Provider Group Garden; separate from Personal scene. |
+| D13 | **v4.1:** one Group Garden per Institution Initiative across internal groups; no independent Coach or Provider Garden. |
 | D14 | **Approved:** one conceptual Platform Admin; preserve both current implementations' unique capabilities during migration. |
-| D15 | **Approved:** Institution/Coach/Provider/Supervisor grants are scoped, never system Admin rights. |
+| D15 | **v4.1:** Institution membership and invited Coach/Supervisor appointments are scoped, never Platform Admin rights; independent Provider grants are superseded. |
 | D16 | **Approved:** clearly labeled Admin demo shortcut permitted only as simulation; no production-security claim. |
 | D17 | **Approved:** Admin verifies Institution/Representative; approved Rep publishes Initiatives without per-Initiative approval; Admin retains later governance. |
-| D18 | **Approved:** Rep owns Institution Initiative; Provider owns its Experience; Supervisor operates assigned scope. |
-| D19 | **Approved in this request:** Initiative and independent Coach Program distinct; Institution structured mode uses Initiative, each Group has exactly one parent, one shared task engine, links preserve owner/history. |
+| D18 | **v4.1:** Institution owns Initiative and Outdoor Activity; Supervisor operates explicitly assigned scope. |
+| D19 | **v4.1:** every Group belongs to an Institution Initiative; one shared task engine; independent Coach Program is superseded. |
 | D20 | **Approved basics:** six-step Initiative Builder includes content, audience, dates, cost, capacity, modes, staffing, components, policy, preview; field implementation specified in §15.2. |
 | D21 | **Approved:** Institution Supervisor email invite → existing/new verified identity → accept, no separate Admin approval. |
-| D22 | **Approved:** same for institution-invited Coach; independent Coach onboarding separate. |
+| D22 | **v4.1:** Institution-invited Coach needs no Admin reapproval; independent Coach onboarding is removed. |
 | D23 | **Approved:** wrong-email invite remains pending; resend/cancel/expire/revoke; no impersonation or duplicate identity. |
-| D24 | **Approved:** independent Coach Program invite-only, not directly public Explore; approved linkage possible. |
+| D24 | **Superseded by v4.1:** no independent Coach Program or direct Coach-to-student invitation. |
 | D25 | **Approved:** Rep or active Supervisor Approves same Application once; one accepted seat. |
 | D26 | **Approved:** Rep alone Rejects/Removes/Suspends/Restores/Blocks within Initiative; student Withdraws; only Admin platform-bans. |
 | D27 | **Approved:** full waiting-list offer/accept/decline/expire/reoffer lifecycle in Phase-1 demo. |
@@ -1240,11 +1045,11 @@ This ledger reconciles **D01–D48** from the attached 15 October blueprint with
 | D37 | **Approved in this request:** QR primary for in-person only; typed/pasted code/manual reasoned fallback, online-verified roster, Hybrid by mode; check-in distinct from completion. |
 | D38 | **Approved in this request:** Initiative may publish and enroll before Supervisor accepts; attendance requires active authorized Supervisor; `Needs Supervisor` alert/disabled confirmation; content/survey-only no Supervisor gate. |
 | D39 | **Approved:** Initiative join, session registration, attendance, completion and reward separate; geography/mode explicit. |
-| D40 | **Approved:** Provider retains independent booking/safety ownership under optional Institution link. |
+| D40 | **v4.1:** Institution owns Outdoor Activity bookings and safety; optional Initiative link is an implementation design choice. |
 | D41 | **Approved:** no anonymous Phase-1 surveys; versioned identified responses with consent/access restrictions. |
 | D42 | **Approved direction:** Lab history/eligibility findable from navigation; exact UI treatment is design detail. |
 | D43 | **Approved:** four baseline tasks; weekly recheck does not require all four each week. Existing Digital Habits + rotating task is current implementation direction; protocol/version comparability remain open. |
-| D44 | **Carried forward:** full personal product, two Shield functions, four practices, Recovery, Community, Admin, Provider and partner cycles retained. |
+| D44 | **v4.1:** full personal product, two Shield functions, four practices, Recovery, Community and one Admin remain; Institution operates outdoor activities, with no independent Provider cycle. |
 | D45 | **Approved:** one person identity, multiple scoped workspaces and memberships. |
 | D46 | **Approved:** Initiative/camp participation never fabricates Lab, Shield or Recovery improvement. |
 | D47 | **Approved:** real Institution/Representative proof in final system; demo review simulated and labeled. |
@@ -1261,10 +1066,10 @@ One central journey tree, one tree per earned event, per-internal-Coach Institut
 1. Exact Lab weekly window length, instrument variants, scoring/comparability and missed-window handling; preserve the observed Digital Habits + rotating task direction for now, but its every-third-cycle four-test behavior is not owner-approved.
 2. Exact Garden tree species, type-growth thresholds, decorative repeat ceilings and collective milestone thresholds/visual arrangement; no punitive no-data rule.
 3. Exact personal Recovery cycle default/extension (28-day direction is strong), practice daily load, activity levels and medically responsible measurement protocol.
-4. Independent Coach verification evidence, Institution/Provider vetting documentation, age/guardian consent, retention, appeal and incident policies for production.
+4. Typed Institution/Representative verification fields and evidence, Representative replacement, age/guardian consent, retention, appeal and Institution Activity incident policies for production.
 5. Waiting-list order/priority exceptions, cancellation cutoff and external delivery method; the 24-hour expiry is an **interim configurable** default.
 6. Whether an accepted excuse waives a mandatory session, triggers a makeup or affects final completion; publish per Initiative before enrollment.
-7. Actual prices, taxes, currencies, provider/contract terms, subscriptions, entitlements and payment/refund operations; Phase-1 status is simulated.
+7. Actual prices, taxes, currencies, Institution Activity/contract terms, subscriptions, entitlements and payment/refund operations; demo status is simulated.
 8. Detailed competition rubric/appeals, identified-form response limits/conditional branching, Community moderation/ranking/Joint Goals and the exact approved CMS target regions.
 9. Optional Chrome extension feasibility, supported browser/site counting and reminder defaults; AI vendor/use/consent if ever introduced.
 
@@ -1360,7 +1165,7 @@ This specification is the **upstream product contract**. Before intensive implem
 | **ERD & Database Constraints** | Normalized schema, keys, cardinalities, uniqueness and concurrency strategies |
 | **MVC Route and View Contract** | Controller actions, routes, view/form models, validation errors, authorization, anti-forgery and idempotency guarantees |
 | **Frontend Design System** | Components, typography, palettes, Bimo scenes, animations, responsive states and page templates |
-| **Role-specific UX Specifications** | Individual, Mentor, Student, Institution, Provider, Supervisor and Admin page/state contracts |
+| **Role-specific UX Specifications** | Individual, invited Student, Institution Representative, Initiative Coach, scoped Supervisor and one Admin page/state contracts |
 | **Test & Demo Plan** | Integration/security/concurrency cases proving real ASP.NET Core and SQL Server behavior |
 | **Commercial Specification** | Actual prices, quotas, billing terms and entitlement tables once decided |
 
@@ -1368,24 +1173,26 @@ This specification is the **upstream product contract**. Before intensive implem
 
 1. Identity, scopes, authorization, audit foundation, versioning conventions.
 2. Individual first-run, Lab, Recovery, Activities, Shield interface contract, simple Garden and Insights.
-3. Mentor program/group invitations, secure Invited Student membership and group rewards.
+3. Institution-scoped Coach/Supervisor invitations, secure Initiative Student admission and group rewards.
 4. Institution applications, Initiative Builder, sessions, forms/surveys and participation reports.
-5. Provider applications, experiences, booking/capacity, Waiting List, attendance/camps.
-6. Supervisor Initiative-wide grants and separate Provider-scoped assignments, attendance, excuses, evaluations and authorized Initiative/Coach Group Gardens.
-7. Partnership linking and controlled cross-organization reports.
+5. Institution Outdoor Activity publication, booking/capacity, Waiting List, safety, attendance and camp completion.
+6. Supervisor Initiative-wide grants and explicit Institution Activity/Session appointments, attendance, excuses, evaluations and authorized Initiative Group Gardens.
+7. Optional Initiative-to-Activity linking with one booking/completion source and controlled Institution reports.
 8. Full Admin governance/CMS, commercial entitlements and cross-cutting notifications/testing/refinement.
 
 The plan describes dependencies; **all agreed end-to-end cycles remain within the target system**. Parallel Angular/UI work is sensible after shared contracts are fixed, but do not design a visually polished page that depends on a nonexistent backend state.
 
 ## 28.2 Final coherence check
 
-A valid DeepSprout implementation must allow a user to reduce their short-form scrolling with nothing more than an honest baseline, an adjustable Recovery Plan, optional browser protection, a small chosen offline routine and relevant practice. It must also allow real Mentors, Institutions and Outdoor Providers to operate separate, permissioned programs, awareness initiatives and experiences with secure participant flows and meaningful operational reporting. Supervisor-led cohorts must remain tied to concrete experiences. Across all cases, evidence and rewards must be auditable. The Personal Garden remains one fixed scene with exactly four practice-type trees and bounded decorations; Group Gardens remain separate, source-backed views under §9.
+A valid DeepSprout implementation must allow a user to reduce their short-form scrolling with an honest baseline, an adjustable Recovery Plan, optional browser protection, a small chosen offline routine and relevant practice. It must also allow verified Institutions to operate Initiatives and Outdoor Activities, with invited Coaches and Supervisors serving only authorized scopes and secure participant flows. Across all cases, evidence and rewards must be auditable. The current four-tree Personal Garden and the separately scoped one-main-plant design direction must be reconciled in a Garden task; one Group Garden belongs to each Initiative.
 
 > **North star:** A cohesive digital wellbeing platform with powerful backend workflows and a calm, low-friction user experience — not many disconnected pages, not a general-purpose habit tracker, and not a collection of exaggerated AI or recovery claims.
 
 ---
 
 # 29. Current implementation versus agreed target (15 October 2026)
+
+> **Historical snapshot:** The observations and target-gap labels in this section were recorded for the 15 October pass. They predate the 4 November v4.1 Institution-only scope and some subsequent MVC/database work. Use the [current guide](docs/current-product-guide.md) for the 3 November source inventory and the [P0 target map](docs/architecture/p0-target-v4.1.md) for current requirements. Do not treat independent Coach/Provider rows below as active targets.
 
 > **Historical snapshot:** The observations and gaps in this section describe the 15 October working tree. Later client and database work changed several of them. Use the [current guide](docs/current-product-guide.md) for the 3 November inventory; do not read the table below as today's implementation status.
 
@@ -1423,20 +1230,19 @@ The regular Individual and partner Participant are different products in current
 
 # 30. Implementation dependency roadmap and handoff
 
-> **Historical handoff:** Several slices below were subsequently implemented in the browser demo and the EF Core/SQL Server database milestone. Reassess remaining work against the [current guide](docs/current-product-guide.md) before planning another slice. The planned server application is ASP.NET Core MVC.
+> **v4.1 handoff:** Reassess the existing browser demo, MVC source, EF Core migrations and actual data against the [P0 target/deprecation map](docs/architecture/p0-target-v4.1.md) before changing code. This document update does not claim implementation.
 
-This is **future work**, not authorization to modify application files in the documentation task. Each slice ends with a real regular-Individual-to-owner browser walkthrough from a clean fixture, relevant negative states and recorded evidence. Keep all agreed role and personal features in scope.
+This is **future work**, not authorization to modify application files in this documentation task. Each slice requires a regular-Individual-to-Institution walkthrough, negative states and recorded evidence. Preserve unaffected personal-product requirements.
 
-1. **Smallest first technical slice:** define one browser-demo identity/resource/publication/application contract over the current member and partner data seams, with stable IDs and reset/seed behavior. Reuse the existing partner Institution builder/commands. Publish one unique Initiative into regular `explore.html`; apply as a regular Individual; show the **same Application ID** and state in Representative/Supervisor and My Initiatives. Draft remains hidden. Exercise cancellation and reload. Do not create another independent listing copy.
-2. Add approved admission/capacity/staff grants: 135 accepted and three active Supervisors per Initiative, one Rep-or-Supervisor approval, reasoned Rep discipline, invitation identity, active Supervisor attendance gate and alert.
-3. Connect shared assignment engine and same-identity Invited Student upgrade; preserve review history, separate feedback/notes and Coach→Supervisor Insights→Rep reports.
-4. Implement attendance/QR rendering and typed/manual/online verification, separate excuses/completion, source-linked Personal/Group Garden effects and neutral no-data behavior.
-5. Connect Provider publication, booking and full clock-driven Waiting List to regular Individual; retain Provider ownership, Camp completion and birdhouse.
-6. Unify Admin capabilities by measured parity, preserve legacy Individual effects, harden page states, notices and six demos; repair four-baseline→plan activation and weekly Lab as their own verified personal slice.
-7. Design and implement the ASP.NET Core MVC application over the EF Core/SQL Server foundation, with secure identity, permissions, transactional capacity, durable audits, real notification delivery and validated extension integration. Decide separately how the specification's proposed Angular client integrates with MVC. Real payments wait for commercial decisions.
+1. Inventory actual MVC routes, EF Core model/migrations, SQL schema, browser stores and historic records. Map `provider/*`, `mentor/programs/*`, old grants, DTOs and fixtures to retained Institution resources or audited archives. Review retention before deletion; produce a replacement ERD/dictionary and count only after design review.
+2. Integrate one human Person/ASP.NET Core Identity model. Use Identity credential, recovery, confirmation and lockout support; justify any custom OTP. Implement server resource authorization, account suspension and revocation checks on existing sessions.
+3. Make Partner registration Institution Representative-only. Create typed Institution profile and verification; publish Initiative and Institution Outdoor Activity with the same public organizer in regular Explore. Deprecate independent Coach/Provider privileged routes.
+4. Implement email-bound, single-use scoped Coach/Supervisor invitations, no `Requested` state or second Admin approval. Enforce three active Initiative Supervisors and 135 accepted students under concurrency; admission remains authoritative for shared links.
+5. Re-scope Initiative groups/tasks/reviews/reports and one Group Garden. Preserve authorship and same-identity Student continuity. Re-home outdoor booking, waiting list, safety, attendance, completion and eligible birdhouse under Institution ownership with one source identity.
+6. Reconcile the sole Admin workspace and verify positive and negative paths across Institution and Individual views. Keep payments simulated until commercial decisions; run the v4.1 acceptance cases in the P0 map. Handle the one-main-plant Garden in its separately scoped design task.
 
 Before each technical slice, compare its target acceptance with current code and decide remaining open policy parameters explicitly. Do not backdate a local simulation as a verified production guarantee. Maintain source, UI and test evidence, including affected roles and regular Individual impact.
 
 ---
 
-**End of DeepSprout authoritative master specification, v4.0 — 15 October 2026.**
+**End of DeepSprout authoritative master specification, v4.1 — 4 November 2026.**

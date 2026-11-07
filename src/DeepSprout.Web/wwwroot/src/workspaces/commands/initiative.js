@@ -39,17 +39,18 @@ export function offerNextSeat(s, initiative) {
   while (seatsUsed(s, initiative.id) < seatCap(initiative)) {
     const next = queue(s, initiative.id)[0];
     if (!next) return;
-    const hours = Number(initiative.policies.offerHours || s.settings.initiativeOfferHours || 24);
-    next.offer = {id:id('offer'), created:clockISO(s), expires:new Date(nowMs(s) + hours * HOUR).toISOString(), hours, status:'Offered'};
-    history(next, 'system', 'Queued', 'Offered', `Seat offered · held for ${hours} hours`);
+    const manual = initiative.policies.offerManual === true;
+    const hours = manual ? null : Number(initiative.policies.offerHours || s.settings.initiativeOfferHours || 24);
+    next.offer = {id:id('offer'), created:clockISO(s), expires:manual ? '' : new Date(nowMs(s) + hours * HOUR).toISOString(), hours, status:'Offered'};
+    history(next, 'system', 'Queued', 'Offered', manual ? 'Seat offered · no automatic expiry' : `Seat offered · held for ${hours} hours`);
     next.status = 'Offered';
-    notify(s, next.personId, `A seat opened in ${initiative.title}. Accept within ${hours} hours to keep it.`, memberLink, 'offer');
+    notify(s, next.personId, manual ? `A seat opened in ${initiative.title}. Your offer has no automatic expiry.` : `A seat opened in ${initiative.title}. Accept within ${hours} hours to keep it.`, memberLink, 'offer');
   }
 }
 /** Reconcile expired offers on read (demo clock aware), then re-offer. */
 export function expireInitiativeOffers(s) {
   let changed = false;
-  for (const a of (s.admissions || []).filter(x => x.status === 'Offered' && Date.parse(x.offer?.expires || 0) <= nowMs(s))) {
+  for (const a of (s.admissions || []).filter(x => x.status === 'Offered' && x.offer?.expires && Date.parse(x.offer.expires) <= nowMs(s))) {
     a.status = 'Expired'; a.offer.status = 'Expired'; history(a, 'system', 'Offered', 'Expired', 'Offer was not accepted in time');
     notify(s, a.personId, 'Your offered seat expired and was released to the next person on the waiting list.', memberLink, 'offer');
     const initiative = s.initiatives.find(i => i.id === a.initiativeId);
@@ -155,10 +156,21 @@ export function initiativeCommand(s, action, p, actor) {
     const a = find(s.admissions, p.id), initiative = initiativeOf(s, a.initiativeId);
     requireThat(a.personId === actor, 'This offer belongs to someone else.');
     requireThat(a.status === 'Offered', a.status === 'Expired' ? 'This offer has expired. The seat was released.' : 'There is no open seat offer.');
-    requireThat(Date.parse(a.offer.expires) > nowMs(s), 'This offer has expired. The seat was released.');
+    requireThat(!a.offer.expires || Date.parse(a.offer.expires) > nowMs(s), 'This offer has expired. The seat was released.');
     if (action.endsWith('accept')) { requireOperational(initiative, s); a.offer.status = 'Accepted'; history(a, actor, 'Offered', 'Accepted', 'Accepted the offered seat'); a.status = 'Accepted'; }
     else { a.offer.status = 'Declined'; history(a, actor, 'Offered', 'Declined', 'Declined the offered seat'); a.status = 'Declined'; offerNextSeat(s, initiative); }
     noticeAll(s, staffAndRep(s, initiative), `${personOf(s, actor).name} ${action.endsWith('accept') ? 'accepted' : 'declined'} an offered seat in ${initiative.title}.`, `workspaces.html#/organization/participants?initiative=${initiative.id}`);
+    return;
+  }
+  if (action === 'initiative.offer.release') {
+    const a = find(s.admissions, p.id), initiative = initiativeOf(s, a.initiativeId);
+    requireRep(s, initiative, actor);
+    requireThat(a.status === 'Offered' && !a.offer?.expires, 'Only an offer without automatic expiry can be released manually.');
+    a.offer.status = 'Released';
+    history(a, actor, 'Offered', 'Expired', 'Offer ended by the Representative');
+    a.status = 'Expired';
+    notify(s, a.personId, `Your seat offer in ${initiative.title} was closed by the institution.`, memberLink, 'offer');
+    offerNextSeat(s, initiative);
     return;
   }
 

@@ -38,23 +38,23 @@ test('suspended Institution blocks discovery/applications and restoration rechec
  edit(s=>{s.organizations[0].status='Approved';s.initiatives.find(i=>i.id==='i-today').registrationClose='2026-10-14';});
  assert.throws(()=>dispatch('participant.enroll',{initiativeId:'i-today',age:22,consent:true}),/not open/);
 });
-test('Provider transitions reject suspension, closed window, invalid original hold, changed consent, expiry, capacity and foreign actor',()=>{
- reset();as('p-rania');edit(s=>{s.bookings=s.bookings.filter(b=>b.personId!=='p-rania');s.providers[0].status='Suspended';});
+test('Outdoor Activity transitions reject owner suspension, closed window, invalid original hold, changed consent, expiry, capacity and foreign actor',()=>{
+ reset();as('p-rania');edit(s=>{s.bookings=s.bookings.filter(b=>b.personId!=='p-rania');s.organizations[0].status='Suspended';});
  assert.throws(()=>dispatch('participant.book',{experienceId:'e-reset',age:22,consent:true}),/unavailable/);
- edit(s=>{s.providers[0].status='Approved';s.experiences[0].registrationClose='2026-10-14';});
+ edit(s=>{s.organizations[0].status='Approved';s.experiences[0].registrationClose='2026-10-14';});
  assert.throws(()=>dispatch('participant.book',{experienceId:'e-reset',age:22,consent:true}),/window/);
  edit(s=>s.experiences[0].registrationClose='2026-10-23');
  assert.throws(()=>dispatch('participant.book',{experienceId:'e-reset',age:17,consent:true}),/eligibility/);
  const bid=dispatch('participant.book',{experienceId:'e-reset',age:22,consent:true});
- as('p-sami');dispatch('provider.booking.cancel',{id:'b-omar'});const oid=read().offers.find(o=>o.bookingId===bid).id;
+ as('p-maya');dispatch('activity.booking.cancel',{id:'b-omar'});const oid=read().offers.find(o=>o.bookingId===bid).id;
  as('p-noor');assert.throws(()=>dispatch('participant.offer.accept',{id:oid}),/another participant/);
  as('p-rania');edit(s=>s.experiences[0].status='Suspended');assert.throws(()=>dispatch('participant.offer.accept',{id:oid}),/unavailable/);
  edit(s=>{s.experiences[0].status='Published';s.experiences[0].version++;});assert.throws(()=>dispatch('participant.offer.accept',{id:oid}),/consent changed/);
  edit(s=>{s.experiences[0].version--;s.bookings.find(b=>b.id===bid).status='Waitlisted';});assert.throws(()=>dispatch('participant.offer.accept',{id:oid}),/active booking hold/);
  edit(s=>{s.bookings.find(b=>b.id===bid).status='Seat Offered';s.experiences[0].capacity=1;});assert.throws(()=>dispatch('participant.offer.accept',{id:oid}),/seat/);
  edit(s=>s.experiences[0].capacity=2);dispatch('participant.offer.accept',{id:oid});assert.throws(()=>dispatch('participant.offer.accept',{id:oid}),/processed/);
- reset();as('p-rania');edit(s=>{s.bookings=s.bookings.filter(b=>b.personId!=='p-rania');s.bookings[0].status='Cancelled';s.experiences[0].approval=true;});const pending=dispatch('participant.book',{experienceId:'e-reset',age:22,consent:true});as('p-sami');
- edit(s=>s.experiences[0].registrationClose='2026-10-14');assert.throws(()=>dispatch('provider.booking.approve',{id:pending}),/window/);
+ reset();as('p-rania');edit(s=>{s.bookings=s.bookings.filter(b=>b.personId!=='p-rania');s.bookings[0].status='Cancelled';s.experiences[0].approval=true;});const pending=dispatch('participant.book',{experienceId:'e-reset',age:22,consent:true});as('p-maya');
+ edit(s=>s.experiences[0].registrationClose='2026-10-14');assert.throws(()=>dispatch('activity.booking.approve',{id:pending}),/window/);
 });
 test('revoked Coach loses Initiative cancellation authority but keeps independent capabilities',()=>{
  reset();edit(s=>{const g=s.groups.find(g=>g.parentType==='initiative');g.coachId='p-maya';s.grants.push({id:'round0-coach',personId:'p-maya',scopeId:g.initiativeId,role:'coach',status:'Active'});s.assignments.push({id:'round0-task',groupId:g.id,ownerId:'p-maya',title:'Former work',status:'Active',due:'2026-10-20'});});as('p-maya');

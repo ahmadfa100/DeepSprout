@@ -35,7 +35,7 @@
       <nav class="member-nav" id="member-nav" aria-label="Member navigation">${links}</nav>
       <div class="member-header-actions">
         <div class="member-notifications"><button class="member-icon-button" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="member-notification-panel">${icon('icons/bell.svg')}<span class="member-alert-dot" hidden></span></button><div class="member-popover" id="member-notification-panel" hidden>${notice}</div></div>
-        <details class="member-account"><summary><span class="member-avatar">${initial}</span><span>${displayName}</span>${icon('icons/chevron-down.svg')}</summary><div class="member-account-menu"><a href="${root}index.html">Home</a><a href="${root}src/pages/member/profile/profile.html">Profile &amp; settings</a><a href="${root}src/pages/member/weekly-review/weekly-review.html">Weekly review</a><a href="${root}src/pages/member/explore/explore.html#my-registrations">My registrations</a><a href="${root}src/pages/member/lab/lab.html">Lab &amp; check-ins</a><a href="#product-guide" data-tour-replay>Help &amp; product guide</a><a href="${root}src/pages/member/onboarding/onboarding.html">Replay first run</a><a href="${root}login.html">Log in page</a></div></details>
+        <details class="member-account"><summary><span class="member-avatar">${initial}</span><span>${displayName}</span>${icon('icons/chevron-down.svg')}</summary><div class="member-account-menu"><a href="${root}index.html">Home</a><a href="${root}src/pages/member/profile/profile.html">Profile &amp; settings</a><a class="member-review-link" href="${root}src/pages/member/recovery-plan/recovery-plan.html#adjust">${icon('icons/calendar.svg')}<span>Weekly Review &amp; Plan Adjustments</span><span class="member-review-due" hidden>Due</span></a><a href="${root}src/pages/member/explore/explore.html#my-registrations">My registrations</a><a href="${root}src/pages/member/lab/lab.html">Lab &amp; check-ins</a><a href="#product-guide" data-tour-replay>Help &amp; product guide</a><a href="${root}src/pages/member/onboarding/onboarding.html">Replay first run</a><a href="${root}login.html">Log in page</a></div></details>
         <button class="member-menu-toggle" type="button" aria-label="Open navigation" aria-controls="member-nav" aria-expanded="false">${icon('icons/menu.svg')}</button>
       </div>
     </div>
@@ -167,7 +167,7 @@
     // The bell shows the same computed next step the pages show.
     const panel = document.querySelector('#member-notification-panel');
     const dot = document.querySelector('.member-alert-dot');
-    const step = account.nextSteps(root)[0];
+    const step = account.nextSteps(root).find(item => item.id !== 'review');
     if (!panel) return;
     panel.replaceChildren();
     const title = document.createElement('strong');
@@ -186,7 +186,68 @@
       panel.append(title, text);
     }
     if (dot) dot.hidden = !step;
+    paintPersonalReview(account);
+    if (!step && panel.querySelector('.member-plan-notice')) { title.remove(); text.remove(); }
   }).catch(() => { /* Keep the generic label when the data cannot load. */ });
+
+  // Personal plan notices live beside the existing bell. Their calendar-day
+  // state is scoped to the same person key used by Profile preferences.
+  const personalKey = (name, subject) => `${name}:person:${subject}`;
+  const readPersonal = key => { try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; } };
+  const savePersonal = (key, value) => { try { (window.DeepSproutPersonal?.save || localStorage.setItem.bind(localStorage))(key, JSON.stringify(value)); } catch { /* storage unavailable: keep the page usable */ } };
+  const dayValue = key => { const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key || ''); return match ? Date.UTC(+match[1], +match[2] - 1, +match[3]) / 86400000 : NaN; };
+  const paintPersonalReview = account => {
+    const menuLink = document.querySelector('.member-review-link');
+    const panel = document.querySelector('#member-notification-panel');
+    if (!menuLink || !panel) return;
+    const reviewPath = `${root}src/pages/member/weekly-review/weekly-review.html`;
+    const adjustPath = `${root}src/pages/member/recovery-plan/recovery-plan.html#adjust`;
+    const state = account.recovery();
+    const active = !!account.plan() && state && ['Active', 'Maintenance', 'Cycle Review Due'].includes(state.status);
+    let due = false, reviewHref = reviewPath;
+    if (active && state.nextReview) {
+      try { const proposal = account.weeklyProposal(state.nextReview); due = account.todayKey >= proposal.dueOn; reviewHref += `?week=${state.nextReview}`; } catch { /* no eligible review */ }
+    }
+    menuLink.href = due ? reviewHref : adjustPath;
+    menuLink.querySelector('.member-review-due').hidden = !due;
+    const subject = window.DeepSproutPersonal?.subject?.() || account.exportRecord().user?.id || account.id;
+    const noticeKey = personalKey('deepsprout-plan-notices-v1', subject);
+    const prefs = readPersonal(personalKey('deepsprout-preferences', subject));
+    const saved = readPersonal(noticeKey);
+    const reminderEnabled = prefs.reminders !== false;
+    const reviewEnabled = prefs.reviewNudge !== false;
+    const daysSinceStart = active ? dayValue(account.todayKey) - dayValue(state.current?.startDate) : 0;
+    const lastDay = saved.lastReminderOn || state?.current?.startDate;
+    const reminderReady = active && reminderEnabled && daysSinceStart >= 4 && dayValue(account.todayKey) - dayValue(lastDay) >= 4;
+    if (reminderReady && !due) { saved.lastReminderOn = account.todayKey; saved.reminder = { id: `plan-check:${account.todayKey}`, read: false, dismissed: false }; savePersonal(noticeKey, saved); }
+    if (due && reviewEnabled) {
+      const id = `weekly-review:${state.current?.id}:${state.nextReview}`;
+      if (saved.review?.id !== id) { saved.review = { id, read: false, dismissed: false }; saved.lastReminderOn = account.todayKey; savePersonal(noticeKey, saved); }
+    } else if (saved.review) { delete saved.review; savePersonal(noticeKey, saved); }
+    panel.querySelector('.member-plan-notice')?.remove();
+    const notice = due && reviewEnabled ? saved.review : !due && reminderEnabled ? saved.reminder : null;
+    if (notice && !notice.dismissed) {
+      const formal = due && reviewEnabled;
+      const block = document.createElement('div'); block.className = 'member-plan-notice';
+      block.innerHTML = `<strong>${formal ? 'Your weekly review is ready' : 'Time for a quick plan check-in?'}</strong><p>${formal ? 'Take a quick look at your week and help shape what comes next.' : 'See how your activities are going. You can adjust your plan if something isn’t working for you.'}</p><div><a href="${formal ? reviewHref : adjustPath}">${formal ? 'Start Weekly Review' : 'Review My Plan'}</a><button type="button" aria-label="Dismiss ${formal ? 'weekly review notice' : 'plan check-in reminder'}">Dismiss</button></div>`;
+      panel.prepend(block);
+      const markRead = () => { notice.read = true; savePersonal(noticeKey, saved); paintPersonalReview(account); };
+      block.querySelector('a').addEventListener('click', markRead);
+      block.querySelector('button').addEventListener('click', () => { notice.dismissed = true; notice.read = true; savePersonal(noticeKey, saved); paintPersonalReview(account); });
+    }
+    const dot = document.querySelector('.member-alert-dot');
+    if (dot && notice && !notice.read && !notice.dismissed) dot.hidden = false;
+    // The dashboard is the first safe place to introduce this feature.
+    const coachKey = personalKey('deepsprout-plan-guide-v1', subject);
+    const coach = document.querySelector('.member-plan-coach');
+    if (page !== 'home' || !active || readPersonal(coachKey).acknowledged) { coach?.remove(); return; }
+    if (coach) return;
+    const anchor = document.querySelector('.member-header-actions');
+    const guide = document.createElement('aside'); guide.className = 'member-plan-coach'; guide.setAttribute('aria-label', 'Find your weekly review and plan adjustments');
+    guide.innerHTML = '<strong>Your plan can adapt with you.</strong><p>Open your profile menu to find Weekly Review &amp; Plan Adjustments whenever you want to check your progress or make a change.</p><button type="button">Got it</button>';
+    anchor.append(guide);
+    guide.querySelector('button').addEventListener('click', () => { savePersonal(coachKey, { acknowledged: true }); guide.remove(); });
+  };
 
   const withAccount = Account => {
     if (!Account) return;
@@ -195,6 +256,7 @@
     if(!document.querySelector('script[src*="data/product-tour.js"]')){const tour=document.createElement('script');tour.src=`${root}src/js/data/product-tour.js`;document.head.append(tour);}
     // Any change on the account (a review saved, a name edited) updates the header too.
     window.addEventListener('deepsprout:account', () => showAccountName(Account));
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) showAccountName(Account); });
     mountDevSwitch(Account);
   };
 

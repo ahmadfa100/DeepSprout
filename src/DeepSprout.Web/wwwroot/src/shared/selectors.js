@@ -1,5 +1,5 @@
-import {exploreProviderExperiences} from './provider-selectors.js';
-import {bookingEvidence} from '../workspaces/provider-completion.js';
+import {exploreOutdoorActivities} from './activity-selectors.js';
+import {bookingEvidence} from '../workspaces/activity-completion.js';
 /**
  * Read models over the one operational graph. Pure functions: they never
  * write, never copy a record into another store, and every value names the
@@ -26,17 +26,18 @@ export function initiativeCard(s, initiative, personId) {
     organizer:org?.name || 'Institution', organizerVerified:org?.status === 'Approved', organizerCity:org?.city || '',
     image:initiative.cover?.image || '', imageAlt:initiative.cover?.alt || '',
     start:initiative.start, end:initiative.end, timezone:initiative.timezone || 'Asia/Amman',
-    mode:primary.toLowerCase(), modes:initiative.modes || [primary], venue:initiative.venue || '', onlineDetails:initiative.onlineDetails || '',
+    mode:primary.toLowerCase(), modes:initiative.modes || [primary], deliveryMode:initiative.deliveryMode || primary, venue:initiative.venue || '', onlineDetails:initiative.onlineDetails || '',
     coverage:initiative.coverage || '', country:initiative.country || '', audience:initiative.audience || '', requirements:initiative.requirements || '',
     minAge:initiative.minAge, maxAge:initiative.maxAge, consent:initiative.consent || '', withdrawal:initiative.withdrawal || '',
     capacity:seatCap(initiative), seatsUsed:seatsUsed(s, initiative.id), seatsLeft:seatsLeft(s, initiative), full:seatsLeft(s, initiative) === 0,
-    waitlist:Boolean(initiative.policies?.waitlist), offerHours:Number(initiative.policies?.offerHours || 24),
+    waitlist:Boolean(initiative.policies?.waitlist), offerHours:Number(initiative.policies?.offerHours || 24), offerManual:initiative.policies?.offerManual === true,
     registration:registrationState(s, initiative), registrationOpen:initiative.registrationOpen || '', registrationClose:initiative.registrationClose || '',
     phase:executionPhase(s, initiative), status:initiative.status,
     cost:initiative.cost || {type:'Free'}, policies:initiative.policies || {},
-    components:(initiative.components || []).map(c => ({type:c.type, title:c.title, description:c.description || '', resourceId:c.resourceId || null})),
+    components:(initiative.components || []).map(c => ({type:c.type, title:c.title || `New ${c.type}`, description:c.description || '', resourceId:c.planned ? null : c.resourceId || null, planned:c.planned === true})),
     sessions:sessions.map(ss => ({id:ss.id, title:ss.title, date:ss.date, time:ss.time, endTime:ss.endTime, format:ss.format, venue:ss.venue, status:ss.status})),
-    linkedExperiences:(s.partnerships||[]).filter(p=>p.initiativeId===initiative.id&&p.status==='Active').map(p=>exploreProviderExperiences(s,personId).find(e=>e.id===p.experienceId)).filter(Boolean),
+    // Outdoor Activities the same Institution linked as components: booked separately, one booking identity each.
+    linkedExperiences:(initiative.components||[]).filter(c=>!c.planned&&c.type==='Outdoor Activity'&&c.resourceId).map(c=>exploreOutdoorActivities(s,personId).find(e=>e.id===c.resourceId&&e.ownerId===initiative.ownerId)).filter(Boolean),
     mine
   };
 }
@@ -200,4 +201,4 @@ export {PRACTICE_TYPES, seatCap, seatsUsed, seatsLeft, registrationState, execut
 /** Independent Coach Program history for the regular Individual pages (same records as the Coach and limited Student views). */
 export {programHistoryFor} from '../workspaces/coach-rules.js';
 
-export {providerExperience,exploreProviderExperiences,myProviderBookings,providerBookingLink,providerReport} from './provider-selectors.js';
+export {outdoorActivityCard,exploreOutdoorActivities,myActivityBookings,activityBookingLink,activityReport} from './activity-selectors.js';

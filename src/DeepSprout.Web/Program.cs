@@ -27,6 +27,20 @@ var app = builder.Build();
 var pages = app.Services.GetRequiredService<PageCatalog>();
 
 app.UseStatusCodePagesWithReExecute("/404.html");
+if (app.Environment.IsDevelopment())
+{
+    app.Use(async (context, next) =>
+    {
+        if (context.Request.Path.Equals("/workspaces.html", StringComparison.OrdinalIgnoreCase))
+        {
+            // Clear only the HTTP cache for this local demo origin. An older
+            // unversioned module graph may otherwise survive a rebuilt view.
+            // Browser localStorage and the demo's migration backups stay intact.
+            context.Response.Headers["Clear-Site-Data"] = "\"cache\"";
+        }
+        await next();
+    });
+}
 app.UseRouting();
 // Page URLs keep their historical .html form, so the Razor views in Views/ own them.
 // MVC endpoints run before static files; wwwroot holds only assets (images, CSS, JS, fonts).
@@ -44,7 +58,19 @@ app.UseEndpoints(endpoints =>
 });
 #pragma warning restore ASP0014
 
-app.UseStaticFiles();
+// During local development, never let a browser reuse a module from an older
+// build with a newer Razor view. Production keeps the normal static-file policy.
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+    {
+        if (app.Environment.IsDevelopment())
+        {
+            context.Context.Response.Headers.CacheControl = "no-store, max-age=0";
+            context.Context.Response.Headers.Pragma = "no-cache";
+        }
+    }
+});
 
 app.Run();
 

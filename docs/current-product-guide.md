@@ -2,18 +2,20 @@
 
 **Reviewed:** 3 November 2026 (Asia/Amman). **Scope:** the current working tree, including in-progress local changes. This is a source-based inventory of the browser demonstration and the separate database milestone. It is not a claim that every control and state was manually retested today. The [product specification](../DeepSprout.md) records target behavior and older decisions; the dated [implementation reports](implementation/) record the tests run at each milestone.
 
+> **4 November target change:** This guide is a dated inventory of the demo, including old independent Coach and Outdoor Provider routes. Those are not current target workspaces. See the [v4.1 master](../DeepSprout.md) and [P0 target/deprecation map](architecture/p0-target-v4.1.md) for Institution-owned outdoor activities, invitation-only Initiative Coach/Supervisor, and the ASP.NET Core Identity direction. No migration or implementation is claimed here.
+
 ## What DeepSprout is
 
 DeepSprout is a digital wellbeing project for people who want to spend less time in unintentional short-form feeds and more time in meaningful activities. The personal experience combines a continuous Recovery Journey, usually organized into four-week cycles, with attention practices, a small offline routine, optional browser support, periodic Lab check-ins and source-labelled Insights. Bimo is the original companion used in welcoming and guidance. The Garden makes eligible participation visible; it is not a medical recovery score. Institutions, Coaches, invited Students, Outdoor Providers and Supervisors can also run real-world initiatives, programs and experiences in connected demonstration workspaces.
 
-The **running website** is available through ASP.NET Core MVC Razor views, with the existing CSS and JavaScript. Personal and partner records are kept in browser storage and seeded fixtures. It is a functional local demonstration, not a deployed clinical service, secure multi-user platform or payment system. The `Server/` solution contains the MVC host plus .NET domain/application projects, an EF Core SQL Server context, migrations and database validation tests. MVC page routing is implemented; server-backed product commands and authentication are not. The target document also describes a possible Angular client, which is not in this checkout.
+The **running website** is available through ASP.NET Core MVC Razor views in `src/DeepSprout.Web`, with existing CSS and JavaScript under `wwwroot`. Personal and partner records are kept in browser storage and seeded fixtures. It is a functional local demonstration, not a deployed clinical service, secure multi-user platform or payment system. The solution contains an EF Core SQL Server context, migrations and database validation tests. MVC page routing is implemented; server-backed product commands and authentication are not.
 
 ## Main concepts and boundaries
 
 | Term | Meaning in the current project |
 | --- | --- |
 | Recovery Journey / Cycle / Week | The person's continuing history, one bounded planning interval, and its weekly actions and review. Completing days is not a clinical recovery percentage. |
-| Lab assessment | A versioned measurement attempt, distinct from an activity or weekly review. Four valid baselines start the personal journey; the demo later offers a weekly pair. |
+| Lab assessment | A versioned measurement attempt, distinct from an activity or weekly review. Optional since Onboarding 2.0: the journey starts at Journey Level 0 without them; the demo later offers a weekly pair. |
 | Meaningful Practice | Depth Practice, Listening & Recall, Practical Micro-Challenge, or Protected Work. Attempts retain their own evidence and outcome. |
 | Offline Routine | A personally chosen small action away from the screen, recorded as self-report. |
 | Initiative / Program / Experience | Institution-owned public Initiative, independent Coach-owned invite-only Program, and Provider-owned outdoor experience or camp. They have different owners and participation rules. |
@@ -40,9 +42,9 @@ The root `Client/*.html` shortcuts generally redirect to their `Client/src/pages
 
 | Page | What the person can see or do |
 | --- | --- |
-| [Onboarding](../Client/src/pages/member/onboarding/onboarding.html) | Bimo introduction, personal setup, privacy explanation and handoff to the four baselines. |
+| [Onboarding](../Client/src/pages/member/onboarding/onboarding.html) | Onboarding 2.0: Meet Bimo, exactly six questions with a top progress bar and save/resume, then “You’re ready to begin” and the story. No mandatory assessment. |
 | [Lab](../Client/src/pages/member/lab/lab.html) and [assessment player](../Client/src/pages/member/lab/assessment.html) | Digital Habits, Sustained Attention, Inhibitory Control and Depth Challenge; attempt history, official/practice distinction and validity. After all four valid baselines, the local interim schedule offers Digital Habits plus a rotating task every seven days, independent of cycle end. |
-| [Starting Point](../Client/src/pages/member/onboarding/starting-point.html) | Explains baseline results, builds a plan preview, asks for an initial offline commitment, activates the plan and offers a short product guide. Results are task evidence, not diagnosis. |
+| [Starting Point](../Client/src/pages/member/onboarding/starting-point.html) | Opens the Week 1 preview directly at Journey Level 0 (or explains baseline results when the optional four were taken), builds a plan preview, asks for an initial offline commitment, activates the plan and offers a short product guide. Results are task evidence, not diagnosis. |
 | [Roadmap / Recovery Plan](../Client/src/pages/member/recovery-plan/recovery-plan.html) | Overview, This week, Adjust and History tabs; current action, four-week direction, routine and support tools. Changes apply to future work and preserve recorded history. |
 | [Weekly Review](../Client/src/pages/member/weekly-review/weekly-review.html) | Shows what was recorded, asks about manageability and fit, previews a next week and saves a deliberate decision. It is a review, not a fifth practice. |
 | [Activities](../Client/src/pages/member/training/training.html) | A suggested next action, four practice families, practice history, Coach-assigned work and an editable offline to-do. Players capture their own evidence; a timer alone does not approve work. |
@@ -125,7 +127,7 @@ The separate `Client/admin.html` legacy Admin uses `#/dashboard`, `#/users`, `#/
 
 ## End-to-end cycles
 
-1. **Personal recovery:** register locally → Bimo/setup → four valid Lab baselines → Starting Point/plan activation → Home and Roadmap → practice/routine/optional Shield → weekly review → source-labelled Insights and earned Garden effects → another week or cycle. The official weekly Lab pair has its own eligibility window.
+1. **Personal recovery:** register locally → Meet Bimo → six questions → the story → Home at Journey Level 0 with a Week 1 proposal → user-chosen plan activation (Lab baselines optional) → Home and Roadmap → practice/routine/optional Shield → weekly review → source-labelled Insights and earned Garden effects → another week or cycle. The official weekly Lab pair has its own eligibility window.
 2. **Institution Initiative:** Representative builds/publishes an Initiative → it enters regular Explore → Individual applies → authorized Representative/Supervisor admission → group and Coach assignments → sessions, forms and participation → Supervisor facts and reports → Representative's received report inbox. One application, seat, session registration, attendance fact and completion record are distinct.
 3. **Institution staff and Supervisor:** Representative invites staff into a specific Initiative; Supervisor acts only after the relevant grant is active. The Supervisor handles roster, session attendance, excuses and operational Insights; Coach reports can be included in a submitted Supervisor summary. The Representative makes the final excuse decision. A new report inbox provides a readable received document, attachments and downloads.
 4. **Independent Coach Program:** Admin approves a Coach → Coach creates/publishes an invite-only Program and group → invitation is accepted by a matching person → Coach assigns tasks → Student submits → Coach approves, asks for revision or rejects → reporting and Group Garden reflect eligible evidence → Program completion preserves history. An optional Institution link does not transfer Program ownership.

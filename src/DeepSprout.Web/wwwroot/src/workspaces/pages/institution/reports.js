@@ -8,7 +8,7 @@ import * as u from '../../ui.js';
 import {esc,nameOf,pill,head,stats,stat,card,bars,funnel,ring,emptyState,initiativeSwitcher,fmtDate,summary} from './common.js';
 import {seatCap} from '../../initiative-rules.js';
 import {groupMetrics} from '../../commands/initiative.js';
-import {providerReport} from '../../../shared/provider-selectors.js';
+import {activityReport} from '../../../shared/activity-selectors.js';
 
 const inRange = (value, from, to) => { const day = String(value || '').slice(0, 10); return (!from || day >= from) && (!to || day <= to); };
 
@@ -65,10 +65,10 @@ function reportList(ctx, list, kind) {
   return `<ul class="iw-reports">${list.map(r => `<li><div><strong>${esc(kind === 'coach' ? ctx.s.groups.find(g => g.id === r.groupId)?.name || 'Group' : 'Operational summary')}</strong><small>${esc(nameOf(ctx.s, r.authorId))} · ${esc(fmtDate(r.period.from))} – ${esc(fmtDate(r.period.to))} · submitted ${esc(fmtDate(r.submitted))}</small></div>${u.button('Open original', 'report-open', {id:r.id, kind}, 'button quiet small')}</li>`).join('')}</ul>`;
 }
 
-function providerAggregates(ctx,i){
- const links=ctx.s.partnerships.filter(p=>p.initiativeId===i.id&&p.status==='Active');
- const ids=[...new Set(links.map(p=>p.experienceId))];
- return card('Accepted Provider partnerships',ids.length?u.table(['Provider-owned experience','Confirmed','Held','Queued','Present','Late','Absent','Camp completions'],ids.map(id=>{const d=providerReport(ctx.s,id,{from:ctx.route.query.get('from'),to:ctx.route.query.get('to')});return {cells:[esc(ctx.s.experiences.find(e=>e.id===id)?.title||id),d?.confirmed||0,d?.held||0,d?.queued||0,d?.present||0,d?.late||0,d?.absent||0,d?.completed||0]};}))+provenance('Agreed aggregate participation for the entire linked Provider experience, not just this Initiative’s students. Original Provider bookings remain separate from Initiative admissions, attendance and Group Garden. Date filters select the original booking cohort; no personal records are shared here.'):'<p class="iw-muted">No active, accepted Provider links.</p>');
+/** Outdoor Activities this Institution linked to the Initiative as components: its own records, aggregated per activity. */
+function linkedActivityAggregates(ctx,i){
+ const ids=[...new Set((i.components||[]).filter(c=>c.type==='Outdoor Activity'&&c.resourceId).map(c=>c.resourceId))].filter(id=>ctx.s.experiences.some(e=>e.id===id&&e.ownerId===i.ownerId));
+ return card('Linked Outdoor Activities',ids.length?u.table(['Outdoor Activity','Confirmed','Held','Queued','Present','Late','Absent','Completions'],ids.map(id=>{const d=activityReport(ctx.s,id,{from:ctx.route.query.get('from'),to:ctx.route.query.get('to')});return {cells:[`${esc(ctx.s.experiences.find(e=>e.id===id)?.title||id)}<p>${u.link('Open activity report',`organization/activities/${id}?tab=reports`,'text-link')}</p>`,d?.confirmed||0,d?.held||0,d?.queued||0,d?.present||0,d?.late||0,d?.absent||0,d?.completed||0]};}))+provenance('Bookings for the whole linked activity, not only this Initiative’s students. Activity bookings stay separate from Initiative admissions, session attendance and the Group Garden. Date filters select the original booking cohort.'):'<p class="iw-muted">No Outdoor Activity is linked to this initiative. Link one of yours as a component in the builder.</p>');
 }
 
 /** Received narrative reports are the Representative's primary Reports view. */

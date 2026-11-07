@@ -1,0 +1,14 @@
+/* The page-level rules sections 3–5 ("You're not alone" onward) were rendered with. They came from
+   hero-v2/hero.css and reels/reels.css, which the old opening loaded; they are kept here verbatim so the
+   protected sections compute exactly the same styles without the old opening's stylesheets. */
+@font-face{font-family:Inter;src:url('../../../assets/hero-v2/fonts/inter-400.ttf') format('truetype');font-weight:400;font-display:block}
+@font-face{font-family:Inter;src:url('../../../assets/hero-v2/fonts/inter-500.ttf') format('truetype');font-weight:500;font-display:block}
+@font-face{font-family:Inter;src:url('../../../assets/hero-v2/fonts/inter-800.ttf') format('truetype');font-weight:800;font-display:block}
+:root{font-family:Inter,Arial,sans-serif;color:#06152e;background:#e1f5dc;font-synthesis:none}
+*{box-sizing:border-box}
+html,body{margin:0}
+button{font:inherit}
+button:focus-visible{outline:3px solid #846325;outline-offset:5px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+html{background:#faf8f3;scrollbar-color:#a8b49b #faf8f3}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}

@@ -1,5 +1,7 @@
 # DeepSprout v5 — Lean Database Design (proposal, not implemented)
 
+> **Historical proposal:** The [4 November v4.1 P0 decisions](../../../architecture/p0-target-v4.1.md) supersede the independent Coach/Provider ownership and Supervisor self-request assumptions here. The 57-table figure below is a proposal count, not an approved post-v4.1 target. Reassess Identity duplication, typed fields and actual migration data before implementation.
+
 **Recommendation: 57 tables, 18 schemas, no triggers, no stored procedures.** Status: awaiting owner approval. v4 (`../v4-final-design-review/`) and the 129-table database are untouched.
 
 Start with [08-final-recommendation.md](08-final-recommendation.md).

@@ -907,17 +907,25 @@
       if (!data.user.goal) {
         steps.push({
           id: 'setup',
-          title: 'Answer a few setup questions',
-          reason: 'Your goal, your hardest times and the days you have decide what your plan asks of you.',
+          title: 'Answer six quick questions',
+          reason: 'Your goal, the apps that pull you in and the time you have shape a first Week 1 proposal.',
           action: 'Start your journey',
           href: href('src/pages/member/onboarding/onboarding.html')
+        });
+      } else if (!current) {
+        steps.push({
+          id: 'week-one',
+          title: 'Your Week 1 proposal is ready',
+          reason: 'Built from your six answers. Nothing starts until you review it and choose to activate it.',
+          action: 'Review my Week 1 plan',
+          href: href('src/pages/member/onboarding/starting-point.html')
         });
       } else if (due.state === 'baseline-needed') {
         steps.push({
           id: 'baseline',
-          title: `Your starting ${NAMES.checkIn.toLowerCase()}`,
-          reason: `You have not taken your starting ${NAMES.checkIn.toLowerCase()} yet. Your plan is built from it.`,
-          action: `Start your ${NAMES.checkIn.toLowerCase()}`,
+          title: `Optional: a starting ${NAMES.checkIn.toLowerCase()}`,
+          reason: `No starting ${NAMES.checkIn.toLowerCase()} is recorded, and none is required. If you take one, later check-ins have something to compare against.`,
+          action: `Open the Lab`,
           href: href('src/pages/member/lab/lab.html')
         });
       } else if (due.state === 'open') {
@@ -1193,11 +1201,12 @@
       }
       if(full.type==='plan.activate'){
         if(data.plan)throw new Error('This original plan is already active.');
-        if(!baselineComplete())throw new Error('Complete all four valid current official baselines before activation.');
+        // Onboarding 2.0: the four baselines are optional. Activation is the person's explicit choice from
+        // the plan preview; any baselines already recorded are linked, none are required or invented.
         full.goal ||= data.user.goal?.id;
         if(!['reduce-scrolling','intentional-phone','offline-time','focus-objective'].includes(full.goal))throw new Error('Choose your own goal in Quick Setup or the plan preview before activation.');
         if(!full.commitment?.title?.trim())throw new Error('Choose one personal offline commitment before activation.');
-        full.planId=`plan-${subject}-${Date.now().toString(36)}`;full.personId=subject;full.policyVersion=1;full.baselineIds=baselineResults().map(row=>row.attempt.id);
+        full.planId=`plan-${subject}-${Date.now().toString(36)}`;full.personId=subject;full.policyVersion=1;full.baselineIds=baselineResults().filter(row=>row.attempt).map(row=>row.attempt.id);
       }
       if(full.type==='tour.record'){
         if(!data.plan||!['Completed','Skipped'].includes(full.status))throw new Error('Activate your plan before recording this orientation.');full.personId=subject;

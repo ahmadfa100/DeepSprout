@@ -1,5 +1,7 @@
 # Gaps, priorities and decisions
 
+> **4 November 2026 v4.1 update:** This 15 October audit contains superseded independent Coach/Provider and Group Garden assumptions. The current [P0 target](../architecture/p0-target-v4.1.md) removes those cycles, assigns outdoor ownership to Institutions, makes Coach/Supervisor invitation-only, and removes Supervisor `Requested`. Use the [v4.1 master](../../DeepSprout.md) for active decisions; preserve the audit below only as dated evidence.
+
 > **Documentation reconciliation, 15 October 2026.** [DeepSprout.md](../../DeepSprout.md) is the sole approved target; its [§26](../../DeepSprout.md#26-decision-register-authoritative-interim-and-open) closes decisions that were open in the earlier cycle audit. This file keeps an implementation gap queue grounded in the [dated audit](README.md), without claiming those gaps are fixed.
 
 | Priority | Current evidence and target | Acceptance evidence for later implementation |

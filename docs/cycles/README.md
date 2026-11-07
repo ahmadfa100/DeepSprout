@@ -1,6 +1,6 @@
 # DeepSprout cross-workspace functional audit
 
-> **Dated audit, not the target contract (15 October 2026).** Routes, fields, tests and code observations below describe the inspected working tree. The [authoritative v4.0 master](../../DeepSprout.md) and its [decision register](../../DeepSprout.md#26-decision-register-authoritative-interim-and-open) govern all implementation targets, including decisions approved after this audit.
+> **Dated audit, not the target contract (15 October 2026).** Routes, fields, tests and code observations below describe the inspected working tree. The [v4.1 master](../../DeepSprout.md) and [4 November P0 map](../architecture/p0-target-v4.1.md) govern the target. This audit's independent Coach/Provider and self-requested Supervisor descriptions are historical evidence, not active requirements.
 
 **Audit date:** 15 October 2026. **Scope:** current working tree, including pre-existing uncommitted application changes. **Delivery phase:** functional static HTML/CSS/JavaScript demonstration. This audit changes documentation only. The [authoritative master specification](../../DeepSprout.md) defines desired behavior; code and the tests below establish current behavior. The owner's 15 October decisions in the audit brief govern interpretation, especially the single Platform Admin concept and fixed multi-tree Personal Garden.
 

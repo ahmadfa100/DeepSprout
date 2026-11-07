@@ -11,6 +11,8 @@ import {esc,head,stats,stat,card,pill,tabs,emptyState,nameOf,fmtDate,picker,summ
 import {activeGrantsFor,today} from '../../initiative-rules.js';
 import {groupMetrics} from '../../commands/initiative.js';
 import {standing} from '../coach/invited.js';
+import {supervisorInsights,supervisorTimeline} from './insights.js';
+import {nowMs} from '../../domain.js';
 
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const day = v => new Date(`${String(v).slice(0, 10)}T12:00`);
@@ -65,7 +67,7 @@ function timeline(s, i, w) {
 export function dashboard(ctx, i) {
   const {s, person:p} = ctx, w = world(ctx, i), org = s.organizations.find(o => o.id === i.ownerId);
   const fresh = w.reports.filter(r => w.state(r) === 'new'), excuses = w.sum.excusesForSup, open = w.sessions.filter(x => (x.supervisorIds || []).includes(p.id) && !x.closedOut && x.date <= w.d && x.date >= i.start);
-  const hour = Number(new Intl.DateTimeFormat('en-GB', {hour:'numeric', hour12:false, timeZone:'Asia/Amman'}).format(new Date()));
+  const hour = Number(new Intl.DateTimeFormat('en-GB', {hour:'numeric', hour12:false, timeZone:'Asia/Amman'}).format(new Date(nowMs(s))));
   const todo = [
     ...fresh.map(r => ({tone:'attention', title:`New report from ${nameOf(s, r.authorId)}`, text:`${s.groups.find(g => g.id === r.groupId)?.name || ''} · ${fmtDate(r.submitted)}`, href:'supervisor/reports', action:'Read'})),
     ...(excuses.length ? [{tone:'attention', title:`${plural(excuses.length, 'excuse')} need your recommendation`, text:'The Representative decides after you.', href:`supervisor/excuses?initiative=${i.id}`, action:'Recommend'}] : []),
@@ -81,7 +83,9 @@ export function dashboard(ctx, i) {
     + stats([stat(w.sum.accepted, 'Students', {href:'supervisor/coaches?tab=students', hint:`${w.students.length} in ${plural(w.groups.length, 'group')}`}), stat(w.coaches.length, 'Coaches', {href:'supervisor/coaches'}), stat(fresh.length, 'New coach reports', {href:'supervisor/reports', tone:fresh.length ? 'attention' : ''}), stat(w.sessions.filter(x => x.date >= w.d).length + w.meetings.filter(m => m.date >= w.d).length, 'Coming up', {hint:'Sessions & meetings', href:'supervisor/schedule'})])
     + `<div class="iw-split is-wide">${card('What needs you', todo.length ? `<ul class="iw-attention">${todo.map(x => `<li class="is-${x.tone}"><span class="iw-dot" aria-hidden="true"></span><div><strong>${esc(x.title)}</strong><p>${esc(x.text)}</p></div>${u.link(x.action, x.href, 'button quiet small')}</li>`).join('')}</ul>` : calm('All caught up.', 'New coach reports and excuses appear here.'), {eyebrow:todo.length ? `${todo.length} TO DO` : 'ALL CLEAR'})}
       ${card('Coming up', coming.length ? `<ol class="iw-agenda">${coming.map(x => `<li class="is-${x.kind}"><time><b>${day(x.at).getDate()}</b><span>${esc(day(x.at).toLocaleDateString('en-GB', {month:'short'}))}</span></time><div><strong>${esc(x.title)}</strong><small>${esc(x.time)} · ${esc(x.sub)}</small></div>${x.kind === 'meeting' ? pill('Upcoming', 'Meeting') : pill('Active', 'Session')}</li>`).join('')}</ol>` : '<p class="iw-muted">Nothing scheduled yet.</p>', {extra:u.link('All', 'supervisor/schedule', 'text-link')})}</div>`
-    + card('Coaches', coachCards ? `<div class="sv-coaches">${coachCards}</div>` : '<p class="iw-muted">No Coach has joined yet. The Representative invites Coaches.</p>', {extra:u.link('Coaches & students', 'supervisor/coaches', 'text-link')});
+    + card('Coaches', coachCards ? `<div class="sv-coaches">${coachCards}</div>` : '<p class="iw-muted">No Coach has joined yet. The Representative invites Coaches.</p>', {extra:u.link('Coaches & students', 'supervisor/coaches', 'text-link')})
+    + supervisorInsights(ctx, i)
+    + supervisorTimeline(ctx, {initiativeId:i.id});
 }
 
 /* ------------------------------------------------------------ coaches & students */

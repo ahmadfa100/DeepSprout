@@ -1,5 +1,7 @@
 # DeepSprout v5 — SQL Server submission
 
+> **Historical submission:** The [4 November v4.1 P0 target](../../../../architecture/p0-target-v4.1.md) supersedes conflicting ownership and role assumptions. Do not execute this SQL as the current target schema or treat its table count as approved. Review existing database state, source IDs and retention first.
+
 | File | Purpose |
 |---|---|
 | `DeepSprout-v5-FULL-Database.sql` | **The deliverable.** Creates `DeepSprout_V5_Demo`, then 58 tables, then DEMO ONLY data, then demonstration queries. |

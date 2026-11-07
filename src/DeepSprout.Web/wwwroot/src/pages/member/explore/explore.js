@@ -55,8 +55,8 @@
     const card = repo.selectors.exploreInitiatives(repo.read(), repo.me()?.id).find(item => item.id === id)
       || repo.selectors.myInitiatives(repo.read(), repo.me()?.id).map(entry => entry.initiative).find(item => item.id === id);
     if(card)return toItem(card);
-    const provider=repo.selectors.exploreProviderExperiences(repo.read(),repo.me()?.id).find(e=>e.id===id)||repo.selectors.myProviderBookings(repo.read(),repo.me()?.id).find(b=>b.experienceId===id)?.experience;
-    return provider ? providerItem(provider) : null;
+    const activity=repo.selectors.exploreOutdoorActivities(repo.read(),repo.me()?.id).find(e=>e.id===id)||repo.selectors.myActivityBookings(repo.read(),repo.me()?.id).find(b=>b.experienceId===id)?.experience;
+    return activity ? outdoorItem(activity) : null;
   };
   function toItem(card) {
     const start = Account.parse(card.start); const end = Account.parse(card.end);
@@ -67,8 +67,8 @@
       objectives: card.objective ? [card.objective] : [], commitment: card.policies.completion || card.withdrawal || ''
     };
   }
-  const providerItem = e => ({...e,listing:'provider',startDate:e.start,endDate:e.end,start:Account.parse(e.start),end:Account.parse(e.end),startTime:e.sessions[0]?.time||'',mode:e.modes.includes('Hybrid')||e.modes.length>1?'hybrid':e.modes[0]==='Online'?'online':'in-person',past:false});
-  const liveItems = () => { const repo = Repo(); if (!repo) return []; return [...repo.selectors.exploreInitiatives(repo.read(),repo.me()?.id).map(toItem),...repo.selectors.exploreProviderExperiences(repo.read(),repo.me()?.id).map(providerItem)]; };
+  const outdoorItem = e => ({...e,listing:'outdoor',startDate:e.start,endDate:e.end,start:Account.parse(e.start),end:Account.parse(e.end),startTime:e.sessions[0]?.time||'',mode:e.modes.includes('Hybrid')||e.modes.length>1?'hybrid':e.modes[0]==='Online'?'online':'in-person',past:false});
+  const liveItems = () => { const repo = Repo(); if (!repo) return []; return [...repo.selectors.exploreInitiatives(repo.read(),repo.me()?.id).map(toItem),...repo.selectors.exploreOutdoorActivities(repo.read(),repo.me()?.id).map(outdoorItem)]; };
   const countdown = iso => { const ms = Date.parse(iso) - (Repo()?.nowMs() || Date.now()); if (ms <= 0) return 'expired'; const h = Math.floor(ms / 3600000); const m = Math.floor((ms % 3600000) / 60000); return h ? `${h} h ${m} min left` : `${m} min left`; };
   const qrSvg = code => { try { const qr = window.qrcode(0, 'M'); qr.addData(code); qr.make(); return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); } catch { return ''; } };
 
@@ -93,7 +93,7 @@
   };
   // Live listings come from a verified Institution's published record. Fixture
   // listings are static preview samples and say so, whatever organiser they name.
-  const trust = item => item.listing==='provider' ? '<span class="ex-trust is-verified is-live">Approved Provider · local demo</span>' : (item.listing === 'live'
+  const trust = item => item.listing==='outdoor' ? '<span class="ex-trust is-verified is-live">Verified institution · Outdoor Activity</span>' : (item.listing === 'live'
     ? `<span class="ex-trust is-verified is-live" title="Published by an Institution verified by DeepSprout">${icon('i-shield-check')}Verified institution</span>`
     : '<span class="ex-trust is-demo" title="Static sample listing in this preview — not a live record">Sample listing</span>');
   const statusChip = status => `<span class="ex-status" data-status="${status}">${icon(STATUS[status].icon)}${STATUS[status].label}</span>`;
@@ -109,24 +109,24 @@
   let cards = new Map();
 
   function cardHtml(item) {
-    const place = item.listing==='provider' ? {text:!item.canBook?'Booking unavailable':`${item.remaining} places left${!item.remaining&&item.waitlist?' · waiting list':''}`,full:!item.remaining} : item.listing === 'live' ? livePlaces(item) : places(item);
-    const mine = ['live','provider'].includes(item.listing) ? null : item.mine;
+    const place = item.listing==='outdoor' ? {text:!item.canBook?'Booking unavailable':`${item.remaining} places left${!item.remaining&&item.waitlist?' · waiting list':''}`,full:!item.remaining} : item.listing === 'live' ? livePlaces(item) : places(item);
+    const mine = ['live','outdoor'].includes(item.listing) ? null : item.mine;
     // Listings without an approved photo get a calm kind-tinted art panel, never a stock image.
     return `${item.image ? `<div class="ex-card-media"><img src="${root}${item.image}" alt="${esc(item.imageAlt || '')}" loading="lazy"></div>` : `<div class="ex-card-media is-art" data-kind="${esc(item.kind)}" aria-hidden="true"><span>${icon(KIND_ICON[item.kind])}</span></div>`}
       <div class="ex-card-band"><span class="ex-kind">${icon(KIND_ICON[item.kind])}${esc(item.kindLabel)}</span>${trust(item)}</div>
       <div class="ex-card-body">
         <h3>${esc(item.title)}</h3>
-        <p class="ex-organiser">Run by ${esc(item.organizer)}</p>
+        <p class="ex-organiser">Organized by ${esc(item.organizer)}</p>
         <ul class="ex-facts">
           <li>${icon('i-calendar')}<span>${esc(when(item))}</span></li>
           <li>${icon(item.mode === 'online' ? 'i-globe' : item.mode === 'hybrid' ? 'i-compass' : 'i-pin')}<span>${esc(where(item))}</span></li>
           <li>${icon('i-users')}<span class="ex-places${place.full ? ' is-full' : ''}">${esc(place.text)}</span></li>
-          ${item.listing==='provider'?`<li>${icon('i-ticket')}<span>${esc(item.cost?.type==='Paid'?`${item.cost.price} ${item.cost.currency}`:'Free')}</span></li>`:''}
+          ${item.listing==='outdoor'?`<li>${icon('i-ticket')}<span>${esc(item.cost?.type==='Paid'?`${item.cost.price} ${item.cost.currency}`:'Free')}</span></li>`:''}
         </ul>
         <p class="ex-reveal">${esc(item.summary)}</p>
         <div class="ex-card-foot">
           <button type="button" class="ex-card-link" data-open="${item.id}" aria-label="${esc(`View ${item.title}`)}">View details ${icon('i-arrow')}</button>
-          ${mine ? statusChip(mine.status) : ''}${['live','provider'].includes(item.listing) && item.mine ? appChip(item.mine.status) : ''}
+          ${mine ? statusChip(mine.status) : ''}${['live','outdoor'].includes(item.listing) && item.mine ? appChip(item.mine.status) : ''}
         </div>
       </div>`;
   }
@@ -160,7 +160,7 @@
     applyFilters(false);
     const registered = account.allRegistrations().filter(entry => entry.status !== 'cancelled').length;
     const live = items.filter(item => item.listing === 'live').length;
-    $('ex-hero-meta').innerHTML = `<span>${icon('i-compass')}${items.length} listings</span><span>${icon('i-shield-check')}${live} live from approved partners</span>${registered ? `<span>${icon('i-check')}${registered} you’re registered for</span>` : ''}`;
+    $('ex-hero-meta').innerHTML = `<span>${icon('i-compass')}${items.length} listings</span><span>${icon('i-shield-check')}${live} live from verified institutions</span>${registered ? `<span>${icon('i-check')}${registered} you’re registered for</span>` : ''}`;
   }
 
   const matches = card => (filters.kind === 'all' || card.dataset.kind === filters.kind)
@@ -230,8 +230,8 @@
     const list = $('ex-mine-list');
     const entries = account.allRegistrations().filter(entry => entry.listing)
       .sort((a, b) => (a.status === 'cancelled') - (b.status === 'cancelled') || a.listing.startDate.localeCompare(b.listing.startDate));
-    const providerEntries=providerRegistrations();
-    if (!entries.length && !providerEntries) {
+    const outdoorEntries=activityRegistrations();
+    if (!entries.length && !outdoorEntries) {
       list.innerHTML = '<li><p class="ex-mine-empty">You haven’t registered for anything yet. When you do, it appears here with its real status.</p></li>';
       return;
     }
@@ -242,7 +242,7 @@
         <div><strong>${esc(item.title)}</strong><small>${esc(item.kindLabel)} · ${esc(when(item))} · ${esc(where(item))}${entry.reference ? ` · ${esc(entry.reference)}` : ''}${esc(attended)}</small></div>
         <div class="ex-mine-actions">${statusChip(entry.status)}<button type="button" class="ex-card-link" data-open="${item.id}" aria-label="${esc(`View ${item.title}`)}">View</button></div>
       </li>`;
-    }).join('')+providerEntries;
+    }).join('')+outdoorEntries;
   }
 
   /* -------------------------------------------------------------- the sheet */
@@ -320,7 +320,7 @@
     `<li class="${index < stage ? 'is-done' : index === stage ? 'is-now' : ''}"${index === stage ? ' aria-current="step"' : ''}>${label}</li>`).join('')}</ol>`;
 
   function showDetail() {
-    if (current?.listing === 'provider') { showProviderDetail(); return; }
+    if (current?.listing === 'outdoor') { showActivityDetail(); return; }
     if (current?.listing === 'live') { showLiveDetail(); return; }
     const item = current;
     const place = places(item);
@@ -347,7 +347,7 @@
       kind: { icon: KIND_ICON[item.kind], label: item.kindLabel },
       badge: trust(item),
       title: item.title,
-      by: `Run by <strong>${esc(item.organizer)}</strong>${item.listing === 'verified' ? ' · organiser verified by DeepSprout' : ' · sample listing in this preview'}`,
+      by: `Organized by <strong>${esc(item.organizer)}</strong>${item.listing === 'verified' ? ' · organiser verified by DeepSprout' : ' · sample listing in this preview'}`,
       lead: item.summary,
       facts: [
         ['When', esc(when(item)), 'i-calendar'],
@@ -427,7 +427,7 @@
     const outcome = account.registrationOutcome(item.id);
     const rows = [
       ['What', `${item.kindLabel}: ${item.title}`],
-      ['Run by', item.organizer],
+      ['Organized by', item.organizer],
       ['When', `${when(item)} · ${item.timezone}`],
       ['Where', draft.attend === 'online' || item.mode === 'online' ? 'Online' : item.venue],
       ['Name', draft.name],
@@ -474,7 +474,7 @@
     const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//DeepSprout//Explore//EN', 'BEGIN:VEVENT',
       `UID:${ref}@deepsprout`, `DTSTAMP:${stamp(account.todayKey)}T000000Z`, `DTSTART;TZID=Asia/Amman:${start}`, end,
       `SUMMARY:${item.title}`, `LOCATION:${item.mode === 'online' ? 'Online' : item.venue}`,
-      `DESCRIPTION:Booking reference ${ref}. Run by ${item.organizer}.`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+      `DESCRIPTION:Booking reference ${ref}. Organized by ${item.organizer}.`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
     return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
   }
 
@@ -499,7 +499,7 @@
       <dl class="ex-review">
         <div><dt>When</dt><dd>${esc(when(item))} · ${esc(item.timezone)}</dd></div>
         <div><dt>Where</dt><dd>${esc(draft.attend === 'online' || item.mode === 'online' ? 'Online' : item.venue)}</dd></div>
-        <div><dt>Run by</dt><dd>${esc(item.organizer)}</dd></div>
+        <div><dt>Organized by</dt><dd>${esc(item.organizer)}</dd></div>
       </dl>
       <h3>What happens next</h3>
       <ul class="ex-next">${next.map(line => `<li>${icon('i-arrow')}<span>${esc(line)}</span></li>`).join('')}</ul>
@@ -514,31 +514,31 @@
     });
   }
 
-  /* Provider views read the same operational records as owner and Supervisor. */
-  function providerRegistrations(){
+  /* Outdoor Activity views read the same booking records as the organizing Institution and its Supervisors. */
+  function activityRegistrations(){
     const r=Repo(),me=r?.me();if(!me)return '';
-    return r.selectors.myProviderBookings(r.read(),me.id).map(b=>`<li class="ex-mine-item" data-booking-id="${esc(b.id)}"><div><strong>${esc(b.experience.title)}</strong><small>${esc(b.experience.organizer)} · ${esc(b.id)} · ${esc(b.status)}</small></div><div class="ex-mine-actions">${appChip(b.status)}<button class="ex-card-link" data-open="${esc(b.experienceId)}">View booking</button></div></li>`).join('');
+    return r.selectors.myActivityBookings(r.read(),me.id).map(b=>`<li class="ex-mine-item" data-booking-id="${esc(b.id)}"><div><strong>${esc(b.experience.title)}</strong><small>${esc(b.experience.organizer)} · ${esc(b.id)} · ${esc(b.status)}</small></div><div class="ex-mine-actions">${appChip(b.status)}<button class="ex-card-link" data-open="${esc(b.experienceId)}">View booking</button></div></li>`).join('');
   }
-  function showProviderDetail(){
+  function showActivityDetail(){
     const r=Repo(),me=r?.me();current=liveById(current.id)||current;
-    const e=current,b=r.selectors.myProviderBookings(r.read(),me?.id).filter(b=>b.experienceId===e.id).at(-1);
+    const e=current,b=r.selectors.myActivityBookings(r.read(),me?.id).filter(b=>b.experienceId===e.id).at(-1);
     const needsReconfirmation=b&&['Waitlisted','Seat Offered','Pending Approval'].includes(b.status)&&b.eligibility?.version!==e.version;
     const registered=b&&!['Cancelled','Rejected','Declined','Offer Expired'].includes(b.status);
-    const bookingHtml=b?`<section class="exd-booking" data-provider-booking="${esc(b.id)}"><p class="exd-booking-head"><span>Your booking</span>${esc(b.status)}</p><p class="exd-ref-line">Booking reference <strong class="ex-code">${esc(b.id)}</strong></p>${b.terms?`<details class="exd-terms"><summary>Agreed terms · version ${b.terms.version}</summary><p>${esc(b.terms.consent)} · ${esc(b.terms.completion)} · ${esc(b.terms.cancellation)}</p><p>${esc(b.terms.cost?.type==='Paid'?`${b.terms.cost.price} ${b.terms.cost.currency} · simulated payment`:'Free')}</p></details>`:''}${b.offer?.status==='Offered'?`<div class="exd-offer"><p>A seat is held for you until ${esc(b.offer.expires)} · <span data-countdown="${esc(b.offer.expires)}">${esc(countdown(b.offer.expires))}</span></p>${e.canBook&&!needsReconfirmation?'<button class="ex-button" data-provider-action="accept">Accept seat offer</button>':''}<button class="ex-button is-quiet" data-provider-action="decline">Decline offer</button></div>`:''}
+    const bookingHtml=b?`<section class="exd-booking" data-activity-booking="${esc(b.id)}"><p class="exd-booking-head"><span>Your booking</span>${esc(b.status)}</p><p class="exd-ref-line">Booking reference <strong class="ex-code">${esc(b.id)}</strong></p>${b.terms?`<details class="exd-terms"><summary>Agreed terms · version ${b.terms.version}</summary><p>${esc(b.terms.consent)} · ${esc(b.terms.completion)} · ${esc(b.terms.cancellation)}</p><p>${esc(b.terms.cost?.type==='Paid'?`${b.terms.cost.price} ${b.terms.cost.currency} · simulated payment`:'Free')}</p></details>`:''}${b.offer?.status==='Offered'?`<div class="exd-offer"><p>A seat is held for you until ${esc(b.offer.expires)} · <span data-countdown="${esc(b.offer.expires)}">${esc(countdown(b.offer.expires))}</span></p>${e.canBook&&!needsReconfirmation?'<button class="ex-button" data-activity-action="accept">Accept seat offer</button>':''}<button class="ex-button is-quiet" data-activity-action="decline">Decline offer</button></div>`:''}
       ${b.status==='Waitlisted'?'<p class="ex-muted">You are on the waiting list. No place is held until one opens; you are then offered it in order.</p>':''}
       ${e.canAttend&&['Confirmed','Checked In','Completed'].includes(b.status)?e.sessions.filter(ss=>ss.format!=='Online'&&(b.sessionModes[ss.id]||b.mode)!=='Online').map(ss=>`<div class="ex-credential" data-session-id="${esc(ss.id)}"><strong>${esc(ss.title)}</strong>${qrSvg(`${b.credential}|${ss.id}`)}<p>Booking code: <strong>${esc(b.credential)}</strong> · session ${esc(ss.id)}</p></div>`).join(''):''}
       ${b.attendance.length?`<ul class="exd-list">${b.attendance.map(a=>`<li>${esc(e.sessions.find(ss=>ss.id===a.sessionId)?.title||a.sessionId)}: ${esc(a.status)} · ${esc(a.method)}</li>`).join('')}</ul>`:''}
       ${b.completion?`<p>Camp completion: ${esc(b.completion.status)} · ${esc(b.completion.id)}</p>`:''}
-      ${b.canCancel?'<button class="ex-button is-quiet" data-provider-action="cancel">Cancel booking</button>':''}</section>`:'';
-    const formHtml=(!registered||needsReconfirmation)&&e.canBook&&me?`<form class="ex-form" data-provider-book><h3>${needsReconfirmation?'Reconfirm updated terms':e.remaining?'Book a place':'Join the waiting list'}</h3><label class="ex-field">Your age<input name="age" type="number" min="1" max="120" required></label><label class="ex-field">Participation mode<select name="mode">${(e.modes.includes('Hybrid')?['In-person','Online']:e.modes).map(m=>`<option>${esc(m)}</option>`).join('')}</select></label>${e.sessions.filter(ss=>ss.format==='Hybrid').map(ss=>`<label class="ex-field">${esc(ss.title)} mode<select name="mode-${esc(ss.id)}"><option>In-person</option><option>Online</option></select></label>`).join('')}${(e.participantForm?.questions||[]).map(q=>`<label class="ex-field">${esc(q.label)}${q.type==='choice'?`<select name="q-${esc(q.id)}" ${q.required?'required':''}><option value="">Choose</option>${q.options.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:`<input name="q-${esc(q.id)}" ${q.required?'required':''}>`}</label>`).join('')}<label class="ex-consent"><input name="consent" type="checkbox" required><span>${esc(e.consent)} · form/consent version ${e.participantForm?.version||1}</span></label>${e.cost?.type==='Paid'?`<label class="ex-consent"><input name="payment" type="checkbox" required><span>I understand the ${esc(costText(e))}.</span></label>`:''}<p class="ex-error" role="alert" hidden></p><button class="ex-button">${needsReconfirmation?'Reconfirm this booking':e.remaining?'Confirm booking':'Join waiting list'}</button></form>`:!me?signInNote():'';
+      ${b.canCancel?'<button class="ex-button is-quiet" data-activity-action="cancel">Cancel booking</button>':''}</section>`:'';
+    const formHtml=(!registered||needsReconfirmation)&&e.canBook&&me?`<form class="ex-form" data-activity-book><h3>${needsReconfirmation?'Reconfirm updated terms':e.remaining?'Book a place':'Join the waiting list'}</h3><label class="ex-field">Your age<input name="age" type="number" min="1" max="120" required></label><label class="ex-field">Participation mode<select name="mode">${(e.modes.includes('Hybrid')?['In-person','Online']:e.modes).map(m=>`<option>${esc(m)}</option>`).join('')}</select></label>${e.sessions.filter(ss=>ss.format==='Hybrid').map(ss=>`<label class="ex-field">${esc(ss.title)} mode<select name="mode-${esc(ss.id)}"><option>In-person</option><option>Online</option></select></label>`).join('')}${(e.participantForm?.questions||[]).map(q=>`<label class="ex-field">${esc(q.label)}${q.type==='choice'?`<select name="q-${esc(q.id)}" ${q.required?'required':''}><option value="">Choose</option>${q.options.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:`<input name="q-${esc(q.id)}" ${q.required?'required':''}>`}</label>`).join('')}<label class="ex-consent"><input name="consent" type="checkbox" required><span>${esc(e.consent)} · form/consent version ${e.participantForm?.version||1}</span></label>${e.cost?.type==='Paid'?`<label class="ex-consent"><input name="payment" type="checkbox" required><span>I understand the ${esc(costText(e))}.</span></label>`:''}<p class="ex-error" role="alert" hidden></p><button class="ex-button">${needsReconfirmation?'Reconfirm this booking':e.remaining?'Confirm booking':'Join waiting list'}</button></form>`:!me?signInNote():'';
     const completion=`${e.completion}${e.completionRule?.kind==='minimum'?` · at least ${e.completionRule.minimum} qualifying sessions`:''}${e.completionRule?.conditions?` · ${e.completionRule.conditions}`:''}`;
     view(frame({
-      wrap:'data-provider-view="detail"',
+      wrap:'data-activity-view="detail"',
       media:e.image?{src:`${root}${e.image}`,alt:e.imageAlt}:null,
-      kind:{icon:'i-tent',label:e.type||'Experience'},
+      kind:{icon:'i-tent',label:e.kindLabel||'Outdoor Activity'},
       badge:trust(e),
       title:e.title,
-      by:`Run by <strong>${esc(e.organizer)}</strong>`,
+      by:`Organized by <strong>${esc(e.organizer)}</strong> · verified institution`,
       lead:e.description,
       facts:[
         ['When',esc(dateRange(e.startDate,e.endDate)),'i-calendar'],
@@ -547,7 +547,7 @@
         ['Places',e.canBook?`${e.remaining?`${esc(e.remaining)} ${e.remaining===1?'place':'places'} left`:'Full'}${e.waitlist?' · waiting list open':''}`:'Booking unavailable','i-users'],
         ['Cost',esc(costText(e)),'i-ticket']
       ],
-      action:`${bookingHtml}${formHtml}<p class="ex-error" data-provider-error role="alert" hidden></p>`,
+      action:`${bookingHtml}${formHtml}<p class="ex-error" data-activity-error role="alert" hidden></p>`,
       sections:[
         section('Schedule',`<ol class="exd-timeline">${e.sessions.map(ss=>`<li><span class="exd-when">${esc(fmtDay(ss.date))} · ${esc(ss.time)}–${esc(ss.endTime)}</span><strong>${esc(ss.title)}</strong><small>${esc(ss.format)}${ss.needsSupervisor?' · Supervisor attends':''}</small></li>`).join('')}</ol>`),
         section('Who can join',`<p>${esc(e.eligibility||'Not specified')}</p>${e.accessibility?`<p class="ex-muted">Accessibility: ${esc(e.accessibility)}</p>`:''}`),
@@ -556,14 +556,14 @@
       ],
       foot:`Times in ${esc(e.timezone||'Asia/Amman')} · listing version ${e.version||1}`
     }));
-    body.querySelector('[data-provider-book]')?.addEventListener('submit',event=>{
+    body.querySelector('[data-activity-book]')?.addEventListener('submit',event=>{
       event.preventDefault();const f=event.currentTarget;
-      try{r.run(needsReconfirmation?'member.booking.reconfirm':'member.experience.book',{id:needsReconfirmation?b.id:undefined,experienceId:e.id,version:e.version||1,answers:Object.fromEntries((e.participantForm?.questions||[]).map(q=>[q.id,f.elements[`q-${q.id}`]?.value||''])),sessionModes:Object.fromEntries(e.sessions.filter(ss=>ss.format==='Hybrid').map(ss=>[ss.id,f.elements[`mode-${ss.id}`].value])),age:Number(f.elements.age.value),mode:f.elements.mode.value,consent:f.elements.consent.checked,paymentConfirmed:f.elements.payment?.checked});renderGrid();renderMine();showProviderDetail();}
+      try{r.run(needsReconfirmation?'member.booking.reconfirm':'member.experience.book',{id:needsReconfirmation?b.id:undefined,experienceId:e.id,version:e.version||1,answers:Object.fromEntries((e.participantForm?.questions||[]).map(q=>[q.id,f.elements[`q-${q.id}`]?.value||''])),sessionModes:Object.fromEntries(e.sessions.filter(ss=>ss.format==='Hybrid').map(ss=>[ss.id,f.elements[`mode-${ss.id}`].value])),age:Number(f.elements.age.value),mode:f.elements.mode.value,consent:f.elements.consent.checked,paymentConfirmed:f.elements.payment?.checked});renderGrid();renderMine();showActivityDetail();}
       catch(error){const n=f.querySelector('.ex-error');n.textContent=error.message;n.hidden=false;}
     });
-    body.querySelectorAll('[data-provider-action]').forEach(button=>button.addEventListener('click',()=>{
-      try{const kind=button.dataset.providerAction;r.run(kind==='cancel'?'member.booking.cancel':`member.booking.offer.${kind}`,{id:kind==='cancel'?b.id:b.offer.id});renderGrid();renderMine();showProviderDetail();}
-      catch(error){const n=body.querySelector('[data-provider-error]');n.textContent=error.message;n.hidden=false;}
+    body.querySelectorAll('[data-activity-action]').forEach(button=>button.addEventListener('click',()=>{
+      try{const kind=button.dataset.activityAction;r.run(kind==='cancel'?'member.booking.cancel':`member.booking.offer.${kind}`,{id:kind==='cancel'?b.id:b.offer.id});renderGrid();renderMine();showActivityDetail();}
+      catch(error){const n=body.querySelector('[data-activity-error]');n.textContent=error.message;n.hidden=false;}
     }));
   }
 
@@ -594,14 +594,14 @@
       if (mine) action += `<span class="ex-muted">Your previous application ${esc(mine.code)} is ${esc(APP_STATUS[mine.status]?.label.toLowerCase() || mine.status)}.</span>`;
     }
     const sessions = item.sessions.filter(ss => ss.status === 'Published');
-    const policies = [['Admission', item.policies.admission], ['Waiting list', item.waitlist ? `Seats are offered in order and held for ${item.offerHours} hours (configurable demo default).` : 'No waiting list.'], ['Withdrawal', item.withdrawal], ['Attendance', item.policies.attendance], ['Excuses', item.policies.excuse], ['Conduct', item.policies.discipline], ['Privacy', item.policies.privacy], ['Notices', item.policies.notifications]].filter(([, v]) => v);
+    const policies = [['Admission', item.policies.admission], ['Waiting list', item.waitlist ? item.offerManual ? 'Seats are offered in order. The institution decides when an unaccepted offer ends.' : `Seats are offered in order and held for ${item.offerHours} hours.` : 'No waiting list.'], ['Withdrawal', item.withdrawal], ['Attendance', item.policies.attendance], ['Excuses', item.policies.excuse], ['Conduct', item.policies.discipline], ['Privacy', item.policies.privacy], ['Notices', item.policies.notifications]].filter(([, v]) => v);
     view(frame({
       wrap: 'data-live-view="detail"',
       media: item.image ? { src: `${root}${item.image}`, alt: item.imageAlt } : null,
       kind: { icon: 'i-flag', label: `Initiative · ${item.topic}` },
       badge: trust(item),
       title: item.title,
-      by: `Run by <strong>${esc(item.organizer)}</strong> · institution verified by DeepSprout`,
+      by: `Organized by <strong>${esc(item.organizer)}</strong> · institution verified by DeepSprout`,
       lead: item.summary,
       facts: [
         ['When', esc(when(item)), 'i-calendar'],
@@ -616,8 +616,8 @@
         section('What it’s for', `<p>${esc(item.objective)}</p>${item.description ? `<p>${esc(item.description)}</p>` : ''}`),
         section('Who can join', `<p>${esc(item.eligibility)}</p><p class="ex-muted">Eligible area: ${esc(item.coverage || item.country)}</p>`),
         item.requirements ? section('What it asks of you', `<p>${esc(item.requirements)}</p>`) : '',
-        section('Its parts', `<ol class="exd-timeline">${item.components.map(part => `<li><span class="exd-when">Anytime</span><strong>${esc(part.title)}</strong><small>${esc(part.type)}</small></li>`).join('')}${sessions.map(ss => `<li><span class="exd-when">${esc(fmtDay(ss.date))} · ${esc(ss.time)}</span><strong>${esc(ss.title)}</strong><small>Session · ${esc(ss.format)}</small></li>`).join('')}</ol>`, tip('initiative parts', 'Joining is not booking. Accepted students register for each session separately.')),
-        providerLinks(item),
+        section('Its parts', `<ol class="exd-timeline">${item.components.map(part => `<li><span class="exd-when">${part.planned ? 'Planned' : 'Anytime'}</span><strong>${esc(part.title)}</strong><small>${esc(part.type)}${part.planned ? ' · details to follow' : ''}</small></li>`).join('')}${sessions.map(ss => `<li><span class="exd-when">${esc(fmtDay(ss.date))} · ${esc(ss.time)}</span><strong>${esc(ss.title)}</strong><small>Session · ${esc(ss.format)}</small></li>`).join('')}</ol>`, tip('initiative parts', 'Published sessions have their own registration and places. Planned parts will receive details later.')),
+        outdoorLinks(item),
         `<div class="ex-commit exd-commit"><p><strong>Joining is not booking.</strong> Attendance is confirmed by a Supervisor on the day, and completion follows the published criteria: ${esc(item.policies.completion || 'see the institution’s rules')}.</p></div>`,
         `<details class="ex-policy ds-disclosure"><summary>Participation rules &amp; privacy</summary><dl class="ex-review">${policies.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></details>`
       ],
@@ -750,7 +750,7 @@
     switch (a.status) {
       case 'Pending': return 'Waiting for one review by the Representative or an active Supervisor. Pending applications don’t hold a seat.';
       case 'Queued': return `You’re eligible and on the waiting list${a.position ? ` — position ${a.position}` : ''}. You’ll be offered a seat when one opens.`;
-      case 'Offered': return `A seat is held for you. Accept before it expires (<span data-countdown="${esc(a.offer.expires)}">${esc(countdown(a.offer.expires))}</span>).`;
+      case 'Offered': return a.offer?.expires ? `A seat is held for you. Accept before it expires (<span data-countdown="${esc(a.offer.expires)}">${esc(countdown(a.offer.expires))}</span>).` : 'A seat is held for you. This offer has no automatic expiry.';
       case 'Accepted': return entry.group ? `You’re in ${esc(entry.group.name)}${entry.group.coach ? ` with Coach ${esc(entry.group.coach)}` : ' · Coach to be assigned'}.` : 'You’re accepted. Your group will be assigned by the institution.';
       case 'Suspended': return `Participation is suspended. ${esc(last?.reason || '')} Your history is kept.`;
       case 'Completed': return 'Completed — recorded in your participation history.';
@@ -783,7 +783,7 @@
     return `<li class="ex-session"><div class="ex-session-head"><div><strong>${esc(ss.title)}</strong><small>${esc(sessionWhen(ss))} · ${esc(ss.format)}${ss.venue ? ` · ${esc(ss.venue)}` : ''}</small></div><div class="ex-mine-actions">${actions}</div></div>${credential}${excuse}<div class="ex-excuse-slot" data-slot="${ss.attendance?.id || ''}"></div></li>`;
   }
 
-  function providerLinks(item){return item.linkedExperiences?.length?`<h3>Accepted Provider partnerships · booked separately</h3><ul class="ex-parts">${item.linkedExperiences.map(e=>`<li><span>${esc(e.title)} · ${esc(e.organizer)} · ${e.remaining} places</span><button type="button" class="ex-card-link" data-open="${esc(e.id)}">View Provider experience</button></li>`).join('')}</ul>`:'';}
+  function outdoorLinks(item){return item.linkedExperiences?.length?`<h3>Outdoor Activities in this initiative · booked separately</h3><ul class="ex-parts">${item.linkedExperiences.map(e=>`<li><span>${esc(e.title)} · ${esc(e.organizer)} · ${e.remaining} places</span><button type="button" class="ex-card-link" data-open="${esc(e.id)}">View Outdoor Activity</button></li>`).join('')}</ul>`:'';}
 
   function renderMyInitiatives() {
     const host = $('ex-my-initiatives');
@@ -810,7 +810,7 @@
         <details class="ex-initiative-body" data-details="${a.id}"${open ? ' open' : ''}><summary>Sessions, tasks and history</summary>
           ${entry.sessions.length ? `<h4>Sessions</h4><ol class="ex-session-list">${entry.sessions.map(ss => sessionBlock(entry, ss)).join('')}</ol>` : '<p class="ex-muted">No published sessions yet.</p>'}
           <h4>Coach tasks</h4>${tasks.length ? `<p>${tasks.filter(t => t.status === 'Approved').length} of ${tasks.length} approved · ${tasks.filter(t => ['Assigned', 'In Progress', 'Needs Revision'].includes(t.status)).length} to do. <a class="ex-inline-link" href="${root}src/pages/member/training/training.html#assigned">Open Activities → Assigned</a></p>` : '<p class="ex-muted">No tasks assigned yet.</p>'}
-          ${providerLinks(item)}${formsBlock(entry)}${competitionsBlock(entry)}
+          ${outdoorLinks(item)}${formsBlock(entry)}${competitionsBlock(entry)}
           ${entry.completion ? `<p class="ex-complete">${icon('i-check')} ${entry.completion.status} · ${esc(fmt.date(Account.parse(entry.completion.at.slice(0, 10)), { year: true }))}. Completion is recorded in your history and Insights; it doesn’t add a Garden object.</p>` : ''}
           <h4>Decision history</h4><ol class="ex-history">${a.history.map(h => `<li><span>${esc(fmt.date(Account.parse(String(h.at).slice(0, 10))))}</span><span>${esc(h.to || '')}${h.reason ? ` — ${esc(h.reason)}` : ''}</span></li>`).join('')}</ol>
           ${live ? `<div class="ex-sheet-actions"><button type="button" class="ex-button is-danger ex-small" data-withdraw="${a.id}">Withdraw from this initiative</button></div>` : ''}
@@ -918,11 +918,11 @@
     // Another workspace (or tab) changed a shared record: re-read, never cache.
     window.addEventListener('deepsprout:repo', () => {
       renderGrid(); renderMine(); renderMyInitiatives();
-      if(sheet.open&&current?.listing==='provider'&&body.querySelector('[data-provider-view=detail]'))showProviderDetail();
+      if(sheet.open&&current?.listing==='outdoor'&&body.querySelector('[data-activity-view=detail]'))showActivityDetail();
       if (sheet.open && current?.listing === 'live' && body.querySelector('[data-live-view="detail"]')) { current = liveById(current.id) || current; showLiveDetail(); }
     });
     const subject=window.DeepSproutPersonal?.subject();
-    setInterval(() => {if(window.DeepSproutPersonal?.subject()!==subject)return;document.querySelectorAll('[data-countdown]').forEach(node=>{const text=countdown(node.dataset.countdown);node.textContent=text;if(text==='expired'&&current?.listing==='provider'){renderMine();showProviderDetail();}});},30000);
+    setInterval(() => {if(window.DeepSproutPersonal?.subject()!==subject)return;document.querySelectorAll('[data-countdown]').forEach(node=>{const text=countdown(node.dataset.countdown);node.textContent=text;if(text==='expired'&&current?.listing==='outdoor'){renderMine();showActivityDetail();}});},30000);
   }).catch(() => {
     $('ex-count').textContent = 'Listings couldn’t be loaded, so none are shown.';
   });

@@ -12,12 +12,12 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
   const STATE_LABELS = { completed: 'Completed', missed: 'Missed', rest: 'Planned rest day', 'not-due': 'Not due yet', none: 'Nothing scheduled' };
 
-  const paintProviderExperiences=()=>{
+  const paintOutdoorActivities=()=>{
     const r=window.DeepSproutRepo,host=$('provider-outdoors-list');if(!r||!host)return;
-    const items=r.selectors.exploreProviderExperiences(r.read(),r.me()?.id).slice(0,3);$('provider-outdoors').hidden=!items.length;
-    host.innerHTML=items.map(e=>`<a class="event-card" data-experience-id="${esc(e.id)}" href="${r.selectors.providerBookingLink(e.id)}"><img class="event-image" src="${esc(e.image)}" alt=""><div class="event-body"><span class="event-kind">${esc(e.type)}</span><strong>${esc(e.title)}</strong><p>${esc(e.organizer)} · ${esc(e.city)} · ${esc(e.start)}</p><span>${e.canBook?`${e.remaining} places available`:'Booking unavailable'}</span></div></a>`).join('');
+    const items=r.selectors.exploreOutdoorActivities(r.read(),r.me()?.id).slice(0,3);$('provider-outdoors').hidden=!items.length;
+    host.innerHTML=items.map(e=>`<a class="event-card" data-experience-id="${esc(e.id)}" href="${r.selectors.activityBookingLink(e.id)}"><img class="event-image" src="${esc(e.image)}" alt=""><div class="event-body"><span class="event-kind">${esc(e.kindLabel||e.type)}</span><strong>${esc(e.title)}</strong><p>Organized by ${esc(e.organizer)} · ${esc(e.city)} · ${esc(e.start)}</p><span>${e.canBook?`${e.remaining} places available`:'Booking unavailable'}</span></div></a>`).join('');
   };
-  window.addEventListener('deepsprout:repo-ready',paintProviderExperiences);window.addEventListener('deepsprout:repo',paintProviderExperiences);paintProviderExperiences();
+  window.addEventListener('deepsprout:repo-ready',paintOutdoorActivities);window.addEventListener('deepsprout:repo',paintOutdoorActivities);paintOutdoorActivities();
 
   /* ---------------------------------------------------------- the spaces */
 
@@ -85,6 +85,69 @@
 
   const check = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
 
+  /* ------------------------------------------- Journey Level 0 (Onboarding 2.0) */
+
+  // A motivational starting point after the six questions: a preliminary Week 1 proposal built only
+  // from the person's own answers. No usage data, scores or percentages are invented; nothing is active.
+  const SETUP_LABELS = {
+    apps: { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube / Shorts', facebook: 'Facebook', x: 'X', snapchat: 'Snapchat', other: 'other apps' },
+    scroll: { 'under-60': 'less than 1 hour', '60-120': '1–2 hours', '120-240': '2–4 hours', 'over-240': 'more than 4 hours', 'under-30': 'under 30 minutes', '30-60': '30–60 minutes', '120-180': '2–3 hours', 'over-180': 'more than 3 hours' },
+    moments: { 'before-bed': 'before bed', morning: 'in the morning', 'study-work': 'during study or work', bored: 'when boredom hits', 'late-night': 'late at night', evening: 'in the evening', afternoon: 'in the afternoon' }
+  };
+  const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const SHORT_ACTIVITY = { 'walking-sports': 'Walk or move', 'reading-learning': 'Read or learn', 'drawing-creativity': 'Draw or make', 'friends-family': 'Time together', hobbies: 'Hobby time', other: 'Offline time' };
+
+  function renderLevelZero(account) {
+    const profile = account.profile();
+    const setup = profile.setup || {};
+    const draft = account.preview() || {};
+    const minutes = Number(setup.dailyMinutes) || Number(draft.commitment?.durationMinutes) || Number(draft.minutes) || 10;
+    const activity = draft.commitment?.title || `${minutes} minutes of something offline`;
+    const practices = Math.min(5, Math.max(2, Number(draft.days) || 3));
+    const slots = Array.from({ length: practices }, (_, i) => Math.round(i * 6 / practices));
+    const start = account.today || new Date();
+    // The days rotate through the activities the person said they would love more time for.
+    const chosen = (setup.makeTimeFor || []).map(key => SHORT_ACTIVITY[key]).filter(Boolean);
+    const rotation = chosen.length ? chosen : ['Offline time'];
+    const days = Array.from({ length: 7 }, (_, offset) => {
+      const date = new Date(start); date.setDate(date.getDate() + offset);
+      const practice = slots.includes(offset) && offset !== 6;
+      return `<li class="${offset === 0 ? 'is-first' : ''}"><b>${offset === 0 ? 'Day 1' : WEEKDAYS[date.getDay()]}</b><span>${esc(rotation[offset % rotation.length])}</span><small>${minutes} min, offline</small><small>${offset === 6 ? '+ short weekly review' : practice ? `+ ${Math.min(15, minutes)}-min practice` : 'Nothing else'}</small></li>`;
+    }).join('');
+    const apps = (setup.distracting || []).map(key => SETUP_LABELS.apps[key] || key);
+    const moment = SETUP_LABELS.moments[setup.peakTime];
+    const scroll = SETUP_LABELS.scroll[setup.baselineMinutes];
+    const reasons = [
+      `<li><strong>Your goal</strong>${esc(profile.goal?.label || '')}</li>`,
+      moment ? `<li><strong>Your tricky moment</strong>Scrolling takes over ${esc(moment)}. Week 1 keeps one small offline thing ready for that time.</li>` : '',
+      apps.length ? `<li><strong>Apps you named</strong>${esc(apps.join(', '))}. Digital Shield can help in a supported desktop browser; it cannot block phone apps.</li>` : '',
+      scroll ? `<li><strong>Your estimate</strong>About ${esc(scroll)} of scrolling a day — self-reported, not measured.</li>` : ''
+    ].join('');
+    $('week-eyebrow').textContent = 'Journey Level 0 · New Beginning';
+    $('week-heading').textContent = 'Your first week, ready when you are';
+    $('week-sub').textContent = 'A gentle Week 1 proposal built from your six answers. Nothing has started yet.';
+    const chip = $('goal-chip');
+    chip.textContent = profile.goal?.label || '';
+    chip.hidden = !profile.goal;
+    $('week-active').hidden = true;
+    const host = $('week-empty');
+    host.hidden = false;
+    host.classList.add('is-level-zero');
+    host.innerHTML = `<div class="level0">
+      <div class="level0-main">
+        <div class="level0-head"><span class="level0-badge" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 34V21"/><path d="M20 23c-8 0-12-5-12-12 8 0 12 5 12 12Z"/><path d="M20 20c0-7 5-11 12-11 0 7-5 11-12 11Z"/></svg></span>
+          <div><h3 id="level0-title">Week 1 proposal</h3><p>${minutes} minutes a day for ${esc(rotation.map(a => a.toLowerCase()).join(', '))}, starting with <b>${esc(activity.charAt(0).toLowerCase() + activity.slice(1))}</b>. Plus ${practices} short practices across the week.</p></div></div>
+        <ol class="level0-days" aria-labelledby="level0-title">${days}</ol>
+        <div class="level0-actions"><a class="week-cta" href="src/pages/member/onboarding/starting-point.html">Review &amp; activate Week 1 <span aria-hidden="true">→</span></a><a class="level0-link" href="src/pages/member/onboarding/onboarding.html?step=setup">Change my answers</a></div>
+      </div>
+      <aside class="level0-side" aria-label="Your starting point">
+        <dl class="level0-status"><div><dt>Journey level</dt><dd>Level 0 · New Beginning</dd></div><div><dt>Assessment status</dt><dd>Not established yet</dd></div><div><dt>Plan</dt><dd>Not active — you choose when it starts</dd></div></dl>
+        <ul class="level0-why">${reasons}</ul>
+        <p class="level0-note">Level 0 is a starting point, not a measure of attention, ability or wellbeing. Optional check-ins live in the <a href="src/pages/member/lab/lab.html">Lab</a>.</p>
+      </aside>
+    </div>`;
+  }
+
   function renderWeek(account) {
     const fmt = Account.format;
     const plan = account.plan();
@@ -93,6 +156,7 @@
     $('week-active').hidden = !plan;
     $('week-empty').hidden = Boolean(plan);
 
+    if (!plan && account.profile().setup && account.profile().goal) { renderLevelZero(account); return; }
     if (!plan) {
       // The genuine empty state: three steps, each showing its real status.
       const profile = account.profile();
@@ -102,10 +166,11 @@
         plan: false
       };
       const steps = [
-        ['setup', 'Answer a few setup questions', 'Your goal, your hardest times, the days you have.', 'src/pages/member/onboarding/onboarding.html'],
-        ['checkin', `Take your starting ${Account.NAMES.checkIn.toLowerCase()}`, 'Four short tasks: habits, attention, response control, reading depth.', 'src/pages/member/lab/lab.html'],
-        ['plan', 'Activate your four-week plan', 'Built from your answers and your starting point.', 'src/pages/member/onboarding/starting-point.html']
+        ['setup', 'Answer six quick questions', 'Your goal, the apps that pull you in, the time you have.', 'src/pages/member/onboarding/onboarding.html'],
+        ['story', 'Watch a short story', 'How attention drifts, and the way back.', 'hero-reels-lab.html?flow=onboarding'],
+        ['plan', 'Review your Week 1 proposal', 'You choose when it starts. No assessment needed.', 'src/pages/member/onboarding/starting-point.html']
       ];
+      done.story = false;
       const current = steps.find(([id]) => !done[id]);
       $('start-steps').innerHTML = steps.map(([id, title, note], index) => {
         const state = done[id] ? 'is-done' : id === current?.[0] ? 'is-current' : '';
@@ -118,7 +183,7 @@
         cta.innerHTML = `${current[0] === 'setup' ? 'Start your journey' : esc(current[1])} <span aria-hidden="true">→</span>`;
       }
       $('week-eyebrow').textContent = 'Getting started';
-      $('week-heading').textContent = 'Three steps before your plan begins';
+      $('week-heading').textContent = 'Three small steps to begin';
       $('week-sub').textContent = 'Your week appears here once your plan is active. Nothing is estimated before then.';
       $('goal-chip').hidden = true;
       return;

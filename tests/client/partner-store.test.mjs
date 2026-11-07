@@ -52,18 +52,18 @@ test('Institution publication, independent enrollment, hybrid capacity and ident
 });
 
 test('Cancellation → held offer → decline → next offer → acceptance cannot overbook',()=>{
- reset('p-sami');const s=read();s.bookings.push({id:'b-next',experienceId:'e-reset',personId:'p-maya',status:'Waitlisted',created:'2026-10-15',eligible:true,credential:''});snapshotForTests(s);
- assert.equal(seats(read(),'e-reset'),0);dispatch('provider.booking.cancel',{id:'b-omar'});let offer=read().offers.find(x=>x.status==='Offered');assert.equal(offer.personId,'p-rania');assert.equal(seats(read(),'e-reset'),0);
+ reset('p-maya');const s=read();s.bookings.push({id:'b-next',experienceId:'e-reset',personId:'p-maya',status:'Waitlisted',created:'2026-10-15',eligible:true,credential:''});snapshotForTests(s);
+ assert.equal(seats(read(),'e-reset'),0);dispatch('activity.booking.cancel',{id:'b-omar'});let offer=read().offers.find(x=>x.status==='Offered');assert.equal(offer.personId,'p-rania');assert.equal(seats(read(),'e-reset'),0);
  as('p-rania');dispatch('participant.offer.decline',{id:offer.id});offer=read().offers.find(x=>x.status==='Offered');assert.equal(offer.personId,'p-maya');
  as('p-maya');dispatch('participant.offer.accept',{id:offer.id});assert.equal(read().bookings.find(x=>x.id==='b-next').status,'Confirmed');assert.equal(occupied(read(),'e-reset'),2);assert.throws(()=>dispatch('participant.offer.accept',{id:offer.id}),/processed/);assert.throws(()=>dispatch('participant.book',{experienceId:'e-reset',age:22,consent:true}),/already have/);
 });
 
 test('Offer expiry is reconciled on read and a stale acceptance cannot claim the seat',()=>{
- reset('p-sami');dispatch('provider.booking.cancel',{id:'b-omar'});const state=read(),offer=state.offers[0];offer.expires='2000-01-01T00:00:00Z';snapshotForTests(state);as('p-rania');assert.throws(()=>dispatch('participant.offer.accept',{id:offer.id}),/processed/);assert.equal(read().offers[0].status,'Expired');assert.equal(seats(read(),'e-reset'),1);
+ reset('p-maya');dispatch('activity.booking.cancel',{id:'b-omar'});const state=read(),offer=state.offers[0];offer.expires='2000-01-01T00:00:00Z';snapshotForTests(state);as('p-rania');assert.throws(()=>dispatch('participant.offer.accept',{id:offer.id}),/processed/);assert.equal(read().offers[0].status,'Expired');assert.equal(seats(read(),'e-reset'),1);
 });
 
 test('Appointment acceptance, cohort eligibility, session attendance, duplicate credential and completion',()=>{
- reset('p-sami');dispatch('provider.appoint',{personId:'p-maya',experienceId:'e-reset',sessionIds:['es-walk','es-circle'],cohortPermission:true});const ap=read().appointments.at(-1);as('p-maya');assert(workspaces().includes('supervisor'));assert.throws(()=>dispatch('supervisor.attendance',{sessionId:'es-walk',credential:'DS-NOOR-24'}),/accepted appointment/);dispatch('supervisor.appointment.accept',{id:ap.id});
+ reset('p-maya');dispatch('activity.appoint',{personId:'p-maya',experienceId:'e-reset',sessionIds:['es-walk','es-circle'],cohortPermission:true});const ap=read().appointments.at(-1);as('p-maya');assert(workspaces().includes('supervisor'));assert.throws(()=>dispatch('supervisor.attendance',{sessionId:'es-walk',credential:'DS-NOOR-24'}),/accepted appointment/);dispatch('supervisor.appointment.accept',{id:ap.id});
  assert.throws(()=>dispatch('supervisor.cohort.save',{name:'Not eligible',experienceId:'e-reset',capacity:2,memberIds:['p-rania']}),/confirmed participants/);
  as('p-sami');assert.throws(()=>dispatch('supervisor.evaluate',{sessionId:'es-walk',personId:'p-noor',status:'Completed',notes:'Participated.'}),/attendance/);
  // v4 check-in window (16 Oct 2026): move the demo clock into each session's window before recording.
@@ -73,11 +73,11 @@ test('Appointment acceptance, cohort eligibility, session attendance, duplicate 
  dispatch('supervisor.evaluate',{sessionId:'es-walk',personId:'p-noor',status:'Completed',notes:'Participated in the walk.'});assert.equal(read().bookings[0].status,'Checked In');assert.equal(read().rewards.length,0);
  dispatch('demo.clock',{at:'2026-10-25T10:05:00+03:00'});dispatch('supervisor.attendance',{sessionId:'es-circle',personId:'p-noor',reason:'Demo paper roster confirmation.'});dispatch('supervisor.evaluate',{sessionId:'es-circle',personId:'p-noor',status:'Completed',notes:'Shared an intention.'});assert.equal(read().bookings[0].status,'Completed');assert.equal(read().rewards.length,1);
  dispatch('supervisor.evaluate',{sessionId:'es-circle',personId:'p-noor',status:'Completed',notes:'Reviewed without a change.'});assert.equal(read().rewards.length,1);
- dispatch('supervisor.report.submit',{experienceId:'e-reset',summary:'Both sessions completed. Attendance and criteria reviewed.',exceptions:'None.'});dispatch('provider.experience.close',{id:'e-reset'});assert.equal(read().experiences[0].status,'Completed');assert.equal(read().cohorts[0].status,'Archived');
+ dispatch('supervisor.report.submit',{experienceId:'e-reset',summary:'Both sessions completed. Attendance and criteria reviewed.',exceptions:'None.'});as('p-maya');dispatch('activity.experience.close',{id:'e-reset'});assert.equal(read().experiences[0].status,'Completed');assert.equal(read().cohorts[0].status,'Archived');
 });
 
-test('Partnership acceptance and resource link preserve provider ownership and aggregate scope',()=>{
- reset('p-sami');dispatch('provider.partnership.accept',{id:'part-trails'});dispatch('provider.partnership.link',{id:'part-trails',experienceId:'e-reset'});const state=read();assert.equal(state.partnerships[0].status,'Active');assert.equal(state.experiences[0].ownerId,'prov-trails');assert.equal(state.partnerships[0].scope,'Aggregate attendance and completion only');as('p-maya');assert.throws(()=>dispatch('provider.experience.cancel',{id:'e-reset'}),/no active provider/);
+test('Retired Provider partnerships stay as history; the Institution owns its Outdoor Activities directly',()=>{
+ reset('p-maya');const state=read();assert.equal(state.partnerships[0].status,'Retired');assert.equal(state.experiences[0].ownerId,'org-horizon');assert.throws(()=>dispatch('organization.partnership.request',{initiativeId:'i-today',providerId:'prov-trails',purpose:'x'}),/retired/);as('p-sami');assert.throws(()=>dispatch('activity.experience.cancel',{id:'e-reset',reason:'x'}),/Representative/);
 });
 
 test('Application info request → response → approval yields one identity and a new empty entity scope',()=>{
@@ -87,8 +87,8 @@ test('Application info request → response → approval yields one identity and
  as('p-leen');dispatch('admin.application.decide',{id:aid,status:'Approved'});as(applicant);assert(workspaces().includes('organization'));const org=read().organizations.find(o=>o.memberIds.includes(applicant));assert.equal(org.name,'New Youth Center');assert.equal(read().initiatives.filter(i=>i.ownerId===org.id).length,0);assert(!JSON.stringify(read()).includes('password'));
 });
 
-test('Scoped commands deny another Mentor group and another Provider booking',()=>{
- reset('p-maya');const state=read();state.groups.push({...state.groups[0],id:'g-other',ownerId:'p-omar'});state.experiences.push({...state.experiences[0],id:'e-other',ownerId:'provider-other'});state.bookings.push({...state.bookings[0],id:'b-other',experienceId:'e-other'});snapshotForTests(state);assert.throws(()=>dispatch('mentor.group.archive',{id:'g-other'}),/different Mentor/);as('p-sami');assert.throws(()=>dispatch('provider.booking.cancel',{id:'b-other'}),/another provider/);as('p-noor');assert.throws(()=>dispatch('participant.booking.cancel',{id:'b-omar'}),/another participant/);
+test('Scoped commands deny another Mentor group and another Institution’s booking',()=>{
+ reset('p-maya');const state=read();state.groups.push({...state.groups[0],id:'g-other',ownerId:'p-omar'});state.experiences.push({...state.experiences[0],id:'e-other',ownerId:'org-other'});state.bookings.push({...state.bookings[0],id:'b-other',experienceId:'e-other'});snapshotForTests(state);assert.throws(()=>dispatch('mentor.group.archive',{id:'g-other'}),/different Mentor/);assert.throws(()=>dispatch('activity.booking.cancel',{id:'b-other'}),/another institution/);as('p-noor');assert.throws(()=>dispatch('participant.booking.cancel',{id:'b-omar'}),/another participant/);
 });
 
 test('CMS constrained publishing and rollback, moderation audit and isolated reset',()=>{

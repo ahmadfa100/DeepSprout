@@ -104,9 +104,9 @@ test('A4 · Supervisor Flag/Escalate; Representative resolves; builder session d
   assert.equal(sessions.length, 1, 'no duplicate session'); assert.deepEqual(sessions[0].supervisorIds, ['p-hala'], 'only active Supervisors are kept');
 });
 
-test('B · Provider Supervisor: email appointment → new account → accept → scoped attendance → evaluation → closing report → revoke', () => {
-  reset('p-sami');
-  const token = dispatch('provider.appoint', {experienceId:'e-reset', email:'field.lead@demo.example', sessionIds:['es-walk'], cohortPermission:false});
+test('B · Outdoor Activity Supervisor: email appointment → new account → accept → scoped attendance → evaluation → closing report → revoke', () => {
+  reset('p-maya');
+  const token = dispatch('activity.appoint', {experienceId:'e-reset', email:'field.lead@demo.example', sessionIds:['es-walk'], cohortPermission:false});
   // Wrong identity cannot accept.
   as('p-zaid'); assert.match(err(() => dispatch('auth.appointment.accept', {token})), /issued to field.lead@demo.example/);
   // Expired link grants nothing.
@@ -133,18 +133,18 @@ test('B · Provider Supervisor: email appointment → new account → accept →
   assert.match(err(() => dispatch('supervisor.evaluate', {sessionId:'es-walk', personId:'p-omar', status:'Completed', notes:'x'})), /Present or Late/);
   dispatch('supervisor.evaluate', {sessionId:'es-walk', personId:'p-noor', status:'Completed', notes:'Took part in the full walk.'});
   dispatch('supervisor.report.submit', {experienceId:'e-reset', summary:'Walk completed; one participant left early.', exceptions:'Omar left early.'});
-  as('p-sami'); assert.ok(read().closingReports.some(r => r.supervisorId === lead), 'closing report visible to the Provider owner');
+  as('p-maya'); assert.ok(read().closingReports.some(r => r.supervisorId === lead), 'closing report visible to the owning Institution');
   // Camp completion needs every session completed; only then a birdhouse.
   assert.equal(personalGardenEffects(read(), 'p-noor').some(e => e.effect === 'birdhouse'), false);
-  at('2026-10-25T10:05:00+03:00'); dispatch('provider.attendance', {sessionId:'es-circle', credential:'DS-NOOR-24'}); dispatch('provider.evaluate', {sessionId:'es-circle', personId:'p-noor', status:'Completed', notes:'Shared an intention.'});
+  at('2026-10-25T10:05:00+03:00'); as('p-sami'); dispatch('supervisor.attendance', {sessionId:'es-circle', credential:'DS-NOOR-24'}); dispatch('supervisor.evaluate', {sessionId:'es-circle', personId:'p-noor', status:'Completed', notes:'Shared an intention.'}); as('p-maya');
   assert.equal(personalGardenEffects(read(), 'p-noor').filter(e => e.effect === 'birdhouse').length, 1, 'qualifying completion → one birdhouse');
   // Revocation stops operations; authored records stay.
-  dispatch('provider.appointment.revoke', {id:read().appointments.find(a => a.personId === lead).id, reason:'Season ended'});
+  dispatch('activity.appointment.revoke', {id:read().appointments.find(a => a.personId === lead).id, reason:'Season ended'});
   as(lead); assert.match(err(() => dispatch('supervisor.attendance', {sessionId:'es-walk', personId:'p-omar', method:'manual', reason:'x'})), /accepted appointment|no active supervisor workspace/);
   assert.ok(read().attendance.some(a => a.actorId === lead), 'history remains attributed');
 });
 
-test('Supervisor extras · More-information loop, Coach allocation, staffing request, cohort-scoped Provider roster', async () => {
+test('Supervisor extras · More-information loop, Coach allocation, staffing request, cohort-scoped Outdoor roster', async () => {
   const {sid} = absentNoor();
   at('2026-10-20T18:31:00+03:00'); as('p-hala'); dispatch('initiative.attendance.closeout', {sessionId:sid});
   const att = read().sessionAttendance.find(a => a.sessionId === sid && a.personId === 'p-noor');
@@ -164,7 +164,7 @@ test('Supervisor extras · More-information loop, Coach allocation, staffing req
   dispatch('initiative.staff.request', {initiativeId:'i-today', role:'coach', note:'Circle B needs a second Coach.'});
   assert.ok(read().notifications.some(n => n.recipientId === 'p-maya' && /second Coach/.test(n.text)));
   assert.match(err(() => dispatch('initiative.staff.invite', {initiativeId:'i-today', role:'coach', email:'x@demo.example'})), /Only the Institution Representative/, 'Supervisors cannot invite staff');
-  // Provider Supervisor with an active cohort operates only on its members.
+  // An Outdoor Activity Supervisor with an active activity group operates only on its members.
   const s = read(); s.cohorts.find(c => c.id === 'co-forest').memberIds = ['p-noor']; (await import('../../src/DeepSprout.Web/wwwroot/src/workspaces/store.js')).snapshotForTests(s);
   at('2026-10-24T09:05:00+03:00'); as('p-sami');
   assert.match(err(() => dispatch('supervisor.attendance', {sessionId:'es-walk', personId:'p-omar', method:'manual', reason:'Seen at the start.'})), /outside your active cohorts/);

@@ -54,11 +54,18 @@
     },
     peakTime: {
       morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening',
-      'late-night': 'Late at night', unsure: 'Varies / not sure'
+      'late-night': 'Late at night', unsure: 'Varies / not sure',
+      'before-bed': 'Before bed', 'study-work': 'During study or work', bored: 'When bored'
     },
+    // Earlier and current (Quick Setup v2) ranges; both are self-reported estimates, never measured.
     baselineMinutes: {
       'under-30': 'Under 30 minutes', '30-60': '30 – 60 minutes', '60-120': '1 – 2 hours',
-      '120-180': '2 – 3 hours', 'over-180': 'More than 3 hours', unsure: 'Not sure'
+      '120-180': '2 – 3 hours', 'over-180': 'More than 3 hours', unsure: 'Not sure',
+      'under-60': 'Less than 1 hour', '120-240': '2 – 4 hours', 'over-240': 'More than 4 hours'
+    },
+    makeTimeFor: {
+      'walking-sports': 'Walking / sports', 'reading-learning': 'Reading / learning', 'drawing-creativity': 'Drawing / creativity',
+      'friends-family': 'Friends / family', hobbies: 'Personal hobbies', other: 'Other'
     },
     devices: {
       'chrome-desktop': 'Chrome on a computer', 'other-desktop': 'Another desktop browser',
@@ -84,7 +91,17 @@
 
   function renderAnswers() {
     const profile = account.profile().setup || {};
-    const rows = [
+    // Quick Setup v2 asks six questions; answers from the earlier eight-question setup stay visible when present.
+    const rows = profile.version === 2 ? [
+      ['Main goal', describe('goal', account.profile().goal ? 'goal' : null)],
+      ['Most distracting', describe('distracting', profile.distracting)],
+      ['Self-reported daily scrolling', describe('baselineMinutes', profile.baselineMinutes)],
+      ['When scrolling takes over', describe('peakTime', profile.peakTime)],
+      ['Wants more time for', describe('makeTimeFor', profile.makeTimeFor)],
+      ['Daily activity time', profile.dailyMinutes ? `${profile.dailyMinutes} minutes` : null],
+      ...(profile.devices?.length ? [['Browses on', describe('devices', profile.devices)]] : []),
+      ...(profile.protection ? [['Protection intensity', describe('protection', profile.protection)]] : [])
+    ] : [
       ['Main goal', describe('goal', account.profile().goal ? 'goal' : null)],
       ['Most distracting', describe('distracting', profile.distracting)],
       ['Usually scrolls', describe('peakTime', profile.peakTime)],
@@ -114,8 +131,8 @@
     const baseline = account.checkIns().filter(entry => entry.baseline).length;
     const plan = account.plan();
     const steps = [
-      { done: Boolean(account.profile().setup), title: 'Personal setup', note: 'Eight quick questions.', href: `${root}src/pages/member/onboarding/onboarding.html?step=setup` },
-      { done: baseline === 4, title: `Starting ${names.checkIn.toLowerCase()}`, note: `${baseline} of 4 tasks recorded.`, href: `${root}src/pages/member/lab/lab.html` },
+      { done: Boolean(account.profile().setup), title: 'Personal setup', note: 'Six quick questions.', href: `${root}src/pages/member/onboarding/onboarding.html?step=setup` },
+      { done: baseline === 4, title: `Optional: starting ${names.checkIn.toLowerCase()}`, note: baseline ? `${baseline} of 4 tasks recorded.` : 'Not established yet. Not required for your plan.', href: `${root}src/pages/member/lab/lab.html` },
       { done: Boolean(plan), title: 'Plan activated', note: plan ? `Cycle ${plan.cycleNumber} is running — day ${plan.day} of ${plan.lengthDays}.` : 'Your 28-day cycle starts here.', href: `${root}src/pages/member/recovery-plan/recovery-plan.html` }
     ];
     document.getElementById('journey-list').replaceChildren(...steps.map(step => {

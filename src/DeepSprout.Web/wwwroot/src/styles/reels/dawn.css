@@ -1,0 +1,75 @@
+/* The story's opening: a hand-drawn sunrise that a storm of reels slowly takes apart.
+   Palette: ivory #fbf6ea · forest ink #1f3a2b · outline #1d211f · sage #a9c58c · sun #f8d371 · void #05040a.
+   Type: Kalam 700 for the voice of the story, Inter for supporting lines (the face sections 3–5 use). */
+.hero-track{position:relative;height:100svh}
+/* 1300 scroll units for the opening (see story-time.js BEATS) + the pinned screen. */
+.reels-enhanced .hero-track{height:1400svh}
+.dawn{--ivory:#fbf6ea;--ink:#1f3a2b;--line:#1d211f;--muted:#4f5d53;--hand:Kalam,'Segoe Print','Comic Sans MS',cursive;
+ position:sticky;top:0;height:100svh;overflow:hidden;isolation:isolate;background:var(--ivory);color:var(--ink);font-family:Inter,Arial,sans-serif}
+.dawn-sky{position:absolute;inset:0;z-index:0;background:var(--ivory)}
+.dawn-stage{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0;pointer-events:none;will-change:transform}
+.dawn-stage-a{z-index:1}.dawn-threads{position:absolute;inset:0;z-index:2;width:100%;height:100%;pointer-events:none}.dawn-stage-b{z-index:3}
+.dawn-sun,.dawn-land,.dawn-tree,.dawn-character,.dawn-fore{position:absolute;left:0;top:0;width:1600px;height:900px;overflow:visible}
+.dawn-sun,.dawn-glow,.dawn-land,.dawn-character,.dawn-fore,.dawn-tree{will-change:transform,opacity}
+.dawn-glow{position:absolute;left:60px;top:238px;width:1000px;height:700px;background:radial-gradient(closest-side,rgba(250,214,122,.58),rgba(251,226,160,.26) 55%,rgba(251,240,214,0))}
+.dawn-cloud{position:absolute;left:0;top:0;width:300px;height:140px;overflow:visible;will-change:transform}
+.dawn-birds{position:absolute;left:0;top:0;width:60px;height:40px;overflow:visible}
+.dawn-butterfly{position:absolute;left:0;top:0;width:60px;height:40px;overflow:visible}
+.dawn-leaves{position:absolute;inset:0}
+.dawn-leaf{position:absolute;left:0;top:0;width:32px;height:24px;opacity:0;overflow:visible}
+.dawn-notice{opacity:0}
+.dawn-night{position:absolute;inset:0;z-index:1;background:#05040a;opacity:0;pointer-events:none;will-change:opacity}
+.dawn-reels{position:absolute;inset:0}
+.dawn-reel{position:absolute;left:0;top:0;width:104px;height:184px;visibility:hidden;transform-origin:50% 50%;will-change:transform,opacity}
+.dawn-reel-face{position:absolute;inset:0;border:3px solid var(--line);border-radius:17px;background:var(--reel);overflow:hidden;box-shadow:0 5px 0 rgba(29,33,31,.07)}
+.dawn-reel-face svg{display:block;width:100%;height:100%}
+.dawn-reel-glow{position:absolute;inset:-42%;border-radius:50%;background:radial-gradient(closest-side,var(--reel),rgba(255,255,255,0));opacity:0;pointer-events:none}
+.dawn-grain{position:absolute;inset:0;z-index:4;pointer-events:none;background-repeat:repeat;background-size:160px 160px;mix-blend-mode:multiply}
+
+/* Copy: one headline, one supporting line, set in the open sky right of the scene. */
+.dawn-brand{position:absolute;z-index:6;left:clamp(20px,3.4vw,56px);top:clamp(18px,3.2vh,34px);display:flex;align-items:center;gap:10px;color:var(--ink);font:700 clamp(22px,1.7vw,30px)/1 var(--hand);text-decoration:none}
+.dawn-brand svg{width:clamp(30px,2.3vw,40px);height:auto}
+.dawn-copy{position:absolute;z-index:5;left:50%;right:5.5%;top:clamp(108px,24vh,250px);will-change:opacity,transform}
+.dawn-title{margin:0;font:700 clamp(46px,5vw,92px)/1.04 var(--hand);letter-spacing:-.005em;color:var(--ink);text-wrap:balance}
+.dawn-mark{position:relative;white-space:nowrap;z-index:0}
+.dawn-mark::before{content:'';position:absolute;z-index:-1;left:-.1em;right:-.04em;bottom:.2em;height:.3em;border-radius:46% 54% 40% 60%/60% 46% 54% 40%;background:#d8e39b;transform:rotate(-1.2deg);opacity:.9}
+.dawn-spark{position:absolute;width:.62em;height:.62em;right:-.62em;top:.36em;overflow:visible}
+.dawn-lead{margin:clamp(18px,2.1vw,32px) 0 0;max-width:31em;font-size:clamp(17px,1.32vw,22px);line-height:1.58;color:var(--muted);text-wrap:pretty}
+.dawn-caption{position:absolute;z-index:5;left:50%;right:6%;top:clamp(110px,21vh,220px);margin:0;font:700 clamp(32px,3.3vw,58px)/1.1 var(--hand);color:var(--ink);opacity:0;text-wrap:balance;pointer-events:none;will-change:opacity,transform}
+.dawn-caption-dark{color:#f3efe4}
+.dawn-cue{position:absolute;z-index:6;left:50%;bottom:clamp(18px,3.6svh,36px);display:flex;flex-direction:column;align-items:center;gap:9px;font-size:13px;font-weight:500;color:var(--ink);opacity:0;visibility:hidden;transform:translate(-50%,6px);transition:opacity .45s cubic-bezier(.4,0,.2,1),visibility 0s linear .45s,transform .45s cubic-bezier(.4,0,.2,1);pointer-events:none}
+.dawn-cue[data-show=true]{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .9s cubic-bezier(.22,.61,.36,1) .15s,visibility 0s,transform .9s cubic-bezier(.22,.61,.36,1) .15s}
+.dawn-cue-mark{position:relative;width:22px;height:34px;border:2px solid var(--line);border-radius:12px}
+.dawn-cue-mark i{position:absolute;left:50%;top:7px;width:3px;height:7px;margin-left:-1.5px;border-radius:2px;background:var(--line);animation:dawn-wheel 2.2s cubic-bezier(.45,0,.2,1) infinite}
+@keyframes dawn-wheel{0%{transform:translateY(0);opacity:0}18%{opacity:1}62%{transform:translateY(10px);opacity:0}100%{transform:translateY(10px);opacity:0}}
+.dawn-skip{position:absolute;z-index:7;right:clamp(16px,3vw,48px);top:clamp(16px,3vh,32px);display:none;align-items:center;gap:8px;padding:10px 18px;border:1.5px solid rgba(31,58,43,.28);border-radius:999px;background:rgba(251,246,234,.82);color:var(--ink);font-size:14px;font-weight:500;text-decoration:none;backdrop-filter:blur(6px);transition:background .2s,border-color .2s}
+.dawn-skip:hover{background:#fff;border-color:rgba(31,58,43,.5)}
+.dawn-skip:focus-visible,.dawn-motion:focus-visible{outline:3px solid #846325;outline-offset:3px}
+.dawn[data-flow=onboarding] .dawn-skip{display:inline-flex}
+.dawn-motion{position:absolute;z-index:7;right:20px;bottom:18px;display:grid;place-items:center;width:36px;height:36px;border:1px solid rgba(31,58,43,.3);border-radius:50%;background:rgba(251,246,234,.75);color:var(--ink);cursor:pointer;backdrop-filter:blur(5px)}
+.dawn-motion svg{grid-area:1/1;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8}
+.dawn-motion .play,.dawn-motion[aria-pressed=true] .pause{display:none}.dawn-motion[aria-pressed=true] .play{display:block}
+.dawn[data-scene=fade] .dawn-skip,.dawn[data-scene=thread] .dawn-skip{background:rgba(20,20,26,.55);color:#f3efe4;border-color:rgba(243,239,228,.3)}
+.dawn[data-scene=fade] .dawn-motion,.dawn[data-scene=thread] .dawn-motion{background:rgba(20,20,26,.55);color:#f3efe4;border-color:rgba(243,239,228,.3)}
+
+/* The scene arrives: brand, headline, then the supporting line, as the sun comes up. */
+@media(prefers-reduced-motion:no-preference){
+ .dawn-brand,.dawn-title,.dawn-lead{animation:dawn-rise 1.2s cubic-bezier(.22,.61,.36,1) backwards}
+ .dawn-brand{animation-delay:.15s}.dawn-title{animation-delay:.55s}.dawn-lead{animation-delay:.95s}
+}
+@keyframes dawn-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.thread-bridge{position:fixed;left:0;top:0;z-index:18;pointer-events:none}
+
+@media(max-width:1100px) and (min-width:701px){.dawn-copy{left:48%}.dawn-title{font-size:max(42px,5.4vw)}}
+@media(max-height:700px) and (min-width:701px){.dawn-copy{top:clamp(90px,19vh,160px)}.dawn-title{font-size:clamp(40px,4.4vw,72px)}}
+@media(max-aspect-ratio:1/1){
+ .reels-enhanced .hero-track{height:1250svh}
+ .dawn-copy{left:22px;right:22px;top:clamp(64px,10svh,96px);text-align:left}
+ .dawn-title{font-size:clamp(34px,9.6vw,50px);line-height:1.06}
+ .dawn-lead{font-size:16px;line-height:1.5;margin-top:12px}
+ .dawn-caption{left:22px;right:22px;top:clamp(70px,11svh,110px);font-size:clamp(28px,8vw,40px)}
+ .dawn-brand{font-size:21px;gap:8px}.dawn-brand svg{width:28px}
+ .dawn-skip{padding:8px 14px;font-size:13px}
+ .dawn-motion{right:14px;bottom:14px}
+}
+@media(prefers-reduced-motion:reduce){.reels-enhanced .hero-track{height:700svh}.dawn-cue-mark i{animation:none;opacity:1;transform:translateY(5px)}.dawn-motion{display:none}.dawn-stage,.dawn-reel{will-change:auto}}

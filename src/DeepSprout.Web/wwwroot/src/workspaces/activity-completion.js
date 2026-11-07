@@ -1,6 +1,7 @@
 import {id,now,requireThat,find,reward,bookingNotice} from './domain.js';
 /** Original evidence remains addressable through corrections and re-evaluations. */
-export const GARDEN_PROVIDER_POLICY=1;
+/** Garden eligibility policy version for Outdoor Activity attendance and camp completion. Source keys are unchanged, so rewards never duplicate. */
+export const GARDEN_ACTIVITY_POLICY=1;
 export function bookingEvidence(s,b){
  const unambiguous=s.bookings.filter(x=>x.experienceId===b.experienceId&&x.personId===b.personId).length===1;
  const belongs=record=>record.experienceId===b.experienceId&&record.personId===b.personId&&(record.bookingId===b.id||!record.bookingId&&unambiguous);
@@ -15,20 +16,20 @@ export function completionEvidence(s,b){
 }
 export function reconcileCompletion(s,b,actor,reason='Session evidence reviewed'){
  const evidence=completionEvidence(s,b);let record=(s.providerCompletions||=[]).find(c=>c.bookingId===b.id);
- if(!record){record={id:id('provider-completion'),bookingId:b.id,experienceId:b.experienceId,personId:b.personId,resourceVersion:b.terms?.version||evidence.e.version||1,rule:structuredClone(evidence.rule),policyVersion:GARDEN_PROVIDER_POLICY,status:'Pending',created:now(),history:[]};s.providerCompletions.push(record);}
+ if(!record){record={id:id('activity-completion'),bookingId:b.id,experienceId:b.experienceId,personId:b.personId,resourceVersion:b.terms?.version||evidence.e.version||1,rule:structuredClone(evidence.rule),policyVersion:GARDEN_ACTIVITY_POLICY,status:'Pending',created:now(),history:[]};s.providerCompletions.push(record);}
  const previous=record.status;
  const manualOK=record.decision?.status==='Completed'&&record.decision.fingerprint===evidence.fingerprint;
  let status=evidence.eligible&&(!evidence.needsDecision||manualOK)?'Completed':evidence.eligible&&evidence.needsDecision?'Needs Review':'Pending';
  if(record.decision?.status==='Not completed')status='Not completed';
  if(['Cancelled','Rejected','Declined','Offer Expired'].includes(b.status)&&status==='Completed')status='Pending';
  record.status=status;record.attendanceIds=evidence.qualifying.map(q=>q.attendance.id);record.evaluationIds=evidence.qualifying.map(q=>q.evaluation.id);record.qualifyingSessionIds=evidence.qualifying.map(q=>q.sessionId);record.updated=now();record.actorId=actor;
- if(previous!==status){record.history.push({at:now(),actorId:actor,from:previous,to:status,reason,attendanceIds:[...record.attendanceIds],evaluationIds:[...record.evaluationIds]});bookingNotice(s,b,`${evidence.e.title}: completion ${status.toLowerCase()}. ${reason}`,'provider-completion',{actorId:actor,completionId:record.id});}
+ if(previous!==status){record.history.push({at:now(),actorId:actor,from:previous,to:status,reason,attendanceIds:[...record.attendanceIds],evaluationIds:[...record.evaluationIds]});bookingNotice(s,b,`${evidence.e.title}: completion ${status.toLowerCase()}. ${reason}`,'activity-completion',{actorId:actor,completionId:record.id});}
  const completed=status==='Completed';
  if(completed){if(!['Cancelled','Rejected','Declined','Offer Expired'].includes(b.status))b.status='Completed';b.completedAt||=now();}
  else if(b.status==='Completed'){b.status='Checked In';b.completionReviewRequired=true;}
  const existing=s.rewards.find(r=>r.sourceId===`experience:${b.experienceId}`&&r.personId===b.personId);
- if(completed&&evidence.e.type==='Camp'&&!existing)reward(s,`experience:${b.experienceId}`,b.personId,null,evidence.e.title,'Published Provider Camp completion',{effect:'birdhouse',sourceRecordId:record.id,experienceId:b.experienceId,bookingId:b.id,policyVersion:GARDEN_PROVIDER_POLICY,status:'Active',history:[{at:now(),actorId:actor,from:null,to:'Active',reason}]});
- if(existing){const eligibleSource=s.providerCompletions.find(c=>c.personId===b.personId&&c.experienceId===b.experienceId&&c.status==='Completed');const next=eligibleSource?'Active':'Revoked';if((existing.status||'Active')!==next){(existing.history||=[]).push({at:now(),actorId:actor,from:existing.status||'Active',to:next,reason,completionId:record.id});existing.status=next;}existing.sourceRecordId=eligibleSource?.id||existing.sourceRecordId||record.id;existing.policyVersion=GARDEN_PROVIDER_POLICY;}
+ if(completed&&evidence.e.type==='Camp'&&!existing)reward(s,`experience:${b.experienceId}`,b.personId,null,evidence.e.title,'Institution camp completion · published criteria',{effect:'birdhouse',sourceRecordId:record.id,experienceId:b.experienceId,bookingId:b.id,policyVersion:GARDEN_ACTIVITY_POLICY,status:'Active',history:[{at:now(),actorId:actor,from:null,to:'Active',reason}]});
+ if(existing){const eligibleSource=s.providerCompletions.find(c=>c.personId===b.personId&&c.experienceId===b.experienceId&&c.status==='Completed');const next=eligibleSource?'Active':'Revoked';if((existing.status||'Active')!==next){(existing.history||=[]).push({at:now(),actorId:actor,from:existing.status||'Active',to:next,reason,completionId:record.id});existing.status=next;}existing.sourceRecordId=eligibleSource?.id||existing.sourceRecordId||record.id;existing.policyVersion=GARDEN_ACTIVITY_POLICY;}
  return record;
 }
 export function decideCompletion(s,b,p,actor){

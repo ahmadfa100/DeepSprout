@@ -1,8 +1,8 @@
 # Mentor / Coach cycle
 
-> **Dated audit, not the target contract (15 October 2026).** Routes, fields, tests and code observations below describe the inspected working tree. The [authoritative v4.0 master](../../DeepSprout.md) and its [decision register](../../DeepSprout.md#26-decision-register-authoritative-interim-and-open) govern all implementation targets, including decisions approved after this audit.
+> **Dated audit, not the target contract (15 October 2026).** Routes and independent Program descriptions below are historical. The [v4.1 P0 target](../architecture/p0-target-v4.1.md) permits only Institution-invited Initiative Coaches; no independent Program, registration or direct student invite remains in target scope.
 
-**Evidence:** `Client/src/workspaces/pages/mentor.js:1-41`, `builders/program.js:1-11`, `commands/mentorship.js:2-35`, `data/mentorship.js:2-10`, `shared.js:1-51`, `navigation.js:4`, `pages/auth.js:1-36`; later approved behavior in [master §13](../../DeepSprout.md#13-coach--mentor-program-and-shared-assignment-engine). Routes below are under `workspaces.html#/mentor/`. A Mentor is scoped to owned groups/programs; group membership does not expose private Individual Lab, Shield or Recovery Plan data. Current `ownGroups`/command checks are browser-local.
+**Evidence:** older `mentor` routes and browser-local commands below describe the inspected demo. The current [master §13](../../DeepSprout.md#13-institution-invited-coach-and-shared-assignment-engine) defines assigned Initiative scope. Current `ownGroups`/command checks are not server authorization.
 
 ## Current page-by-page inventory
 
@@ -53,4 +53,4 @@ Demo B can run wholly inside partner Mentor/Invited Student pages according to t
 
 ## Approved target correction
 
-Independent Coach Programs are invite-only and own their Groups; an Institution-invited Coach needs no separate Admin approval and works only with allocated Initiative Groups. Every Group has exactly one Initiative **or** Program parent and uses one shared assignment/review engine. Coach reports feed source-computed Supervisor Insights and Representative reports. There is one Initiative-wide Group Garden, or one per independent Coach group, with no duplicate Personal reward. See [master §13](../../DeepSprout.md#13-coach--mentor-program-and-shared-assignment-engine).
+**Superseded target summary from the 15 October audit:** independent Coach Programs and their Gardens are no longer in scope. The current target keeps Institution-invited Coaches in allocated Initiative groups, one shared assignment/review engine, and one Initiative-wide Group Garden. See [master §13](../../DeepSprout.md#13-institution-invited-coach-and-shared-assignment-engine).

@@ -196,7 +196,8 @@
       ? `You named ${sites} service${sites === 1 ? '' : 's'} that pull you in. Digital Shield currently demonstrates site protection and reminders. No extension is connected, so this preview cannot block or measure those services. Your choices remain preferences.`
       : 'Digital Shield is a local prototype of site protection and reminders. No extension is connected and phone apps cannot be blocked or measured.';
 
-    document.getElementById('preview-reason').textContent=`Demo recommendation rule v1: your ${DS.GOALS[goal].toLowerCase()} goal, ${days} available days, ${minutes}-minute preference and ${(profile.offlineInterests||[]).join(', ')||'unselected offline interests'} shape this preview. Four valid baselines stay separate measurements; every practice starts at introductory Level 1. These rules are not scientific calibration.`;
+    document.getElementById('preview-reason').textContent=`Demo recommendation rule v1: your ${DS.GOALS[goal].toLowerCase()} goal, ${days} available days, ${minutes}-minute preference and ${(profile.offlineInterests||[]).join(', ')||'unselected offline interests'} shape this preview. ${baselinesComplete()?'Your four baselines stay separate measurements':'You start at Journey Level 0 with no assessment established; the Lab check-ins are optional'}; every practice starts at introductory Level 1. These rules are not scientific calibration.`;
+    document.getElementById('back-to-results').hidden=!baselinesComplete();
     const summary = document.getElementById('plan-summary');
     summary.replaceChildren();
     [
@@ -232,13 +233,16 @@
       music: { title: 'Play something for five minutes', hint: 'Practice or just play.' },
       cooking: { title: 'Make one thing properly', hint: 'Without a screen propped up nearby.' },
       people: { title: 'One real conversation', hint: 'In person or on a call — not a message.' },
-      quiet: { title: 'Ten minutes with no screen', hint: 'Sitting, stretching, or nothing at all.' }
+      quiet: { title: 'Ten minutes with no screen', hint: 'Sitting, stretching, or nothing at all.' },
+      hobbies: { title: 'Time on a hobby you enjoy', hint: 'Something you already like doing.' }
     };
 
+    // The Quick Setup proposal (if any) comes first, so the preliminary suggestion is visible and changeable.
+    const proposed = commitment && !Object.values(byInterest).some(item => item.title === commitment.title) ? [commitment] : [];
     const matched = interests.map(key => byInterest[key]).filter(Boolean);
     const fallback = DS.ROUTINE_IDEAS.filter(idea =>
       !matched.some(match => match.title === idea.title));
-    return [...matched, ...fallback].slice(0, 6);
+    return [...proposed, ...matched, ...fallback].slice(0, 6);
   }
 
   function renderCommitments() {
@@ -340,7 +344,8 @@
     if (!commitment) return;
 
     const week = buildWeekOne();
-    if (!journal || !baselinesComplete()) return;
+    // Activation is the person's explicit choice here; the four baselines are optional (Onboarding 2.0).
+    if (!journal) return;
     const firstRunPlan = {policyVersion:1,minutes,goal, goalLabel:DS.GOALS[goal], availableDays:days, weekOne:week, commitment:commitment.title};
     // The same plan in the personal journal that Home and Roadmap read.
     try {
@@ -369,11 +374,15 @@
   document.getElementById('plan-days').value = String(Math.min(5, Math.max(2, days)));
 
   // The original journal plan is authoritative; a legacy first-run mirror is not activation.
-  show('results');
+  // Nothing is shown until the journal says which stage applies, so Level 0 never flashes empty results.
+  stages.forEach(section => { section.hidden = true; });
   };
   start();
   // Refresh once the personal journal (where the baselines are recorded) has loaded.
   window.DeepSproutAccount?.load().then(loaded => { journal = loaded;const draft=journal.preview();goal=draft?.goal||journal.profile().goal?.id||goal;days=draft?.days||Number(journal.profile().setup?.availableDays)||days;minutes=draft?.minutes||5;commitment=draft?.commitment||null;document.getElementById('plan-days').value=String(days);document.getElementById('plan-minutes').value=String(minutes);renderResults();document.getElementById('to-building').disabled=!baselinesComplete();
     const active=journal.plan();
-    if(active){document.getElementById('done-day').textContent=`Day ${active.day} of ${active.lengthDays}`;document.getElementById('done-lead').textContent='Your personal plan is already active.';show('done');}else if(baselinesComplete()&&DS.get().onboarding.resultsSeen){renderPreview();renderCommitments();show('preview');} },error=>window.DeepSproutPersonal.failure(error.message));
+    if(active){document.getElementById('done-day').textContent=`Day ${active.day} of ${active.lengthDays}`;document.getElementById('done-lead').textContent='Your personal plan is already active.';show('done');}
+    // Journey Level 0: with no baselines there are no results to show, so the Week 1 preview opens directly.
+    else if(!baselinesComplete()||DS.get().onboarding.resultsSeen){renderPreview();renderCommitments();show('preview');}
+    else show('results'); },error=>{show('results');window.DeepSproutPersonal.failure(error.message);});
 })();
