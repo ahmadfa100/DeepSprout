@@ -196,7 +196,7 @@
       ? `You named ${sites} service${sites === 1 ? '' : 's'} that pull you in. Digital Shield currently demonstrates site protection and reminders. No extension is connected, so this preview cannot block or measure those services. Your choices remain preferences.`
       : 'Digital Shield is a local prototype of site protection and reminders. No extension is connected and phone apps cannot be blocked or measured.';
 
-    document.getElementById('preview-reason').textContent=`Demo recommendation rule v1: your ${DS.GOALS[goal].toLowerCase()} goal, ${days} available days, ${minutes}-minute preference and ${(profile.offlineInterests||[]).join(', ')||'unselected offline interests'} shape this preview. ${baselinesComplete()?'Your four baselines stay separate measurements':'You start at Journey Level 0 with no assessment established; the Lab check-ins are optional'}; every practice starts at introductory Level 1. These rules are not scientific calibration.`;
+    document.getElementById('preview-reason').textContent=`Demo recommendation rule v1: your ${DS.GOALS[goal].toLowerCase()} goal, ${days} available days, ${minutes}-minute preference and ${(profile.offlineInterests||[]).join(', ')||'unselected offline interests'} shape this preview. ${baselinesComplete()?'Your four Lab results stay separate measurements':'You start at Journey Level 1; Lab assessments are optional and missing results remain unknown'}; every practice starts at introductory Level 1. These rules are not scientific calibration.`;
     document.getElementById('back-to-results').hidden=!baselinesComplete();
     const summary = document.getElementById('plan-summary');
     summary.replaceChildren();
@@ -374,7 +374,7 @@
   document.getElementById('plan-days').value = String(Math.min(5, Math.max(2, days)));
 
   // The original journal plan is authoritative; a legacy first-run mirror is not activation.
-  // Nothing is shown until the journal says which stage applies, so Level 0 never flashes empty results.
+  // Nothing is shown until the journal says which stage applies.
   stages.forEach(section => { section.hidden = true; });
   };
   start();
@@ -382,7 +382,7 @@
   window.DeepSproutAccount?.load().then(loaded => { journal = loaded;const draft=journal.preview();goal=draft?.goal||journal.profile().goal?.id||goal;days=draft?.days||Number(journal.profile().setup?.availableDays)||days;minutes=draft?.minutes||5;commitment=draft?.commitment||null;document.getElementById('plan-days').value=String(days);document.getElementById('plan-minutes').value=String(minutes);renderResults();document.getElementById('to-building').disabled=!baselinesComplete();
     const active=journal.plan();
     if(active){document.getElementById('done-day').textContent=`Day ${active.day} of ${active.lengthDays}`;document.getElementById('done-lead').textContent='Your personal plan is already active.';show('done');}
-    // Journey Level 0: with no baselines there are no results to show, so the Week 1 preview opens directly.
+    // Without optional Lab results, the Week 1 preview opens directly.
     else if(!baselinesComplete()||DS.get().onboarding.resultsSeen){renderPreview();renderCommitments();show('preview');}
     else show('results'); },error=>{show('results');window.DeepSproutPersonal.failure(error.message);});
 })();

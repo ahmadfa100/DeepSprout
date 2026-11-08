@@ -1,14 +1,14 @@
 DeepSprout v5 generator validation
-2026-11-05T19:21:38.601Z
+2026-11-08T12:08:03.102Z
 
 {
   "tables": 58,
   "modules": 18,
   "columns": 759,
-  "foreignKeys": 147,
+  "foreignKeys": 146,
   "uniqueConstraints": 92,
   "filteredUnique": 39,
-  "checks": 105,
+  "checks": 108,
   "jsonColumns": 38,
   "rowVersionTables": 21,
   "triggers": 0,

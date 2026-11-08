@@ -11,7 +11,7 @@
 import * as ops from './data/initiative-ops.js';
 import {normalizeProgram, syncProgramGroups} from './coach-rules.js';
 
-const COLLECTIONS = ['staffRequests','grants','staffInvites','admissions','sessionAttendance','excuses','coachReports','supervisorSummaries','initiativeBlocks','completions','notifications','rewards','programCompletions','programLinks'];
+const COLLECTIONS = ['staffRequests','grants','staffInvites','admissions','sessionAttendance','excuses','coachReports','supervisorSummaries','initiativeBlocks','completions','notifications','rewards','programCompletions','programLinks','attendanceImports','attendanceReviews','attendanceLog'];
 const clone = value => JSON.parse(JSON.stringify(value));
 const has = (list, key) => list.some(item => item.id === key);
 

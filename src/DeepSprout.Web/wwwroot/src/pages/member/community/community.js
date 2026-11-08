@@ -15,6 +15,13 @@
     const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
     state = { ...state, ...saved };
     if (!Array.isArray(state.posts)) state.posts = [];
+    // Retire the old check-in challenge model and its posts. Quiz rooms use a new key.
+    const currentPosts = state.posts.filter(post => post.category !== 'challenges' && !post.challengeId);
+    if (currentPosts.length !== state.posts.length) {
+      state.posts = currentPosts;
+      localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+    localStorage.removeItem('deepsprout-community-challenges-v1');
   } catch { /* The demo still works when storage is unavailable. */ }
   const refreshModeration = () => {
     try { const latest=JSON.parse(localStorage.getItem(storageKey)||'{}');state.reports=Array.isArray(latest.reports)?latest.reports:[];state.moderation=latest.moderation||{};state.moderationHistory=latest.moderationHistory||[]; } catch {}
@@ -32,7 +39,7 @@
     try { localStorage.setItem(storageKey,JSON.stringify(state));return true; }
     catch { state.posts.pop();delete state.moderation[post.id];notify('Your post could not be saved. Please try again.');return false; }
   };
-  const cards = () => [...feed.querySelectorAll('.post-card')];
+  const cards = () => [...feed.querySelectorAll('.post-card, .challenge-room-card')];
   const cardId = card => card.dataset.id || [...cards()].indexOf(card).toString();
   const applyFilters = () => {
     const query = search.value.trim().toLowerCase();
@@ -47,7 +54,7 @@
     // Say plainly when a category is empty rather than implying a search miss.
     const noChallenges = activeFilter === 'challenges' && !query;
     document.querySelector('#empty-text').textContent = noChallenges
-      ? 'No challenges have been shared yet. Start one and it will appear here.'
+      ? 'No challenge rooms yet. Create one and a second player can join here.'
       : 'No posts match your search yet. Try another category.';
     document.querySelector('#empty-create').hidden = !noChallenges;
   };
@@ -105,12 +112,6 @@
     const message = document.createElement('p'); message.textContent = post.message;
     const actions = document.createElement('div'); actions.className = 'post-actions';
     actions.append(button('like-button', 'Like your post', 'heart', 0), button('comment-button', 'Show comments on your post', 'comment', 0), button('save-button', 'Save your post', 'bookmark'));
-    if (post.challengeId && window.DeepSproutChallenges?.exists(post.challengeId)) {
-      const view = document.createElement('button');
-      view.type = 'button'; view.className = 'post-challenge-open'; view.dataset.openChallenge = post.challengeId;
-      view.textContent = 'View challenge';
-      actions.append(view);
-    }
     body.append(badge, title, message, actions);
     const art = document.createElement('img');
     art.className = 'post-image'; art.src = '../../../../assets/community/post-win.png'; art.alt = 'A sprout in a sunset landscape';
@@ -126,7 +127,7 @@
     return card;
   };
   state.posts.slice().reverse().forEach(post => feed.insertBefore(makePost(post), feed.firstChild));
-  cards().forEach(card => {
+  feed.querySelectorAll('.post-card').forEach(card => {
     const id = cardId(card);
     card.id = id;
     card.querySelector('.like-button')?.setAttribute('aria-pressed', String(!!state.liked[id]));
@@ -233,69 +234,42 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
     notify('Your post was saved and is awaiting Admin approval.');
   });
-  // Challenges: create one (posted to the feed under Challenges) or browse them.
-  const motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const showFeed = () => document.querySelector('#feed').scrollIntoView({ behavior: motion ? 'smooth' : 'auto', block: 'start' });
+  // A room is discoverable from the Challenges filter; it is not a moderated post.
   const challengeDialog = document.querySelector('#challenge-dialog');
   const challengeForm = document.querySelector('#challenge-form');
-  document.querySelectorAll('#create-challenge, #empty-create').forEach(trigger => trigger.addEventListener('click', () => challengeDialog.showModal()));
+  const dateField = challengeForm.querySelector('[name="date"]');
+  const timeField = challengeForm.querySelector('[name="time"]');
+  const localDate = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  document.querySelectorAll('#create-challenge, #empty-create').forEach(trigger => trigger.addEventListener('click', () => {
+    const suggested = new Date(Date.now() + 86400000);
+    suggested.setMinutes(0, 0, 0);
+    dateField.min = localDate(new Date());
+    if (!dateField.value) dateField.value = localDate(suggested);
+    if (!timeField.value) timeField.value = `${String(suggested.getHours()).padStart(2, '0')}:00`;
+    challengeDialog.showModal();
+    challengeForm.querySelector('[name="title"]').focus();
+  }));
   challengeDialog.querySelectorAll('[data-close]').forEach(close => close.addEventListener('click', () => challengeDialog.close()));
   challengeDialog.addEventListener('click', event => { if (event.target === challengeDialog) challengeDialog.close(); });
-  // Partner picker: one partner, or up to three for a small group.
-  const picker = challengeForm.querySelector('.partner-picker');
-  const whoSelect = challengeForm.querySelector('[name="who"]');
-  const partnerBoxes = [...challengeForm.querySelectorAll('[name="partners"]')];
-  const partnerLimit = () => (whoSelect.value === 'Small group' ? 3 : whoSelect.value === 'With a partner' ? 1 : 0);
-  const syncPicker = () => {
-    const limit = partnerLimit();
-    picker.hidden = !limit;
-    picker.querySelector('.partner-hint').textContent = limit === 1 ? 'Pick one partner.' : 'Pick up to three people.';
-    const chosen = partnerBoxes.filter(box => box.checked);
-    chosen.slice(limit).forEach(box => { box.checked = false; });
-  };
   const errorLine = challengeForm.querySelector('.challenge-error');
   const formError = message => { errorLine.textContent = message; errorLine.hidden = !message; };
-  whoSelect.addEventListener('change', () => { syncPicker(); formError(''); });
-  challengeForm.addEventListener('change', event => { if (event.target.name === 'partners') formError(''); });
-  partnerBoxes.forEach(box => box.addEventListener('change', () => {
-    const limit = partnerLimit();
-    if (!box.checked) return;
-    const chosen = partnerBoxes.filter(other => other.checked && other !== box);
-    if (limit === 1) chosen.forEach(other => { other.checked = false; });
-    else if (chosen.length >= limit) box.checked = false;
-  }));
+  challengeForm.addEventListener('input', () => formError(''));
   challengeForm.addEventListener('submit', event => {
     event.preventDefault();
     const fields = new FormData(challengeForm);
     const title = String(fields.get('title')).trim();
-    const goal = String(fields.get('goal')).trim();
-    if (!title || !goal) return;
-    const who = String(fields.get('who'));
-    const partners = fields.getAll('partners').map(String);
-    if (partnerLimit() && !partners.length) { formError(who === 'Small group' ? 'Choose who joins your group.' : 'Choose your partner.'); picker.querySelector('input').focus(); return; }
-    const names = partners.map(id => window.DeepSproutChallenges?.people[id]?.name).filter(Boolean);
-    let challengeId = '';
-    try { challengeId = window.DeepSproutChallenges?.add({ title, goal, days: fields.get('days'), who, partners }) || ''; }
-    catch { formError('Your challenge could not be saved. Free some device storage and try again.'); return; }
-    const post = { id: `local-${Date.now()}`, category: 'challenges', title, message: `${goal} · ${fields.get('days')}-day challenge · ${names.length ? `with ${names.join(', ')}` : who}`, challengeId };
-    // The challenge itself is already saved; the feed post is a separate, moderated copy.
-    if (queuePost(post)) {
-      const card = makePost(post);
-      card.id = post.id;
-      feed.insertBefore(card, feed.firstChild);
-      search.value = '';
-      setFilter('challenges');
-    } else if (!challengeId) return;
-    challengeForm.reset(); syncPicker(); formError(''); challengeDialog.close();
-    if (challengeId) window.DeepSproutChallenges.open(challengeId);
-    else notify('Your challenge was saved and is awaiting Admin approval.');
-  });
-  document.querySelector('#explore-challenges').addEventListener('click', () => {
+    const startAt = new Date(`${fields.get('date')}T${fields.get('time')}`);
+    if (!title || Number.isNaN(startAt.getTime()) || startAt.getTime() <= Date.now()) { formError('Choose a start date and time in the future.'); return; }
+    let challengeId;
+    try { challengeId = window.DeepSproutChallenges.add({ title, startAt }); }
+    catch (error) { formError(error.message || 'Your room could not be saved. Check browser storage and try again.'); return; }
+    challengeForm.reset(); formError(''); challengeDialog.close();
     search.value = '';
     setFilter('challenges');
-    showFeed();
-    notify('Showing challenges from the community.');
+    window.DeepSproutChallenges.open(challengeId);
   });
+  window.addEventListener('deepsprout:challenge-change', applyFilters);
+  window.addEventListener('deepsprout:challenge-joined', event => notify(`Both players are in. ${event.detail.title} starts ${window.DeepSproutChallenges.formatStart(event.detail.startAt)}.`));
   document.querySelectorAll('[data-info]').forEach(button => button.addEventListener('click', () => notify(`${button.dataset.info} information is coming soon.`)));
   applyFilters();
   window.addEventListener('storage',event=>{if(event.key===storageKey){refreshModeration();applyFilters();}});

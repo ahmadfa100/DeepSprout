@@ -10,7 +10,7 @@
 
 > **Current implementation:** Read the [3 November 2026 page and cycle guide](docs/current-product-guide.md) for the working checkout, and the [4 November P0 target and deprecation map](docs/architecture/p0-target-v4.1.md) before implementing changes. §29 and §30 contain dated implementation and roadmap material. The one-main-plant Garden direction is a separately scoped design task; the current four-tree scene is not changed by this documentation update.
 
-> **Authority:** The owner's 4 November 2026 P0 decisions supersede conflicting v4.0 clauses and the proposed 3 November 87-table Atlas. The maintained [v4.1 target map](docs/architecture/p0-target-v4.1.md) states those decisions and marks unresolved implementation choices. Earlier D01–D48 entries remain a decision history only where superseded by v4.1. Dated audits describe observed code, not current permission to keep deprecated roles. No application or database implementation is asserted by this specification.
+> **Authority:** The owner's 4 November 2026 P0 decisions supersede conflicting v4.0 clauses and the proposed 3 November 87-table Atlas. **Database (8 November 2026):** the owner approved the [58-table v5 lean design](docs/architecture/database/README.md) as the target database; its v5-lean-2 revision applies Onboarding 2.0 and these v4.1 decisions. The older 129-table EF model is history only. The maintained [v4.1 target map](docs/architecture/p0-target-v4.1.md) states those decisions and marks unresolved implementation choices. Earlier D01–D48 entries remain a decision history only where superseded by v4.1. Dated audits describe observed code, not current permission to keep deprecated roles. No application or database implementation is asserted by this specification.
 
 ### Requirement labels
 
@@ -192,7 +192,7 @@ After authentication, the MVC application resolves identity, onboarding state, w
 
 ---
 
-# 4. Individual onboarding: Bimo, six questions, the story and Journey Level 0
+# 4. Individual onboarding: Bimo, six questions, the story and Journey Level 1
 
 > **Onboarding 2.0 (November 2026) supersedes the earlier first-run sequence** (Meet Bimo → Before We Begin → eight-question setup → four mandatory assessments → Starting Point → plan). The four Lab assessments remain available as **optional** activities and historical records; they never block onboarding, Home or plan activation.
 
@@ -204,7 +204,7 @@ flowchart TD
   B --> C[Quick Setup: exactly six questions, one at a time]
   C --> D[Transition: You're ready to begin]
   D --> E[HeroReels story: new illustrated opening → You're not alone onward, unchanged]
-  E --> F[Home · Journey Level 0 — New Beginning]
+  E --> F[Home · Journey Level 1 — New Beginning]
   F --> G[Week 1 proposal: review, then user-chosen activation]
 ```
 
@@ -240,15 +240,15 @@ After Question 6 the bar fills to 100%, the question leaves, and a minimal scene
 
 The first half (Bimo meditating, balanced stones, notifications, reels escalation, black hole) is replaced by an original hand-drawn sequence (`src/js/reels/dawn*.js`, `src/styles/reels/dawn.css`): an original faceless character in a sage sweater resting under a tree at sunrise → one Reel, then another → attention threads pulled from the sun, a flower and the tree toward the Reels → a choreographed storm of Reels around the person → night falls, the Reels fade to a few traces → one luminous thread that becomes the line *You're not alone* begins with. **Everything from "You're not alone" onward is unchanged**; a small adapter outside it (`thread-bridge.js`) carries the thread across the seam.
 
-## 4.3c Home · Journey Level 0 — New Beginning
+## 4.3c Home · Journey Level 1 — New Beginning
 
-New users arrive at their real Individual Home at **Journey Level 0 — New Beginning**: a motivational starting point, **not** a measurement of recovery, intelligence, attention or mental health. *Assessment status: Not established yet.* No usage data, cognitive scores or improvement percentages are shown. Home shows a **preliminary Week 1 proposal** built only from the six answers (goal, chosen activities rotated through the week, the daily minutes, the tricky moment, the named apps with Shield's browser-only limit, and the self-reported estimate labelled as such). Nothing is active: **Review & activate Week 1** opens the plan preview, where the person changes anything and explicitly activates the plan.
+New users arrive at their real Individual Home at **Journey Level 1 — New Beginning**: a motivational starting point, **not** a measurement of recovery, intelligence, attention or mental health. *Assessment status: Not established yet* applies only when no optional result exists. No usage data, cognitive scores or improvement percentages are invented. Home shows a **preliminary Week 1 proposal** built only from the six answers (goal, chosen activities rotated through the week, the daily minutes, the tricky moment, the named apps with Shield's browser-only limit, and the self-reported estimate labelled as such). Nothing is active: **Review & activate Week 1** opens the plan preview, where the person changes anything and explicitly activates the plan. Levels above 1 are never awarded automatically by onboarding.
 
 ## 4.3d Optional assessments and activation
 
 - Plan activation no longer requires the four baselines; any already recorded are linked, none are invented (`account.js` `plan.activate`).
 - The plan preview opens directly when no baselines exist; the Quick Setup proposal pre-selects one offline commitment that the person can change before activating.
-- Lab assessments stay available and keep their full history, protocol versions and weekly windows. Next-step guidance presents them as optional.
+- Lab assessments stay available and keep their full history, protocol versions and any historical window identifiers. The former weekly scheduler creates no new official windows pending a separately approved reassessment policy.
 
 ## 4.4 Four baseline assessments — unchanged set, optional since Onboarding 2.0
 
@@ -264,11 +264,11 @@ New users arrive at their real Individual Home at **Journey Level 0 — New Begi
 - Preserve item/content version, timestamps, relevant attempt metadata, scoring logic version and comparability constraints.
 - Do not treat goals/preferences as test-score components.
 - Estimate total duration using actual tasks before presenting a fixed claim.
-- **Official periodic reassessment is free and opens in a weekly eligibility window.** Reuse the existing Digital Habits + one rotating cognitive/task assessment direction pending protocol validation; do not require all four every week. Weekly Review is not a fifth test. Practice/rehearsal does not count as official reassessment; versions and valid comparison rules apply.
+- **No periodic reassessment is currently scheduled.** The previous weekly eligibility rule is superseded. A future official protocol requires a separate product and measurement review. Weekly Review is not a fifth test. Practice/rehearsal does not count as an official assessment; versions and valid comparison rules apply.
 
 ## 4.5 Results → separate plan-building presentation → activation
 
-> Since Onboarding 2.0 this path applies only to people who choose to take the four baselines. Without them, the Week 1 preview opens directly from Home (Journey Level 0) and activation is still an explicit choice.
+> This results path applies only to people who choose optional Lab assessments. Without them, the Week 1 preview opens directly from Home (Journey Level 1), and activation remains an explicit choice.
 
 **Result scene:** `Your Starting Point` shows four distinct categories, valid task results and concise caveats. A clean, coordinated animation assembles the results; do not imply a medical diagnosis or common 0–100 brain score.
 
@@ -278,7 +278,7 @@ New users arrive at their real Individual Home at **Journey Level 0 — New Begi
 
 **Product Tour:** short contextual overlays showing Home (next action), Recovery Plan (planning), Activities (execution), Digital Shield (protection), Garden (visual achievements), Insights (measurement), Lab (assessments) and Explore (initiatives/experiences). Tour should be skippable, replayable from Help and not a mandatory ten-step wizard.
 
-**Returning users:** use onboarding state to resume the exact relevant location: Bimo not seen, intro, quick setup, unfinished assessment, Results, plan preview, or active Home. Never treat partial progress as a completed baseline.
+**Returning users:** use onboarding state to resume Bimo, an unfinished quick-setup question, the story or Home. Completed users are not required to answer the new questions again. Optional Lab attempts resume within Lab; partial attempts are never shown as completed results. Existing plans and progress remain intact.
 
 ---
 
@@ -387,8 +387,8 @@ Allow `Paused`, `Cancelled` and `Archived` where product rules justify them; def
 
 ## 5.8 Reassessment and Lab relationship
 
-- Four baseline tests on initial Individual onboarding; formal reassessments later on defined, methodologically justified eligibility windows.
-- Official reassessment eligibility opens **weekly**, independently of the 28-day personal-plan direction. The current Digital Habits plus one rotating task sequence is the implementation direction; exact window length, variants and comparability remain open. Do not force all four tests each week.
+- No Lab test is required on initial Individual onboarding or for Recovery Plan activation. Existing results, attempts and versions remain intact.
+- No official reassessment cadence is active. Any future window, variants and comparability rules need separate approval; the former weekly pair is historical behavior.
 - **Free** access to necessary official reassessments and core historical comparisons was recommended and repeatedly maintained; do **not** put the user's basic right to see progress behind Plus.
 - Previous results remain stored, versioned and comparable only when instrument/scoring conditions allow. Practice effects can bias cognitive task scores. Inform users.
 
@@ -630,7 +630,7 @@ Example truthful recommendation: `Your recent valid Depth Practice attempts meet
 
 ## 10.5 Source-quality and account states
 
-- New user: baseline only, comparisons pending.
+- New user: no Lab result unless one is chosen; comparisons pending.
 - One week's evidence: a single-period summary; no fabricated month-over-month change.
 - Disconnected extension: last known valid timestamp, gap warning.
 - Reassessment unavailable/invalid: no comparison line.
@@ -746,7 +746,7 @@ Retain identified, versioned forms/surveys and restricted responses. Coach repor
 
 The verified Institution owns organized trips, camps and other Outdoor Activities. There is no independent Outdoor Provider registration, profile, dashboard, permission grant, pricing tier or public organizer. The Representative creates and operates activities within the Institution workspace. An activity may be standalone or linked to one of its Initiatives after design review; either way, preserve one source identity for booking and completion. A qualified camp completion may unlock one bounded Personal Garden birdhouse. There is no Provider or standalone camp Group Garden.
 
-> **Browser-demo implementation (6 November 2026):** the partner workspaces now implement this ownership model — Create New offers Initiative (Online / Hybrid / Face-to-Face) or Outdoor Activity; a seven-stage Outdoor Activity builder; Institution-owned bookings, waiting list, seat offers, Supervisor appointments and completion; Supervisor-only field attendance; Initiative-linked activities as components; Admin suspension/restore; and a non-destructive migration of legacy Provider records. Details, verification and open items: [four-cycle redesign log](docs/DEEPSPROUT-FOUR-CYCLE-REDESIGN.md). Production enforcement remains server work.
+> **Browser-demo implementation (6 November 2026):** the partner workspaces now implement this ownership model — Create New offers Initiative (Online / Hybrid / Face-to-Face) or Outdoor Activity; a seven-stage Outdoor Activity builder; Institution-owned bookings, waiting list, seat offers, Supervisor appointments and completion; Supervisor-only field attendance; Initiative-linked activities as components; Admin suspension/restore; and a non-destructive migration of legacy Provider records. Details, verification and open items: [four-cycle redesign log](docs/implementation/partner-workspaces-v41-redesign.md). Production enforcement remains server work.
 
 ## 16.1 Activity fields and publication
 
@@ -799,9 +799,9 @@ These are target page requirements; current implementation categories are in §2
 | Public Home `index.html`, Landing `landing.html` | Product story, entry CTAs, feature/partner routes, legal/support links; responsive accessible motion | Public published content only; no fake live totals or placeholder links presented as working |
 | Register `register.html`; Partner `partners.html` / `#/auth/register` | Individual/Partner selection, direct Institution Representative profile/verification path, consent, validation, pending/rejected states | One human identity; no public Admin/Coach/Supervisor/Provider role grant; Platform Admin reviews Institution/Representative |
 | Login `login.html`, Invitation `join.html?token=…`, workspace switcher `#/auth/workspaces` | Credentials or demo identity, invitation preview/email match/OTP, accept/decline, expiry/recovery, allowed workspaces | Role grant only after valid scoped invitation and verification; no duplicate identity |
-| Bimo/Setup `onboarding.html` | Two short intro scenes (precise treatment recommended), goal/site/time/context/offline preference and first commitment; Skip Introduction only | Personal setup/private; four baseline tasks still required for plan activation |
-| Lab `lab.html`, `src/pages/member/lab/assessment.html?test=…` | Four baseline statuses/instructions, saved partial state, official weekly window, selected Digital Habits + rotating cognitive/task reassessment, practice label, version/history/coverage | Private versioned Attempt records; weekly eligibility distinct from 28-day plan cycle; no false comparison |
-| Starting Point `src/pages/member/onboarding/starting-point.html` | Four actual results and limitations, plan-building transition, Preview, goal/schedule/commitment, Activate | Creates/updates one personal Plan visible in Home/Recovery; short skippable orientation follows |
+| Bimo/Setup `onboarding.html` | Meet Bimo, exactly six one-at-a-time questions, save/resume, then HeroReels story | Browser-local personal setup; no Lab task is required |
+| Lab `lab.html`, `src/pages/member/lab/assessment.html?test=…` | Optional assessments, saved partial state, practice label, version/history/coverage | Private versioned Attempt records; historical windows retained; no new weekly eligibility assumed |
+| Starting Point `src/pages/member/onboarding/starting-point.html` | Optional results when present, preliminary Week 1 preview, goal/schedule/commitment, explicit Activate | Creates one personal Plan visible in Home/Recovery without any required assessment |
 | Home `index.html` / `src/pages/member/dashboard/dashboard.html` | Next action, personal goal, plan/week, four-tree Garden preview, offline ideas, relevant Explore opportunities, Initiative status, Community and how-it-works, final CTA | Links to actual owned records; no invented testimonial, metrics or partner-only listing |
 | Recovery `recovery-plan.html`, Weekly Review `weekly-review.html` | Overview/This Week/Adjust/History, 28-day personal-cycle direction, due practices, evidence, future-only revisions, review choice | Plan and evidence private; missing days neutral; links to assigned/personal Activities without merging work scopes |
 | Activities `training.html`, Offline Routine within it | Four practice families, approved definitions/difficulty, due/Assigned filters, attempt instructions/evidence, Coach review state, user-chosen routine add/edit/pause/check | Personal Attempt/Assignment/Submission records; one qualifying source effect, no arbitrary to-do farming |
@@ -848,7 +848,7 @@ The operational journeys below complement the page tables. A read always require
 | **H. Group Garden** | Reward evaluator writes unique eligible source effect and collective milestone | One Initiative-wide Garden; Initiative membership checked | Source correction is attributed; duplicate effect refused; no Activity scene |
 | **I. Institution Activity queue** | Representative writes Activity; Individual writes Booking/Queue response; system/Institution issues Offer; Supervisor writes attendance/completion | Regular Explore/My Registrations, Institution inventory/report; eligibility, held+confirmed cap, offer deadline and appointment checked | Cancel/Decline/Expire releases/reoffers; history and notices remain; camp reward only after qualified completion |
 | **J. Admin governance** | Admin writes entity/resource status, versioned catalog/CMS/moderation and audit | Explicit public/member/partner recipients; Admin grant and target allowlist checked | Unpublish/suspend/rollback changes future visibility, retains valid records and alerts affected people |
-| **K. Personal journey** | Individual writes Setup, four versioned baseline Attempts, Plan activation, Practice/Review; official weekly recheck later | Own Home/Recovery/Lab/Insights/Garden; identity, valid tasks/versions/window and source rules checked | Partial first run resumes; invalid comparison stays unavailable; plan changes future only |
+| **K. Personal journey** | Individual writes six-answer Setup, a preliminary plan, explicit activation and Practice/Review; optional versioned Lab attempts remain separate | Own Home at Level 1, Recovery/Lab/Insights/Garden; identity and source rules checked without an assessment gate | Partial first run resumes; historical attempts remain; invalid comparison stays unavailable; plan changes future only |
 | **L. Cross-workspace identity** | Verified existing person accepts Coach/Supervisor/Student grant; Student upgrade adds Individual capability | Authorized switcher and same person's history; email/token/consent and active grant checked | Duplicate identity prevented; revoke scope leaves retained original records, no unrelated private access |
 
 ---
@@ -890,7 +890,7 @@ Define MVC routes, controllers/actions, view models or form contracts, validatio
 
 ## 23.1 Resource permission matrix
 
-The maintained [v4.1 resource permission matrix](docs/cycles/permissions-matrix.md) lists the target actions and scopes. One human may hold several appointments, but each request must use an active grant to that exact Institution resource. A Representative owns Institution operations; an Initiative Supervisor sees its authorized groups/students; a Coach sees assigned groups/students; an Activity/Session Supervisor sees only the explicit appointment. The sole Platform Admin governs, but does not become booking or task owner. Pending invitations, direct URLs and browser role labels grant nothing. Server checks apply to existing sessions after suspension or revocation.
+The maintained [v4.1 resource permission matrix](docs/architecture/permissions-matrix-v4.1.md) lists the target actions and scopes. One human may hold several appointments, but each request must use an active grant to that exact Institution resource. A Representative owns Institution operations; an Initiative Supervisor sees its authorized groups/students; a Coach sees assigned groups/students; an Activity/Session Supervisor sees only the explicit appointment. The sole Platform Admin governs, but does not become booking or task owner. Pending invitations, direct URLs and browser role labels grant nothing. Server checks apply to existing sessions after suspension or revocation.
 
 ## 23.2 Distinct facts and controlled states
 
@@ -973,7 +973,7 @@ For every script record fixture, exact route/control, action, expected and actua
 
 | Demo | Steps and precise acceptance |
 |---|---|
-| **A. Personal Individual** | Register → Bimo → all four baseline tasks → Your Starting Point → plan preview/activation → short skippable orientation → Home/Recovery → valid practice and offline routine → four-tree Garden/Insights → weekly eligibility for Digital Habits + one rotating task. No false score/usage or quiet-day decay; one event gives at most one authorized reward. |
+| **A. Personal Individual** | Register → Bimo → six setup questions → HeroReels story (watch or skip) → Home at Level 1 with a preliminary Week 1 proposal → explicit plan preview/activation → valid practice and offline routine → Garden/Insights. Lab tasks remain optional and no weekly official reassessment is scheduled. No false score/usage or quiet-day decay; one event gives at most one authorized reward. |
 | **B. Institution to Individual** | Admin approves entity/Representative → Rep completes six builder stages and publishes unique structured Initiative → it appears in **regular** `explore.html` (draft hidden) → Individual applies → Rep and Supervisor see same application → Supervisor approves once → group/Coach allocated → separate session booking → in-person QR or typed code/manual exception, or online roster verification → factual attendance/report/rabbit if eligible → another student submits excuse → Supervisor recommends → Rep decides → `Absent + accepted excuse` visible, no rabbit. Test 135th/136th and 3rd/4th active Supervisor per Initiative. |
 | **C. Coach to collective Garden** | Rep invites Coach without central reapproval → active group assignment → Coach creates approved practice assignment/due/review → limited Student My Tasks and full Individual Activities → Assigned show same task semantics → submit → Needs Revision → resubmit → Approve → one corresponding type-tree effect when eligible and one Initiative-level Group Garden contribution → Coach periodic report → source-derived Supervisor Insights → Rep report and original drilldown. Other Coach roster/private Lab denied. |
 | **D. Institution Activity, queue and camp** | Verified Institution publishes a small-capacity standalone or Initiative-linked Camp → regular Explore shows the actual Institution organizer → bookings fill seats → next person Queued → cancellation creates Offered hold → Accept confirms one seat, or Decline/clock-driven Expire reoffers → appointed Supervisor validates check-in → separate completion criteria → Institution report and bounded birdhouse. No duplicate booking/reward or payment claim. |
@@ -992,7 +992,7 @@ For every script record fixture, exact route/control, action, expected and actua
 | ATT-11 / EXP-12 / REG-13 | QR replay idempotent; manual fallback reasoned; online-verified method; draft hidden and new publication on regular Explore; application/registration/withdrawal same IDs in owner and person views |
 | WAIT-14 | Queued→Offered→Accepted/Declined/Expired→reoffer, with demo clock, no expired acceptance or overbooking |
 | GARD-15 / GRP-16 | Eligible sources only, no extra completion tree, neutral inactivity; one Initiative Group Garden, no Coach-only/Provider/standalone camp scene; limited Student sees authorized Initiative Garden only. The separately scoped one-main-plant Personal Garden direction remains pending. |
-| LAB-17 / PRIV-18 | Four baselines reach active plan; weekly official window and rotating set; partner staff cannot read unrelated personal data |
+| LAB-17 / PRIV-18 | Plan activates without Lab results; optional attempts and historical versions remain private; partner staff cannot read unrelated personal data |
 | ADMIN-19 / ADMN-20 | Ordinary Initiative publish bypasses per-item Admin approval; unique legacy/workspace Admin features mapped to working destination; no dead Reports route |
 | STATE-21 / NOFAKE-22 | Cancel/close/revoke preserves history and notifies; seeded metrics labeled; no fake sent email, completed payment, production auth or concurrency guarantee |
 
@@ -1002,15 +1002,15 @@ Final server test family additionally requires authenticated MVC action authoriz
 
 # 26. Decision register: authoritative, interim and open
 
-This ledger records **D01–D48** from 15 October. The 4 November v4.1 decisions supersede conflicting entries, including D10, D13, D15, D18, D19, D22, D24, D40 and D44. The [v4.1 target map](docs/architecture/p0-target-v4.1.md) is the current authority for those areas. `Interim` remains a configurable demonstration default, not immutable commercial policy.
+This ledger records **D01–D48** from 15 October. The 4 November v4.1 decisions supersede conflicting entries, including D10, D13, D15, D18, D19, D22, D24, D40 and D44. Onboarding 2.0 supersedes D04, D05 and D43: six answers, HeroReels, Home at Level 1, optional Lab and no automatic weekly reassessment are current. The [v4.1 target map](docs/architecture/p0-target-v4.1.md) is the current authority for role scope. `Interim` remains a configurable demonstration default, not immutable commercial policy.
 
 | ID | Final status and enforceable decision |
 |---|---|
 | D01 | **Approved:** complete connected graduation demo, not merely routed screens. |
 | D02 | **Approved:** Phase 1 static/browser-local implementation may simulate external services honestly. |
 | D03 | **Agreed direction:** coherent shared identity/publication/participation records; implementation design must avoid another divergent bridge. |
-| D04 | **Approved:** four baselines → Starting Point → Plan activation → short skippable orientation → Home. |
-| D05 | **Approved:** official Lab reassessment opens weekly; window duration and protocol detail remain open. |
+| D04 | **Superseded by Onboarding 2.0:** historical four-baseline → activation sequence. Current route is six questions → HeroReels → Home at Level 1, with separate explicit plan activation. |
+| D05 | **Superseded by Onboarding 2.0:** historical weekly Lab eligibility. No new official window is scheduled. |
 | D06 | **Approved:** no-data/inactivity neutral, no punitive Garden deterioration. |
 | D07 | **Approved:** one fixed ivory Personal Garden, exactly four practice-type trees, no central fifth. |
 | D08 | **Approved:** Depth, Listening & Recall, Practical Micro-Challenge, Protected Work each owns one tree; thresholds/species open. |
@@ -1048,7 +1048,7 @@ This ledger records **D01–D48** from 15 October. The 4 November v4.1 decisions
 | D40 | **v4.1:** Institution owns Outdoor Activity bookings and safety; optional Initiative link is an implementation design choice. |
 | D41 | **Approved:** no anonymous Phase-1 surveys; versioned identified responses with consent/access restrictions. |
 | D42 | **Approved direction:** Lab history/eligibility findable from navigation; exact UI treatment is design detail. |
-| D43 | **Approved:** four baseline tasks; weekly recheck does not require all four each week. Existing Digital Habits + rotating task is current implementation direction; protocol/version comparability remain open. |
+| D43 | **Superseded by Onboarding 2.0:** historical four-baseline and weekly rotating-task direction. Results and versions are retained; future reassessment needs separate approval. |
 | D44 | **v4.1:** full personal product, two Shield functions, four practices, Recovery, Community and one Admin remain; Institution operates outdoor activities, with no independent Provider cycle. |
 | D45 | **Approved:** one person identity, multiple scoped workspaces and memberships. |
 | D46 | **Approved:** Initiative/camp participation never fabricates Lab, Shield or Recovery improvement. |
@@ -1106,12 +1106,14 @@ These questions do **not** reopen D10/D13/D19/D28/D37/D38 or justify reducing th
 > Hey, I'm Bimo!
 > I'll be your friend along the way. Let's discover your starting point and build a plan that fits you.
 
-**Assessment intro — Screen 2:**
+**Historical assessment intro — superseded by six-question Quick Setup:**
 
 > Let's find your starting point.
 > We'll begin with a few questions and four short assessments.
 > Your answers and results are private by default. DeepSprout will use them to help build a plan around your goals.
 > There are no perfect answers. Just be yourself!
+
+**Current first run:** Meet Bimo → six questions → HeroReels (watch or skip) → Home at Level 1. The Week 1 preview and explicit activation follow from Home; the following historical results copy applies only to optional Lab results.
 
 **Suggested results and plan scenes:** `Your Starting Point` → `Building Your Plan` → `Activate My Plan`.
 
@@ -1200,15 +1202,15 @@ A valid DeepSprout implementation must allow a user to reduce their short-form s
 
 ## 29.1 Source and audit boundary
 
-This documentation pass inspected current `src/DeepSprout.Web/wwwroot/src/js/data/account.js`, `src/js/utils/storage.js`, member Garden/Lab/Explore and onboarding sources, `src/workspaces/store.js`, initiative builder, role pages and commands, Admin sources, README files and the pre-existing [cross-workspace functional audit](docs/cycles/README.md). The prior audit dated 15 October 2026 ran ten local partner domain cases and one browser publication boundary test: a newly published Initiative appeared in partner discovery but **not** normal `explore.html`. Those results are historical evidence of that tested working tree. This pass did not run every browser control or claim a fresh six-demo pass; active uncommitted application files remain untouched. Any current code observation below is qualified by its inspection or prior audit source.
+This documentation pass inspected current `src/DeepSprout.Web/wwwroot/src/js/data/account.js`, `src/js/utils/storage.js`, member Garden/Lab/Explore and onboarding sources, `src/workspaces/store.js`, initiative builder, role pages and commands, Admin sources, README files and the pre-existing cross-workspace functional audit (15 October; removed 8 November 2026, in Git history). The prior audit dated 15 October 2026 ran ten local partner domain cases and one browser publication boundary test: a newly published Initiative appeared in partner discovery but **not** normal `explore.html`. Those results are historical evidence of that tested working tree. This pass did not run every browser control or claim a fresh six-demo pass; active uncommitted application files remain untouched. Any current code observation below is qualified by its inspection or prior audit source.
 
 | Area | Observed current state and evidence | Target gap/status |
 |---|---|---|
 | Technology | Static HTML/CSS/JS in `Client/`, local browser data; `Server/` README only, no Angular project. `Client/serve.py` serves the site. | **SIMULATED** phase-1 base; final Angular/ASP.NET Core/EF Core/SQL Server **NOT IMPLEMENTED** |
-| Partner local command workflows | The dated [cycle audit](docs/cycles/README.md) reports ten passing `partner-store.test.mjs` cases for local group/invite/review, Initiative/session/form, booking/offer, appointment/attendance, approval and ownership commands. | **IMPLEMENTED AND VERIFIED in that local audit only**; browser end-to-end and regular Individual effects remain unverified or broken as noted below |
+| Partner local command workflows | The dated cycle audit (15 October; removed 8 November 2026, in Git history) reports ten passing `partner-store.test.mjs` cases for local group/invite/review, Initiative/session/form, booking/offer, appointment/attendance, approval and ownership commands. | **IMPLEMENTED AND VERIFIED in that local audit only**; browser end-to-end and regular Individual effects remain unverified or broken as noted below |
 | Identity | `storage.js` uses `deepsprout-user-v1`; `account.js` uses `deepsprout-account-changes-v1:<choice>` and JSON seeds; partner `store.js` uses `deepsprout-ecosystem-demo-v1`; legacy Admin has another store. Partner invitation/role flows operate locally. | **BROKEN CROSS-WORKSPACE** one-person identity and permissions; real auth/OTP **NOT IMPLEMENTED** |
-| First run | Four assessment tasks, onboarding and Starting Point pages exist. Current `assessment.js` also writes to `DeepSproutAccount`, but Starting Point still reads `DeepSprout` from the older store. Earlier audit found three first-run handoff failures; the added bridge has **not** been retested end-to-end here. | **IMPLEMENTED BUT NOT FULLY VERIFIED** and likely mixed-store risk; four baselines→active plan→orientation requires a fresh browser proof. Orientation **NOT IMPLEMENTED** in earlier audit |
-| Lab | `account.js:checkInWindow()` opens around the **end of a plan cycle**, using `windowDays`; `checkInTasks()` uses Digital Habits + a rotating task, with every `fullEveryCycles` cycle doing four. `lab.js` describes cycle-end windows. | **IMPLEMENTED BUT CONFLICTING:** weekly official eligibility **TARGET REQUIREMENT**; preserve rotation direction, validate protocol/comparability |
+| First run (historical audit) | Four assessment tasks, onboarding and Starting Point pages existed when this audit was written. | **SUPERSEDED:** current first run uses six questions, HeroReels and Home at Level 1; Lab is optional. |
+| Lab (historical audit) | The older client used cycle-end or later weekly windows. | **SUPERSEDED:** no automatic official window is scheduled; historical attempts and windows remain. |
 | Recovery/Activities/Shield | Personal plan, weekly review, four practice-card timers and routine exist locally. Shield page has local preferences/timer, no extension blocking or shared usage threshold; legacy Admin activity guides reach regular Activities but do not become scored practices. | **SIMULATED/PARTIAL** personal product; two Shield capabilities and full practice content **TARGET REQUIREMENT** |
 | Personal Garden | `garden.js` constructs a journey tree plus trees per earned achievement; `account.js:garden()` computes quiet-day dimming, generic steps from practice/routine/review/attendance and a companion from weekly review. Home preview uses older art. | **IMPLEMENTED BUT CONFLICTING:** exact four type trees, three decorations, source rules, neutral no-data and matching preview **TARGET REQUIREMENT** |
 | Institution/Coach/Student/Provider/Supervisor | `workspaces.html` has substantial hash-route pages, local commands, builder drafts, reports, partner Participant view and shared partner store. Ten partner-domain cases passed in prior audit, but not all visible controls were clicked. Existing Initiative builder lacks the approved Free/Paid and Supervisor gate and uses a broader capacity field; staff and admission authority differ. | **WORKS INSIDE PARTNER ECOSYSTEM ONLY / IMPLEMENTED BUT NOT FULLY VERIFIED**; new approved role and state rules **TARGET REQUIREMENT** |
@@ -1220,7 +1222,7 @@ This documentation pass inspected current `src/DeepSprout.Web/wwwroot/src/js/dat
 | Admin | Legacy `admin.html` uniquely delivers landing content, Individual activity guides and member Community moderation. Partner Admin uniquely handles entity review, partner resource suspension, reports/CSV and partner CMS. Two local stores. Recent legacy `reports` route redirects to Subscriptions, per Admin IA audit. | **PARTIAL** one conceptual Admin; capability-by-capability migration in §19; no real platform authorization/payment |
 | Payments/notices/audit | Demo pricing and local notice/audit records; no payment collection, external email/SMS, tamper-resistant audit or production security. | **SIMULATED** with explicit labels; final guarantees **NOT IMPLEMENTED** |
 
-The local Admin/member IA audit at [docs/client/architecture/admin-member-ia-audit.md](docs/client/architecture/admin-member-ia-audit.md) records later legacy Admin work, including Activity/Community bridges and illustrative pricing. The [cycle reports](docs/cycles/README.md) preserve route and field inventories from their audit date. They are evidence, not alternate product policy; old references to an unresolved Group Garden or per-Institution caps have been superseded by §26.
+The local Admin/member IA audit at [docs/client/architecture/admin-member-ia-audit.md](docs/client/architecture/admin-member-ia-audit.md) records later legacy Admin work, including Activity/Community bridges and illustrative pricing. The cycle reports (15 October; removed 8 November 2026, in Git history) preserve route and field inventories from their audit date. They are evidence, not alternate product policy; old references to an unresolved Group Garden or per-Institution caps have been superseded by §26.
 
 ## 29.2 Current data sources and migration implications
 

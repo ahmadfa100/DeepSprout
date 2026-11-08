@@ -57,13 +57,6 @@
         { "id": "reached-blossom", "title": "Reached Blossom", "stage": "blossom", "tree": "pine", "why": "Your journey tree came into blossom." }
       ],
       "vitality": { "fullWithinDays": 2, "lowestAfterDays": 7 }
-    },
-    "checkInPolicy": {
-      "version": "CI-1.0",
-      "windowDays": 3,
-      "always": ["digital-habits"],
-      "rotation": ["sustained-attention", "inhibitory-control", "depth-challenge"],
-      "fullEveryCycles": 3
     }
   },
 

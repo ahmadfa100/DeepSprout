@@ -11,4 +11,4 @@
 
 The canonical raster Focus and Notice references also serve the live onboarding pages and are stored once as `Client/assets/onboarding/bimo-calm.png` and `bimo-greeting.png`.
 
-Rendered test results and recordings are indexed in the [validation guide](../docs/validation/README.md).
+Rendered test results and recordings are indexed in the [validation guide](../client/validation/README.md).

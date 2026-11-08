@@ -4,7 +4,7 @@
 
 ## Authority and boundaries
 
-The 4 November owner decisions supersede conflicting v4.0 product text, the 3 November proposed 87-table Atlas, and current demo behavior. The retained v4.0 material remains useful for unaffected personal-product requirements and dated implementation evidence. No replacement table count has been approved.
+The 4 November owner decisions supersede conflicting v4.0 product text, the 3 November proposed 87-table Atlas, and current demo behavior. The retained v4.0 material remains useful for unaffected personal-product requirements and dated implementation evidence. No replacement table count had been approved on 4 November; the 58-table design was approved afterwards (see the addendum below).
 
 | Area | Approved P0 target | Still requires engineering or policy design |
 |---|---|---|
@@ -38,6 +38,8 @@ The 4 November owner decisions supersede conflicting v4.0 product text, the 3 No
 For an Outdoor Activity, design typed title, kind, description, dates/time zone, venue, eligibility/consent, capacity, registration window, organizer, safety/contact, any approved price disclosure, supervisor/attendance and completion policy. A linked activity must have one booking identity and one completion source.
 
 ## Data-model review and deprecation inventory
+
+> **8 November 2026 addendum: approved database.** The product owner approved the 58-table v5 lean design as the target database. Its revision v5-lean-2 applies the dispositions below inside those 58 tables (Institution-only organizations and Institution-owned outdoor activities, invitation-only staff appointments without `Requested`, retired independent Programs and partnerships kept as read-only history). Table names in the inventory below refer to the older proposals; see the [database index](database/README.md) and [persistence contract](database/persistence-contract.md) for the current mapping and the items still open.
 
 The proposed 87-table/19-schema/234-FK Atlas is a historical proposal, not an implemented or approved target count. Do not execute blanket drops. Inventory actual schema, routes, DTOs, data, fixtures and foreign keys; map source IDs and retention before migrating. Produce a reviewed replacement ERD/dictionary and count afterward.
 

@@ -173,9 +173,9 @@ test('D · Coach task → Individual Assigned → revision → approval → one 
   as('p-maya'); assert.throws(() => dispatch('mentor.review', {id:sub.id, decision:'Approved'}), /outside your groups|already/);
 });
 
-test('E · session booking, Needs Supervisor gate, QR/code, duplicate, online roster, Absent, excuse chain, no rabbit', () => {
+test('E · session booking, Needs Supervisor gate, QR/code, duplicate, roster, Absent, excuse chain, no rabbit', () => {
   reset('p-maya');
-  const sid = dispatch('initiative.session.save', {initiativeId:'i-today', title:'Exam-week focus clinic', speaker:'Maya Haddad', date:'2026-10-28', time:'16:00', endTime:'17:30', format:'Hybrid', venue:'Horizon Hall 1', onlineCapacity:10, inPersonCapacity:10});
+  const sid = dispatch('initiative.session.save', {initiativeId:'i-today', title:'Exam-week focus clinic', speaker:'Maya Haddad', date:'2026-10-28', time:'16:00', endTime:'17:30', format:'In-person', venue:'Horizon Hall 1', address:'1 Horizon Street, Amman', inPersonCapacity:20});
   dispatch('initiative.session.publish', {id:sid});
   let s = read(); assert.equal(needsSupervisor(s, s.sessions.find(x => x.id === sid)), true);
   as('p-omar'); assert.throws(() => dispatch('member.session.register', {sessionId:sid, mode:'In-person', consent:true}), /Only accepted participants/);
@@ -193,6 +193,8 @@ test('E · session booking, Needs Supervisor gate, QR/code, duplicate, online ro
   assert.throws(() => dispatch('initiative.attendance.record', {sessionId:sid, method:'qr', code}), /Already checked in/);
   const noorReg = read().sessionRegistrations.find(r => r.sessionId === sid && r.personId === 'p-noor');
   assert.throws(() => dispatch('initiative.attendance.record', {sessionId:sid, method:'manual', registrationId:noorReg.id}), /reason/);
+  assert.throws(() => dispatch('initiative.attendance.closeout', {sessionId:sid}), /after the check-in window closes/, 'no Absent while check-in is open');
+  dispatch('demo.clock', {at:'2026-10-28T18:01:00+03:00'});
   assert.equal(dispatch('initiative.attendance.closeout', {sessionId:sid}), 1);
   s = read(); const absent = s.sessionAttendance.find(a => a.registrationId === noorReg.id); assert.equal(absent.status, 'Absent');
   assert.equal(personalGardenEffects(s, 'p-rania').filter(e => e.effect === 'rabbit' && e.sourceId === s.sessionAttendance.find(a => a.registrationId === rr).id).length, 1);

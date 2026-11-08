@@ -44,3 +44,17 @@ Not run: SSMS itself and SQL Server 2019. I used sqlcmd with `-b` (stop on error
 - Password hashes are intentionally `NULL`. No demo account can sign in.
 - The ERD image was not produced. The Mermaid ERDs in `../04-erd.md` are regenerated from the corrected model and have not been rendered here.
 - SSMS and SQL Server 2019 compatibility were not tested. The script uses only features available in 2016+ (`STRING_AGG` in demo query Q1 needs 2017+).
+
+## 8 November 2026: v5-lean-2 and EF Core migrations
+
+Executed with `sqlcmd` and `dotnet ef` against SQL Server 2025 Developer (17.0.1000.7) on `DESKTOP-A4AL2KR`, only on disposable databases named `DeepSprout_V5_Scratch_*`. `DeepSprout_V5_Demo` and `DeepSprout_Validation` were read, never written.
+
+| Check | Result |
+|---|---|
+| Live `DeepSprout_V5_Demo` vs fresh build of the v5-lean-1 script (tables, columns, checks, FKs, indexes) | identical: 58 / 759 / 143 / 147 / 267 |
+| Fresh build of `DeepSprout-v5-FULL-Database.sql` (v5-lean-2) | succeeded, exit 0 |
+| `DeepSprout-v5-NEGATIVE-TESTS.sql` on that build | 39 PASS, 0 FAIL, 1 INFO (T26) |
+| EF migrations `V5Baseline` + `V5Lean2Onboarding2AndV41` on an empty database vs the v5-lean-2 script build | identical catalog and permissions; schema fingerprint `0x52B723DF9182BB4C2F0532105BB97DBF46659BF36E6EC78187FCAA565F640435` on both |
+| Clone of `DeepSprout_V5_Demo`: `adopt-v5-baseline.sql`, then EF upgrade | adopted; upgraded; row counts unchanged in every table except `ops.AuditEvent` (+2 audit rows for the re-homed Provider organization and case) |
+| Same clone: rollback to `V5Baseline`, then upgrade again | v5-lean-1 fingerprint `0x4E7EA1C78201945D95F7FE1C5FFF06AB89BAD15634DC30352C8DA007C5394DE4` restored with the Provider kinds; upgrade repeated successfully |
+| Guards | M1-shaped database refused (51100); unversioned setup answers refused before any change (51112); rollback with an Onboarding 2.0 profile refused (51120); adoption of a non-matching schema refused (51201) |

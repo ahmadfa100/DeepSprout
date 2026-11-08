@@ -5,6 +5,7 @@ import {createGardenStage} from '../journey/garden-stage.js';
 import {createDawn,SCENES,sceneAt} from './dawn.js';
 import {storyAt,scrollFor,createFollower} from './story-time.js';
 import {createThreadBridge} from './thread-bridge.js';
+import {createDawnGL} from './dawn-gl.js';
 
 // One scroll reader and one animation frame for the whole page: the new opening, then the
 // unchanged sections 3–5. Sections 3–5 are created, measured, scrolled and framed exactly as
@@ -17,6 +18,14 @@ const field=createField(notAlone,reduced),garden=createGardenStage(document.quer
 const dawn=createDawn(root,{reduced}),bridge=createThreadBridge({section:notAlone,field,reduced});
 const params=new URLSearchParams(location.search),onboarding=params.get('flow')==='onboarding';
 root.dataset.flow=onboarding?'onboarding':'public';
+// Renderer: the scene's own DOM layers by default. ?render=gl opts into the one-canvas WebGL renderer
+// (dawn-gl.js), an experimental option for integrated GPUs, verified only at 1536×730; it falls back to
+// the DOM without WebGL 2, if the GPU context is lost, and with reduced motion.
+const gpu=params.get('render')==='gl'?createDawnGL(root,{scale:()=>dawn.state().s}):null;
+const useGpu=()=>Boolean(gpu)&&!gpu.lost&&!reduced.matches;
+if(gpu)gpu.onLost=()=>{domRender();paint(performance.now(),0)};
+function domRender(){delete root.dataset.render;dawn.threadContext(null)}
+function buildGpu(){if(!useGpu()){domRender();return}gpu.build().then(()=>{if(gpu.ready&&useGpu()){dawn.threadContext(gpu.recorder);root.dataset.render='gl';paint(performance.now(),0)}}).catch(e=>{console.warn('[dawn-gl]',e);domRender()})}
 
 const copy=root.querySelector('.dawn-copy'),cue=root.querySelector('.dawn-cue'),captions=[...root.querySelectorAll('[data-caption]')].map(node=>({node,window:node.dataset.caption.split(',').map(Number),shown:-1}));
 const motion=root.querySelector('.dawn-motion'),skip=root.querySelector('.dawn-skip'),chromeNodes=[root.querySelector('.dawn-brand'),skip,motion].filter(Boolean);
@@ -25,7 +34,7 @@ let chromeShown=-1;
 // storyAt(visual), which gives each beat its own share of the scroll (see story-time.js).
 let target=0,visual=0,clock=0,last=0,frame=0,paused=false,destroyed=false,heroVisible=true,introStart=0,cueShown=false,debugHold=false;
 const follower=createFollower();
-let engaged=false,lastY=0;
+let engaged=false,lastY=0,direct=false; // direct: debug comparison with no follower (story = scroll)
 // Geometry is measured on resize only; scroll handling and frames never read layout.
 const geo={top:0,travel:1,hero:1,fieldTop:0};
 function measure(){geo.top=track.offsetTop;geo.hero=root.offsetHeight;geo.travel=Math.max(1,track.offsetHeight-geo.hero);geo.fieldTop=notAlone.getBoundingClientRect().top+scrollY}
@@ -58,10 +67,16 @@ function paintCopy(p){
  const on=target<(cueShown?.02:.008)&&(reduced.matches||performance.now()-introStart>1800);if(on!==cueShown){cueShown=on;cue.dataset.show=String(on)}
 }
 
+// Debug timing (?reelsDebug): main-thread ms spent posing the scene and issuing its draw.
+const timing={on:params.has('reelsDebug'),scene:0,draw:0,frames:0};
 function paint(now,dt){
+ const t0=timing.on?performance.now():0;
  const p=shown(visual),thread=dawn.paint(p,clock,dt,intro(now));
  paintCopy(p);bridge.set(reduced.matches?null:thread);
  root.dataset.progress=p.toFixed(4);
+ const t1=timing.on?performance.now():0;
+ if(root.dataset.render==='gl')gpu.frame();
+ if(timing.on){timing.scene+=t1-t0;timing.draw+=performance.now()-t1;timing.frames++}
 }
 
 function tick(now){
@@ -70,7 +85,7 @@ function tick(now){
  field.frame(now,dt);path.frame(now,dt);garden.frame(now,dt);
  if(!document.hidden&&!debugHold){
   if(!paused&&!reduced.matches)clock+=dt;
-  if(reduced.matches){visual=target;follower.set(target)}else visual=follower.step(target,dt);
+  if(reduced.matches||direct){visual=target;follower.set(target)}else visual=follower.step(target,dt);
   // Paint the opening while it is on screen, and while section 3 has just pinned over it (the thread is still crossing).
   engaged=lastY>=geo.fieldTop;
   const crossing=engaged&&field.debug.state.progress<.1;
@@ -80,13 +95,14 @@ function tick(now){
  frame=requestAnimationFrame(tick);
 }
 
-function resize(){field.resize();garden.resize();path.resize();dawn.resize();bridge.resize();measure();readScroll();paint(performance.now(),0)}
+let rebuild=0;
+function resize(){field.resize();garden.resize();path.resize();dawn.resize();bridge.resize();measure();readScroll();if(gpu){domRender();clearTimeout(rebuild);rebuild=setTimeout(buildGpu,180)}paint(performance.now(),0)}
 function syncMotion(){motion.setAttribute('aria-pressed',String(paused));motion.setAttribute('aria-label',paused?'Resume animation':'Pause animation');root.dataset.paused=String(paused)}
 
 window.addEventListener('scroll',readScroll,{passive:true,signal});
 window.addEventListener('resize',resize,{signal});
 motion.addEventListener('click',()=>{paused=!paused;syncMotion()},{signal});
-reduced.addEventListener('change',()=>{field.resize();garden.resize();path.resize();dawn.resize();bridge.resize();measure();readScroll();paint(performance.now(),0)},{signal});
+reduced.addEventListener('change',()=>{field.resize();garden.resize();path.resize();dawn.resize();bridge.resize();measure();readScroll();paint(performance.now(),0);if(gpu)buildGpu()},{signal});
 // Leaving the story for Home: the same destination as the story's own final invitation.
 skip?.addEventListener('click',()=>{try{sessionStorage.setItem('deepsprout-story-seen','skipped')}catch{}},{signal});
 document.querySelector('.journey-cta')?.addEventListener('click',()=>{try{sessionStorage.setItem('deepsprout-story-seen','finished')}catch{}},{signal});
@@ -96,6 +112,7 @@ await Promise.race([Promise.allSettled(['800 100px Inter','500 20px Inter','400 
 field.resize();garden.resize();path.resize();dawn.resize();bridge.resize();measure();
 introStart=performance.now();root.dataset.intro=reduced.matches?'done':'play';root.dataset.ready='true';
 readScroll();visual=target>.02?target:0;follower.set(visual);paint(performance.now(),0);frame=requestAnimationFrame(tick);
+if(gpu)buildGpu();
 syncMotion();
 
 if(params.has('reelsDebug')){
@@ -105,8 +122,11 @@ if(params.has('reelsDebug')){
   seek(p){debugHold=true;visual=target=scrollFor(clamp(p));follower.set(visual);introStart=-1e9;paint(performance.now(),0)},
   at(p,t){debugHold=true;visual=target=scrollFor(clamp(p));follower.set(visual);clock=t;introStart=-1e9;paint(performance.now(),0)},
   play(){debugHold=false;readScroll()},
+  tune:settings=>{direct=Boolean(settings.direct);follower.tune(settings)},
+  renderer(mode){if(mode==='gl'&&gpu?.ready){dawn.threadContext(gpu.recorder);root.dataset.render='gl'}else domRender();paint(performance.now(),0)},
+  timing(){const f=Math.max(1,timing.frames),r={sceneMs:+(timing.scene/f).toFixed(2),drawMs:+(timing.draw/f).toFixed(2)};timing.scene=timing.draw=timing.frames=0;return r},
   scrollTo(p){scrollTo({top:geo.top+scrollFor(clamp(p))*travel(),behavior:'instant'})},
-  get state(){return{target,visual,story:storyAt(visual),speed:follower.velocity,clock,scene:sceneAt(shown(visual)).name,travel:travel(),bridge:bridge.state,scenes:SCENES.map(s=>s.name),...dawn.state()}}
+  get state(){return{renderer:root.dataset.render==='gl'?'gl':'dom',gl:gpu?.stats??null,target,visual,story:storyAt(visual),speed:follower.velocity,clock,scene:sceneAt(shown(visual)).name,travel:travel(),bridge:bridge.state,scenes:SCENES.map(s=>s.name),...dawn.state()}}
  };
 }
 window.addEventListener('pagehide',e=>{if(!e.persisted){field.destroy();path.destroy();garden.destroy();destroyed=true;cancelAnimationFrame(frame);abort.abort();bridge.destroy()}},{signal});

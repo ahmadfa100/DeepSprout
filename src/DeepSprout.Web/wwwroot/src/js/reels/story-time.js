@@ -6,10 +6,10 @@ import {clamp} from './story-math.js';
 //    opening is 1300). The storm and the fade carry the most movement, so they get the most room.
 //    The breakpoints are joined by a monotone cubic (Fritsch–Carlson), so story speed changes
 //    gradually across a scene boundary instead of switching abruptly.
-// 2. Following. The story follows the scroll position through a critically damped spring: velocity
-//    is continuous, so a wheel notch starts and settles the motion smoothly instead of kicking it,
-//    and reversing direction decelerates rather than snaps. A ceiling on *story* speed keeps a fling
-//    readable; slow and normal scrolling never reach it.
+// 2. Following. The story follows the scroll position through a short, critically damped spring:
+//    velocity is continuous, so steps between scroll updates are smoothed and reversing direction
+//    decelerates rather than snaps. A ceiling on *story* speed keeps a fling readable; slow and normal
+//    scrolling never reach it.
 export const BEATS=[ // [story progress at the end of the beat, scroll units]
  [.12,100],   // calm
  [.28,170],   // first reel
@@ -38,10 +38,15 @@ export function scrollFor(p){let lo=0,hi=N;while(hi-lo>1){const mid=(lo+hi)>>1;i
 // Story speed per unit of scroll, for the speed ceiling.
 const slope=u=>{const a=Math.max(0,u-.002),b=Math.min(1,u+.002);return Math.max(1e-4,(storyAt(b)-storyAt(a))/(b-a))};
 
-export function createFollower({omega=15,maxStorySpeed=.3}={}){
+// ω=22: about 200 ms to 90% of a step — responsive, yet it still evens out the bursts of motion a
+// wheel notch produces (browsers ease each notch over ~150 ms, then pause until the next one). Faster
+// springs pass those bursts straight through and the reels jump; slower ones feel heavy. The ceiling
+// (0.35 of the story per second) only engages on flings, keeping them readable.
+export function createFollower({omega=22,maxStorySpeed=.35}={}){
  let x=0,v=0;
  return{
   get value(){return x},get velocity(){return v},
+  tune(next){if(next.omega)omega=next.omega;if(next.maxStorySpeed)maxStorySpeed=next.maxStorySpeed},
   set(value){x=clamp(value);v=0},
   step(target,dt){
    if(dt<=0)return x;

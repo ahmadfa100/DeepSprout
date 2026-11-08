@@ -90,7 +90,7 @@
     $('glance-grid').innerHTML = [
       tile('adherence','i-calendar','Plan adherence',adherence?.due ? `${adherence.completed} of ${adherence.due}` : 'No plan',adherence?.due ? 'due practices completed this week' : plan ? 'Nothing due yet this week' : 'Start your Recovery Plan','is-plan'),
       tile('usage','i-chart','Digital usage',usage.available ? minutes(usage.totalSeconds) : 'No data',usage.available ? `${usage.periods.length} observed ${plural(usage.periods.length,'day')} in the last 14 days` : 'Browser tracking not set up yet','is-usage'),
-      tile('checkins','i-flask','Assessments',comparison ? 'Comparison ready' : anyResult ? 'Baseline only' : 'No results',comparison ? 'Valid change measured' : anyResult ? 'No valid comparison yet' : 'Complete your first Lab check','is-checks'),
+      tile('checkins','i-flask','Assessments',comparison ? 'Comparison ready' : anyResult ? 'First result only' : 'No results',comparison ? 'Valid change measured' : anyResult ? 'No valid comparison yet' : 'Optional first Lab check','is-checks'),
       tile('beyond','i-walk','Offline routine',`${routine.monthDays} ${plural(routine.monthDays,'day')}`,routine.monthDays ? `self-reported in ${account.today.toLocaleDateString('en-GB',{month:'long'})}` : routine.primary ? 'No days reported this month' : 'Add a routine in Activities','is-routine')
     ].join('');
   };
@@ -107,7 +107,7 @@
   const renderAdherence = () => {
     const plan = account.plan();
     if (!plan) {
-      // Current first-run contract: setup → four starting-point checks → activation.
+      // Six setup answers and the story lead to Home; plan activation is a separate choice.
       $('adherence-body').innerHTML = compactEmpty('i-flag', 'No active Recovery Plan yet',
         'Your week appears here once your plan is active. Until then nothing is scheduled, so nothing is counted.',
         `<a class="ds-btn" data-size="sm" href="${href('src/pages/member/onboarding/onboarding.html')}">Continue setup${icon('i-arrow')}</a>`);
@@ -388,20 +388,18 @@
 
   const renderCheckIns = () => {
     const instruments = account.checkIns();
-    const due = account.checkInWindow();
     const baselineDate = instruments.find(item => item.baseline)?.baseline.on;
     const anySynthetic = instruments.some(item => item.history.some(synthetic));
     $('checkins-eyebrow').textContent = baselineDate ? `${NAMES.baseline[0].toUpperCase()}${NAMES.baseline.slice(1)} · ${fmt.date(baselineDate, { year: true })}` : 'From your Lab records';
     $('checkins-meta').innerHTML = anySynthetic ? `${demoChip}${help('demo scenario results', 'These results were created by the presentation scenario builder. They are synthetic demonstration data, not measurements of a real person or evidence of improvement.')}` : '';
 
-    if (due.state === 'baseline-needed') {
+    if (!instruments.some(item => item.latest)) {
       $('checkins-window').innerHTML = '';
-      $('checkins-body').innerHTML = empty(`You haven’t taken your first ${NAMES.checkIn.toLowerCase()} yet. Nothing is estimated.`, button(`Start your ${NAMES.checkIn.toLowerCase()}`, href('src/pages/member/lab/lab.html')));
+      $('checkins-body').innerHTML = empty('You haven’t taken an optional Lab assessment yet. Nothing is estimated or required for your plan.', button('Explore the Lab', href('src/pages/member/lab/lab.html')));
       return;
     }
 
-    const upcoming = instruments.filter(item => item.nextMeasured?.opens).sort((a,b) => a.nextMeasured.opens - b.nextMeasured.opens).slice(0,3);
-    $('checkins-window').innerHTML = `<div class="ins-upcoming-heading">${icon('i-calendar')}<h3>Next assessments</h3></div>${upcoming.length ? `<ul class="ins-upcoming-list">${upcoming.map(item => `<li><strong>${fmt.date(item.nextMeasured.opens, { year: true })}</strong><span>${esc(item.title)}</span></li>`).join('')}</ul>` : '<p>No upcoming assessments scheduled.</p>'}${['open','late'].includes(due.state) ? button(`Start ${NAMES.checkIn.toLowerCase()}`, href('src/pages/member/lab/lab.html'), { quiet:true }) : ''}`;
+    $('checkins-window').innerHTML = `<div class="ins-upcoming-heading">${icon('i-calendar')}<h3>Optional Lab</h3></div><p>No reassessment is scheduled. You can explore the Lab whenever you choose.</p>${button('Explore the Lab', href('src/pages/member/lab/lab.html'), { quiet:true })}`;
 
     const rows = instruments.map(item => {
       const result = item.baseline || item.latest;

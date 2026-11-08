@@ -3028,6 +3028,12 @@ namespace DeepSprout.Infrastructure.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
 
+                    b.Property<string>("SetupAnswersJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SetupVersion")
+                        .HasColumnType("int");
+
                     b.Property<long>("PersonId")
                         .HasColumnType("bigint");
 
@@ -3059,7 +3065,9 @@ namespace DeepSprout.Infrastructure.Migrations
 
                     b.ToTable("IndividualProfile", "personal", t =>
                         {
-                            t.HasCheckConstraint("CK_IndividualProfile_Stage", "[OnboardingStage] IN (N'Started',N'Setup',N'Baselines',N'Preview',N'Activated',N'TourDone')");
+                            t.HasCheckConstraint("CK_IndividualProfile_Stage", "[OnboardingStage] IN (N'Started',N'Setup',N'QuickSetup',N'Story',N'Home',N'Baselines',N'Preview',N'Activated',N'TourDone')");
+
+                            t.HasCheckConstraint("CK_IndividualProfile_SetupAnswers", "[SetupAnswersJson] IS NULL OR (ISJSON([SetupAnswersJson])=1 AND [SetupVersion]>0)");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -6744,6 +6752,11 @@ namespace DeepSprout.Infrastructure.Migrations
                         .HasColumnType("datetime2(3)")
                         .HasDefaultValueSql("SYSUTCDATETIME()");
 
+                    b.Property<int>("JourneyLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<long>("PersonId")
                         .HasColumnType("bigint");
 
@@ -6774,6 +6787,8 @@ namespace DeepSprout.Infrastructure.Migrations
 
                     b.ToTable("RecoveryJourney", "recovery", t =>
                         {
+                            t.HasCheckConstraint("CK_RecoveryJourney_Level", "[JourneyLevel]>=1");
+
                             t.HasCheckConstraint("CK_RecoveryJourney_Status", "[Status] IN (N'Active',N'Archived')");
                         });
 

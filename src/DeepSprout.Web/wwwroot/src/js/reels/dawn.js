@@ -53,10 +53,24 @@ const THREADS=[
 
 export function createDawn(root,{reduced}){
  const $=s=>root.querySelector(s),isReduced=()=>Boolean(reduced?.matches);
- const sky=$('.dawn-sky'),stageA=$('.dawn-stage-a'),stageB=$('.dawn-stage-b'),canvas=$('.dawn-threads'),ctx=canvas.getContext('2d');
+ const sky=$('.dawn-sky'),stageA=$('.dawn-stage-a'),stageB=$('.dawn-stage-b'),canvas=$('.dawn-threads'),ctx2d=canvas.getContext('2d');
+ // Threads are stroked on this 2D context, or on a stand-in given by the one-canvas renderer (dawn-gl.js).
+ let ctx=ctx2d;
  stageA.innerHTML=ART.glow+ART.sun+ART.CLOUDS.map((_,i)=>ART.cloud(i)).join('')+ART.birds+ART.land+ART.tree+'<div class="dawn-reels dawn-reels-back"></div>'+ART.character+ART.butterfly+ART.foreground+`<div class="dawn-leaves">${Array.from({length:8},()=>ART.leaf).join('')}</div>`;
  // Night falls as one screen-sized veil just above the world (and the back reels), below the threads and front reels.
  stageA.insertAdjacentHTML('afterend','<div class="dawn-night" aria-hidden="true"></div>');
+ // Pieces that move every frame get their own layers, so the GPU moves a finished picture instead of
+ // repainting a whole scene: the sun's rays, the tree's crown, and each tuft and flower. Same artwork,
+ // same stacking order; only where it is drawn changes.
+ const layerSvg=(cls,box,extra='')=>`<svg class="${cls}" viewBox="${box}" aria-hidden="true" focusable="false" overflow="visible" ${extra}></svg>`;
+ const sunSvg=$('.dawn-sun'),treeSvg=$('.dawn-tree'),foreSvg=$('.dawn-fore');
+ sunSvg.insertAdjacentHTML('beforebegin',layerSvg('dawn-rays-layer',`0 0 ${ART.W} ${ART.H}`));$('.dawn-rays-layer').append($('.dawn-sun-rays'));
+ treeSvg.insertAdjacentHTML('afterend',layerSvg('dawn-crown-layer',`0 0 ${ART.W} ${ART.H}`));$('.dawn-crown-layer').append($('.dawn-crown'));
+ let sprigAt=foreSvg;
+ const sprig=(g,box,left,top,origin)=>{sprigAt.insertAdjacentHTML('afterend',layerSvg('dawn-sprig',box,`style="left:${left}px;top:${top}px;width:${box.split(' ')[2]}px;height:${box.split(' ')[3]}px;transform-origin:${origin}"`));const svg=sprigAt.nextElementSibling;g.removeAttribute('transform');svg.append(g);sprigAt=svg;return svg};
+ const at=g=>g.getAttribute('transform').match(/translate\(([-\d.]+)[ ,]+([-\d.]+)\)/).slice(1).map(Number);
+ const sprigs={tufts:[...stageA.querySelectorAll('.dawn-tuft')].map(g=>{const [x,y]=at(g);return sprig(g,'-30 -50 64 56',x-30,y-50,'30px 50px')}),
+  flowers:[...stageA.querySelectorAll('.dawn-flower')].map(g=>{const [x,y]=at(g);return sprig(g,'-40 -60 84 104',x-40,y-60,'40px 94px')})};
  stageB.innerHTML='<div class="dawn-reels dawn-reels-front"></div>';
  $('.dawn-grain').style.backgroundImage=`url(${ART.grainTile()})`;
  const back=$('.dawn-reels-back'),front=$('.dawn-reels-front');
@@ -66,11 +80,10 @@ export function createDawn(root,{reduced}){
  front.innerHTML=REEL.map(r=>ART.reel(r.i)).join('');
  const reels=[...front.children].map((node,i)=>({node,glow:node.firstElementChild,layer:front,shown:null}));
  for(const node of [root,...root.querySelectorAll('*')])node._st=styler(node);
- const el={night:$('.dawn-night'),glow:$('.dawn-glow'),sun:$('.dawn-sun'),rays:$('.dawn-sun-rays'),clouds:[...root.querySelectorAll('.dawn-cloud')],birds:$('.dawn-birds'),land:$('.dawn-land'),tree:$('.dawn-tree'),crown:$('.dawn-crown'),
+ const el={night:$('.dawn-night'),glow:$('.dawn-glow'),sun:$('.dawn-sun'),rays:$('.dawn-rays-layer'),clouds:[...root.querySelectorAll('.dawn-cloud')],birds:$('.dawn-birds'),land:$('.dawn-land'),tree:$('.dawn-tree'),crown:$('.dawn-crown-layer'),
   character:$('.dawn-character'),body:$('.dawn-body'),torso:$('.dawn-torso'),upper:$('.dawn-upper'),head:$('.dawn-head'),legs:$('.dawn-legs'),pack:$('.dawn-pack'),notice:$('.dawn-notice'),
   legO:$('.dawn-leg-o'),legF:$('.dawn-leg-f'),shoe:$('.dawn-shoe'),armNO:$('.dawn-arm-near-o'),armNF:$('.dawn-arm-near-f'),handN:$('.dawn-hand-near'),armFO:$('.dawn-arm-far-o'),armFF:$('.dawn-arm-far-f'),handF:$('.dawn-hand-far'),
-  armFar:$('.dawn-arm-far'),fore:$('.dawn-fore'),tufts:[...root.querySelectorAll('.dawn-tuft')],flowers:[...root.querySelectorAll('.dawn-flower')],butterfly:$('.dawn-butterfly'),wings:$('.dawn-wings'),leaves:[...root.querySelectorAll('.dawn-leaf')]};
- const tuftBase=el.tufts.map(t=>t.getAttribute('transform')),flowerBase=el.flowers.map(f=>f.getAttribute('transform'));
+  armFar:$('.dawn-arm-far'),fore:$('.dawn-fore'),tufts:sprigs.tufts,flowers:sprigs.flowers,butterfly:$('.dawn-butterfly'),wings:$('.dawn-wings'),leaves:[...root.querySelectorAll('.dawn-leaf')]};
  let W=1,H=1,dpr=1,s=1,O={x:0,y:0},mobile=false,cloudX=ART.CLOUDS.map(c=>c.x),introAt=performance.now(),lastP=-1,thread=null;
  const cam={F:{x:HEAD0.x,y:HEAD0.y},S:{x:0,y:0},k:1,r:0};
 
@@ -129,13 +142,14 @@ export function createDawn(root,{reduced}){
   sky._st.backgroundColor=rgb(p<.62?lerp3(c1,c2,smooth(.28,.62,p)):lerp3(c2,c4,smooth(.62,.86,p)));
   el.night._st.opacity=Math.pow(smooth(.56,.86,p),1.25).toFixed(3);
   const sunY=118*(1-rise)+230*smooth(.30,.80,p);
-  el.sun._st.transform=`translate3d(0,${sunY.toFixed(1)}px,0)`;el.sun._st.opacity=(intro*(1-smooth(.62,.78,p))).toFixed(3);
-  A(el.rays,'transform',`rotate(${still?0:(t*2.2%360).toFixed(2)} ${ART.SUN.x} ${ART.SUN.y})`);el.rays._st.opacity=(1-smooth(.28,.46,p)).toFixed(3);
+  const sunOpacity=intro*(1-smooth(.62,.78,p));
+  el.sun._st.transform=`translate3d(0,${sunY.toFixed(1)}px,0)`;el.sun._st.opacity=sunOpacity.toFixed(3);
+  el.rays._st.transform=`translate3d(0,${sunY.toFixed(1)}px,0) rotate(${still?0:(t*2.2%360).toFixed(2)}deg)`;el.rays._st.opacity=(sunOpacity*(1-smooth(.28,.46,p))).toFixed(3);
   el.glow._st.transform=`translate3d(0,${sunY.toFixed(1)}px,0)`;el.glow._st.opacity=(rise*(1-smooth(.34,.74,p))*(still?1:.9+.1*Math.sin(t*.6))).toFixed(3);
   const fadeLand=1-.12*smooth(.50,.70,p);
   el.land._st.opacity=(intro*fadeLand).toFixed(3);el.land._st.transform=`translate3d(${(-16*smooth(.3,.7,p)).toFixed(1)}px,${(14*(1-intro)).toFixed(1)}px,0)`;
-  el.tree._st.opacity=(intro*fadeLand).toFixed(3);
-  A(el.crown,'transform',`rotate(${(w*3.5+(still?0:Math.sin(t*.8)*(.35+2.6*w))).toFixed(3)} 190 240)`);
+  el.tree._st.opacity=(intro*fadeLand).toFixed(3);el.crown._st.opacity=(intro*fadeLand).toFixed(3);
+  el.crown._st.transform=`rotate(${(w*3.5+(still?0:Math.sin(t*.8)*(.35+2.6*w))).toFixed(3)}deg)`;
   el.fore._st.opacity=intro.toFixed(3);
   // Clouds drift, faster as the wind rises. Their phase accumulates, so a direction change never jumps.
   el.clouds.forEach((node,i)=>{if(!still)cloudX[i]+=dt*(4+90*w)*(1+i*.35);if(cloudX[i]>1900)cloudX[i]-=2300;const c=ART.CLOUDS[i];
@@ -143,8 +157,8 @@ export function createDawn(root,{reduced}){
   const bird=1-smooth(.26,.40,p);el.birds._st.opacity=(intro*bird).toFixed(3);el.birds._st.transform=`translate3d(${(880+(still?0:(t*9)%260)+300*smooth(.3,.42,p)).toFixed(1)}px,${(470+(still?0:Math.sin(t*.9)*6)-120*smooth(.3,.42,p)).toFixed(1)}px,0)`;
   // Grass and flowers sway; the wind bends them all one way as the storm builds.
   const amp=3+16*w,freq=1+2.4*w,lean=w*16;
-  el.tufts.forEach((g,i)=>A(g,'transform',`${tuftBase[i]} rotate(${(lean+(still?0:Math.sin(t*freq+i*1.7)*amp)).toFixed(2)})`));
-  el.flowers.forEach((g,i)=>A(g,'transform',`${flowerBase[i]} rotate(${(lean*.8+(still?0:Math.sin(t*freq*.8+i*2.3)*amp*.6)).toFixed(2)} 0 34)`));
+  el.tufts.forEach((g,i)=>{g._st.transform=`rotate(${(lean+(still?0:Math.sin(t*freq+i*1.7)*amp)).toFixed(2)}deg)`});
+  el.flowers.forEach((g,i)=>{g._st.transform=`rotate(${(lean*.8+(still?0:Math.sin(t*freq*.8+i*2.3)*amp*.6)).toFixed(2)}deg)`});
   // A butterfly, until the first gusts carry it off.
   const gone=smooth(.34,.50,p),bx=600+(still?0:Math.sin(t*.5)*70)+900*gone,by=740+(still?0:Math.sin(t*.9)*26)-260*gone;
   el.butterfly._st.transform=`translate3d(${(bx-30).toFixed(1)}px,${(by-24).toFixed(1)}px,0) rotate(${(gone*40).toFixed(1)}deg)`;el.butterfly._st.opacity=(intro*(1-smooth(.42,.50,p))).toFixed(3);
@@ -250,7 +264,7 @@ export function createDawn(root,{reduced}){
   return thread;
  }
  resize();
- return{resize,paint,get thread(){return thread},toScreen,state:()=>({W,H,s,cam:{...cam},mobile,introAt})};
+ return{resize,paint,threadContext(c){ctx=c||ctx2d;lastP=-1},get thread(){return thread},toScreen,state:()=>({W,H,s,cam:{...cam},mobile,introAt})};
 }
 
 // Shared by the scene and the bridge, so the thread looks the same on either canvas.

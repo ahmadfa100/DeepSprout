@@ -180,6 +180,7 @@
     const setup = {
       ...previous,
       version: 2,
+      previousAnswers: previous.version !== 2 && previous.answers ? JSON.parse(JSON.stringify(previous.answers)) : previous.previousAnswers,
       answeredOn: account.todayKey,
       answers: JSON.parse(JSON.stringify(answers)),
       distracting: answers.apps || [],
@@ -199,7 +200,7 @@
     }
     DS.update(current => {
       Object.assign(current.profile, { goal, distracting: setup.distracting, peakTime: setup.peakTime, baselineMinutes: setup.baselineMinutes, offlineInterests: interests });
-      Object.assign(current.onboarding, { bimoSeen: true, introSeen: true, setupDone: true, journeyLevel: 0 });
+      Object.assign(current.onboarding, { bimoSeen: true, introSeen: true, setupDone: true, journeyLevel: Math.max(1, Number(current.onboarding.journeyLevel) || 1) });
       current.onboarding.quickSetup = { version: 2, index: TOTAL - 1, answers: JSON.parse(JSON.stringify(answers)), completedAt: new Date().toISOString() };
     });
   }

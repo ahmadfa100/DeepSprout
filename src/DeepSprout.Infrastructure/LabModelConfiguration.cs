@@ -81,10 +81,15 @@ internal static class LabModelConfiguration
         });
         m.Entity<IndividualProfile>(e =>
         {
-            e.ToTable("IndividualProfile", "personal", t => t.HasCheckConstraint("CK_IndividualProfile_Stage", "[OnboardingStage] IN (N'Started',N'Setup',N'Baselines',N'Preview',N'Activated',N'TourDone')"));
+            e.ToTable("IndividualProfile", "personal", t =>
+            {
+                t.HasCheckConstraint("CK_IndividualProfile_Stage", "[OnboardingStage] IN (N'Started',N'Setup',N'QuickSetup',N'Story',N'Home',N'Baselines',N'Preview',N'Activated',N'TourDone')");
+                t.HasCheckConstraint("CK_IndividualProfile_SetupAnswers", "[SetupAnswersJson] IS NULL OR (ISJSON([SetupAnswersJson])=1 AND [SetupVersion]>0)");
+            });
             e.HasKey(x => x.Id); e.HasIndex(x => x.PersonId).IsUnique();
             e.Property(x => x.GoalCode).HasMaxLength(64); e.Property(x => x.PreferredTimeZone).HasMaxLength(80);
             e.Property(x => x.ConsentVersion).HasMaxLength(40); e.Property(x => x.OnboardingStage).HasMaxLength(40);
+            e.Property(x => x.SetupAnswersJson).HasColumnType("nvarchar(max)");
             e.HasOne<Person>().WithMany().HasForeignKey(x => x.PersonId).OnDelete(DeleteBehavior.NoAction);
             e.HasOne<AssessmentAttempt>().WithMany().HasForeignKey(x => new { x.LastAssessmentAttemptId, x.PersonId })
                 .HasPrincipalKey(x => new { x.Id, x.PersonId }).OnDelete(DeleteBehavior.NoAction);

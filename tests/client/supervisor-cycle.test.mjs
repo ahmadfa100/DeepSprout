@@ -48,7 +48,7 @@ test('A1 · competition entry from regular Individual; window, duplicate and pub
 
 function absentNoor() {
   reset('p-maya');
-  const sid = dispatch('initiative.session.save', {initiativeId:'i-today', title:'Window test', speaker:'Maya', date:'2026-10-20', time:'16:00', endTime:'17:00', format:'Hybrid', venue:'Hall', onlineCapacity:5, inPersonCapacity:5, supervisorIds:['p-hala']});
+  const sid = dispatch('initiative.session.save', {initiativeId:'i-today', title:'Window test', speaker:'Maya', date:'2026-10-20', time:'16:00', endTime:'17:00', format:'In-person', venue:'Hall', address:'2 Demo Street, Amman', inPersonCapacity:10, supervisorIds:['p-hala']});
   dispatch('initiative.session.publish', {id:sid});
   as('p-noor'); dispatch('member.session.register', {sessionId:sid, mode:'Online', consent:true});
   as('p-rania'); const rr = dispatch('member.session.register', {sessionId:sid, mode:'In-person', consent:true});
@@ -58,7 +58,7 @@ test('A3 · check-in window: early, open, closed; manual exception and correctio
   const {sid, code} = absentNoor();
   as('p-hala');
   assert.match(err(() => dispatch('initiative.attendance.record', {sessionId:sid, method:'code', code})), /has not opened yet/);
-  assert.match(err(() => dispatch('initiative.attendance.closeout', {sessionId:sid})), /after the session has started/);
+  assert.match(err(() => dispatch('initiative.attendance.closeout', {sessionId:sid})), /after the check-in window closes/, 'no Absent before the window closes');
   at('2026-10-20T17:25:00+03:00'); assert.equal(checkInWindow(read(), read().sessions.find(x => x.id === sid)).state, 'open', 'still open 25 min after the end');
   at('2026-10-20T18:31:00+03:00');
   assert.match(err(() => dispatch('initiative.attendance.record', {sessionId:sid, method:'code', code})), /Check-in closed/);
@@ -67,7 +67,7 @@ test('A3 · check-in window: early, open, closed; manual exception and correctio
   dispatch('initiative.attendance.correct', {id, status:'Present', reason:'Arrived on time per sheet.'});
   assert.equal(read().sessionAttendance.find(a => a.id === id).history.length, 1);
   // Explicit "anytime" policy is a per-session choice.
-  as('p-maya'); const any = dispatch('initiative.session.save', {initiativeId:'i-today', title:'Drop-in', speaker:'Maya', date:'2026-12-01', time:'10:00', endTime:'11:00', format:'Online', onlineCapacity:5, checkInMode:'anytime', supervisorIds:['p-hala']});
+  as('p-maya'); const any = dispatch('initiative.session.save', {initiativeId:'i-today', title:'Drop-in', speaker:'Maya', date:'2026-12-01', time:'10:00', endTime:'11:00', format:'Online', meeting:'https://meet.google.com/abc-defg-hij', onlineCapacity:5, checkInMode:'anytime', supervisorIds:['p-hala']});
   assert.equal(read().sessions.find(x => x.id === any).checkInPolicy.mode, 'anytime');
 });
 
@@ -126,7 +126,8 @@ test('B · Outdoor Activity Supervisor: email appointment → new account → ac
   assert.match(err(() => dispatch('supervisor.attendance', {sessionId:'es-walk', credential:'DS-NOOR-24'})), /Already checked in/);
   assert.match(err(() => dispatch('supervisor.attendance', {sessionId:'es-walk', method:'manual', personId:'p-omar', status:'Late'})), /reason/);
   assert.equal(dispatch('supervisor.attendance', {sessionId:'es-walk', method:'manual', personId:'p-omar', status:'Late', reason:'Ticket on a dead phone; ID checked.'}), 'Late');
-  assert.equal(dispatch('supervisor.attendance.closeout', {sessionId:'es-walk'}), 0);
+  assert.match(err(() => dispatch('supervisor.attendance.closeout', {sessionId:'es-walk'})), /after the check-in window closes/);
+  at('2026-10-24T11:31:00+03:00'); assert.equal(dispatch('supervisor.attendance.closeout', {sessionId:'es-walk'}), 0);
   const omar = read().attendance.find(a => a.sessionId === 'es-walk' && a.personId === 'p-omar');
   dispatch('supervisor.attendance.correct', {id:omar.id, status:'Absent', reason:'Left before the walk began.'});
   assert.equal(read().attendance.find(a => a.id === omar.id).history[0].from, 'Late');

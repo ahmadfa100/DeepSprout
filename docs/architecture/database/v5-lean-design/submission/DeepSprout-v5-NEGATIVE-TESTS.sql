@@ -102,14 +102,14 @@ END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T12 same ev
 GO
 -- T13 Experience: Cancelled draft without revision allowed (B6); Published without revision rejected --------------------------------
 BEGIN TRY BEGIN TRAN;
-  DECLARE @prov bigint = (SELECT Id FROM org.Organization WHERE Kind = N'Provider');
-  INSERT provider.Experience (ProviderId, Kind, Status, CancelledAtUtc, CancellationReason) VALUES (@prov, N'Experience', N'Cancelled', SYSUTCDATETIME(), N'Never published');
+  DECLARE @prov bigint = (SELECT Id FROM org.Organization WHERE Name = N'Example Outdoor Camps');
+  INSERT provider.Experience (OrganizationId, Kind, Status, CancelledAtUtc, CancellationReason) VALUES (@prov, N'Experience', N'Cancelled', SYSUTCDATETIME(), N'Never published');
   ROLLBACK; INSERT #r VALUES (N'T13 cancel an unpublished draft experience', N'ACCEPT', N'PASS', N'accepted');
 END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T13 cancel an unpublished draft experience', N'ACCEPT', N'FAIL', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
 GO
 BEGIN TRY BEGIN TRAN;
-  DECLARE @prov bigint = (SELECT Id FROM org.Organization WHERE Kind = N'Provider');
-  INSERT provider.Experience (ProviderId, Kind, Status) VALUES (@prov, N'Experience', N'Published');
+  DECLARE @prov bigint = (SELECT Id FROM org.Organization WHERE Name = N'Example Outdoor Camps');
+  INSERT provider.Experience (OrganizationId, Kind, Status) VALUES (@prov, N'Experience', N'Published');
   ROLLBACK; INSERT #r VALUES (N'T14 Published experience without a revision', N'REJECT', N'FAIL', N'accepted');
 END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T14 Published experience without a revision', N'REJECT', N'PASS', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
 GO
@@ -184,6 +184,89 @@ BEGIN TRY BEGIN TRAN;
   INSERT session.Attendance (SessionId, PersonId, RegistrationId, Status, RecordedByPersonId, RecordedAtUtc) VALUES (@s, @other, @reg, N'Present', @rec, SYSUTCDATETIME());
   ROLLBACK; INSERT #r VALUES (N'T26 attendance.PersonId <> registration.PersonId', N'INFO', N'INFO', N'SQL accepts it: application rule (handler loads registration through the actor and copies PersonId)');
 END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T26 attendance.PersonId <> registration.PersonId', N'INFO', N'INFO', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+-- T27–T34 Onboarding 2.0: versioned setup answers, Journey Level 1, explicit activation without Lab -----------------------------
+BEGIN TRY BEGIN TRAN;
+  UPDATE personal.IndividualProfile SET SetupAnswersVersion = NULL WHERE PersonId = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'zaid.new@example.com');
+  ROLLBACK; INSERT #r VALUES (N'T27 setup answers without a version', N'REJECT', N'FAIL', N'accepted');
+END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T27 setup answers without a version', N'REJECT', N'PASS', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY BEGIN TRAN;
+  UPDATE personal.IndividualProfile SET SetupAnswersJson = N'["reduce-scrolling","instagram"]' WHERE PersonId = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'zaid.new@example.com');
+  ROLLBACK; INSERT #r VALUES (N'T28 setup answers stored as a JSON array', N'REJECT', N'FAIL', N'accepted');
+END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T28 setup answers stored as a JSON array', N'REJECT', N'PASS', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY BEGIN TRAN;
+  UPDATE personal.IndividualProfile SET SetupAnswersJson = NULL WHERE PersonId = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'zaid.new@example.com');
+  ROLLBACK; INSERT #r VALUES (N'T29 setup version without answers', N'REJECT', N'FAIL', N'accepted');
+END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T29 setup version without answers', N'REJECT', N'PASS', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY BEGIN TRAN;
+  UPDATE personal.IndividualProfile SET JourneyLevel = 0 WHERE PersonId = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'zaid.new@example.com');
+  ROLLBACK; INSERT #r VALUES (N'T30 Journey Level 0', N'REJECT', N'FAIL', N'accepted');
+END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T30 Journey Level 0', N'REJECT', N'PASS', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY BEGIN TRAN;
+  INSERT iam.Person (DisplayName, NormalizedEmail, IndividualEnabledAtUtc) VALUES (N'Level test', N'level.test@example.com', SYSUTCDATETIME());
+  INSERT personal.IndividualProfile (PersonId, PreferredTimeZone) VALUES (SCOPE_IDENTITY(), N'UTC');
+  DECLARE @lvl int = (SELECT JourneyLevel FROM personal.IndividualProfile WHERE Id = SCOPE_IDENTITY()), @stage nvarchar(24) = (SELECT OnboardingStage FROM personal.IndividualProfile WHERE Id = SCOPE_IDENTITY());
+  ROLLBACK; INSERT #r VALUES (N'T31 new profile starts at Journey Level 1', N'ACCEPT', CASE WHEN @lvl = 1 AND @stage = N'Started' THEN N'PASS' ELSE N'FAIL' END, CONCAT(N'level ', @lvl, N', stage ', @stage));
+END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T31 new profile starts at Journey Level 1', N'ACCEPT', N'FAIL', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY BEGIN TRAN;
+  DECLARE @z bigint = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'zaid.new@example.com');
+  DECLARE @c bigint = (SELECT Id FROM recovery.RecoveryCycle WHERE PersonId = @z AND Status = N'Preview');
+  IF EXISTS (SELECT 1 FROM lab.AssessmentAttempt WHERE PersonId = @z) THROW 50001, 'fixture has Lab attempts', 1;
+  UPDATE recovery.PlanRevision SET Status = N'Accepted', AcceptedAtUtc = SYSUTCDATETIME() WHERE CycleId = @c AND Status = N'Draft';
+  UPDATE recovery.RecoveryCycle SET Status = N'Active', ActivatedAtUtc = SYSUTCDATETIME(), StartLocalDate = CAST(SYSUTCDATETIME() AS date) WHERE Id = @c;
+  UPDATE personal.IndividualProfile SET OnboardingStage = N'Activated' WHERE PersonId = @z;
+  ROLLBACK; INSERT #r VALUES (N'T32 explicit activation with zero Lab attempts', N'ACCEPT', N'PASS', N'accepted');
+END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T32 explicit activation with zero Lab attempts', N'ACCEPT', N'FAIL', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY BEGIN TRAN;
+  UPDATE recovery.PlanRevision SET Status = N'Accepted' WHERE Status = N'Draft' AND CycleId = (SELECT Id FROM recovery.RecoveryCycle WHERE PersonId = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'zaid.new@example.com'));
+  ROLLBACK; INSERT #r VALUES (N'T33 plan accepted without an acceptance time', N'REJECT', N'FAIL', N'accepted');
+END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T33 plan accepted without an acceptance time', N'REJECT', N'PASS', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY BEGIN TRAN;
+  UPDATE recovery.RecoveryCycle SET Status = N'Active' WHERE PersonId = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'zaid.new@example.com');
+  ROLLBACK; INSERT #r VALUES (N'T34 cycle made Active without an activation time', N'REJECT', N'FAIL', N'accepted');
+END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T34 cycle made Active without an activation time', N'REJECT', N'PASS', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+-- T35–T40 v4.1: Institution-only organizations, invitation-only staff, retired Programs and partnerships ---------------------------------
+BEGIN TRY BEGIN TRAN;
+  INSERT org.Organization (Kind, Name, CountryCode) VALUES (N'Provider', N'New provider', N'EG');
+  ROLLBACK; INSERT #r VALUES (N'T35 new Provider organization', N'REJECT', N'FAIL', N'accepted');
+END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T35 new Provider organization', N'REJECT', N'PASS', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY BEGIN TRAN;
+  INSERT org.StaffAppointment (InitiativeId, Role, Status, NormalizedEmail, TokenHash, ExpiresAtUtc, InvitedByPersonId, InvitedAtUtc) VALUES ((SELECT TOP 1 Id FROM institution.Initiative), N'Supervisor', N'Requested', N'self.request@example.com', 0x01, DATEADD(DAY,7,SYSUTCDATETIME()), (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'salim.rep@example.com'), SYSUTCDATETIME());
+  ROLLBACK; INSERT #r VALUES (N'T36 Supervisor self-request (Requested)', N'REJECT', N'FAIL', N'accepted');
+END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T36 Supervisor self-request (Requested)', N'REJECT', N'PASS', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY BEGIN TRAN;
+  DECLARE @inst bigint = (SELECT Id FROM org.Organization WHERE Name = N'Example Outdoor Camps');
+  INSERT provider.Experience (OrganizationId, Kind, Status) VALUES (@inst, N'Camp', N'Draft');
+  ROLLBACK; INSERT #r VALUES (N'T37 Institution owns a new outdoor activity', N'ACCEPT', N'PASS', N'accepted');
+END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T37 Institution owns a new outdoor activity', N'ACCEPT', N'FAIL', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY BEGIN TRAN;
+  EXECUTE AS USER = N'ds_app_demo';
+  INSERT coach.CoachProgram (OwnerPersonId, Status) VALUES ((SELECT Id FROM iam.Person WHERE NormalizedEmail = N'rania.coach@example.com'), N'Draft');
+  REVERT; ROLLBACK; INSERT #r VALUES (N'T38 application role creates an independent Program', N'REJECT', N'FAIL', N'accepted');
+END TRY BEGIN CATCH IF USER_NAME() = N'ds_app_demo' REVERT; IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T38 application role creates an independent Program', N'REJECT', N'PASS', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY BEGIN TRAN;
+  EXECUTE AS USER = N'ds_app_demo';
+  UPDATE partnership.PartnershipLink SET Status = N'Ended';
+  REVERT; ROLLBACK; INSERT #r VALUES (N'T39 application role changes a retired partnership', N'REJECT', N'FAIL', N'accepted');
+END TRY BEGIN CATCH IF USER_NAME() = N'ds_app_demo' REVERT; IF @@TRANCOUNT > 0 ROLLBACK; INSERT #r VALUES (N'T39 application role changes a retired partnership', N'REJECT', N'PASS', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
+GO
+BEGIN TRY
+  EXECUTE AS USER = N'ds_app_demo';
+  DECLARE @n int = (SELECT COUNT(*) FROM coach.CoachProgram) + (SELECT COUNT(*) FROM partnership.PartnershipLink);
+  REVERT; INSERT #r VALUES (N'T40 retired history stays readable', N'ACCEPT', CASE WHEN @n > 0 THEN N'PASS' ELSE N'FAIL' END, CONCAT(@n, N' historical rows readable'));
+END TRY BEGIN CATCH IF USER_NAME() = N'ds_app_demo' REVERT; INSERT #r VALUES (N'T40 retired history stays readable', N'ACCEPT', N'FAIL', LEFT(ERROR_MESSAGE(), 200)); END CATCH;
 GO
 SELECT Id, Test, Expect, Result, Detail FROM #r ORDER BY Id;
 SELECT SUM(CASE WHEN Result = N'PASS' THEN 1 ELSE 0 END) AS Passed, SUM(CASE WHEN Result = N'FAIL' THEN 1 ELSE 0 END) AS Failed, SUM(CASE WHEN Result = N'INFO' THEN 1 ELSE 0 END) AS Info FROM #r;

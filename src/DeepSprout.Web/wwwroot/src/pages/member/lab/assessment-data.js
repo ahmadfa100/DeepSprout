@@ -1,5 +1,5 @@
 /**
- * Content and metadata for the four baseline instruments.
+ * Content and metadata for the four optional Lab instruments.
  *
  * Each instrument carries a version string. Attempts record the version they
  * were taken with, because two attempts are only comparable when the version

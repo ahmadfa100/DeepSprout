@@ -5,6 +5,7 @@ public sealed class RecoveryJourney : MutableRecord
     public long PersonId { get; set; }
     public DateTime StartedAtUtc { get; set; }
     public string Status { get; set; } = "Active";
+    public int JourneyLevel { get; set; } = 1;
 }
 
 public sealed class RecoveryCycle : MutableRecord

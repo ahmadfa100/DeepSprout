@@ -17,11 +17,11 @@
 
   const INDIVIDUALS = [
     {person: 'p-rania', role: 'Individual · presentation journey', scenario: 'rania-active-journey', go: 'index.html',
-      points: ['Week 3 of an active Recovery Plan', 'Four valid baselines · weekly Lab', 'Depth Level 2 · Practical ready to advance', 'Accepted Initiative · waiting-list place']},
+      points: ['Week 3 of an active Recovery Plan', 'Six setup answers · optional Lab results', 'Depth Level 2 · Practical ready to advance', 'Accepted Initiative · waiting-list place']},
     {person: 'p-ahmad', role: 'Individual · original seeded story', go: 'index.html',
       points: ['Frozen on Sat 17 Jan 2026, day 13', 'Legacy records shown honestly as legacy', 'Two Initiative registrations']},
     {fresh: true, role: 'Fresh first run', go: 'register.html',
-      points: ['Register → Green → four assessments', 'Activation from an empty journal', 'Independent of the prepared journeys']}
+      points: ['Register → Bimo → six questions → story → Home at Level 1', 'Explicit plan activation without assessments', 'Independent of the prepared journeys']}
   ];
   const PARTNERS = [
     ['p-maya', 'Institution Representative · Coach', 'Start Today initiative, admissions, sessions and groups'],

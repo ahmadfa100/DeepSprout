@@ -11,4 +11,4 @@ This is the single location for media used by the website.
 
 Authoring source copies under `hero/bimo-source/` and `hero-v2/bimo-source/` are separate export projects. Matching controller and pose files, tool configuration, and license files are retained because each project needs them locally.
 
-See [design references](../references/README.md) for source reference artwork and [illustration prompt notes](../docs/design/image-prompts/README.md) for image-generation history.
+See [design references](../../../../docs/references/README.md) for source reference artwork and [illustration prompt notes](../../../../docs/client/design/image-prompts/README.md) for image-generation history.

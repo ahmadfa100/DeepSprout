@@ -1,5 +1,7 @@
 # DeepSprout v5 — Simplification Decisions (Section C)
 
+> **Historical rationale (5 November 2026, 57-table draft).** The approved design has 58 tables (`activity.PracticeVersion` restored) and is now at v5-lean-2. Independent Coach/Provider ownership and Supervisor self-request described here are superseded by the v4.1 decisions. Current state: [README](README.md).
+
 Numbers come from `generator/build.mjs` (see `validation-report.txt`); nothing here is estimated.
 
 | Measure | v4 | v5 | Change |

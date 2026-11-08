@@ -21,8 +21,9 @@ INSERT iam.Person (DisplayName, NormalizedEmail, EmailVerifiedAtUtc, IndividualE
  (N'Rania Demo (Coach)',             N'rania.coach@example.com',    DATEADD(DAY,-90,@now), NULL, NULL),
  (N'Salim Demo (Institution rep)',   N'salim.rep@example.com',      DATEADD(DAY,-90,@now), NULL, NULL),
  (N'Mona Demo (Supervisor)',         N'mona.supervisor@example.com',DATEADD(DAY,-80,@now), NULL, NULL),
- (N'Yusuf Demo (Provider rep)',      N'yusuf.provider@example.com', DATEADD(DAY,-90,@now), NULL, NULL),
- (N'Dana Demo (Provider supervisor)',N'dana.provider@example.com',  DATEADD(DAY,-70,@now), NULL, NULL),
+ (N'Yusuf Demo (Outdoor activity rep)',      N'yusuf.provider@example.com', DATEADD(DAY,-90,@now), NULL, NULL),
+ (N'Dana Demo (Outdoor activity supervisor)',N'dana.provider@example.com',  DATEADD(DAY,-70,@now), NULL, NULL),
+ (N'Zaid Demo (New Individual)',     N'zaid.new@example.com',       DATEADD(DAY,-1,@now),  DATEADD(DAY,-1,@now), NULL),
  (N'Ada Demo (Platform admin)',      N'admin.demo@example.com',     DATEADD(DAY,-200,@now),NULL, N'Admin'),
  (N'Mira Demo (Moderator)',          N'mira.moderator@example.com', DATEADD(DAY,-200,@now),NULL, N'Moderator');
 
@@ -41,6 +42,7 @@ DECLARE @yusuf bigint = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'yus
 DECLARE @dana  bigint = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'dana.provider@example.com');
 DECLARE @admin bigint = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'admin.demo@example.com');
 DECLARE @mira  bigint = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'mira.moderator@example.com');
+DECLARE @zaid  bigint = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'zaid.new@example.com');
 
 -- Consent history (insert-only) and an e-mail invitation code for a person who has not registered yet
 INSERT iam.ConsentRecord (PersonId, PurposeCode, NoticeVersion, Decision, DecidedAtUtc) VALUES
@@ -57,9 +59,9 @@ VALUES (N'sara.invitee@example.com', N'Invitation', HASHBYTES('SHA2_512', N'demo
 ------------------------------------------------------------------------------------------------------
 INSERT org.Organization (Kind, Name, CountryCode, Status, HeadquartersCity, OfficialContactEmail, ProfileJson, SettingsJson) VALUES
  (N'Institution', N'Example Youth University', N'EG', N'Verified', N'Cairo',  N'contact@example.com', N'{"website":"https://example.com/youth-university","about":"Fictional institution for the demo"}', N'{"defaultCapacity":30}'),
- (N'Provider',    N'Example Outdoor Camps',    N'EG', N'Verified', N'Dahab',  N'camps@example.com',   N'{"website":"https://example.com/outdoor-camps"}', NULL);
+ (N'Institution', N'Example Outdoor Camps',    N'EG', N'Verified', N'Dahab',  N'camps@example.com',   N'{"website":"https://example.com/outdoor-camps"}', NULL);
 DECLARE @inst bigint = (SELECT Id FROM org.Organization WHERE Kind = N'Institution' AND Name = N'Example Youth University');
-DECLARE @prov bigint = (SELECT Id FROM org.Organization WHERE Kind = N'Provider' AND Name = N'Example Outdoor Camps');
+DECLARE @prov bigint = (SELECT Id FROM org.Organization WHERE Kind = N'Institution' AND Name = N'Example Outdoor Camps');
 
 INSERT org.OrganizationMember (OrganizationId, PersonId, GrantedByPersonId, GrantedAtUtc) VALUES
  (@inst, @salim, @admin, DATEADD(DAY,-90,@now)),
@@ -74,8 +76,9 @@ DECLARE @fileExcuse bigint = (SELECT Id FROM files.SecureFile WHERE ObjectKey = 
 INSERT org.VerificationCase (Kind, OrganizationId, ApplicantPersonId, ClaimJson, SubmittedAtUtc, Status, EvidenceFileId, DecidedByPersonId, DecidedAtUtc, DecisionReason, MessagesJson) VALUES
  (N'Institution', @inst, @salim, N'{"name":"Example Youth University","role":"Dean of student affairs"}', DATEADD(DAY,-95,@now), N'Approved', @fileVerif, @admin, DATEADD(DAY,-92,@now), N'Documents match the claim.',
    N'[{"actor":"admin","text":"Please attach the registration letter.","atUtc":"2000-01-01T00:00:00Z"},{"actor":"applicant","text":"Attached.","atUtc":"2000-01-02T00:00:00Z"}]'),
- (N'Provider',    @prov, @yusuf, N'{"name":"Example Outdoor Camps","licence":"DEMO-0001"}',          DATEADD(DAY,-95,@now), N'Approved', NULL, @admin, DATEADD(DAY,-93,@now), N'Licence verified (demo).', NULL),
- (N'Coach',       NULL,  @rania, N'{"credentials":"Certified habit coach (fictional)","years":6}',   DATEADD(DAY,-94,@now), N'Approved', NULL, @admin, DATEADD(DAY,-91,@now), N'Credentials accepted (demo).', NULL);
+ (N'Institution', @prov, @yusuf, N'{"name":"Example Outdoor Camps","licence":"DEMO-0001"}',          DATEADD(DAY,-95,@now), N'Approved', NULL, @admin, DATEADD(DAY,-93,@now), N'Licence verified (demo).', NULL),
+ (N'Coach',       NULL,  @rania, -- legacy history: v4.1 removed the Coach application queue
+ N'{"credentials":"Certified habit coach (fictional)","years":6}',   DATEADD(DAY,-94,@now), N'Approved', NULL, @admin, DATEADD(DAY,-91,@now), N'Credentials accepted (demo).', NULL);
 
 ------------------------------------------------------------------------------------------------------
 -- 3.3 Content catalog: practices (with versions), Lab instruments, Garden rules
@@ -118,6 +121,17 @@ INSERT lab.AssessmentAttempt (PersonId, InstrumentVersionId, InstrumentCode, Kin
 SELECT @layla, iv.Id, iv.InstrumentCode, N'Official', N'Valid', DATEADD(DAY,-8,@now), DATEADD(DAY,-8,@now), N'Valid', @wk, iv.ScoringVersion, 66.0, N'{"primary":66.0}', N'{"answered":12,"completed":true}'
 FROM lab.InstrumentVersion iv WHERE iv.InstrumentCode = N'DigitalHabits';
 UPDATE personal.IndividualProfile SET LastAssessmentAttemptId = (SELECT TOP (1) Id FROM lab.AssessmentAttempt WHERE PersonId = @layla ORDER BY StartedAtUtc DESC, Id DESC) WHERE PersonId = @layla;
+
+INSERT personal.IndividualProfile (PersonId, PreferredTimeZone, GoalCode, SetupAnswersJson, SetupAnswersVersion, OnboardingStage, JourneyStartedAtUtc, OnboardingCompletedAtUtc)
+VALUES (@zaid, N'Asia/Amman', N'reduce-scrolling',
+ N'{"change":"reduce-scrolling","apps":["instagram","youtube"],"dailyScroll":"120-240","moments":"before-bed","makeTimeFor":["walking-sports","reading-learning"],"dailyMinutes":"10"}', 2,
+ N'Home', DATEADD(DAY,-1,@now), DATEADD(DAY,-1,@now));
+INSERT recovery.RecoveryCycle (PersonId, CycleNo, PolicyVersion, TimeZoneId, Kind, Status)
+VALUES (@zaid, 1, N'policy-1', N'Asia/Amman', N'Standard', N'Preview');
+INSERT recovery.PlanRevision (CycleId, RevisionNo, ChangeKind, GoalCode, PolicyVersion, EffectiveFromLocalDate, Reason, PlanJson, Status)
+VALUES ((SELECT Id FROM recovery.RecoveryCycle WHERE PersonId = @zaid AND CycleNo = 1), 1, N'Initial', N'reduce-scrolling', N'policy-1', CAST(@now AS date),
+ N'Preliminary Week 1 plan from the six setup answers; waiting for the person to activate it.',
+ N'{"source":"quick-setup-v2","week":1,"days":3,"minutes":10,"commitment":{"title":"A 10-minute walk or some movement"}}', N'Draft');
 
 INSERT recovery.RecoveryCycle (PersonId, CycleNo, PolicyVersion, TimeZoneId, Kind, Status, StartLocalDate, EndLocalDate, ActivatedAtUtc)
 VALUES (@layla, 1, N'policy-1', N'Africa/Cairo', N'Standard', N'Active', CAST(DATEADD(DAY,-56,@now) AS date), CAST(DATEADD(DAY,28,@now) AS date), DATEADD(DAY,-56,@now));
@@ -303,9 +317,9 @@ DECLARE @attNoor bigint = (SELECT Id FROM session.Attendance WHERE SessionId = @
 INSERT session.AbsenceExcuse (AttendanceId, PersonId, Reason, FileId, Status) VALUES (@attNoor, @noor, N'Medical appointment that day (demo).', @fileExcuse, N'Submitted');
 
 ------------------------------------------------------------------------------------------------------
--- 3.10 Provider experience: forms, terms, staff, cohort, bookings, session, incident
+-- 3.10 Institution outdoor activity (camp): forms, terms, staff, cohort, bookings, session, incident
 ------------------------------------------------------------------------------------------------------
-INSERT provider.Experience (ProviderId, Kind, Status) VALUES (@prov, N'Camp', N'Draft');
+INSERT provider.Experience (OrganizationId, Kind, Status) VALUES (@prov, N'Camp', N'Draft');
 DECLARE @exp bigint = SCOPE_IDENTITY();
 INSERT forms.Form (Purpose, Title, ExperienceId, Status) VALUES (N'Feedback', N'Camp feedback survey', @exp, N'Draft');
 DECLARE @frmFb bigint = SCOPE_IDENTITY();

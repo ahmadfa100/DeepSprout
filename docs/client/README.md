@@ -1,11 +1,11 @@
 # Client documentation
 
-The [authoritative DeepSprout specification](../../DeepSprout.md) defines the approved target and decision register. These files are **dated implementation and design handoffs**; their original test results, collaboration boundaries and open-question lists should not override later owner approvals. The [cross-workspace cycle audit](../../docs/cycles/README.md) records the current route and data-boundary evidence, while [master §29](../../DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) summarizes current versus target.
+The [authoritative DeepSprout specification](../../DeepSprout.md) defines the approved target and decision register. These files are **dated implementation and design handoffs**; their original test results, collaboration boundaries and open-question lists should not override later owner approvals. The [current product guide](../current-product-guide.md) inventories current routes, while [master §29](../../DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) summarizes current versus target.
 
 ## Architecture and current-state reports
 
 - [Legacy Admin cycle](architecture/admin-cycle.md)
-- [Partner workspaces](architecture/partner-workspaces.md)
+- [Partner workspaces v4.1 redesign](../implementation/partner-workspaces-v41-redesign.md)
 - [Admin dashboard redesign](architecture/admin-dashboard-redesign.md)
 - [Admin/member integration audit](architecture/admin-member-ia-audit.md)
 

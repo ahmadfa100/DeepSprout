@@ -1,19 +1,20 @@
 // DeepSprout v5 lean model. Source of truth for the generated documents.
 // Each table derives from exactly one v4 table (`base`); `take` copies columns from another v4 table that v5 absorbs.
-// Nothing here touches v4 files: build.mjs only READS ../v4-final-design-review/schema.json.
+// build.mjs only READS the frozen v4 table set in generator/base/v4-schema.json.
 //
 // Column tuple: [name, sqlType, nullable, default, note]
 // uq tuple:     [[columns], filterOrNull]
 // ck tuple:     [name, expression]
 
 export const META = {
-  version: 'v5-lean-1',
+  version: 'v5-lean-2',
   rules: [
     'Every table keeps Id and CreatedAtUtc; UpdatedAtUtc is removed everywhere; RowVersion exists only on tables that are edited or contended by several actors (rv: true).',
     'Only single-column FKs. v4 composite ownership FKs (85) are replaced by C# checks inside the command that writes the row.',
     'CHECK constraints are kept only for status/kind lists (IN (...)), XOR owner/scope shapes and two business bounds (initiative capacity 1..135, session/experience capacity > 0). ISJSON checks and status-versus-timestamp coherence checks are retired.',
     'No triggers and no stored procedures. Capacity and supervisor-cap rules run in a C# transaction that first takes an UPDLOCK on the parent row.',
     'Critical one-of-a-kind rules stay in the database as (filtered) UNIQUE indexes.',
+    'v5-lean-2 (8 November 2026) applies Onboarding 2.0 and the 4 November v4.1 decisions without changing the 58-table boundary. Retired concepts keep their tables and legacy values only to preserve history; retired tables are read-only to the application role (DENY INSERT, UPDATE, DELETE).',
   ],
 };
 
@@ -55,49 +56,70 @@ export const TABLES = [
   // ───────────────────────────── org ─────────────────────────────
   {
     n: 'org.Organization', base: 'org.Organization', rv: false, drop: [],
+    dropCk: ['CK_Organization_Kind'],
+    ck: [['CK_Organization_Kind', "Kind IN ('Institution')"]],
     json: { ProfileJson: 'Public profile: description, website, logo reference.', SettingsJson: 'Organization settings (defaults for new initiatives, contact preferences).' },
-    purpose: 'An Institution or a Provider (Kind). Name, status, profile and settings.',
+    purpose: 'An Institution: name, status, profile and settings. Owns initiatives and outdoor activities (v4.1: Kind is Institution only).',
     ar: 'مؤسسة أو مزوّد (حسب Kind) بحالته وملفه وإعداداته.',
-    feature: 'Partner application, Organization dashboard/settings, Provider workspace, Admin approvals.',
-    why: 'Owner of initiatives and experiences; has its own verification lifecycle.',
+    feature: 'Institution Representative registration, Institution profile/settings, Admin verification.',
+    why: 'Owner of initiatives and outdoor activities; has its own verification lifecycle. Former Provider rows are re-homed as Institutions.',
   },
   {
     n: 'org.OrganizationMember', base: 'org.OrganizationMember', rv: false, drop: ['RevokedByPersonId'],
-    purpose: 'Which people may act for an organization (representatives, provider members).',
+    purpose: 'Which people may act for an Institution (its human Representatives).',
     ar: 'من يحق له التصرف باسم المنظمة.',
     feature: 'Organization team, representative authority, Workspace Switcher.',
     why: 'Authority row with its own grant/revoke lifecycle; basis of authorization.',
   },
   {
     n: 'org.VerificationCase', base: 'org.VerificationCase', rv: true, drop: [],
+    dropCk: ['CK_VerificationCase_Kind', 'CK_VerificationCase_Subject'],
+    ck: [
+      ['CK_VerificationCase_Kind', "Kind IN ('Institution','Coach')"],
+      ['CK_VerificationCase_Subject', "(Kind = 'Coach' AND OrganizationId IS NULL) OR (Kind = 'Institution' AND OrganizationId IS NOT NULL)"],
+    ],
     add: [['MessagesJson', 'nvarchar(max)', true, null, 'The more-information thread between Admin and applicant (Client: Application.messages).']],
     json: { MessagesJson: '[{actor,text,atUtc}] thread.', ClaimJson: 'The applicant\'s claim: organization details or coach credentials, as submitted.' },
-    purpose: 'Admin review of a Coach, Institution or Provider application, including "more information" rounds.',
+    purpose: 'Admin verification of an Institution and its Representative, including "more information" rounds. Kind Coach is legacy history only (v4.1 removed the Coach application queue).',
     ar: 'طلب توثيق مدرب أو مؤسسة أو مزوّد وقرار الإدارة.',
-    feature: 'Partner application, application status, Admin → Organizations.',
+    feature: 'Join as Partner → Institution Representative, application status, Admin → Institutions.',
     why: 'Own lifecycle (Submitted / MoreInfo / Approved / Rejected / Suspended) reviewed by a different actor.',
   },
   {
-    n: 'org.StaffAppointment', base: 'org.StaffAppointment', rv: true, drop: ['RequestNote', 'EndedByPersonId'],
-    add: [['CanManageCohorts', 'bit', false, '0', 'Provider supervisors only: may create and manage cohorts (Client: cohortPermission).']],
-    purpose: 'Invitation, acceptance and removal of supervisors and coaches for one initiative, or supervisors for one experience.',
+    n: 'org.StaffAppointment', base: 'org.StaffAppointment', rv: true, drop: ['RequestNote', 'EndedByPersonId', 'RequestedByPersonId'],
+    dropCk: ['CK_StaffAppointment_Status', 'CK_StaffAppointment_Invited'],
+    ck: [
+      ['CK_StaffAppointment_Status', "Status IN ('Pending','Active','Declined','Expired','Cancelled','Revoked')"],
+      ['CK_StaffAppointment_Invited', 'NormalizedEmail IS NOT NULL AND TokenHash IS NOT NULL AND ExpiresAtUtc IS NOT NULL AND InvitedByPersonId IS NOT NULL AND InvitedAtUtc IS NOT NULL'],
+    ],
+    add: [['CanManageCohorts', 'bit', false, '0', 'Outdoor activity supervisors only: may create and manage cohorts (Client: cohortPermission).']],
+    purpose: 'Email invitation, acceptance and removal of Coaches and Supervisors for one initiative, or Supervisors for one outdoor activity. Invitation-only: no self-request.',
     ar: 'دعوة وتعيين وسحب المشرفين والمدربين لمبادرة أو تجربة.',
-    feature: 'Initiative Staff tab, Supervisor/Coach invitations, Provider staff.',
+    feature: 'Initiative Staff tab, Coach/Supervisor invitations, outdoor activity staff.',
     why: 'Authority row with a pending → active → revoked lifecycle; carries the "three supervisors" rule.',
   },
 
   // ───────────────────────────── personal ─────────────────────────────
   {
     n: 'personal.IndividualProfile', base: 'personal.IndividualProfile', rv: false, drop: [],
-    add: [['ShieldSettingsJson', 'nvarchar(max)', true, null, 'Digital Shield reminder settings (replaces the v4 ShieldConfiguration + ShieldSelectedDomain tables).']],
+    add: [
+      ['ShieldSettingsJson', 'nvarchar(max)', true, null, 'Digital Shield reminder settings (replaces the v4 ShieldConfiguration + ShieldSelectedDomain tables).'],
+      ['JourneyLevel', 'int', false, '1', 'Journey starting point. Every new journey starts at Level 1; it is not a score, severity or recovery percentage. A legacy browser Level 0 is imported as 1; higher levels are preserved.'],
+    ],
+    dropCk: ['CK_IndividualProfile_Stage'],
+    ck: [
+      ['CK_IndividualProfile_Stage', "OnboardingStage IN ('Started','QuickSetup','Story','Home','Activated','TourDone','Introduced','Setup','Baselines','Results','Preview')"],
+      ['CK_IndividualProfile_JourneyLevel', 'JourneyLevel >= 1'],
+      ['CK_IndividualProfile_SetupAnswers', "(SetupAnswersJson IS NULL AND SetupAnswersVersion IS NULL) OR (SetupAnswersJson IS NOT NULL AND SetupAnswersVersion IS NOT NULL AND SetupAnswersVersion >= 1 AND LEFT(LTRIM(SetupAnswersJson), 1) = N'{')"],
+    ],
     json: {
-      SetupAnswersJson: 'Quick Personal Setup answers (versioned by SetupAnswersVersion).',
+      SetupAnswersJson: 'Quick Setup answers as one JSON object, always paired with SetupAnswersVersion. Version 2 (Onboarding 2.0): {"change":"reduce-scrolling|intentional-phone|offline-time|focus-objective","apps":["instagram","tiktok","youtube","facebook","other"],"dailyScroll":"under-60|60-120|120-240|over-240|unsure","moments":"before-bed|morning|study-work|bored|unsure","makeTimeFor":["walking-sports","reading-learning","drawing-creativity","friends-family","hobbies","other"],"dailyMinutes":"5|10|15|20"}. Version 1 is the legacy eight-answer browser setup, kept readable.',
       PreferencesJson: 'Reminder and display preferences.',
       ShieldSettingsJson: j('{"reminderEnabled":true,"thresholdMinutes":90,"domains":["social","video"],"consentVersion":"2026-10"}'),
     },
-    purpose: 'The personal (Individual) workspace: onboarding stage, goal, setup answers, preferences, Shield settings.',
+    purpose: 'The personal (Individual) workspace and journey: onboarding stage, Journey Level, goal, versioned setup answers, preferences, Shield settings.',
     ar: 'المساحة الشخصية: مرحلة الإعداد والهدف والتفضيلات وإعدادات Shield.',
-    feature: 'Onboarding (Meet Bimo → Setup → Starting Point), Profile, Shield → Usage Reminder.',
+    feature: 'Onboarding 2.0 (Register → Meet Bimo → six questions → HeroReels story → Home), Profile, Shield → Usage Reminder.',
     why: 'Exists only for people who enabled the Individual workspace (an invited student has none). Keeps Person narrow.',
   },
 
@@ -105,9 +127,9 @@ export const TABLES = [
   {
     n: 'lab.InstrumentVersion', base: 'lab.InstrumentVersion', rv: false, drop: [],
     json: { ContentJson: 'Items, instructions and timing of the assessment.' },
-    purpose: 'The four assessments (Digital Habits, Sustained Attention, Inhibitory Control, Depth Challenge) with their scoring version.',
+    purpose: 'The four optional Lab assessments (Digital Habits, Sustained Attention, Inhibitory Control, Depth Challenge) with their scoring version.',
     ar: 'الاختبارات الأربعة بنسخة تصحيح ثابتة تضمن قابلية المقارنة.',
-    feature: 'Lab, Admin → Assessments editor, Starting Point.',
+    feature: 'Optional Lab, Admin → Assessments editor, Starting Point results (when taken).',
     why: 'Results are only comparable under the same scoring version, so the version must be a row that attempts point to.',
   },
   {
@@ -131,24 +153,25 @@ export const TABLES = [
       ResponsesJson: j('[{"item":"S1","trial":1,"value":"x","latencyMs":412}, …]'),
       ScoresJson: j('[{"metric":"omissions","value":3.0,"comparable":true}, …]'),
     },
-    purpose: 'One attempt at an assessment: kind (Baseline / Official / Practice), progress, responses and score.',
+    purpose: 'One optional Lab attempt: kind (Baseline = first official attempt, Official = historical weekly-window attempt, Practice), progress, responses and score. Never required for plan activation; a missing result is unknown, not zero.',
     ar: 'محاولة اختبار واحدة بحالتها وإجاباتها ونتيجتها.',
-    feature: 'Onboarding baselines, weekly reassessment, Lab history, Insights → Assessments.',
+    feature: 'Optional Lab, Lab history, Insights → Assessments. Weekly reassessment is retired pending a separate decision; existing Official rows stay as history.',
     why: 'Unbounded rows per person with a pause/resume lifecycle. Absorbs v4 AssessmentWindow, AssessmentResponse, AssessmentScore.',
   },
 
   // ───────────────────────────── recovery ─────────────────────────────
   {
     n: 'recovery.RecoveryCycle', base: 'recovery.RecoveryCycle', rv: true, drop: [],
-    purpose: 'A recovery cycle (about 28 days): Preview → Active → Review → Ended.',
+    purpose: 'A recovery cycle (about 28 days): Preview → Active → Review → Ended. Activation needs no Lab result.',
     ar: 'دورة التعافي (نحو 28 يومًا) وحالتها.',
     feature: 'Recovery Plan, Weekly Review, cycle end.',
     why: 'Own lifecycle; at most one open cycle per person.',
   },
   {
     n: 'recovery.PlanRevision', base: 'recovery.PlanRevision', rv: false, drop: [],
+    ck: [['CK_PlanRevision_Accepted', "(Status = 'Draft' AND AcceptedAtUtc IS NULL) OR (Status IN ('Accepted','Superseded') AND AcceptedAtUtc IS NOT NULL)"]],
     json: { PlanJson: 'The plan as shown: goals, weekly load, selected practices and routines.' },
-    purpose: 'The accepted plan and each adjustment of it (Draft → Accepted → Superseded).',
+    purpose: 'The plan and each adjustment of it (Draft → Accepted → Superseded). The preliminary Week 1 plan is a Draft; only the person\'s explicit activation accepts it.',
     ar: 'الخطة المقبولة وكل تعديل عليها.',
     feature: 'Recovery Plan → Adjust, History ("Plan adjusted").',
     why: 'Plan history is shown to the user, and scheduled actions point at the plan they came from.',
@@ -281,7 +304,7 @@ export const TABLES = [
 
   // ───────────────────────────── coach ─────────────────────────────
   {
-    n: 'coach.CoachProgram', base: 'coach.CoachProgram', rv: true,
+    n: 'coach.CoachProgram', base: 'coach.CoachProgram', rv: true, retired: true,
     drop: ['CurrentRevisionId'],
     take: [{ from: 'coach.ProgramRevision', cols: ['Title'], nullable: true }],
     add: [
@@ -290,9 +313,9 @@ export const TABLES = [
       ['PublishedAtUtc', 'datetime2(3)', true, null, 'Last publish time.'],
     ],
     json: { DraftJson: 'Program Builder draft.', PublishedJson: j('{"objective":"…","eligibility":"…","startsOn":"2026-12-01","endsOn":"2027-02-01","stages":[…],"duePolicy":"…","completionRule":"…","consentNotice":"2026-10"}') },
-    purpose: 'An independent coach program: owner, status, title, draft and the current published content.',
+    purpose: 'RETIRED (v4.1): historical independent coach programs. Read-only; no new programs. Kept so earlier groups, memberships and completions stay attributable.',
     ar: 'برنامج المدرب المستقل: المالك والحالة والمسودة والمحتوى المنشور الحالي.',
-    feature: 'Program Builder, Program publish, groups of a program.',
+    feature: 'History only. Coaches work inside Institution Initiatives.',
     why: 'Owner of groups and completions. Absorbs v4 ProgramRevision; nothing in SQL needs to filter on the published fields, and completion keeps its own frozen BasisJson.',
   },
   {
@@ -308,7 +331,7 @@ export const TABLES = [
       ['RequiresApproval', 'bit', false, '0', 'Program groups: a student who accepts an invitation waits for the coach to approve (membership status Pending).'],
     ],
     fk: [['CoachPersonId', 'iam.Person'], ['CoachStaffAppointmentId', 'org.StaffAppointment']],
-    purpose: 'A group under one initiative or one program, with its current coach.',
+    purpose: 'A group under one initiative, with its current coach. ProgramId is legacy history for retired independent programs; new groups need InitiativeId.',
     ar: 'مجموعة تشغيلية تابعة لمبادرة أو برنامج ومدربها الحالي.',
     feature: 'Students & Groups, Allocate Coaches, mentor groups.',
     why: 'Parent of memberships and assignments. Coach handover history is written to AuditEvent and shown in the UI from there.',
@@ -324,7 +347,7 @@ export const TABLES = [
       [['TokenHash'], 'TokenHash IS NOT NULL'],
     ],
     ck: [['CK_GroupMembership_Status', "Status IN ('Invited','Pending','Active','Ended','Declined','Expired','Revoked')"], ['CK_GroupMembership_Identity', "(Status = 'Invited' AND PersonId IS NULL AND NormalizedEmail IS NOT NULL AND TokenHash IS NOT NULL) OR (Status IN ('Declined','Expired','Revoked') AND (PersonId IS NOT NULL OR (NormalizedEmail IS NOT NULL AND TokenHash IS NOT NULL))) OR (Status IN ('Pending','Active','Ended') AND PersonId IS NOT NULL)"]],
-    purpose: 'Invitation to, membership in, and placement in a group (program invitation by email, or initiative placement by application).',
+    purpose: 'Placement in and membership of an initiative group by application. Invited rows are legacy program invitations kept as history.',
     ar: 'دعوة وعضوية وتسكين الطالب في مجموعة.',
     feature: 'Join by invitation, Student group, transfer between groups.',
     why: 'Own lifecycle (Invited → Active → Ended). Transfers end one row and start another.',
@@ -449,10 +472,11 @@ export const TABLES = [
     dropCk: ['CK_Experience_Published'],
     ck: [['CK_Experience_Published', "Status IN ('Draft','Archived','Cancelled') OR CurrentRevisionId IS NOT NULL"]],
     drop: ['ProviderKind', 'CancelledByPersonId'],
-    json: { DraftJson: 'Experience Builder draft.' },
-    purpose: 'A provider experience or camp: owner provider, kind, lifecycle status, current revision pointer, Builder draft and cancellation.',
+    rename: { ProviderId: 'OrganizationId' },
+    json: { DraftJson: 'Outdoor Activity Builder draft.' },
+    purpose: 'An Institution-owned outdoor activity, trip or camp: owning Institution, kind, lifecycle status, current revision pointer, Builder draft and cancellation.',
     ar: 'تجربة أو مخيم المزوّد: المالك والحالة والنسخة الحالية والمسودة.',
-    feature: 'Provider Builder, Explore → Experiences, bookings.',
+    feature: 'Institution → New Outdoor Activity, Explore → Outdoor activities, bookings.',
     why: 'Root and lock point for booking capacity. Stays narrow; the terms live in the revision.',
   },
   {
@@ -583,7 +607,7 @@ export const TABLES = [
 
   // ───────────────────────────── platform ─────────────────────────────
   {
-    n: 'partnership.PartnershipLink', base: 'partnership.PartnershipLink', rv: false, drop: ['ScopeVersion'],
+    n: 'partnership.PartnershipLink', base: 'partnership.PartnershipLink', rv: false, retired: true, drop: ['ScopeVersion'],
     json: { DataSharingScopeJson: 'What the initiative may see from the linked program or experience.' },
     purpose: 'A link between an initiative and a coach program or provider experience, without moving ownership.',
     ar: 'ربط مبادرة ببرنامج أو تجربة دون نقل الملكية.',

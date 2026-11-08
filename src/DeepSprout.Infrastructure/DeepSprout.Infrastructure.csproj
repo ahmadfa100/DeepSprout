@@ -39,6 +39,8 @@
     <EmbeddedResource Include="Sql/PartnershipGuards.sql" />
     <EmbeddedResource Include="Sql/CommercialGuards.sql" />
     <EmbeddedResource Include="Sql/FormGuards.sql" />
+    <!-- Approved 58-table design (v5): DDL executed by the V5 migrations. -->
+    <EmbeddedResource Include="V5/Sql/*.sql" />
   </ItemGroup>
 
 </Project>

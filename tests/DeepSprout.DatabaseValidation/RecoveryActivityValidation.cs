@@ -20,6 +20,8 @@ internal sealed class RecoveryActivityValidation(string connectionString)
         var p1=Id(db,"INSERT iam.Person(DisplayName,Status,IndividualEnabled) VALUES(@name,N'Active',1); SELECT CAST(SCOPE_IDENTITY() AS bigint)",("@name",tag+" owner"));
         var p2=Id(db,"INSERT iam.Person(DisplayName,Status,IndividualEnabled) VALUES(@name,N'Active',1); SELECT CAST(SCOPE_IDENTITY() AS bigint)",("@name",tag+" other"));
         var journey=Id(db,"INSERT recovery.RecoveryJourney(PersonId,StartedAtUtc,Status) VALUES(@p,SYSUTCDATETIME(),N'Active'); SELECT CAST(SCOPE_IDENTITY() AS bigint)",("@p",p1));
+        Check("REC-LEVEL-ONE-DEFAULT",S<int>(db,"SELECT JourneyLevel FROM recovery.RecoveryJourney WHERE Id=@j",("@j",journey))==1,"new journeys start at Level 1");
+        Expect("REC-LEVEL-ZERO-REJECTED",547,()=>N(db,"UPDATE recovery.RecoveryJourney SET JourneyLevel=0 WHERE Id=@j",("@j",journey)),"CK_RecoveryJourney_Level");
         Expect("REC-JOURNEY-ACTIVE",2601,()=>N(db,"INSERT recovery.RecoveryJourney(PersonId,StartedAtUtc,Status) VALUES(@p,SYSUTCDATETIME(),N'Active')",("@p",p1)));
         var cycle=Id(db,"INSERT recovery.RecoveryCycle(JourneyId,PersonId,CycleNo,Status,TimeZoneId) VALUES(@j,@p,1,N'Draft',N'Asia/Amman'); SELECT CAST(SCOPE_IDENTITY() AS bigint)",("@j",journey),("@p",p1));
         Expect("REC-CYCLE-OWNER",547,()=>N(db,"INSERT recovery.RecoveryCycle(JourneyId,PersonId,CycleNo,Status,TimeZoneId) VALUES(@j,@p,2,N'Draft',N'Asia/Amman')",("@j",journey),("@p",p2)),"FK_RecoveryCycle_RecoveryJourney_JourneyId_PersonId");

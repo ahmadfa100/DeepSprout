@@ -22,7 +22,7 @@ test('Demo · Rania scenario is built only through validated engine events and p
  const p=a.plan();assert.equal(p.status,'Active');assert.equal(p.week,3);assert.equal(p.day,19);assert.equal(p.personId,'p-rania');
 });
 
-test('Demo · four baselines and weekly Lab results satisfy the current instrument contracts and are labelled synthetic',async()=>{
+test('Demo · optional Lab results satisfy instrument contracts and are labelled synthetic',async()=>{
  const {a}=await built();const record=a.exportRecord();
  const baselines=record.assessmentAttempts.filter(x=>x.kind==='baseline');
  assert.deepEqual(baselines.map(x=>x.definitionId).sort(),['depth-challenge','digital-habits','inhibitory-control','sustained-attention']);
@@ -32,8 +32,8 @@ test('Demo · four baselines and weekly Lab results satisfy the current instrume
   assert.ok(x.details.some(d=>d.value==='Synthetic presentation scenario'));
   if(x.definitionId!=='digital-habits')assert.equal(x.measurementContext.presentation,'demo-scenario');
  }
- const weekly=record.assessmentAttempts.filter(x=>x.kind==='weekly');assert.equal(weekly.length,4);
- assert.deepEqual([...new Set(weekly.map(x=>x.windowId))].length,2);
+ const weekly=record.assessmentAttempts.filter(x=>x.kind==='weekly');assert.equal(weekly.length,0);
+ assert.equal(a.checkInWindow().state,'optional');
  assert.deepEqual(record.plan.baselineIds.sort(),baselines.map(x=>x.id).sort());
 });
 
@@ -75,20 +75,16 @@ test('Demo · another Person cannot read the scenario journal and the scenario c
  const yara=await page(f.storage).DeepSproutAccount.load();assert.equal(yara.plan(),null);assert.equal(yara.exportRecord().activityAttempts.length,0);
 });
 
-test('Demo · history labels the self-reported questionnaire honestly and names weekly Lab windows',async()=>{
+test('Demo · history labels the self-reported questionnaire and optional tasks honestly',async()=>{
  const {a}=await built();const checks=a.history().filter(e=>e.kind==='baseline');
- const dh=checks.filter(e=>e.title.startsWith('Digital Habits'));assert.ok(dh.length>=2);
+ const dh=checks.filter(e=>e.title.startsWith('Digital Habits'));assert.equal(dh.length,1);
  for(const e of dh)assert.match(e.note,/self-reported/);
  for(const e of checks.filter(e=>!e.title.startsWith('Digital Habits')))assert.match(e.note,/measured/);
- assert.ok(checks.some(e=>/Weekly Lab · week 1/.test(e.note)));assert.ok(checks.some(e=>/^Starting point/.test(e.note)));
+ assert.ok(!checks.some(e=>/Weekly Lab/.test(e.note)));assert.ok(checks.some(e=>/^Starting point/.test(e.note)));
 });
 
-test('Demo · repeat Lab results tell no improvement story and stay recognisably synthetic',async()=>{
+test('Demo · no reassessment is fabricated by the retired weekly policy',async()=>{
  const {a}=await built();const rows=a.exportRecord().assessmentAttempts;
- const base=Object.fromEntries(rows.filter(x=>x.kind==='baseline').map(x=>[x.definitionId,x.score]));
- for(const x of rows.filter(x=>x.kind==='weekly')){
-  const lowerIsBetter=x.definitionId==='digital-habits';
-  assert.ok(lowerIsBetter?x.score>=base[x.definitionId]:x.score<=base[x.definitionId],`${x.definitionId} ${base[x.definitionId]} → ${x.score} must not show improvement`);
-  assert.ok(x.details.some(d=>d.value==='Synthetic presentation scenario'));
- }
+ assert.equal(rows.length,4);
+ assert.ok(a.checkIns().every(item=>!item.nextMeasured));
 });

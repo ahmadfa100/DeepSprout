@@ -6,8 +6,9 @@ import {mountPickers} from './picker.js';
 import {renderAccount,commonAction,renderNotifications} from './shared.js';
 import {nowMs} from './domain.js';
 import {mountMotion} from './ds.js';
-// The Razor view links ds-system.css; this covers a server still running an older compiled view.
-if(![...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>new URL(link.href,location.href).pathname.endsWith('/src/workspaces/ds-system.css'))){const l=document.createElement('link');l.rel='stylesheet';l.href='/src/workspaces/ds-system.css';document.head.append(l);}
+// The Razor view links workspace-styles.css, the single list of workspace stylesheets. A server still running an
+// older compiled view may lack that link while serving these newer modules, so add it rather than render unstyled.
+if(![...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>new URL(link.href,location.href).pathname.endsWith('/src/workspaces/workspace-styles.css'))){const l=document.createElement('link');l.rel='stylesheet';l.href='/src/workspaces/workspace-styles.css';document.head.append(l);}
 const workspaceOptionLabel=area=>({student:'Student · Initiative',participant:'Explore · Opportunities & bookings'})[area]||`${labels[area]} workspace`;
 /** Supervisors see only the menu items their kinds of assignment can use (routes stay reachable and explain themselves). */
 function navFor(area,s,p){

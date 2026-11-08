@@ -374,7 +374,7 @@ export function initiativeCommand(s, action, p, actor) {
     const ids = [...new Set(p.supervisorIds || [])];
     requireThat(ids.every(pid => isActiveSupervisor(s, initiative.id, pid)), 'Only active Supervisors of this initiative can be assigned.');
     ss.supervisorIds = ids; ss.history.push({at:now(), actorId:actor, change:`Supervisor duty: ${ids.map(pid => personOf(s, pid).name).join(', ') || 'none — Needs Supervisor'}`});
-    for (const pid of ids) notify(s, pid, `You are the responsible Supervisor for ${ss.title} (${ss.date} ${ss.time}).`, `workspaces.html#/supervisor/attendance?session=${ss.id}`);
+    for (const pid of ids) notify(s, pid, `You are the responsible Supervisor for ${ss.title} (${ss.date} ${ss.time}).`, `workspaces.html#/supervisor/attendance/${ss.id}`);
     return;
   }
   if (['member.session.register','participant.session.register'].includes(action)) {
@@ -436,19 +436,6 @@ export function initiativeCommand(s, action, p, actor) {
     s.sessionAttendance.push({id:id('att'), sessionId:ss.id, registrationId:r.id, initiativeId:initiative.id, personId:r.personId, status, method:stored, reason, actorId:actor, at:now(), history:[]});
     r.attendance = 'Recorded';
     return status;
-  }
-  if (action === 'initiative.attendance.closeout') {
-    const ss = find(s.sessions, p.sessionId), initiative = initiativeOf(s, ss.initiativeId);
-    requireThat(isActiveSupervisor(s, initiative.id, actor) && (ss.supervisorIds || []).includes(actor), 'Only the assigned active Supervisor can close attendance.');
-    requireThat(checkInWindow(s, ss).started, 'Attendance can be closed only after the session has started.');
-    let count = 0;
-    for (const r of s.sessionRegistrations.filter(x => x.sessionId === ss.id && x.status === 'Confirmed' && !s.sessionAttendance.some(a => a.registrationId === x.id))) {
-      s.sessionAttendance.push({id:id('att'), sessionId:ss.id, registrationId:r.id, initiativeId:initiative.id, personId:r.personId, status:'Absent', method:'close-out', reason:'Not checked in when attendance closed', actorId:actor, at:now(), history:[]});
-      r.attendance = 'Recorded'; count++;
-      notify(s, r.personId, `You were recorded absent from ${ss.title}. You can submit an excuse from My Initiatives.`, memberLink, 'attendance');
-    }
-    ss.closedOut = true; ss.history.push({at:now(), actorId:actor, change:`Attendance closed · ${count} recorded Absent`});
-    return count;
   }
   if (action === 'initiative.attendance.correct') {
     const record = find(s.sessionAttendance, p.id), ss = find(s.sessions, record.sessionId);

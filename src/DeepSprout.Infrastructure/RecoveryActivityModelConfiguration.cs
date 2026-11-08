@@ -9,9 +9,14 @@ internal static class RecoveryActivityModelConfiguration
     {
         m.Entity<RecoveryJourney>(e =>
         {
-            e.ToTable("RecoveryJourney", "recovery", t => t.HasCheckConstraint("CK_RecoveryJourney_Status", "[Status] IN (N'Active',N'Archived')"));
+            e.ToTable("RecoveryJourney", "recovery", t =>
+            {
+                t.HasCheckConstraint("CK_RecoveryJourney_Status", "[Status] IN (N'Active',N'Archived')");
+                t.HasCheckConstraint("CK_RecoveryJourney_Level", "[JourneyLevel]>=1");
+            });
             e.HasKey(x => x.Id); e.HasAlternateKey(x => new { x.Id, x.PersonId });
             e.Property(x => x.Status).HasMaxLength(24);
+            e.Property(x => x.JourneyLevel).HasDefaultValue(1);
             e.HasIndex(x => x.PersonId).IsUnique().HasFilter("[Status]=N'Active'");
             e.HasOne<Person>().WithMany().HasForeignKey(x => x.PersonId).OnDelete(DeleteBehavior.NoAction);
         });

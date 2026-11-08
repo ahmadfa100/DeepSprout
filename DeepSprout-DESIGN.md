@@ -141,7 +141,7 @@ components:
 - **Bimo:** only approved original mascot assets; use sparingly in onboarding and meaningful contextual moments. Do not regenerate a lookalike.
 - **Onboarding 2.0:** one warm ivory canvas from Meet Bimo through exactly six one-at-a-time questions (slim top progress bar, completed-questions fill, Back/Continue, save/resume) to “You’re ready to begin”, whose hand-drawn sun becomes the story’s opening. Kalam 700 for the voice of onboarding and the story, DM Sans/Inter for supporting text.
 - **HeroReels opening:** simple hand-drawn illustration (organic dark outlines, flat pastel fills, light paper grain) with an original faceless character in a sage sweater; the story’s own character is not Bimo. Everything from “You’re not alone” onward is protected and unchanged.
-- **Journey Level 0 (Home):** a motivational starting point with “Assessment status: Not established yet” and a preliminary Week 1 proposal from the six answers — never scores, usage figures or percentages.
+- **Journey Level 1 (Home):** a motivational starting point with “Assessment status: Not established yet” when no optional result exists and a preliminary Week 1 proposal from the six answers — never invented scores, usage figures or percentages.
 - **Home:** dedicated Hero, Your Goal, Your Garden, Offline Ideas, Outdoor Experiences, Join an Initiative, Community preview, How It Works, final CTA, Footer. One state-aware next-action CTA.
 - **Recovery Plan:** calm four-week roadmap with Overview, This Week, Adjust, History. Never label elapsed time or adherence as medical recovery percentage.
 - **Digital Shield:** visually distinguish only two main capabilities: Manual Website Protection and Shared Website Usage Reminder. Show extension coverage/connection honestly.

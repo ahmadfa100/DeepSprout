@@ -59,7 +59,7 @@
  $('outcome-options')?.setAttribute('role','radiogroup');
  $('outcome-options')?.setAttribute('aria-label','Choose how to set next week');
  Account.load().then(a=>{
-  account=a;if(!a.plan()){$('none-text').textContent='Activate your original plan after the four baselines to begin weekly reviews.';show('none');return;}
+  account=a;if(!a.plan()){$('none-text').textContent='Review and activate your Week 1 plan to begin weekly reviews. Lab assessments are optional.';show('none');return;}
   a.visitRecovery();const s=a.recovery();week=Number(new URLSearchParams(location.search).get('week')||s.nextReview||a.plan().week);
   if(s.status==='Cycle Review Due'&&!new URLSearchParams(location.search).has('week')){$('none-text').textContent='This cycle has ended. Review its actual outcomes and choose Next Cycle or Maintenance in your Recovery Plan.';show('none');return;}
   if(a.reviews().history.some(r=>r.week===week)){$('none-text').textContent=`Week ${week} is already reviewed. Its decision and source evidence remain in History.`;show('none');return;}

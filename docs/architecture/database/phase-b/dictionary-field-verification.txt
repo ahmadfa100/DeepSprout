@@ -1,4 +1,0 @@
-explicit_references=49
-explicit_absent=0
-predecessor_references=114
-predecessor_absent=0

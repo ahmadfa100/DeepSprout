@@ -1,0 +1,25 @@
+/*
+ * DeepSprout partner workspaces — the one stylesheet entry, in cascade order.
+ *
+ * Views/Workspaces/Index.cshtml links only this file, and app.js adds it if
+ * a server still runs an older compiled view. Razor views are compiled into
+ * the site DLL while CSS and JS are served live from wwwroot, so a stylesheet
+ * list kept in the view could fall behind the modules that need it. That is
+ * how the Attendance page once rendered without its styles.
+ *
+ * Add new workspace stylesheets here, never in the view. ds-system.css stays last.
+ */
+@import url("../styles/theme.css");
+@import url("workspaces.css");
+@import url("institution.css");
+@import url("institution-reports.css");
+@import url("student-initiative.css");
+@import url("coach-report.css");
+@import url("admin-owner.css");
+@import url("admin-console.css");
+@import url("supervisor-desk.css");
+@import url("attendance-center.css");
+@import url("../styles/initiative-portal.css");
+@import url("journey/journey.css");
+@import url("../pages/auth/register/experience/experience.css");
+@import url("ds-system.css");

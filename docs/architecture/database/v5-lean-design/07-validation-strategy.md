@@ -1,5 +1,7 @@
 # DeepSprout v5 — Lean Validation Strategy (Section F)
 
+> **Historical rationale (5 November 2026, 57-table draft).** The approved design has 58 tables (`activity.PracticeVersion` restored) and is now at v5-lean-2. Independent Coach/Provider ownership and Supervisor self-request described here are superseded by the v4.1 decisions. Current state: [README](README.md).
+
 Goal: prove the things that can hurt people or data, cheaply. Not one test per constraint.
 
 ## 1. Principles

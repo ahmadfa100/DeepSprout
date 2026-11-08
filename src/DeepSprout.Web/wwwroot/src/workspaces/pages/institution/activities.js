@@ -11,7 +11,8 @@ import {orgFor, demoEnabled} from '../../store.js';
 import {seats, occupied, nowMs, clockDay} from '../../domain.js';
 import {kindLabel} from '../../activity-rules.js';
 import {activityReport} from '../../../shared/activity-selectors.js';
-import {renderAttendance, renderEvaluations, nameOf, ownedExperiences} from '../../shared.js';
+import {renderEvaluations, nameOf, ownedExperiences} from '../../shared.js';
+import {renderActivityAttendance} from './activity-attendance.js';
 import {timelineEvents, renderTimeline, scopeFor} from '../../timeline.js';
 import {checkList, parseChecks} from '../../builders/engine.js';
 
@@ -73,7 +74,7 @@ export function renderActivityDetail(ctx, e) {
   if (e.status === 'Draft' && !['overview','history'].includes(tab)) body = ds.empty('Publish to start taking bookings.', 'Bookings, attendance and completion begin after publication. Drafts never appear in Explore.', u.link('Continue editing', `organization/activities/${e.id}/edit`, 'button primary'), {art:false});
   else if (tab === 'bookings') body = bookingsTab(ctx, e, f);
   else if (tab === 'waitlist') body = waitlistTab(ctx, e, f);
-  else if (tab === 'attendance') body = scheduleTab(ctx, e, f) + renderAttendance(ctx);
+  else if (tab === 'attendance') body = scheduleTab(ctx, e, f) + renderActivityAttendance(ctx, e);
   else if (tab === 'completion') body = renderEvaluations(ctx);
   else if (tab === 'staff') body = staffTab(ctx, e, f);
   else if (tab === 'reports') body = reportsTab(ctx, e, f);

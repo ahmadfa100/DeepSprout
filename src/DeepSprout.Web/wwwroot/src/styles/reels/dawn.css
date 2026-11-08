@@ -11,6 +11,10 @@
 .dawn-stage-a{z-index:1}.dawn-threads{position:absolute;inset:0;z-index:2;width:100%;height:100%;pointer-events:none}.dawn-stage-b{z-index:3}
 .dawn-sun,.dawn-land,.dawn-tree,.dawn-character,.dawn-fore{position:absolute;left:0;top:0;width:1600px;height:900px;overflow:visible}
 .dawn-sun,.dawn-glow,.dawn-land,.dawn-character,.dawn-fore,.dawn-tree{will-change:transform,opacity}
+/* Moving pieces on their own layers (see dawn.js): rotated by the compositor, never repainted. */
+.dawn-rays-layer,.dawn-crown-layer{position:absolute;left:0;top:0;width:1600px;height:900px;overflow:visible;will-change:transform,opacity}
+.dawn-rays-layer{transform-origin:560px 588px}.dawn-crown-layer{transform-origin:190px 240px}
+.dawn-sprig{position:absolute;overflow:visible;will-change:transform}
 .dawn-glow{position:absolute;left:60px;top:238px;width:1000px;height:700px;background:radial-gradient(closest-side,rgba(250,214,122,.58),rgba(251,226,160,.26) 55%,rgba(251,240,214,0))}
 .dawn-cloud{position:absolute;left:0;top:0;width:300px;height:140px;overflow:visible;will-change:transform}
 .dawn-birds{position:absolute;left:0;top:0;width:60px;height:40px;overflow:visible}
@@ -23,7 +27,7 @@
 .dawn-reel{position:absolute;left:0;top:0;width:104px;height:184px;visibility:hidden;transform-origin:50% 50%;will-change:transform,opacity}
 .dawn-reel-face{position:absolute;inset:0;border:3px solid var(--line);border-radius:17px;background:var(--reel);overflow:hidden;box-shadow:0 5px 0 rgba(29,33,31,.07)}
 .dawn-reel-face svg{display:block;width:100%;height:100%}
-.dawn-reel-glow{position:absolute;inset:-42%;border-radius:50%;background:radial-gradient(closest-side,var(--reel),rgba(255,255,255,0));opacity:0;pointer-events:none}
+.dawn-reel-glow{position:absolute;inset:-42%;border-radius:50%;background:radial-gradient(closest-side,var(--reel),rgba(255,255,255,0));opacity:0;pointer-events:none;will-change:opacity}
 .dawn-grain{position:absolute;inset:0;z-index:4;pointer-events:none;background-repeat:repeat;background-size:160px 160px;mix-blend-mode:multiply}
 
 /* Copy: one headline, one supporting line, set in the open sky right of the scene. */
@@ -58,6 +62,10 @@
  .dawn-brand{animation-delay:.15s}.dawn-title{animation-delay:.55s}.dawn-lead{animation-delay:.95s}
 }
 @keyframes dawn-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+/* One-canvas renderer (dawn-gl.js): once it is drawing, the DOM art it reproduces is taken out of rendering. */
+.dawn-gl-canvas{position:absolute;inset:0;z-index:1;width:100%;height:100%;display:none;pointer-events:none}
+.dawn[data-render=gl] .dawn-gl-canvas{display:block}
+.dawn[data-render=gl] :is(.dawn-sky,.dawn-stage,.dawn-night,.dawn-threads,.dawn-grain){display:none}
 .thread-bridge{position:fixed;left:0;top:0;z-index:18;pointer-events:none}
 
 @media(max-width:1100px) and (min-width:701px){.dawn-copy{left:48%}.dawn-title{font-size:max(42px,5.4vw)}}

@@ -85,7 +85,7 @@
 
   const check = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
 
-  /* ------------------------------------------- Journey Level 0 (Onboarding 2.0) */
+  /* ------------------------------------------- Journey Level 1 (Onboarding 2.0) */
 
   // A motivational starting point after the six questions: a preliminary Week 1 proposal built only
   // from the person's own answers. No usage data, scores or percentages are invented; nothing is active.
@@ -123,7 +123,7 @@
       apps.length ? `<li><strong>Apps you named</strong>${esc(apps.join(', '))}. Digital Shield can help in a supported desktop browser; it cannot block phone apps.</li>` : '',
       scroll ? `<li><strong>Your estimate</strong>About ${esc(scroll)} of scrolling a day — self-reported, not measured.</li>` : ''
     ].join('');
-    $('week-eyebrow').textContent = 'Journey Level 0 · New Beginning';
+    $('week-eyebrow').textContent = 'Journey Level 1 · New Beginning';
     $('week-heading').textContent = 'Your first week, ready when you are';
     $('week-sub').textContent = 'A gentle Week 1 proposal built from your six answers. Nothing has started yet.';
     const chip = $('goal-chip');
@@ -141,9 +141,9 @@
         <div class="level0-actions"><a class="week-cta" href="src/pages/member/onboarding/starting-point.html">Review &amp; activate Week 1 <span aria-hidden="true">→</span></a><a class="level0-link" href="src/pages/member/onboarding/onboarding.html?step=setup">Change my answers</a></div>
       </div>
       <aside class="level0-side" aria-label="Your starting point">
-        <dl class="level0-status"><div><dt>Journey level</dt><dd>Level 0 · New Beginning</dd></div><div><dt>Assessment status</dt><dd>Not established yet</dd></div><div><dt>Plan</dt><dd>Not active — you choose when it starts</dd></div></dl>
+        <dl class="level0-status"><div><dt>Journey level</dt><dd>Level 1 · New Beginning</dd></div><div><dt>Assessment status</dt><dd>${account.checkIns().some(item => item.latest) ? 'Optional Lab results available' : 'Not established yet'}</dd></div><div><dt>Plan</dt><dd>Not active — you choose when it starts</dd></div></dl>
         <ul class="level0-why">${reasons}</ul>
-        <p class="level0-note">Level 0 is a starting point, not a measure of attention, ability or wellbeing. Optional check-ins live in the <a href="src/pages/member/lab/lab.html">Lab</a>.</p>
+        <p class="level0-note">Level 1 marks the beginning of your journey; it is not a measure of attention, ability or wellbeing. Optional check-ins live in the <a href="src/pages/member/lab/lab.html">Lab</a>.</p>
       </aside>
     </div>`;
   }

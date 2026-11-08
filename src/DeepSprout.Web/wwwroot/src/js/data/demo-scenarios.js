@@ -2,8 +2,8 @@
  * DeepSprout presentation scenarios.
  *
  * Builds a ready-to-present personal journal by driving the REAL journal
- * engines (setup, the four official baseline instruments, plan activation,
- * versioned practice players, routine logs, weekly Lab and weekly reviews) on
+ * engines (six-answer setup, optional first Lab instruments, plan activation,
+ * versioned practice players, routine logs and weekly reviews) on
  * the Person-bound demo clock. Nothing here writes a record directly: every
  * attempt, review, level decision and Garden source is produced and validated
  * by DeepSproutAccount exactly as it is for a person using the pages.
@@ -19,12 +19,12 @@
 (() => {
   if (window.DeepSproutDemoScenarios) return;
   const REGISTER_KEY = 'deepsprout-demo-scenarios-v1';
-  const VERSION = 1;
+  const VERSION = 2;
   const SOURCE = {label: 'Source', value: 'Synthetic presentation scenario'};
 
   // Day-by-day story. Every practice the engine scheduled that day is completed
   // unless "skip" leaves it to be recorded as missed; "extra" is an optional
-  // practice the person chose; "lab" completes the weekly Lab pair.
+  // practice the person chose. No weekly Lab result is generated.
   const RANIA_DAYS = [
     ['2026-09-28', {walk: true}],
     ['2026-09-29', {walk: true}],
@@ -33,14 +33,14 @@
     ['2026-10-02', {walk: true, extra: 'depth'}],
     ['2026-10-03', {walk: true}],
     ['2026-10-04', {review: {manageable: 'about-right', fit: 'good-fit'}, decision: 'accept'}],
-    ['2026-10-05', {walk: true, lab: true}],
+    ['2026-10-05', {walk: true}],
     ['2026-10-06', {walk: true}],
     ['2026-10-07', {levelUp: 'depth'}],
     ['2026-10-08', {skip: true, walk: 'skipped'}],
     ['2026-10-09', {walk: true}],
     ['2026-10-10', {walk: true}],
     ['2026-10-11', {review: {manageable: 'about-right', fit: 'good-fit'}, decision: 'accept'}],
-    ['2026-10-12', {walk: true, lab: true}],
+    ['2026-10-12', {walk: true}],
     ['2026-10-13', {walk: true}],
     ['2026-10-14', {}],
     ['2026-10-15', {walk: true}]
@@ -51,7 +51,7 @@
       id: 'rania-active-journey',
       personId: 'p-rania',
       title: 'Active personal journey',
-      summary: 'Week 3 of an activated Recovery Plan: four valid baselines, two weekly reviews, two weekly Lab pairs, a Depth level-up, a missed day, an offline routine and Garden growth — plus her original Start Today admission and Weekend Nature Reset waiting-list place.',
+      summary: 'Week 3 of an activated Recovery Plan: six setup answers, four optional Lab results, two weekly reviews, a Depth level-up, a missed day, an offline routine and Garden growth — plus her original Start Today admission and Weekend Nature Reset waiting-list place.',
       clock: '2026-10-16T10:00:00+03:00',
       start: '2026-09-28',
       goal: {id: 'reduce-scrolling', label: 'Spend less time on short-video feeds'},
@@ -75,13 +75,6 @@
     'inhibitory-control': {score: 70, raw: {hits: Array.from({length: 27}, (_, i) => 352 + (i % 4) * 24), goTotal: 30, noGoTotal: 10, omissions: 3, commissions: 3, falseAlarms: 3, inputMethods: ['keyboard']}},
     'depth-challenge': {score: 4, raw: {answers: [0, 1, 2, 2, 0], readingSeconds: 142}}
   };
-  // Weekly Lab values are deliberately mixed (one equal, two slightly lower,
-  // one slightly higher-is-worse): the scenario must not tell an improvement
-  // story. Repeat measurements are not evidence of recovery.
-  const WEEKLY = [
-    {'digital-habits': {score: 18, raw: {answers: {q1: 3, q2: 3, q3: 2, q4: 2, q5: 3, q6: 2, q7: 1, q8: 2}}}, 'sustained-attention': {score: 79, raw: {hits: Array.from({length: 19}, (_, i) => 391 + (i % 5) * 22), goTotal: 24, noGoTotal: 0, omissions: 5, commissions: 0, falseAlarms: 1, inputMethods: ['keyboard']}}},
-    {'digital-habits': {score: 19, raw: {answers: {q1: 3, q2: 3, q3: 3, q4: 2, q5: 3, q6: 2, q7: 1, q8: 2}}}, 'inhibitory-control': {score: 70, raw: {hits: Array.from({length: 27}, (_, i) => 355 + (i % 4) * 23), goTotal: 30, noGoTotal: 10, omissions: 3, commissions: 3, falseAlarms: 3, inputMethods: ['keyboard']}}}
-  ];
   const PRACTICAL = {
     artifact: '1. Cleared the desk surface. 2. Sorted the papers into keep, scan and recycle. 3. Moved the phone charger to the hallway shelf.',
     outcome: 'The desk is clear and my phone now charges outside the bedroom overnight.',
@@ -123,15 +116,14 @@
     const used = new Set();
 
     at(s.start, 9);
-    onStep('Setup and four baseline instruments');
-    account.mutate({type: 'setup.save', goal: s.goal, setup: {availableDays: '4', offlineInterests: ['walking', 'reading']}});
+    onStep('Six-answer setup and optional Lab instruments');
+    account.mutate({type: 'setup.save', goal: s.goal, setup: {version: 2, answers: {change: s.goal.id, apps: ['instagram'], dailyScroll: '60-120', moments: 'before-bed', makeTimeFor: ['walking-sports', 'reading-learning'], dailyMinutes: '10'}, distracting: ['instagram'], baselineMinutes: '60-120', baselineSource: 'self-reported estimate', peakTime: 'before-bed', makeTimeFor: ['walking-sports', 'reading-learning'], dailyMinutes: 10, availableDays: '4', offlineInterests: ['walking', 'reading']}});
     for (const id of Object.keys(BASELINE)) recordAssessment(account, id, BASELINE[id]);
     onStep('Recovery Plan activation');
     account.mutate({type: 'plan.activate', goal: s.goal.id, commitment: {title: s.commitment}, firstRunPlan: {availableDays: 4, minutes: 5}, schedule: s.firstWeek.map(([date, activityType]) => ({date, activityType, minutes: 5}))});
     // She has already been through the five-step product guide, so Home opens directly.
     account.mutate({type: 'tour.record', status: 'Completed'});
 
-    let lab = 0;
     for (const [day, todo] of s.days) {
       at(day, todo.review ? 18 : 10);
       account.visitRecovery();
@@ -142,12 +134,6 @@
       if (todo.levelUp) {
         const t = account.training().find(t => t.id === todo.levelUp);
         if (t?.eligible) account.decidePracticeLevel(todo.levelUp, 'next');
-      }
-      if (todo.lab) {
-        const set = WEEKLY[lab++];
-        const tasks = account.checkInWindow().tasks.map(t => t.id);
-        if (!tasks.every(id => set[id])) throw new Error(`Weekly Lab tasks changed: ${tasks.join(', ')}`);
-        for (const id of tasks) recordAssessment(account, id, set[id]);
       }
       const routine = account.routine().items[0];
       if (todo.walk && routine) account.mutate({type: 'routine.log', id: routine.id, status: todo.walk === 'skipped' ? 'skipped' : 'done'});

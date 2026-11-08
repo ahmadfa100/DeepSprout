@@ -100,19 +100,20 @@ async function main() {
     await as('p-maya'); await ws('organization/participants?initiative=i-today&status=flagged');
     assert.match(await text('main .table-scroll'), /Zaid Qasem/); assert.match(await text('main .table-scroll'), /Flagged/);
   });
-  await step('S2c', 'Duty assigned; window enforced before the session; QR code check-in inside the window; replay rejected; close-out', async () => {
+  await step('S2c', 'Duty assigned; window enforced before the session; QR code check-in inside the window; replay rejected; finalize after the window', async () => {
     await as('p-rania'); await member('#my-initiatives'); await page.selectOption('[data-mode-for="s-workshop"]', 'In-person'); await click('[data-session-register="s-workshop"]');
     assert.equal(await page.locator('.ex-qr-code svg').count() >= 1, true);
     await as('p-noor'); await store(m => m.dispatch('member.session.register', {sessionId:'s-workshop', mode:'In-person', consent:true}));
     const code = (await read()).sessionRegistrations.find(r => r.sessionId === 's-workshop' && r.personId === 'p-rania').code;
     await as(newSup); await ws('supervisor/schedule/s-workshop'); await click('[data-action=session-assign]'); await page.check(`#dialog-body input[name=supervisorIds][value="${newSup}"]`); await save();
-    await ws('supervisor/attendance?session=s-workshop');
-    assert.match(await text('main'), /Check-in not open yet/); assert.equal(await page.locator('[data-form=checkin] button.primary').isDisabled(), true);
+    await ws('supervisor/attendance/s-workshop');
+    assert.match(await text('main'), /Check-in opens/); assert.equal(await page.locator('[data-form=ac-checkin] button.primary').isDisabled(), true);
     await clock('2026-10-25T16:05:00+03:00'); await page.reload(); await page.waitForTimeout(500);
-    await page.fill('[data-form=checkin] [name=code]', code); await click('[data-form=checkin] button.primary');
-    await page.fill('[data-form=checkin] [name=code]', code); await click('[data-form=checkin] button.primary');
-    assert.match(await text('[data-form=checkin] .form-error'), /Already checked in/);
-    await click('[data-action=att-closeout]'); await save();
+    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.primary');
+    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.primary');
+    assert.match(await text('[data-form=ac-checkin] .form-error'), /Already checked in/);
+    await clock('2026-10-25T18:31:00+03:00'); await page.reload(); await page.waitForTimeout(500);
+    await click('[data-action=ac-finalize]'); await page.check('#dialog-body input[name=inPersonCheckInRan]'); await save();
     const s = await read();
     assert.equal(s.sessionAttendance.find(a => a.sessionId === 's-workshop' && a.personId === 'p-rania').status, 'Present');
     attId = s.sessionAttendance.find(a => a.sessionId === 's-workshop' && a.personId === 'p-noor').id;

@@ -128,9 +128,11 @@
 
   function renderJourney() {
     const names = Account.NAMES;
+    const level = Math.max(1, Number(window.DeepSprout?.get()?.onboarding?.journeyLevel) || 1);
     const baseline = account.checkIns().filter(entry => entry.baseline).length;
     const plan = account.plan();
     const steps = [
+      { done: true, title: `Journey Level ${level}`, note: level === 1 ? 'The beginning of your journey, not an assessment or recovery score.' : 'Your existing journey level is preserved.', href: `${root}index.html` },
       { done: Boolean(account.profile().setup), title: 'Personal setup', note: 'Six quick questions.', href: `${root}src/pages/member/onboarding/onboarding.html?step=setup` },
       { done: baseline === 4, title: `Optional: starting ${names.checkIn.toLowerCase()}`, note: baseline ? `${baseline} of 4 tasks recorded.` : 'Not established yet. Not required for your plan.', href: `${root}src/pages/member/lab/lab.html` },
       { done: Boolean(plan), title: 'Plan activated', note: plan ? `Cycle ${plan.cycleNumber} is running — day ${plan.day} of ${plan.lengthDays}.` : 'Your 28-day cycle starts here.', href: `${root}src/pages/member/recovery-plan/recovery-plan.html` }

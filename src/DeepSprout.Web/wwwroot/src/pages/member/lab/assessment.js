@@ -1,8 +1,8 @@
 /**
  * Runs one check-in task end to end.
  *
- * An attempt is OFFICIAL only when the account allows it: the starting point,
- * or a task repeated inside its Person-bound weekly window. Anything else is a PRACTICE ROUND: allowed any time, clearly
+ * An attempt is OFFICIAL only when the account allows a first optional result.
+ * The former weekly window is retired. Anything else is a PRACTICE ROUND: allowed any time, clearly
  * labelled, and never stored or compared. Questionnaire drafts persist; interrupted timed measurements require a new run.
  */
 (() => {
@@ -84,8 +84,8 @@
     }else if(!draft&&id!=='digital-habits'&&account.exportRecord().assessmentRuns.filter(r=>r.definitionId===id).at(-1)?.status==='Interrupted'&&allowed.mode==='official'){interrupted=true;banner.hidden=false;banner.textContent='Interrupted timed assessment — restart with a new attempt. No partial score counts.';begin.textContent='Restart assessment';}
     else if(draft){banner.hidden=false;banner.textContent='Saved questionnaire answers are ready to resume.';begin.textContent='Resume questionnaire';}
     if(allowed.mode!=='official'&&(onboardingFlow||params.get('mode')!=='practice')){
-      begin.hidden=true;banner.hidden=false;banner.textContent='This official assessment is already complete or unavailable. Continue an unfinished eligible baseline or return to Lab.';
-      const next=account.baselineResults().find(row=>!row.attempt);const link=document.createElement('a');link.className='btn btn-primary';link.href=next?`assessment.html?test=${next.id}&flow=onboarding`:account.plan()?'lab.html':'../onboarding/starting-point.html';link.textContent=next?'Continue unfinished baseline':account.plan()?'Back to Lab':'Your Starting Point';begin.after(link);
+      begin.hidden=true;banner.hidden=false;banner.textContent='A first official result is already recorded for this task. Your history remains in Lab; another official reassessment is not scheduled.';
+      const link=document.createElement('a');link.className='btn btn-primary';link.href='lab.html';link.textContent='Back to Lab';begin.after(link);
     }
     begin.disabled = false;
   }).catch(error => {
@@ -515,27 +515,12 @@
 
     const actions = document.getElementById('result-actions');
     actions.replaceChildren();
-    // The next official task still to take, if any (starting point or an open window).
-    const next = official ? account.checkIns().find(entry => entry.id !== id && account.checkInMode(entry.id).mode === 'official') : null;
     if(official&&!valid){const retry=document.createElement('a');retry.className='btn btn-primary';retry.href=`assessment.html?test=${id}${onboardingFlow?'&flow=onboarding':''}`;retry.textContent='Retry this official assessment';actions.append(retry);}
-    else if (next) {
-      const continueButton = document.createElement('a');
-      continueButton.className = 'btn btn-primary';
-      continueButton.href = `assessment.html?test=${next.id}${onboardingFlow ? '&flow=onboarding' : ''}`;
-      continueButton.innerHTML = `Next: ${next.title} <svg><use href="#i-arrow"/></svg>`;
-      actions.append(continueButton);
-      const pause = document.createElement('a');
-      pause.className = 'btn btn-ghost';
-      pause.href = 'lab.html';
-      pause.innerHTML = `<svg><use href="#i-pause"/></svg> Continue later`;
-      actions.append(pause);
-    } else {
+    else {
       const results = document.createElement('a');
       results.className = 'btn btn-primary';
-      // The four baselines lead to Your Starting Point and plan activation (D04).
-      const baseline = official && mode.kind === 'baseline';
-      results.href = baseline ? '../onboarding/starting-point.html' : '../insights/insights.html#checkins';
-      results.innerHTML = `${baseline ? 'See your starting point' : official ? 'See your results' : 'Your results'} <svg><use href="#i-arrow"/></svg>`;
+      results.href = '../insights/insights.html#checkins';
+      results.innerHTML = `See your results <svg><use href="#i-arrow"/></svg>`;
       actions.append(results);
       const back = document.createElement('a');
       back.className = 'btn btn-ghost';

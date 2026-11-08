@@ -287,7 +287,6 @@
         break;
       }
       case 'personal.clock': data.personalClock=event.clock;break;
-      case 'lab.policy': data.labPolicy=event.policy;break;
       case 'tour.record': data.productTour={status:event.status,version:1,personId:event.personId,at:event.at};break;
       case 'onboarding.preview': data.onboardingPreview=event.preview;break;
       case 'plan.adjust':
@@ -396,7 +395,7 @@
     const evidenceFor=(c,n)=>{
       const actions=cycleActions(c).filter(a=>a.week===n||c.legacy&&a.date>=keyOf(addDays(parse(c.startDate),(n-1)*7))&&a.date<=keyOf(addDays(parse(c.startDate),n*7-1))).filter(liveAction),practicesDue=actions.filter(a=>a.kind==='practice'&&a.date<=personalDay());
       const complete=practicesDue.map(a=>({a,attempt:validAttemptFor(a.id)})),from=parse(keyOf(addDays(parse(c.startDate),(n-1)*7))),to=addDays(from,6);
-      return {personId:subject,cycleId:c.id,week:n,scheduled:actions.filter(a=>a.kind==='practice').length,due:practicesDue.length,completed:complete.filter(x=>x.attempt).length,missed:complete.filter(x=>!x.attempt&&x.a.date<personalDay()).length,invalid:data.activityAttempts.filter(a=>!a.valid&&a.on<=personalDay()&&practicesDue.some(d=>d.id===a.scheduledActionId)).map(a=>a.id),attempts:complete.flatMap(x=>x.attempt?[{id:x.attempt.id,scheduledActionId:x.a.id,activityType:x.attempt.activityType,level:x.attempt.level,on:x.attempt.on,score:x.attempt.score??null,evidenceTier:x.attempt.evidenceTier||'Legacy recorded evidence',contentVersion:x.attempt.contentVersion||null}]:[]),attemptIds:complete.flatMap(x=>x.attempt?[x.attempt.id]:[]),actionIds:practicesDue.map(a=>a.id),routine:{done:from>parse(personalDay())?0:routineDays(from,to>parse(personalDay())?parse(personalDay()):to).length,scheduled:routineScheduledDays(from,to).length,evidenceTier:'Self-reported'},lab:{state:checkInWindow().state,note:'Independent weekly eligibility; review does not require an assessment'},shield:shieldEvidence(from,to),levels:training().map(t=>({type:t.id,level:t.level})),coverage:'Only original scheduled actions and linked eligible attempts count; other days have no reliable scheduled evidence.'};
+      return {personId:subject,cycleId:c.id,week:n,scheduled:actions.filter(a=>a.kind==='practice').length,due:practicesDue.length,completed:complete.filter(x=>x.attempt).length,missed:complete.filter(x=>!x.attempt&&x.a.date<personalDay()).length,invalid:data.activityAttempts.filter(a=>!a.valid&&a.on<=personalDay()&&practicesDue.some(d=>d.id===a.scheduledActionId)).map(a=>a.id),attempts:complete.flatMap(x=>x.attempt?[{id:x.attempt.id,scheduledActionId:x.a.id,activityType:x.attempt.activityType,level:x.attempt.level,on:x.attempt.on,score:x.attempt.score??null,evidenceTier:x.attempt.evidenceTier||'Legacy recorded evidence',contentVersion:x.attempt.contentVersion||null}]:[]),attemptIds:complete.flatMap(x=>x.attempt?[x.attempt.id]:[]),actionIds:practicesDue.map(a=>a.id),routine:{done:from>parse(personalDay())?0:routineDays(from,to>parse(personalDay())?parse(personalDay()):to).length,scheduled:routineScheduledDays(from,to).length,evidenceTier:'Self-reported'},lab:{state:checkInWindow().state,note:'Optional Lab; Weekly Review does not require an assessment'},shield:shieldEvidence(from,to),levels:training().map(t=>({type:t.id,level:t.level})),coverage:'Only original scheduled actions and linked eligible attempts count; other days have no reliable scheduled evidence.'};
     };
     const weeklyProposal=(number,answers={},adjustments=null)=>{
       const state=recoveryState(),c=activeCycle(state);if(!c)throw new Error('Activate a personal plan first.');
@@ -808,44 +807,18 @@
     const baselineResults = () => data.catalog.assessmentDefinitions.map(meta=>({id:meta.id,attempt:officialAttempts(meta.id,true).find(a=>a.personId===subject&&a.kind==='baseline'&&matchesContract(a,meta.id))||null}));
     const baselineComplete = () => baselineResults().every(row=>row.attempt&&Date.parse(row.attempt.completedAt)<=personalInstant().getTime());
 
-    // Interim defaults: three calendar days each week, anchored to the last valid baseline.
-    const labPolicy=()=>({version:1,cadenceDays:7,windowDays:3,rotation:['sustained-attention','inhibitory-control','depth-challenge'],...(data.labPolicy||{})});
-    const checkInTasks = week => {
-      const policy=labPolicy(),ids=['digital-habits',policy.rotation[(Math.max(1,week)-1)%policy.rotation.length]],tasks=ids.map(definition);
-      return {kind:'weekly pair',tasks,minutes:tasks.reduce((n,task)=>n+task.minutes,0)};
-    };
-    const baselineAnchor = () => {
-      const current=baselineResults();
-      if(current.every(r=>r.attempt))return current.map(r=>r.attempt.on).sort().at(-1);
-      if(data.account.seeded&&data.plan&&data.catalog.assessmentDefinitions.every(d=>officialAttempts(d.id).some(a=>a.legacy)))return data.catalog.assessmentDefinitions.map(d=>officialAttempts(d.id)[0].on).sort().at(-1);
-      return null;
-    };
-    const windowFor = week => {
-      const anchor=baselineAnchor();if(!anchor)return null;
-      const policy=labPolicy(),opens=addDays(parse(anchor),week*7),closes=addDays(opens,policy.windowDays-1);
-      return {week,anchor,windowId:`weekly-v${policy.version}:${subject}:${anchor}:${week}`,opens,closes,...checkInTasks(week)};
-    };
     const checkInWindow = () => {
       today=parse(personalDay());todayKey=keyOf(today);
-      const anchor=baselineAnchor();
-      if(!anchor)return {state:'baseline-needed',baselineDone:false,tasks:data.catalog.assessmentDefinitions,minutes:data.catalog.assessmentDefinitions.reduce((n,d)=>n+d.minutes,0),opens:null,closes:null,daysUntilOpen:null};
-      const elapsed=daysBetween(parse(anchor),today),week=Math.max(1,Math.floor(elapsed/7)),current=windowFor(week),next=windowFor(week+1);
-      const done=current.tasks.every(task=>officialAttempts(task.id).some(a=>a.windowId===current.windowId&&matchesContract(a,task.id)));
-      const state=today<current.opens?'upcoming':done?'done':today>current.closes?'missed':'open';
-      return {...current,baselineDone:true,state,nextOpens:next.opens,nextWindow:next,daysUntilOpen:Math.max(0,daysBetween(today,state==='done'||state==='missed'?next.opens:current.opens)),policy:labPolicy()};
+      // Weekly windows were part of the retired policy. Historical attempts
+      // remain available, but no new reassessment is scheduled automatically.
+      return {state:'optional',baselineDone:baselineComplete(),tasks:[],minutes:0,opens:null,closes:null,daysUntilOpen:null};
     };
     const checkInMode = id => {
       if(!baselineResults().find(r=>r.id===id)?.attempt&&!(data.account.seeded&&data.plan&&officialAttempts(id).some(a=>a.legacy)))return {mode:'official',kind:'baseline',cycle:1,windowId:'baseline',late:false};
-      const due=checkInWindow();
-      if(due.state==='open'&&due.tasks.some(t=>t.id===id)&&!officialAttempts(id).some(a=>a.windowId===due.windowId&&matchesContract(a,id)))return {mode:'official',kind:'recheck',cycle:due.week+1,week:due.week,windowId:due.windowId,late:false};
-      return {mode:'practice',kind:'practice',cycle:null,late:false,opens:['done','missed'].includes(due.state)?due.nextOpens:due.opens};
+      return {mode:'practice',kind:'practice',cycle:null,late:false,opens:null};
     };
     const nextMeasured = id => {
-      if(!baselineAnchor())return null;const due=checkInWindow();
-      for(let week=due.week;week<due.week+4;week++){
-        const candidate=windowFor(week);
-        if(candidate.tasks.some(t=>t.id===id)&&(candidate.closes>=today)&&!officialAttempts(id).some(a=>a.windowId===candidate.windowId&&matchesContract(a,id)))return candidate;
-      }
+      // A future official reassessment needs its own reviewed policy.
       return null;
     };
 
@@ -1194,10 +1167,9 @@
         if(old?.installationId===s.installationId&&s.sequence===old.sequence&&!full.connection)return {type:full.type,unchanged:true};
         full.receivedAt=new Date().toISOString();
       }
-      if(['personal.clock','lab.policy'].includes(full.type)){
-        if(!devMode())throw new Error('Personal clock and policy controls are local demo settings.');
+      if(full.type==='personal.clock'){
+        if(!devMode())throw new Error('The personal clock is a local demo setting.');
         if(full.type==='personal.clock'&&full.clock){if(!Number.isFinite(Date.parse(full.clock.at)))throw new Error('Choose a valid personal demo timestamp.');new Intl.DateTimeFormat('en',{timeZone:full.clock.timezone||'Asia/Amman'}).format();}
-        if(full.type==='lab.policy'){if(!Number.isInteger(full.policy?.windowDays)||full.policy.windowDays<1||full.policy.windowDays>7)throw new Error('Choose a weekly window of 1–7 days.');full.policy={version:1,cadenceDays:7,windowDays:full.policy.windowDays,rotation:['sustained-attention','inhibitory-control','depth-challenge']};}
       }
       if(full.type==='plan.activate'){
         if(data.plan)throw new Error('This original plan is already active.');
@@ -1227,7 +1199,7 @@
         if(a.official&&allowed.mode!=='official')throw new Error('This official assessment is already completed or its window is unavailable.');
         const contract=contractFor(a.definitionId);
         if(!ASSESSMENT_CONTRACTS[a.definitionId]||a.version!==contract.version)throw new Error('The instrument version is not current. Reload before retrying.');
-        const kind=allowed.kind==='baseline'?'baseline':'weekly';
+        const kind=a.official?'baseline':'practice';
         for(const key of ['protocolVersion','scoringVersion','variant','difficulty','conditions'])if(a[key]!==undefined&&a[key]!==contract[key])throw new Error('The assessment protocol changed. Reload before retrying.');
         const raw=a.raw||{};let reason=a.valid===false?(a.validityReason||'Task validity checks were not met.'):'';
         if(Date.parse(full.at)<Date.parse(run?.startedAt||a.startedAt||full.at))reason='The personal clock moved backwards during this attempt. Restart the measurement.';
@@ -1240,7 +1212,7 @@
         }
         const methods=[...new Set(raw.inputMethods||[])].sort();const measurementContext=a.definitionId==='digital-habits'?{kind:'untimed-questionnaire'}:{presentation:run?.measurementContext?.presentation||'unrecorded',response:a.definitionId==='depth-challenge'?'untimed-answer-controls':methods.join('+')||'unrecorded'};
         if(a.definitionId!=='digital-habits'&&Object.values(measurementContext).includes('unrecorded'))reason='Measurement presentation and response conditions were not recorded; retry the official interface.';
-        full.attempt={...a,...contract,measurementContext,personId:subject,kind,cycle:allowed.cycle||1,windowId:allowed.windowId||'baseline',week:allowed.week||null,labPolicyVersion:1,labPolicy:labPolicy(),startedAt:run?.startedAt||a.startedAt||full.at,completedAt:full.at,on:todayKey,status:reason?'Invalid':'Completed',valid:!reason,validity:{status:reason?'Invalid':'Valid',reason:reason||'Completed current Phase-1 demo protocol',policyVersion:1}};
+        full.attempt={...a,...contract,measurementContext,personId:subject,kind,cycle:a.official?1:null,windowId:a.official?'baseline':null,week:null,startedAt:run?.startedAt||a.startedAt||full.at,completedAt:full.at,on:todayKey,status:reason?'Invalid':'Completed',valid:!reason,validity:{status:reason?'Invalid':'Valid',reason:reason||'Completed current Phase-1 demo protocol',policyVersion:1}};
       }
       if (full.type === 'routine.add') {
         if (typeof full.title !== 'string' || !full.title.trim() || full.title.trim().length > 60) throw new Error('Give this offline activity a name of up to 60 characters.');
@@ -1389,7 +1361,6 @@
       get todayKey(){return personalDay();},
       personalClock:()=>({at:personalInstant().toISOString(),timezone:personalTimezone(),source:data.personalClock?'Person-bound demo clock':data.account.seeded?'Original seeded story clock':'Device clock',seedAsOf:data.account.asOf||null}),
       setDemoClock:(at,timezone='Asia/Amman')=>mutate({type:'personal.clock',clock:at?{at,timezone}:null}),
-      configureLab:policy=>mutate({type:'lab.policy',policy}),
       /** The full record as it stands now (seed plus changes) — for "show my data". */
       exportRecord: () => JSON.parse(JSON.stringify(data)),
       profile: () => ({
@@ -1451,10 +1422,7 @@
       interruptAssessment:(id,reason)=>mutate({type:'assessment.interrupt',id,reason}),
       checkIns,
       checkInWindow,
-      checkInTasks,
       checkInMode,
-      checkInPolicy: labPolicy,
-      weeklyWindow:windowFor,
       assessmentHistory:id=>JSON.parse(JSON.stringify([...data.assessmentAttempts.filter(a=>a.definitionId===id),...data.assessmentRuns.filter(r=>r.definitionId===id&&!data.assessmentAttempts.some(a=>a.id===r.id))])),
       garden,
       practiceGarden,

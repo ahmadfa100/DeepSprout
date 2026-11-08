@@ -292,7 +292,7 @@
 @media(max-width:1180px){.week-active{grid-template-columns:1fr}}
 @media(max-width:760px){.week-section{padding:var(--section-pad-narrow);border-radius:var(--radius-card)}.week-facts,.start-steps{grid-template-columns:1fr}.week-days{gap:var(--space-4);padding:var(--space-12)}.week-day small{display:none}}
 
-/* Journey Level 0 · New Beginning (Onboarding 2.0): a preliminary Week 1 proposal, never a score. */
+/* Journey Level 1 · New Beginning (Onboarding 2.0): a preliminary Week 1 proposal, never a score. */
 .level0{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:var(--space-22)}
 .level0-main,.level0-side{border:1px solid var(--color-line);border-radius:var(--radius-card);background:var(--color-surface);padding:clamp(20px,2.4vw,30px)}
 .level0-main{display:grid;gap:20px;align-content:start}

@@ -37,7 +37,8 @@
       setupDone: false,
       resultsSeen: false,
       planActivated: false,
-      tourSeen: false
+      tourSeen: false,
+      journeyLevel: 1
     },
     // One entry per instrument, keyed by assessment id. Each attempt keeps the
     // instrument version and a timestamp so results stay comparable later.
@@ -90,6 +91,9 @@
       }
     }
     cache = withDefaults(stored, blank());
+    // Legacy browser records used Level 0 for the beginning. Keep all earned
+    // levels and history; only normalize the obsolete starting label.
+    if (cache.onboarding.journeyLevel === 0) cache.onboarding.journeyLevel = 1;
     const person = access.person();
     if (person) {
       cache.profile.name = person.name; cache.profile.email = person.email;
@@ -167,9 +171,6 @@
     { id: 'depth-challenge', title: 'Depth Challenge', kind: 'Reading comprehension', minutes: 6 }
   ];
 
-  /** Days before a completed instrument may be formally retaken. */
-  const RETEST_WINDOW_DAYS = 7; // Display compatibility only; the journal owns actual eligibility.
-
   const assessmentAttempt = id => read().assessments[id] || null;
 
   const saveAssessment = (id, attempt) => update(state => {
@@ -182,20 +183,6 @@
       previous: previous ? { completedAt: previous.completedAt, summary: previous.summary } : null
     };
   });
-
-  const validBaseline=(a,id)=>a?.valid===true&&a.status==='Completed'&&a.kind==='baseline'&&a.personId===owner&&Object.entries(window.DeepSproutAccount?.assessmentContract(id)||{}).every(([k,v])=>a[k]===v);
-  const assessmentsComplete = () => {
-    const stored = read().assessments;
-    return ASSESSMENTS.every(item => validBaseline(stored[item.id],item.id));
-  };
-
-  const nextAssessment = () => {
-    const stored = read().assessments;
-    return ASSESSMENTS.find(item => !validBaseline(stored[item.id],item.id)) || null;
-  };
-
-  /** Completed instruments are retestable once the eligibility window passes. */
-  const retestEligible = id => {const account=window.DeepSproutAccount?.current();const mode=account?.checkInMode(id);return mode?.mode==='official'&&mode.kind!=='baseline';};
 
   /* ------------------------------------------------------------------ plan */
 
@@ -372,7 +359,7 @@
     }
     // Onboarding 2.0: the Lab assessments are optional and never block the plan.
     if (!state.onboarding.planActivated) {
-      return { label: 'Review my Week 1 plan', href: path('src/pages/member/onboarding/starting-point.html'), why: 'Journey Level 0 · your proposal is ready' };
+      return { label: 'Review my Week 1 plan', href: path('src/pages/member/onboarding/starting-point.html'), why: 'Journey Level 1 · your proposal is ready' };
     }
     if (reviewDue()) {
       return { label: 'Review your week', href: path('src/pages/member/weekly-review/weekly-review.html'), why: `Week ${cycleWeek()} is wrapping up` };
@@ -471,7 +458,6 @@
     ASSESSMENTS,
     GOALS,
     ROUTINE_IDEAS,
-    RETEST_WINDOW_DAYS,
     get: read,
     update,
     reset,
@@ -481,9 +467,6 @@
     formatDate,
     assessmentAttempt,
     saveAssessment,
-    assessmentsComplete,
-    nextAssessment,
-    retestEligible,
     goalLabel,
     cycleDay,
     cycleWeek,

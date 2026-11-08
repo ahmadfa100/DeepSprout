@@ -86,7 +86,7 @@ What a person agreed to (privacy notice, Digital Shield telemetry), which text v
 
 ### `org.Organization`
 
-An Institution or a Provider (Kind). Name, status, profile and settings.
+An Institution: name, status, profile and settings. Owns initiatives and outdoor activities (v4.1: Kind is Institution only).
 
 *مؤسسة أو مزوّد (حسب Kind) بحالته وملفه وإعداداته.*
 
@@ -94,7 +94,7 @@ An Institution or a Provider (Kind). Name, status, profile and settings.
 |---|---|:-:|---|---|
 | Id (PK) | bigint |  | IDENTITY(1,1) |  |
 | PublicId | uniqueidentifier |  | NEWSEQUENTIALID() |  |
-| Kind | nvarchar(16) |  |  | Values: Institution, Provider |
+| Kind | nvarchar(16) |  |  | Values: Institution |
 | Name | nvarchar(200) |  |  |  |
 | Status | nvarchar(24) |  | 'Applied' | Values: Applied, Verified, Suspended, Closed |
 | CountryCode | char(2) |  |  |  |
@@ -106,13 +106,13 @@ An Institution or a Provider (Kind). Name, status, profile and settings.
 
 **Unique:** `(PublicId)`
 
-**Used by:** Partner application, Organization dashboard/settings, Provider workspace, Admin approvals.
+**Used by:** Institution Representative registration, Institution profile/settings, Admin verification.
 
 ---
 
 ### `org.OrganizationMember`
 
-Which people may act for an organization (representatives, provider members).
+Which people may act for an Institution (its human Representatives).
 
 *من يحق له التصرف باسم المنظمة.*
 
@@ -136,7 +136,7 @@ Which people may act for an organization (representatives, provider members).
 
 ### `org.VerificationCase`
 
-Admin review of a Coach, Institution or Provider application, including "more information" rounds.
+Admin verification of an Institution and its Representative, including "more information" rounds. Kind Coach is legacy history only (v4.1 removed the Coach application queue).
 
 *طلب توثيق مدرب أو مؤسسة أو مزوّد وقرار الإدارة.*
 
@@ -144,7 +144,7 @@ Admin review of a Coach, Institution or Provider application, including "more in
 |---|---|:-:|---|---|
 | Id (PK) | bigint |  | IDENTITY(1,1) |  |
 | PublicId | uniqueidentifier |  | NEWSEQUENTIALID() |  |
-| Kind | nvarchar(16) |  |  | Values: Institution, Provider, Coach |
+| Kind | nvarchar(16) |  |  | Values: Institution, Coach |
 | OrganizationId | bigint | Y |  | FK → org.Organization |
 | ApplicantPersonId | bigint |  |  | FK → iam.Person |
 | Status | nvarchar(24) |  | 'Submitted' | Values: Submitted, MoreInfo, Approved, Rejected, Suspended |
@@ -160,15 +160,15 @@ Admin review of a Coach, Institution or Provider application, including "more in
 
 **Unique:** `(PublicId)` · `(OrganizationId)` WHERE OrganizationId IS NOT NULL AND Status IN ('Submitted','MoreInfo') · `(ApplicantPersonId)` WHERE Kind = 'Coach' AND Status IN ('Submitted','MoreInfo','Approved','Suspended')
 
-**CHECK:** `CK_VerificationCase_Subject`: (Kind = 'Coach' AND OrganizationId IS NULL) OR (Kind IN ('Institution','Provider') AND OrganizationId IS NOT NULL)
+**CHECK:** `CK_VerificationCase_Subject`: (Kind = 'Coach' AND OrganizationId IS NULL) OR (Kind = 'Institution' AND OrganizationId IS NOT NULL)
 
-**Used by:** Partner application, application status, Admin → Organizations.
+**Used by:** Join as Partner → Institution Representative, application status, Admin → Institutions.
 
 ---
 
 ### `org.StaffAppointment`
 
-Invitation, acceptance and removal of supervisors and coaches for one initiative, or supervisors for one experience.
+Email invitation, acceptance and removal of Coaches and Supervisors for one initiative, or Supervisors for one outdoor activity. Invitation-only: no self-request.
 
 *دعوة وتعيين وسحب المشرفين والمدربين لمبادرة أو تجربة.*
 
@@ -179,8 +179,7 @@ Invitation, acceptance and removal of supervisors and coaches for one initiative
 | InitiativeId | bigint | Y |  | FK → institution.Initiative |
 | ExperienceId | bigint | Y |  | FK → provider.Experience |
 | Role | nvarchar(16) |  |  |  |
-| Status | nvarchar(16) |  |  | Values: Requested, Pending, Active, Declined, Expired, Cancelled, Revoked |
-| RequestedByPersonId | bigint | Y |  | FK → iam.Person |
+| Status | nvarchar(16) |  |  | Values: Pending, Active, Declined, Expired, Cancelled, Revoked |
 | NormalizedEmail | nvarchar(320) | Y |  |  |
 | TokenHash | varbinary(64) | Y |  |  |
 | ExpiresAtUtc | datetime2(3) | Y |  |  |
@@ -192,15 +191,15 @@ Invitation, acceptance and removal of supervisors and coaches for one initiative
 | EndReason | nvarchar(800) | Y |  |  |
 | CreatedAtUtc | datetime2(3) |  | SYSUTCDATETIME() |  |
 | RowVersion | rowversion |  |  |  |
-| CanManageCohorts | bit |  | 0 | Provider supervisors only: may create and manage cohorts (Client: cohortPermission). |
+| CanManageCohorts | bit |  | 0 | Outdoor activity supervisors only: may create and manage cohorts (Client: cohortPermission). |
 
 **Unique:** `(PublicId)` · `(InitiativeId, NormalizedEmail, Role)` WHERE InitiativeId IS NOT NULL AND Status = 'Pending' · `(ExperienceId, NormalizedEmail)` WHERE ExperienceId IS NOT NULL AND Status = 'Pending' · `(InitiativeId, PersonId, Role)` WHERE InitiativeId IS NOT NULL AND Status = 'Active' · `(ExperienceId, PersonId)` WHERE ExperienceId IS NOT NULL AND Status = 'Active' · `(TokenHash)` WHERE TokenHash IS NOT NULL
 
-**CHECK:** `CK_StaffAppointment_Scope`: (InitiativeId IS NOT NULL AND ExperienceId IS NULL) OR (InitiativeId IS NULL AND ExperienceId IS NOT NULL)
+**CHECK:** `CK_StaffAppointment_Scope`: (InitiativeId IS NOT NULL AND ExperienceId IS NULL) OR (InitiativeId IS NULL AND ExperienceId IS NOT NULL) · `CK_StaffAppointment_Invited`: NormalizedEmail IS NOT NULL AND TokenHash IS NOT NULL AND ExpiresAtUtc IS NOT NULL AND InvitedByPersonId IS NOT NULL AND InvitedAtUtc IS NOT NULL
 
 **Indexes:** (InitiativeId, Role) WHERE Status = 'Active'
 
-**Used by:** Initiative Staff tab, Supervisor/Coach invitations, Provider staff.
+**Used by:** Initiative Staff tab, Coach/Supervisor invitations, outdoor activity staff.
 
 ---
 
@@ -208,7 +207,7 @@ Invitation, acceptance and removal of supervisors and coaches for one initiative
 
 ### `personal.IndividualProfile`
 
-The personal (Individual) workspace: onboarding stage, goal, setup answers, preferences, Shield settings.
+The personal (Individual) workspace and journey: onboarding stage, Journey Level, goal, versioned setup answers, preferences, Shield settings.
 
 *المساحة الشخصية: مرحلة الإعداد والهدف والتفضيلات وإعدادات Shield.*
 
@@ -216,9 +215,9 @@ The personal (Individual) workspace: onboarding stage, goal, setup answers, pref
 |---|---|:-:|---|---|
 | Id (PK) | bigint |  | IDENTITY(1,1) |  |
 | PersonId | bigint |  |  | FK → iam.Person |
-| OnboardingStage | nvarchar(24) |  | 'Started' | Values: Started, Introduced, Setup, Baselines, Results, Preview, Activated, TourDone |
+| OnboardingStage | nvarchar(24) |  | 'Started' | Values: Started, QuickSetup, Story, Home, Activated, TourDone, Introduced, Setup, Baselines, Results, Preview |
 | GoalCode | nvarchar(64) | Y |  |  |
-| SetupAnswersJson | nvarchar(max) | Y |  | JSON: Quick Personal Setup answers (versioned by SetupAnswersVersion). |
+| SetupAnswersJson | nvarchar(max) | Y |  | JSON: Quick Setup answers as one JSON object, always paired with SetupAnswersVersion. Version 2 (Onboarding 2.0): {"change":"reduce-scrolling\|intentional-phone\|offline-time\|focus-objective","apps":["instagram","tiktok","youtube","facebook","other"],"dailyScroll":"under-60\|60-120\|120-240\|over-240\|unsure","moments":"before-bed\|morning\|study-work\|bored\|unsure","makeTimeFor":["walking-sports","reading-learning","drawing-creativity","friends-family","hobbies","other"],"dailyMinutes":"5\|10\|15\|20"}. Version 1 is the legacy eight-answer browser setup, kept readable. |
 | SetupAnswersVersion | int | Y |  |  |
 | PreferencesJson | nvarchar(max) | Y |  | JSON: Reminder and display preferences. |
 | PreferredTimeZone | nvarchar(80) |  |  |  |
@@ -227,10 +226,13 @@ The personal (Individual) workspace: onboarding stage, goal, setup answers, pref
 | OnboardingCompletedAtUtc | datetime2(3) | Y |  |  |
 | CreatedAtUtc | datetime2(3) |  | SYSUTCDATETIME() |  |
 | ShieldSettingsJson | nvarchar(max) | Y |  | Digital Shield reminder settings (replaces the v4 ShieldConfiguration + ShieldSelectedDomain tables). · JSON: {"reminderEnabled":true,"thresholdMinutes":90,"domains":["social","video"],"consentVersion":"2026-10"} |
+| JourneyLevel | int |  | 1 | Journey starting point. Every new journey starts at Level 1; it is not a score, severity or recovery percentage. A legacy browser Level 0 is imported as 1; higher levels are preserved. |
 
 **Unique:** `(PersonId)`
 
-**Used by:** Onboarding (Meet Bimo → Setup → Starting Point), Profile, Shield → Usage Reminder.
+**CHECK:** `CK_IndividualProfile_JourneyLevel`: JourneyLevel >= 1 · `CK_IndividualProfile_SetupAnswers`: (SetupAnswersJson IS NULL AND SetupAnswersVersion IS NULL) OR (SetupAnswersJson IS NOT NULL AND SetupAnswersVersion IS NOT NULL AND SetupAnswersVersion >= 1 AND LEFT(LTRIM(SetupAnswersJson), 1) = N'{')
+
+**Used by:** Onboarding 2.0 (Register → Meet Bimo → six questions → HeroReels story → Home), Profile, Shield → Usage Reminder.
 
 ---
 
@@ -238,7 +240,7 @@ The personal (Individual) workspace: onboarding stage, goal, setup answers, pref
 
 ### `lab.InstrumentVersion`
 
-The four assessments (Digital Habits, Sustained Attention, Inhibitory Control, Depth Challenge) with their scoring version.
+The four optional Lab assessments (Digital Habits, Sustained Attention, Inhibitory Control, Depth Challenge) with their scoring version.
 
 *الاختبارات الأربعة بنسخة تصحيح ثابتة تضمن قابلية المقارنة.*
 
@@ -259,13 +261,13 @@ The four assessments (Digital Habits, Sustained Attention, Inhibitory Control, D
 
 **Unique:** `(InstrumentCode, VersionNo)`
 
-**Used by:** Lab, Admin → Assessments editor, Starting Point.
+**Used by:** Optional Lab, Admin → Assessments editor, Starting Point results (when taken).
 
 ---
 
 ### `lab.AssessmentAttempt`
 
-One attempt at an assessment: kind (Baseline / Official / Practice), progress, responses and score.
+One optional Lab attempt: kind (Baseline = first official attempt, Official = historical weekly-window attempt, Practice), progress, responses and score. Never required for plan activation; a missing result is unknown, not zero.
 
 *محاولة اختبار واحدة بحالتها وإجاباتها ونتيجتها.*
 
@@ -296,7 +298,7 @@ One attempt at an assessment: kind (Baseline / Official / Practice), progress, r
 
 **CHECK:** `CK_AssessmentAttempt_Window`: (Kind = 'Official' AND WindowKey IS NOT NULL) OR (Kind <> 'Official' AND WindowKey IS NULL)
 
-**Used by:** Onboarding baselines, weekly reassessment, Lab history, Insights → Assessments.
+**Used by:** Optional Lab, Lab history, Insights → Assessments. Weekly reassessment is retired pending a separate decision; existing Official rows stay as history.
 
 ---
 
@@ -304,7 +306,7 @@ One attempt at an assessment: kind (Baseline / Official / Practice), progress, r
 
 ### `recovery.RecoveryCycle`
 
-A recovery cycle (about 28 days): Preview → Active → Review → Ended.
+A recovery cycle (about 28 days): Preview → Active → Review → Ended. Activation needs no Lab result.
 
 *دورة التعافي (نحو 28 يومًا) وحالتها.*
 
@@ -335,7 +337,7 @@ A recovery cycle (about 28 days): Preview → Active → Review → Ended.
 
 ### `recovery.PlanRevision`
 
-The accepted plan and each adjustment of it (Draft → Accepted → Superseded).
+The plan and each adjustment of it (Draft → Accepted → Superseded). The preliminary Week 1 plan is a Draft; only the person's explicit activation accepts it.
 
 *الخطة المقبولة وكل تعديل عليها.*
 
@@ -355,6 +357,8 @@ The accepted plan and each adjustment of it (Draft → Accepted → Superseded).
 | CreatedAtUtc | datetime2(3) |  | SYSUTCDATETIME() |  |
 
 **Unique:** `(CycleId, RevisionNo)` · `(CycleId)` WHERE Status = 'Accepted' · `(CycleId)` WHERE Status = 'Draft'
+
+**CHECK:** `CK_PlanRevision_Accepted`: (Status = 'Draft' AND AcceptedAtUtc IS NULL) OR (Status IN ('Accepted','Superseded') AND AcceptedAtUtc IS NOT NULL)
 
 **Used by:** Recovery Plan → Adjust, History ("Plan adjusted").
 
@@ -749,7 +753,7 @@ A person's application to an initiative, its waiting-list offer and its membersh
 
 ### `coach.CoachProgram`
 
-An independent coach program: owner, status, title, draft and the current published content.
+RETIRED (v4.1): historical independent coach programs. Read-only; no new programs. Kept so earlier groups, memberships and completions stay attributable.
 
 *برنامج المدرب المستقل: المالك والحالة والمسودة والمحتوى المنشور الحالي.*
 
@@ -771,13 +775,13 @@ An independent coach program: owner, status, title, draft and the current publis
 
 **Unique:** `(PublicId)`
 
-**Used by:** Program Builder, Program publish, groups of a program.
+**Used by:** History only. Coaches work inside Institution Initiatives.
 
 ---
 
 ### `coach.OperationalGroup`
 
-A group under one initiative or one program, with its current coach.
+A group under one initiative, with its current coach. ProgramId is legacy history for retired independent programs; new groups need InitiativeId.
 
 *مجموعة تشغيلية تابعة لمبادرة أو برنامج ومدربها الحالي.*
 
@@ -809,7 +813,7 @@ A group under one initiative or one program, with its current coach.
 
 ### `coach.GroupMembership`
 
-Invitation to, membership in, and placement in a group (program invitation by email, or initiative placement by application).
+Placement in and membership of an initiative group by application. Invited rows are legacy program invitations kept as history.
 
 *دعوة وعضوية وتسكين الطالب في مجموعة.*
 
@@ -1180,7 +1184,7 @@ Completion of an initiative, a coach program or a provider camp.
 
 ### `provider.Experience`
 
-A provider experience or camp: owner provider, kind, lifecycle status, current revision pointer, Builder draft and cancellation.
+An Institution-owned outdoor activity, trip or camp: owning Institution, kind, lifecycle status, current revision pointer, Builder draft and cancellation.
 
 *تجربة أو مخيم المزوّد: المالك والحالة والنسخة الحالية والمسودة.*
 
@@ -1188,11 +1192,11 @@ A provider experience or camp: owner provider, kind, lifecycle status, current r
 |---|---|:-:|---|---|
 | Id (PK) | bigint |  | IDENTITY(1,1) |  |
 | PublicId | uniqueidentifier |  | NEWSEQUENTIALID() |  |
-| ProviderId | bigint |  |  | FK → org.Organization |
+| OrganizationId | bigint |  |  | was ProviderId in v4 · FK → org.Organization |
 | Kind | nvarchar(16) |  |  | Values: Experience, Camp |
 | Status | nvarchar(16) |  | 'Draft' | Values: Draft, Published, Suspended, Completed, Cancelled, Archived |
 | CurrentRevisionId | bigint | Y |  | FK → provider.ExperienceRevision |
-| DraftJson | nvarchar(max) | Y |  | JSON: Experience Builder draft. |
+| DraftJson | nvarchar(max) | Y |  | JSON: Outdoor Activity Builder draft. |
 | DraftLastSavedStage | tinyint | Y |  |  |
 | DraftUpdatedAtUtc | datetime2(3) | Y |  |  |
 | CancelledAtUtc | datetime2(3) | Y |  |  |
@@ -1202,7 +1206,7 @@ A provider experience or camp: owner provider, kind, lifecycle status, current r
 
 **Unique:** `(PublicId)`
 
-**Used by:** Provider Builder, Explore → Experiences, bookings.
+**Used by:** Institution → New Outdoor Activity, Explore → Outdoor activities, bookings.
 
 ---
 

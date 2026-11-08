@@ -227,13 +227,13 @@ async function main() {
     await as('p-hala');
     assert.match(await store((m, a) => { try { m.dispatch('initiative.attendance.record', {sessionId:a.sid, method:'code', code:a.code}); return 'recorded'; } catch (e) { return e.message; } }, {sid:sessionId, code}), /not the assigned Supervisor/);
     await ws(`supervisor/schedule/${sessionId}`); await click(`[data-action=session-assign]`); await page.check('#dialog-body input[name=supervisorIds][value="p-hala"]'); await dialogSave();
-    await ws(`supervisor/attendance?session=${sessionId}`);
-    assert.match(await text('main'), /Check-in not open yet/, 'window policy shown before the session');
+    await ws(`supervisor/attendance/${sessionId}`);
+    assert.match(await text('main'), /Check-in opens/, 'window policy shown before the session');
     await store((m, at) => m.dispatch('demo.clock', {at}), '2026-10-28T17:05:00+03:00'); await page.reload(); await page.waitForTimeout(400);
-    await page.fill('[data-form=checkin] [name=code]', code.toLowerCase()); await click('[data-form=checkin] button.primary');
+    await page.fill('[data-form=ac-checkin] [name=code]', code.toLowerCase()); await click('[data-form=ac-checkin] button.primary');
     assert.equal((await read()).sessionAttendance.filter(a => a.sessionId === sessionId && a.personId === 'p-ahmad').length, 1);
-    await page.fill('[data-form=checkin] [name=code]', code); await click('[data-form=checkin] button.primary');
-    assert.match(await text('[data-form=checkin] .form-error'), /Already checked in/);
+    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.primary');
+    assert.match(await text('[data-form=ac-checkin] .form-error'), /Already checked in/);
     assert.equal((await read()).sessionAttendance.filter(a => a.sessionId === sessionId && a.personId === 'p-ahmad').length, 1);
   });
   await step('E3', 'Second student is Absent; excuse → Supervisor recommends → Representative accepts → Excused Absence, factual Absent, no rabbit', async () => {
@@ -243,7 +243,8 @@ async function main() {
     const lina = (await read()).people.find(p => p.email === 'lina.rep@demo.example').id;
     await as(lina); await ws(`organization/participants?initiative=${initiativeId}&status=pending`); await click(`[data-action=app-approve][data-id="${zApp}"]`);
     await as('p-zaid'); await member('explore/explore.html', '#my-initiatives'); await page.selectOption(`[data-mode-for="${sessionId}"]`, 'In-person'); await click(`[data-session-register="${sessionId}"]`);
-    await as('p-hala'); await ws(`supervisor/attendance?session=${sessionId}`); await click(`[data-action=att-closeout]`); await dialogSave();
+    await store((m, at) => m.dispatch('demo.clock', {at}), '2026-10-28T18:01:00+03:00');
+    await as('p-hala'); await ws(`supervisor/attendance/${sessionId}`); await click('[data-action=ac-finalize]'); await page.check('#dialog-body input[name=inPersonCheckInRan]'); await dialogSave();
     const att = (await read()).sessionAttendance.find(a => a.sessionId === sessionId && a.personId === 'p-zaid'); zaidAttendanceId = att.id; assert.equal(att.status, 'Absent');
     await as('p-zaid'); await member('explore/explore.html', '#my-initiatives');
     await click(`[data-excuse="${att.id}"]`); await page.fill(`[data-excuse-form="${att.id}"] textarea`, 'I had a fever that day.'); await click(`[data-excuse-form="${att.id}"] button`);

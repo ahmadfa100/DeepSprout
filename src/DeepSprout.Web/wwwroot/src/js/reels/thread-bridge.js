@@ -16,14 +16,16 @@ export function createThreadBridge({section,field,reduced}){
   const rect=stage.getBoundingClientRect();width=Math.max(1,rect.width);height=Math.max(1,rect.height);dpr=Math.min(2,devicePixelRatio||1);
   canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);canvas.style.width=`${width}px`;canvas.style.height=`${height}px`;painted=true;
  }
- function clear(){if(painted){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);painted=false}}
+ // A blank canvas is hidden, so the compositor has no screen-sized layer to blend while the bridge is idle.
+ let shown=true;const show=on=>{if(on!==shown){shown=on;canvas.style.visibility=on?'visible':'hidden'}};
+ function clear(){if(painted){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);painted=false}show(false)}
  // `engaged`: section 3's stage has pinned (the same test it makes itself), from the driver's cached geometry.
  function frame(engaged){
   if(reduced?.matches||!hero){clear();return}
   let alpha=1;
   if(engaged){const p=field.debug.state.progress,a=.85*smooth(.06,.085,p);if(p>=.085){clear();return}alpha=clamp((.85-a)/(1-a)/.85)}
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);ctx.lineCap='round';
-  drawThread(ctx,hero.points,{alpha:hero.alpha*alpha,width:hero.width,color:hero.color,glow:hero.glow});painted=true;
+  drawThread(ctx,hero.points,{alpha:hero.alpha*alpha,width:hero.width,color:hero.color,glow:hero.glow});painted=true;show(true);
  }
  resize();
  return{resize,frame,set(thread){hero=thread},destroy(){canvas.remove()},get state(){return{width,height,hero:Boolean(hero),painted}},THREAD};

@@ -1,5 +1,7 @@
 # Response to the independent audit of the 57-table v5 proposal
 
+> **Historical rationale (5 November 2026, 57-table draft).** The approved design has 58 tables (`activity.PracticeVersion` restored) and is now at v5-lean-2. Independent Coach/Provider ownership and Supervisor self-request described here are superseded by the v4.1 decisions. Current state: [README](../README.md).
+
 Scope: I checked each finding against `schema.json`, `generator/model.mjs` and `build.mjs`. I did not re-read every Client page in this pass. The earlier page-driven review stands. Result: the audit was largely right. Two findings were real defects, one was a design gap, and the rest needed protection in application code rather than a schema change. The corrected model has **58 tables** (57 + `activity.PracticeVersion`). Every correction below is in `generator/model.mjs`. The SQL is regenerated from it.
 
 ## Findings

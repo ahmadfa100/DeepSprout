@@ -104,7 +104,7 @@ CREATE TABLE [iam].[ConsentRecord] (
     CONSTRAINT [CK_ConsentRecord_Decision] CHECK (Decision IN ('Accepted','Withdrawn'))
 );
 GO
--- (4/58) org.Organization — An Institution or a Provider (Kind). Name, status, profile and settings.
+-- (4/58) org.Organization — An Institution: name, status, profile and settings. Owns initiatives and outdoor activities (v4.1: Kind is Institution only).
 CREATE TABLE [org].[Organization] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [PublicId] uniqueidentifier NOT NULL CONSTRAINT [DF_Organization_PublicId] DEFAULT (NEWSEQUENTIALID()),
@@ -119,13 +119,13 @@ CREATE TABLE [org].[Organization] (
     [CreatedAtUtc] datetime2(3) NOT NULL CONSTRAINT [DF_Organization_CreatedAtUtc] DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT [PK_Organization] PRIMARY KEY CLUSTERED ([Id]),
     CONSTRAINT [UQ_Organization_PublicId] UNIQUE ([PublicId]),
-    CONSTRAINT [CK_Organization_Kind] CHECK (Kind IN ('Institution','Provider')),
     CONSTRAINT [CK_Organization_Status] CHECK (Status IN ('Applied','Verified','Suspended','Closed')),
+    CONSTRAINT [CK_Organization_Kind] CHECK (Kind IN ('Institution')),
     CONSTRAINT [CK_Organization_ProfileJson_IsJson] CHECK ([ProfileJson] IS NULL OR ISJSON([ProfileJson]) = 1),
     CONSTRAINT [CK_Organization_SettingsJson_IsJson] CHECK ([SettingsJson] IS NULL OR ISJSON([SettingsJson]) = 1)
 );
 GO
--- (5/58) org.OrganizationMember — Which people may act for an organization (representatives, provider members).
+-- (5/58) org.OrganizationMember — Which people may act for an Institution (its human Representatives).
 CREATE TABLE [org].[OrganizationMember] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [OrganizationId] bigint NOT NULL,
@@ -140,7 +140,7 @@ CREATE TABLE [org].[OrganizationMember] (
     CONSTRAINT [CK_OrganizationMember_Status] CHECK (Status IN ('Active','Revoked'))
 );
 GO
--- (6/58) org.VerificationCase — Admin review of a Coach, Institution or Provider application, including "more information" rounds.
+-- (6/58) org.VerificationCase — Admin verification of an Institution and its Representative, including "more information" rounds. Kind Coach is legacy history only (v4.1 removed the Coach application queue).
 CREATE TABLE [org].[VerificationCase] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [PublicId] uniqueidentifier NOT NULL CONSTRAINT [DF_VerificationCase_PublicId] DEFAULT (NEWSEQUENTIALID()),
@@ -159,14 +159,14 @@ CREATE TABLE [org].[VerificationCase] (
     [MessagesJson] nvarchar(max) NULL,
     CONSTRAINT [PK_VerificationCase] PRIMARY KEY CLUSTERED ([Id]),
     CONSTRAINT [UQ_VerificationCase_PublicId] UNIQUE ([PublicId]),
-    CONSTRAINT [CK_VerificationCase_Kind] CHECK (Kind IN ('Institution','Provider','Coach')),
     CONSTRAINT [CK_VerificationCase_Status] CHECK (Status IN ('Submitted','MoreInfo','Approved','Rejected','Suspended')),
-    CONSTRAINT [CK_VerificationCase_Subject] CHECK ((Kind = 'Coach' AND OrganizationId IS NULL) OR (Kind IN ('Institution','Provider') AND OrganizationId IS NOT NULL)),
+    CONSTRAINT [CK_VerificationCase_Kind] CHECK (Kind IN ('Institution','Coach')),
+    CONSTRAINT [CK_VerificationCase_Subject] CHECK ((Kind = 'Coach' AND OrganizationId IS NULL) OR (Kind = 'Institution' AND OrganizationId IS NOT NULL)),
     CONSTRAINT [CK_VerificationCase_ClaimJson_IsJson] CHECK (ISJSON([ClaimJson]) = 1),
     CONSTRAINT [CK_VerificationCase_MessagesJson_IsJson] CHECK ([MessagesJson] IS NULL OR ISJSON([MessagesJson]) = 1)
 );
 GO
--- (7/58) org.StaffAppointment — Invitation, acceptance and removal of supervisors and coaches for one initiative, or supervisors for one experience.
+-- (7/58) org.StaffAppointment — Email invitation, acceptance and removal of Coaches and Supervisors for one initiative, or Supervisors for one outdoor activity. Invitation-only: no self-request.
 CREATE TABLE [org].[StaffAppointment] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [PublicId] uniqueidentifier NOT NULL CONSTRAINT [DF_StaffAppointment_PublicId] DEFAULT (NEWSEQUENTIALID()),
@@ -174,7 +174,6 @@ CREATE TABLE [org].[StaffAppointment] (
     [ExperienceId] bigint NULL,
     [Role] nvarchar(16) NOT NULL,
     [Status] nvarchar(16) NOT NULL,
-    [RequestedByPersonId] bigint NULL,
     [NormalizedEmail] nvarchar(320) NULL,
     [TokenHash] varbinary(64) NULL,
     [ExpiresAtUtc] datetime2(3) NULL,
@@ -191,11 +190,11 @@ CREATE TABLE [org].[StaffAppointment] (
     CONSTRAINT [UQ_StaffAppointment_PublicId] UNIQUE ([PublicId]),
     CONSTRAINT [CK_StaffAppointment_Scope] CHECK ((InitiativeId IS NOT NULL AND ExperienceId IS NULL) OR (InitiativeId IS NULL AND ExperienceId IS NOT NULL)),
     CONSTRAINT [CK_StaffAppointment_Role] CHECK (Role IN ('Supervisor','Coach') AND (ExperienceId IS NULL OR Role = 'Supervisor')),
-    CONSTRAINT [CK_StaffAppointment_Status] CHECK (Status IN ('Requested','Pending','Active','Declined','Expired','Cancelled','Revoked')),
-    CONSTRAINT [CK_StaffAppointment_Invited] CHECK (Status IN ('Requested','Cancelled') OR (NormalizedEmail IS NOT NULL AND TokenHash IS NOT NULL AND ExpiresAtUtc IS NOT NULL AND InvitedByPersonId IS NOT NULL AND InvitedAtUtc IS NOT NULL))
+    CONSTRAINT [CK_StaffAppointment_Status] CHECK (Status IN ('Pending','Active','Declined','Expired','Cancelled','Revoked')),
+    CONSTRAINT [CK_StaffAppointment_Invited] CHECK (NormalizedEmail IS NOT NULL AND TokenHash IS NOT NULL AND ExpiresAtUtc IS NOT NULL AND InvitedByPersonId IS NOT NULL AND InvitedAtUtc IS NOT NULL)
 );
 GO
--- (8/58) personal.IndividualProfile — The personal (Individual) workspace: onboarding stage, goal, setup answers, preferences, Shield settings.
+-- (8/58) personal.IndividualProfile — The personal (Individual) workspace and journey: onboarding stage, Journey Level, goal, versioned setup answers, preferences, Shield settings.
 CREATE TABLE [personal].[IndividualProfile] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [PersonId] bigint NOT NULL,
@@ -210,15 +209,18 @@ CREATE TABLE [personal].[IndividualProfile] (
     [OnboardingCompletedAtUtc] datetime2(3) NULL,
     [CreatedAtUtc] datetime2(3) NOT NULL CONSTRAINT [DF_IndividualProfile_CreatedAtUtc] DEFAULT (SYSUTCDATETIME()),
     [ShieldSettingsJson] nvarchar(max) NULL,
+    [JourneyLevel] int NOT NULL CONSTRAINT [DF_IndividualProfile_JourneyLevel] DEFAULT (1),
     CONSTRAINT [PK_IndividualProfile] PRIMARY KEY CLUSTERED ([Id]),
     CONSTRAINT [UQ_IndividualProfile_PersonId] UNIQUE ([PersonId]),
-    CONSTRAINT [CK_IndividualProfile_Stage] CHECK (OnboardingStage IN ('Started','Introduced','Setup','Baselines','Results','Preview','Activated','TourDone')),
+    CONSTRAINT [CK_IndividualProfile_Stage] CHECK (OnboardingStage IN ('Started','QuickSetup','Story','Home','Activated','TourDone','Introduced','Setup','Baselines','Results','Preview')),
+    CONSTRAINT [CK_IndividualProfile_JourneyLevel] CHECK (JourneyLevel >= 1),
+    CONSTRAINT [CK_IndividualProfile_SetupAnswers] CHECK ((SetupAnswersJson IS NULL AND SetupAnswersVersion IS NULL) OR (SetupAnswersJson IS NOT NULL AND SetupAnswersVersion IS NOT NULL AND SetupAnswersVersion >= 1 AND LEFT(LTRIM(SetupAnswersJson), 1) = N'{')),
     CONSTRAINT [CK_IndividualProfile_SetupAnswersJson_IsJson] CHECK ([SetupAnswersJson] IS NULL OR ISJSON([SetupAnswersJson]) = 1),
     CONSTRAINT [CK_IndividualProfile_PreferencesJson_IsJson] CHECK ([PreferencesJson] IS NULL OR ISJSON([PreferencesJson]) = 1),
     CONSTRAINT [CK_IndividualProfile_ShieldSettingsJson_IsJson] CHECK ([ShieldSettingsJson] IS NULL OR ISJSON([ShieldSettingsJson]) = 1)
 );
 GO
--- (9/58) lab.InstrumentVersion — The four assessments (Digital Habits, Sustained Attention, Inhibitory Control, Depth Challenge) with their scoring version.
+-- (9/58) lab.InstrumentVersion — The four optional Lab assessments (Digital Habits, Sustained Attention, Inhibitory Control, Depth Challenge) with their scoring version.
 CREATE TABLE [lab].[InstrumentVersion] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [InstrumentCode] nvarchar(32) NOT NULL,
@@ -239,7 +241,7 @@ CREATE TABLE [lab].[InstrumentVersion] (
     CONSTRAINT [CK_InstrumentVersion_ContentJson_IsJson] CHECK ([ContentJson] IS NULL OR ISJSON([ContentJson]) = 1)
 );
 GO
--- (10/58) lab.AssessmentAttempt — One attempt at an assessment: kind (Baseline / Official / Practice), progress, responses and score.
+-- (10/58) lab.AssessmentAttempt — One optional Lab attempt: kind (Baseline = first official attempt, Official = historical weekly-window attempt, Practice), progress, responses and score. Never required for plan activation; a missing result is unknown, not zero.
 CREATE TABLE [lab].[AssessmentAttempt] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [PublicId] uniqueidentifier NOT NULL CONSTRAINT [DF_AssessmentAttempt_PublicId] DEFAULT (NEWSEQUENTIALID()),
@@ -270,7 +272,7 @@ CREATE TABLE [lab].[AssessmentAttempt] (
     CONSTRAINT [CK_AssessmentAttempt_ResponsesJson_IsJson] CHECK ([ResponsesJson] IS NULL OR ISJSON([ResponsesJson]) = 1)
 );
 GO
--- (11/58) recovery.RecoveryCycle — A recovery cycle (about 28 days): Preview → Active → Review → Ended.
+-- (11/58) recovery.RecoveryCycle — A recovery cycle (about 28 days): Preview → Active → Review → Ended. Activation needs no Lab result.
 CREATE TABLE [recovery].[RecoveryCycle] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [PublicId] uniqueidentifier NOT NULL CONSTRAINT [DF_RecoveryCycle_PublicId] DEFAULT (NEWSEQUENTIALID()),
@@ -296,7 +298,7 @@ CREATE TABLE [recovery].[RecoveryCycle] (
     CONSTRAINT [CK_RecoveryCycle_Activated] CHECK (Status IN ('Draft','Preview','Cancelled') OR ActivatedAtUtc IS NOT NULL)
 );
 GO
--- (12/58) recovery.PlanRevision — The accepted plan and each adjustment of it (Draft → Accepted → Superseded).
+-- (12/58) recovery.PlanRevision — The plan and each adjustment of it (Draft → Accepted → Superseded). The preliminary Week 1 plan is a Draft; only the person's explicit activation accepts it.
 CREATE TABLE [recovery].[PlanRevision] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [CycleId] bigint NOT NULL,
@@ -314,6 +316,7 @@ CREATE TABLE [recovery].[PlanRevision] (
     CONSTRAINT [UQ_PlanRevision_CycleId_RevisionNo] UNIQUE ([CycleId], [RevisionNo]),
     CONSTRAINT [CK_PlanRevision_ChangeKind] CHECK (ChangeKind IN ('Initial','Preference','Schedule','Load','Goal','WeeklyReview','Return')),
     CONSTRAINT [CK_PlanRevision_Status] CHECK (Status IN ('Draft','Accepted','Superseded')),
+    CONSTRAINT [CK_PlanRevision_Accepted] CHECK ((Status = 'Draft' AND AcceptedAtUtc IS NULL) OR (Status IN ('Accepted','Superseded') AND AcceptedAtUtc IS NOT NULL)),
     CONSTRAINT [CK_PlanRevision_PlanJson_IsJson] CHECK (ISJSON([PlanJson]) = 1)
 );
 GO
@@ -595,7 +598,7 @@ CREATE TABLE [institution].[InitiativeApplication] (
     CONSTRAINT [CK_InitiativeApplication_Status] CHECK (Status IN ('Pending','Queued','Offered','Accepted','Suspended','Rejected','Withdrawn','OfferDeclined','OfferExpired','Removed','Completed','Cancelled','Blocked','BlockLifted'))
 );
 GO
--- (26/58) coach.CoachProgram — An independent coach program: owner, status, title, draft and the current published content.
+-- (26/58) coach.CoachProgram — RETIRED (v4.1): historical independent coach programs. Read-only; no new programs. Kept so earlier groups, memberships and completions stay attributable.
 CREATE TABLE [coach].[CoachProgram] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [PublicId] uniqueidentifier NOT NULL CONSTRAINT [DF_CoachProgram_PublicId] DEFAULT (NEWSEQUENTIALID()),
@@ -617,7 +620,7 @@ CREATE TABLE [coach].[CoachProgram] (
     CONSTRAINT [CK_CoachProgram_PublishedJson_IsJson] CHECK ([PublishedJson] IS NULL OR ISJSON([PublishedJson]) = 1)
 );
 GO
--- (27/58) coach.OperationalGroup — A group under one initiative or one program, with its current coach.
+-- (27/58) coach.OperationalGroup — A group under one initiative, with its current coach. ProgramId is legacy history for retired independent programs; new groups need InitiativeId.
 CREATE TABLE [coach].[OperationalGroup] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [PublicId] uniqueidentifier NOT NULL CONSTRAINT [DF_OperationalGroup_PublicId] DEFAULT (NEWSEQUENTIALID()),
@@ -641,7 +644,7 @@ CREATE TABLE [coach].[OperationalGroup] (
     CONSTRAINT [CK_OperationalGroup_Capacity] CHECK (Capacity IS NULL OR (Capacity > 0 AND Capacity <= 500))
 );
 GO
--- (28/58) coach.GroupMembership — Invitation to, membership in, and placement in a group (program invitation by email, or initiative placement by application).
+-- (28/58) coach.GroupMembership — Placement in and membership of an initiative group by application. Invited rows are legacy program invitations kept as history.
 CREATE TABLE [coach].[GroupMembership] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [GroupId] bigint NOT NULL,
@@ -902,11 +905,11 @@ CREATE TABLE [session].[Completion] (
     CONSTRAINT [CK_Completion_BasisJson_IsJson] CHECK ([BasisJson] IS NULL OR ISJSON([BasisJson]) = 1)
 );
 GO
--- (40/58) provider.Experience — A provider experience or camp: owner provider, kind, lifecycle status, current revision pointer, Builder draft and cancellation.
+-- (40/58) provider.Experience — An Institution-owned outdoor activity, trip or camp: owning Institution, kind, lifecycle status, current revision pointer, Builder draft and cancellation.
 CREATE TABLE [provider].[Experience] (
     [Id] bigint IDENTITY(1,1) NOT NULL,
     [PublicId] uniqueidentifier NOT NULL CONSTRAINT [DF_Experience_PublicId] DEFAULT (NEWSEQUENTIALID()),
-    [ProviderId] bigint NOT NULL,
+    [OrganizationId] bigint NOT NULL,
     [Kind] nvarchar(16) NOT NULL,
     [Status] nvarchar(16) NOT NULL CONSTRAINT [DF_Experience_Status] DEFAULT ('Draft'),
     [CurrentRevisionId] bigint NULL,
@@ -1312,7 +1315,6 @@ ALTER TABLE [org].[VerificationCase] ADD CONSTRAINT [FK_VerificationCase_Evidenc
 ALTER TABLE [org].[StaffAppointment] ADD CONSTRAINT [FK_StaffAppointment_InitiativeId] FOREIGN KEY ([InitiativeId]) REFERENCES [institution].[Initiative] ([Id]);
 ALTER TABLE [org].[StaffAppointment] ADD CONSTRAINT [FK_StaffAppointment_ExperienceId] FOREIGN KEY ([ExperienceId]) REFERENCES [provider].[Experience] ([Id]);
 ALTER TABLE [org].[StaffAppointment] ADD CONSTRAINT [FK_StaffAppointment_PersonId] FOREIGN KEY ([PersonId]) REFERENCES [iam].[Person] ([Id]);
-ALTER TABLE [org].[StaffAppointment] ADD CONSTRAINT [FK_StaffAppointment_RequestedByPersonId] FOREIGN KEY ([RequestedByPersonId]) REFERENCES [iam].[Person] ([Id]);
 ALTER TABLE [org].[StaffAppointment] ADD CONSTRAINT [FK_StaffAppointment_InvitedByPersonId] FOREIGN KEY ([InvitedByPersonId]) REFERENCES [iam].[Person] ([Id]);
 ALTER TABLE [personal].[IndividualProfile] ADD CONSTRAINT [FK_IndividualProfile_PersonId] FOREIGN KEY ([PersonId]) REFERENCES [iam].[Person] ([Id]);
 ALTER TABLE [personal].[IndividualProfile] ADD CONSTRAINT [FK_IndividualProfile_LastAssessmentAttemptId] FOREIGN KEY ([LastAssessmentAttemptId]) REFERENCES [lab].[AssessmentAttempt] ([Id]);
@@ -1400,7 +1402,7 @@ ALTER TABLE [session].[Completion] ADD CONSTRAINT [FK_Completion_ApplicationId] 
 ALTER TABLE [session].[Completion] ADD CONSTRAINT [FK_Completion_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [coach].[CoachProgram] ([Id]);
 ALTER TABLE [session].[Completion] ADD CONSTRAINT [FK_Completion_BookingId] FOREIGN KEY ([BookingId]) REFERENCES [provider].[ExperienceBooking] ([Id]);
 ALTER TABLE [session].[Completion] ADD CONSTRAINT [FK_Completion_EvaluatorPersonId] FOREIGN KEY ([EvaluatorPersonId]) REFERENCES [iam].[Person] ([Id]);
-ALTER TABLE [provider].[Experience] ADD CONSTRAINT [FK_Experience_ProviderId] FOREIGN KEY ([ProviderId]) REFERENCES [org].[Organization] ([Id]);
+ALTER TABLE [provider].[Experience] ADD CONSTRAINT [FK_Experience_OrganizationId] FOREIGN KEY ([OrganizationId]) REFERENCES [org].[Organization] ([Id]);
 ALTER TABLE [provider].[Experience] ADD CONSTRAINT [FK_Experience_CurrentRevisionId] FOREIGN KEY ([CurrentRevisionId]) REFERENCES [provider].[ExperienceRevision] ([Id]);
 ALTER TABLE [provider].[ExperienceRevision] ADD CONSTRAINT [FK_ExperienceRevision_ExperienceId] FOREIGN KEY ([ExperienceId]) REFERENCES [provider].[Experience] ([Id]);
 ALTER TABLE [provider].[ExperienceRevision] ADD CONSTRAINT [FK_ExperienceRevision_ParticipantFormVersionId] FOREIGN KEY ([ParticipantFormVersionId]) REFERENCES [forms].[FormVersion] ([Id]);
@@ -1468,7 +1470,6 @@ CREATE UNIQUE NONCLUSTERED INDEX [UX_StaffAppointment_ExperienceId_PersonId_4] O
 CREATE UNIQUE NONCLUSTERED INDEX [UX_StaffAppointment_TokenHash_5] ON [org].[StaffAppointment] ([TokenHash]) WHERE TokenHash IS NOT NULL;
 CREATE NONCLUSTERED INDEX [IX_StaffAppointment_InitiativeId_Role] ON [org].[StaffAppointment] ([InitiativeId], [Role]) WHERE Status = 'Active';
 CREATE NONCLUSTERED INDEX [IX_StaffAppointment_PersonId] ON [org].[StaffAppointment] ([PersonId]);
-CREATE NONCLUSTERED INDEX [IX_StaffAppointment_RequestedByPersonId] ON [org].[StaffAppointment] ([RequestedByPersonId]);
 CREATE NONCLUSTERED INDEX [IX_StaffAppointment_InvitedByPersonId] ON [org].[StaffAppointment] ([InvitedByPersonId]);
 CREATE NONCLUSTERED INDEX [IX_IndividualProfile_LastAssessmentAttemptId] ON [personal].[IndividualProfile] ([LastAssessmentAttemptId]);
 CREATE UNIQUE NONCLUSTERED INDEX [UX_AssessmentAttempt_PersonId_InstrumentCode_1] ON [lab].[AssessmentAttempt] ([PersonId], [InstrumentCode]) WHERE Kind = 'Baseline' AND Status = 'Valid';
@@ -1554,7 +1555,7 @@ CREATE UNIQUE NONCLUSTERED INDEX [UX_Completion_ProgramId_PersonId_2] ON [sessio
 CREATE UNIQUE NONCLUSTERED INDEX [UX_Completion_BookingId_3] ON [session].[Completion] ([BookingId]) WHERE BookingId IS NOT NULL;
 CREATE NONCLUSTERED INDEX [IX_Completion_PersonId_Kind] ON [session].[Completion] ([PersonId], [Kind]);
 CREATE NONCLUSTERED INDEX [IX_Completion_EvaluatorPersonId] ON [session].[Completion] ([EvaluatorPersonId]);
-CREATE NONCLUSTERED INDEX [IX_Experience_ProviderId] ON [provider].[Experience] ([ProviderId]);
+CREATE NONCLUSTERED INDEX [IX_Experience_OrganizationId] ON [provider].[Experience] ([OrganizationId]);
 CREATE NONCLUSTERED INDEX [IX_Experience_CurrentRevisionId] ON [provider].[Experience] ([CurrentRevisionId]);
 CREATE NONCLUSTERED INDEX [IX_ExperienceRevision_ParticipantFormVersionId] ON [provider].[ExperienceRevision] ([ParticipantFormVersionId]);
 CREATE NONCLUSTERED INDEX [IX_ExperienceRevision_PublishedByPersonId] ON [provider].[ExperienceRevision] ([PublishedByPersonId]);
@@ -1637,6 +1638,8 @@ DENY UPDATE, DELETE ON [provider].[ExperienceRevision] TO [ds_app];
 DENY UPDATE, DELETE ON [institution].[InitiativeRevision] TO [ds_app];
 DENY UPDATE, DELETE ON [shield].[BrowserUsagePeriod] TO [ds_app];
 DENY UPDATE, DELETE ON [task].[SubmissionAttempt] TO [ds_app];
+DENY INSERT, UPDATE, DELETE ON [coach].[CoachProgram] TO [ds_app];
+DENY INSERT, UPDATE, DELETE ON [partnership].[PartnershipLink] TO [ds_app];
 IF DATABASE_PRINCIPAL_ID(N'ds_app_demo') IS NULL CREATE USER [ds_app_demo] WITHOUT LOGIN;
 IF IS_ROLEMEMBER(N'ds_app', N'ds_app_demo') <> 1 ALTER ROLE [ds_app] ADD MEMBER [ds_app_demo];
 GO
@@ -1674,8 +1677,9 @@ INSERT iam.Person (DisplayName, NormalizedEmail, EmailVerifiedAtUtc, IndividualE
  (N'Rania Demo (Coach)',             N'rania.coach@example.com',    DATEADD(DAY,-90,@now), NULL, NULL),
  (N'Salim Demo (Institution rep)',   N'salim.rep@example.com',      DATEADD(DAY,-90,@now), NULL, NULL),
  (N'Mona Demo (Supervisor)',         N'mona.supervisor@example.com',DATEADD(DAY,-80,@now), NULL, NULL),
- (N'Yusuf Demo (Provider rep)',      N'yusuf.provider@example.com', DATEADD(DAY,-90,@now), NULL, NULL),
- (N'Dana Demo (Provider supervisor)',N'dana.provider@example.com',  DATEADD(DAY,-70,@now), NULL, NULL),
+ (N'Yusuf Demo (Outdoor activity rep)',      N'yusuf.provider@example.com', DATEADD(DAY,-90,@now), NULL, NULL),
+ (N'Dana Demo (Outdoor activity supervisor)',N'dana.provider@example.com',  DATEADD(DAY,-70,@now), NULL, NULL),
+ (N'Zaid Demo (New Individual)',     N'zaid.new@example.com',       DATEADD(DAY,-1,@now),  DATEADD(DAY,-1,@now), NULL),
  (N'Ada Demo (Platform admin)',      N'admin.demo@example.com',     DATEADD(DAY,-200,@now),NULL, N'Admin'),
  (N'Mira Demo (Moderator)',          N'mira.moderator@example.com', DATEADD(DAY,-200,@now),NULL, N'Moderator');
 
@@ -1694,6 +1698,7 @@ DECLARE @yusuf bigint = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'yus
 DECLARE @dana  bigint = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'dana.provider@example.com');
 DECLARE @admin bigint = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'admin.demo@example.com');
 DECLARE @mira  bigint = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'mira.moderator@example.com');
+DECLARE @zaid  bigint = (SELECT Id FROM iam.Person WHERE NormalizedEmail = N'zaid.new@example.com');
 
 -- Consent history (insert-only) and an e-mail invitation code for a person who has not registered yet
 INSERT iam.ConsentRecord (PersonId, PurposeCode, NoticeVersion, Decision, DecidedAtUtc) VALUES
@@ -1710,9 +1715,9 @@ VALUES (N'sara.invitee@example.com', N'Invitation', HASHBYTES('SHA2_512', N'demo
 ------------------------------------------------------------------------------------------------------
 INSERT org.Organization (Kind, Name, CountryCode, Status, HeadquartersCity, OfficialContactEmail, ProfileJson, SettingsJson) VALUES
  (N'Institution', N'Example Youth University', N'EG', N'Verified', N'Cairo',  N'contact@example.com', N'{"website":"https://example.com/youth-university","about":"Fictional institution for the demo"}', N'{"defaultCapacity":30}'),
- (N'Provider',    N'Example Outdoor Camps',    N'EG', N'Verified', N'Dahab',  N'camps@example.com',   N'{"website":"https://example.com/outdoor-camps"}', NULL);
+ (N'Institution', N'Example Outdoor Camps',    N'EG', N'Verified', N'Dahab',  N'camps@example.com',   N'{"website":"https://example.com/outdoor-camps"}', NULL);
 DECLARE @inst bigint = (SELECT Id FROM org.Organization WHERE Kind = N'Institution' AND Name = N'Example Youth University');
-DECLARE @prov bigint = (SELECT Id FROM org.Organization WHERE Kind = N'Provider' AND Name = N'Example Outdoor Camps');
+DECLARE @prov bigint = (SELECT Id FROM org.Organization WHERE Kind = N'Institution' AND Name = N'Example Outdoor Camps');
 
 INSERT org.OrganizationMember (OrganizationId, PersonId, GrantedByPersonId, GrantedAtUtc) VALUES
  (@inst, @salim, @admin, DATEADD(DAY,-90,@now)),
@@ -1727,8 +1732,9 @@ DECLARE @fileExcuse bigint = (SELECT Id FROM files.SecureFile WHERE ObjectKey = 
 INSERT org.VerificationCase (Kind, OrganizationId, ApplicantPersonId, ClaimJson, SubmittedAtUtc, Status, EvidenceFileId, DecidedByPersonId, DecidedAtUtc, DecisionReason, MessagesJson) VALUES
  (N'Institution', @inst, @salim, N'{"name":"Example Youth University","role":"Dean of student affairs"}', DATEADD(DAY,-95,@now), N'Approved', @fileVerif, @admin, DATEADD(DAY,-92,@now), N'Documents match the claim.',
    N'[{"actor":"admin","text":"Please attach the registration letter.","atUtc":"2000-01-01T00:00:00Z"},{"actor":"applicant","text":"Attached.","atUtc":"2000-01-02T00:00:00Z"}]'),
- (N'Provider',    @prov, @yusuf, N'{"name":"Example Outdoor Camps","licence":"DEMO-0001"}',          DATEADD(DAY,-95,@now), N'Approved', NULL, @admin, DATEADD(DAY,-93,@now), N'Licence verified (demo).', NULL),
- (N'Coach',       NULL,  @rania, N'{"credentials":"Certified habit coach (fictional)","years":6}',   DATEADD(DAY,-94,@now), N'Approved', NULL, @admin, DATEADD(DAY,-91,@now), N'Credentials accepted (demo).', NULL);
+ (N'Institution', @prov, @yusuf, N'{"name":"Example Outdoor Camps","licence":"DEMO-0001"}',          DATEADD(DAY,-95,@now), N'Approved', NULL, @admin, DATEADD(DAY,-93,@now), N'Licence verified (demo).', NULL),
+ (N'Coach',       NULL,  @rania, -- legacy history: v4.1 removed the Coach application queue
+ N'{"credentials":"Certified habit coach (fictional)","years":6}',   DATEADD(DAY,-94,@now), N'Approved', NULL, @admin, DATEADD(DAY,-91,@now), N'Credentials accepted (demo).', NULL);
 
 ------------------------------------------------------------------------------------------------------
 -- 3.3 Content catalog: practices (with versions), Lab instruments, Garden rules
@@ -1771,6 +1777,17 @@ INSERT lab.AssessmentAttempt (PersonId, InstrumentVersionId, InstrumentCode, Kin
 SELECT @layla, iv.Id, iv.InstrumentCode, N'Official', N'Valid', DATEADD(DAY,-8,@now), DATEADD(DAY,-8,@now), N'Valid', @wk, iv.ScoringVersion, 66.0, N'{"primary":66.0}', N'{"answered":12,"completed":true}'
 FROM lab.InstrumentVersion iv WHERE iv.InstrumentCode = N'DigitalHabits';
 UPDATE personal.IndividualProfile SET LastAssessmentAttemptId = (SELECT TOP (1) Id FROM lab.AssessmentAttempt WHERE PersonId = @layla ORDER BY StartedAtUtc DESC, Id DESC) WHERE PersonId = @layla;
+
+INSERT personal.IndividualProfile (PersonId, PreferredTimeZone, GoalCode, SetupAnswersJson, SetupAnswersVersion, OnboardingStage, JourneyStartedAtUtc, OnboardingCompletedAtUtc)
+VALUES (@zaid, N'Asia/Amman', N'reduce-scrolling',
+ N'{"change":"reduce-scrolling","apps":["instagram","youtube"],"dailyScroll":"120-240","moments":"before-bed","makeTimeFor":["walking-sports","reading-learning"],"dailyMinutes":"10"}', 2,
+ N'Home', DATEADD(DAY,-1,@now), DATEADD(DAY,-1,@now));
+INSERT recovery.RecoveryCycle (PersonId, CycleNo, PolicyVersion, TimeZoneId, Kind, Status)
+VALUES (@zaid, 1, N'policy-1', N'Asia/Amman', N'Standard', N'Preview');
+INSERT recovery.PlanRevision (CycleId, RevisionNo, ChangeKind, GoalCode, PolicyVersion, EffectiveFromLocalDate, Reason, PlanJson, Status)
+VALUES ((SELECT Id FROM recovery.RecoveryCycle WHERE PersonId = @zaid AND CycleNo = 1), 1, N'Initial', N'reduce-scrolling', N'policy-1', CAST(@now AS date),
+ N'Preliminary Week 1 plan from the six setup answers; waiting for the person to activate it.',
+ N'{"source":"quick-setup-v2","week":1,"days":3,"minutes":10,"commitment":{"title":"A 10-minute walk or some movement"}}', N'Draft');
 
 INSERT recovery.RecoveryCycle (PersonId, CycleNo, PolicyVersion, TimeZoneId, Kind, Status, StartLocalDate, EndLocalDate, ActivatedAtUtc)
 VALUES (@layla, 1, N'policy-1', N'Africa/Cairo', N'Standard', N'Active', CAST(DATEADD(DAY,-56,@now) AS date), CAST(DATEADD(DAY,28,@now) AS date), DATEADD(DAY,-56,@now));
@@ -1956,9 +1973,9 @@ DECLARE @attNoor bigint = (SELECT Id FROM session.Attendance WHERE SessionId = @
 INSERT session.AbsenceExcuse (AttendanceId, PersonId, Reason, FileId, Status) VALUES (@attNoor, @noor, N'Medical appointment that day (demo).', @fileExcuse, N'Submitted');
 
 ------------------------------------------------------------------------------------------------------
--- 3.10 Provider experience: forms, terms, staff, cohort, bookings, session, incident
+-- 3.10 Institution outdoor activity (camp): forms, terms, staff, cohort, bookings, session, incident
 ------------------------------------------------------------------------------------------------------
-INSERT provider.Experience (ProviderId, Kind, Status) VALUES (@prov, N'Camp', N'Draft');
+INSERT provider.Experience (OrganizationId, Kind, Status) VALUES (@prov, N'Camp', N'Draft');
 DECLARE @exp bigint = SCOPE_IDENTITY();
 INSERT forms.Form (Purpose, Title, ExperienceId, Status) VALUES (N'Feedback', N'Camp feedback survey', @exp, N'Draft');
 DECLARE @frmFb bigint = SCOPE_IDENTITY();

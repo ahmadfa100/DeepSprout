@@ -126,6 +126,8 @@ for (const tn of INSERT_ONLY) {
   if (!tableNames.has(tn)) { errors.push(`INSERT_ONLY table missing ${tn}`); continue; }
   out(`DENY UPDATE, DELETE ON ${qt(tn)} TO [ds_app];`);
 }
+// Retired tables (v4.1): history stays readable, the application can no longer add, change or remove rows.
+for (const t of T.filter((x) => x.retired)) out(`DENY INSERT, UPDATE, DELETE ON ${qt(t.table)} TO [ds_app];`);
 out(`IF DATABASE_PRINCIPAL_ID(N'ds_app_demo') IS NULL CREATE USER [ds_app_demo] WITHOUT LOGIN;`);
 out(`IF IS_ROLEMEMBER(N'ds_app', N'ds_app_demo') <> 1 ALTER ROLE [ds_app] ADD MEMBER [ds_app_demo];`);
 out('GO');

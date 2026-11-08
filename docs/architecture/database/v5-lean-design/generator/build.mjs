@@ -7,8 +7,9 @@ import { TABLES, MERGES, DEFERRED, META } from './model.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.resolve(here, '..');
-const v4Dir = path.resolve(here, '../../v4-final-design-review');
-const v4 = JSON.parse(fs.readFileSync(path.join(v4Dir, 'schema.json'), 'utf8'));
+// The frozen v4 table set the lean model derives from (read-only input; the v4 review package itself is retired).
+const v4Dir = path.resolve(here, 'base');
+const v4 = JSON.parse(fs.readFileSync(path.join(v4Dir, 'v4-schema.json'), 'utf8'));
 const v4By = Object.fromEntries(v4.tables.map((t) => [t.table, t]));
 const errors = [];
 const warnings = [];
@@ -167,7 +168,7 @@ for (const spec of TABLES) {
   for (const c of cks) { const m = c.expression.match(/^\s*([A-Za-z]+)\s+IN\s*\(((?:'[^']*'\s*,?\s*)+)\)\s*$/); if (m) enums[m[1]] = m[2].replace(/'/g, '').split(',').map((s) => s.trim()); }
 
   out.push({
-    table: spec.n, module: spec.n.split('.')[0], rowKind: b.rowKind, rv: !!spec.rv,
+    table: spec.n, module: spec.n.split('.')[0], rowKind: b.rowKind, rv: !!spec.rv, retired: !!spec.retired,
     columns: cols, primaryKey: ['Id'], foreignKeys: finalFks, unique: uqs, checks: cks, indexes: ixs, enums,
     purpose: spec.purpose, ar: spec.ar, feature: spec.feature, why: spec.why, json: spec.json || {},
     base: spec.base, absorbs: Object.entries(MERGES).filter(([, v]) => v[1] === spec.n).map(([k]) => k),

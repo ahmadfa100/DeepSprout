@@ -1,5 +1,7 @@
 # DeepSprout v5 — Functionality Preservation Matrix (Section D)
 
+> **Historical rationale (5 November 2026, 57-table draft).** The approved design has 58 tables (`activity.PracticeVersion` restored) and is now at v5-lean-2. Independent Coach/Provider ownership and Supervisor self-request described here are superseded by the v4.1 decisions. Current state: [README](README.md).
+
 Labels: **FULLY PRESERVED** · **PRESERVED WITH SIMPLER IMPLEMENTATION** · **BEHAVIOR CHANGED — OWNER REVIEW REQUIRED**.
 Journeys come from the current pages (`Client/src/pages/member/*`, `Client/src/workspaces/pages/*`, `commands/*`, `js/data/account.js`), checked against the v4 workflow map only where the pages do not decide.
 

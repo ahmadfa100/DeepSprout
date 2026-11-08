@@ -8,6 +8,10 @@ public sealed class IndividualProfile : MutableRecord
     public int PreferenceVersion { get; set; }
     public string? ConsentVersion { get; set; }
     public string OnboardingStage { get; set; } = "Started";
+    // Reserved for server-backed Individual onboarding. The current MVC demo
+    // keeps answers in its person-bound browser journal.
+    public int? SetupVersion { get; set; }
+    public string? SetupAnswersJson { get; set; }
     public long? LastAssessmentAttemptId { get; set; }
     public DateTime? OnboardingCompletedAtUtc { get; set; }
 }

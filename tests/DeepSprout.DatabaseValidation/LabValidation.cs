@@ -33,6 +33,10 @@ internal sealed class LabValidation(string connectionString)
         var otherAttempt = NewAttempt(db, p2, instrument1, version, null);
         Expect("LAB-PROFILE-OWNER", 547, () => Execute(db, "INSERT personal.IndividualProfile(PersonId,PreferredTimeZone,PreferenceVersion,OnboardingStage,LastAssessmentAttemptId) VALUES(@person,N'Asia/Amman',1,N'Baselines',@attempt)", ("@person", p1), ("@attempt", otherAttempt)), "FK_IndividualProfile_AssessmentAttempt_LastAssessmentAttemptId_PersonId");
         Execute(db, "INSERT personal.IndividualProfile(PersonId,PreferredTimeZone,PreferenceVersion,OnboardingStage,LastAssessmentAttemptId) VALUES(@person,N'Asia/Amman',1,N'Baselines',NULL)", ("@person", p1));
+        Execute(db, "UPDATE personal.IndividualProfile SET OnboardingStage=N'Home',SetupVersion=2,SetupAnswersJson=N'{\"goal\":\"reduce-scrolling\"}' WHERE PersonId=@person", ("@person", p1));
+        Check("LAB-ONBOARDING2-SETUP", Scalar<int>(db, "SELECT SetupVersion FROM personal.IndividualProfile WHERE PersonId=@person AND OnboardingStage=N'Home' AND ISJSON(SetupAnswersJson)=1", ("@person", p1)) == 2,
+            "Home stage and versioned setup answers do not require an assessment");
+        Expect("LAB-ONBOARDING2-JSON", 547, () => Execute(db, "UPDATE personal.IndividualProfile SET SetupAnswersJson=N'not-json' WHERE PersonId=@person", ("@person", p1)), "CK_IndividualProfile_SetupAnswers");
         var attempt1 = NewAttempt(db, p1, instrument1, version, window);
         Execute(db, "INSERT lab.AssessmentResponse(AttemptId,ItemKey,TrialNo,ResponseNumber,LatencyMs,RecordedAtUtc) VALUES(@attempt,N'item-1',1,2.5,100,SYSUTCDATETIME())", ("@attempt", attempt1));
         Expect("LAB-RESPONSE-TRIAL", 547, () => Execute(db, "INSERT lab.AssessmentResponse(AttemptId,ItemKey,TrialNo,RecordedAtUtc) VALUES(@attempt,N'item-2',0,SYSUTCDATETIME())", ("@attempt", attempt1)), "CK_AssessmentResponse_Trial");

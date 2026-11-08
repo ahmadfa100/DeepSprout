@@ -24,7 +24,7 @@ flowchart LR
   governance["governance (1)"]
   ops["ops (3)"]
   files["files (1)"]
-  org -->|7| iam
+  org -->|6| iam
   org -->|1| files
   org -->|1| institution
   org -->|1| provider
@@ -134,14 +134,12 @@ erDiagram
     bigint InitiativeId FK
     bigint ExperienceId FK
     nvarchar Status
-    bigint RequestedByPersonId FK
     bigint InvitedByPersonId FK
     bigint PersonId FK
   }
   institution_Initiative |o--o{ org_StaffAppointment : "InitiativeId"
   provider_Experience |o--o{ org_StaffAppointment : "ExperienceId"
   iam_Person |o--o{ org_StaffAppointment : "PersonId"
-  iam_Person |o--o{ org_StaffAppointment : "RequestedByPersonId"
   iam_Person |o--o{ org_StaffAppointment : "InvitedByPersonId"
   iam_Person {
     bigint Id PK
@@ -615,12 +613,12 @@ erDiagram
 erDiagram
   provider_Experience {
     bigint Id PK
-    bigint ProviderId FK
+    bigint OrganizationId FK
     nvarchar Kind
     nvarchar Status
     bigint CurrentRevisionId FK
   }
-  org_Organization ||--o{ provider_Experience : "ProviderId"
+  org_Organization ||--o{ provider_Experience : "OrganizationId"
   provider_ExperienceRevision |o--o{ provider_Experience : "CurrentRevisionId"
   provider_ExperienceRevision {
     bigint Id PK

@@ -235,16 +235,6 @@ a.iw-stat:hover { transform: translateY(-3px); box-shadow: var(--iw-shadow-hover
 .iw-detail-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .iw-detail h3 { margin-top: 20px; font-size: 13px; }
 
-/* Attendance desk ------------------------------------------------------------ */
-.iw-checkin .field input { font: 600 18px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; }
-.iw-scanner { width: 100%; max-height: 260px; border-radius: 14px; background: #10251f; margin: 12px 0; object-fit: cover; }
-.iw-roster { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.iw-roster-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--iw-paper); border: 1px solid #edf0e6; transition: background .25s, border-color .25s; }
-.iw-roster-row.is-present { background: #f0f6ea; border-color: #d6e6c8; }
-.iw-roster-row.is-late { background: #fbf6e8; border-color: #eedfb6; }
-.iw-roster-row.is-absent { background: #fbf2ee; border-color: #f0dbd1; }
-.iw-roster-row .actions small { color: var(--iw-muted); }
-
 /* Excuses -------------------------------------------------------------------- */
 .iw-excuses { display: grid; gap: 14px; }
 .iw-excuse { padding: 20px 22px; border-radius: 20px; background: var(--iw-ivory); border: 1px solid var(--iw-line); box-shadow: var(--iw-shadow); }

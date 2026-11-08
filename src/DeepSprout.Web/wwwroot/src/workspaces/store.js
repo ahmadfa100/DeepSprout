@@ -9,6 +9,7 @@ import {institutionCommand} from './commands/institution.js';
 import {initiativeCommand} from './commands/initiative.js';
 import {outdoorCommand} from './commands/outdoor.js';
 import {platformCommand} from './commands/platform.js';
+import {attendanceCommand} from './commands/attendance.js';
 import {id,now,nowMs,setClockOffset,requireThat,find,textRequired,expireOffers,audit,notify as notifyPerson} from './domain.js';
 import {migrate} from './migrate.js';
 import {busyInitiative} from './data/busy-initiative.js';
@@ -158,7 +159,7 @@ export function dispatch(action,p={}) {
   if(area==='activity'){const org=orgFor(s);requireThat(org?.status==='Approved','The institution is not active.');let eid=p.experienceId;if(p.id&&action.startsWith('activity.experience'))eid=p.id;if(p.sessionId)eid=find(s.experienceSessions,p.sessionId).experienceId;if(p.id&&action.startsWith('activity.booking'))eid=find(s.bookings,p.id).experienceId;if(p.id&&action.startsWith('activity.offer'))eid=find(s.offers,p.id).experienceId;if(p.id&&action.startsWith('activity.appointment'))eid=find(s.appointments,p.id).experienceId;if(p.bookingId)eid=find(s.bookings,p.bookingId).experienceId;if(p.appointmentId)eid=find(s.appointments,p.appointmentId).experienceId;if(p.id&&action==='activity.attendance.correct')eid=find(s.attendance,p.id).experienceId;if(eid)requireThat(find(s.experiences,eid).ownerId===org.id,'This Outdoor Activity belongs to another institution.');p={...p,ownerId:org.id};}
   if(area==='organization')requireThat(orgFor(s)?.status==='Approved','The institution is not active.');
   let result;
-  for(const handler of [platformCommand,mentorshipCommand,initiativeCommand,institutionCommand,outdoorCommand]){result=handler(s,action,p,actor);if(result!==false)break;}
+  for(const handler of [attendanceCommand,platformCommand,mentorshipCommand,initiativeCommand,institutionCommand,outdoorCommand]){result=handler(s,action,p,actor);if(result!==false)break;}
   requireThat(result!==false,'This action is unavailable.');
   if(!['mentor.review','builder.save','student.focus.save','account.notice.read','member.notice.read'].includes(action)&&!action.includes('attendance'))audit(s,actor,action,p.id||p.title||p.name||p.experienceId||p.initiativeId||'Workspace',p.reason||'');
   persist(s);return result;
