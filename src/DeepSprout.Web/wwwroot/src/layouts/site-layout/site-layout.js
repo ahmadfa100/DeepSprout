@@ -42,6 +42,16 @@
     nav.classList.toggle('open', open);
   });
   nav?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
+  fetch('/account/session', { credentials: 'same-origin' }).then(response => {
+    if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return null;
+    return response.json();
+  }).then(account => {
+    if (!account) return;
+    document.querySelectorAll('a[href$="login.html"]').forEach(link => {
+      link.href = '/account/profile';
+      link.textContent = 'My account';
+    });
+  }).catch(() => {});
   document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(); });
   const updateHeader = () => header?.classList.toggle('scrolled', window.scrollY > 10);
   window.addEventListener('scroll', updateHeader, { passive: true });

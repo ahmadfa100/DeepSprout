@@ -118,6 +118,14 @@ New browser collections: `attendanceImports`, `attendanceReviews`, `attendanceLo
 | Window closure | Supervisor or Representative finalizes manually | Scheduled server job and notifications |
 | Storage | Browser `localStorage` | `session.Attendance` and related tables |
 
+### Server QR foundation (9 November 2026)
+
+`src/DeepSprout.Web/Services/AttendanceQrService.cs` now implements the V5 server-side credential and check-in operation without changing the 58-table schema. It uses `SessionRegistration.CredentialHash` or `ExperienceBooking.CredentialHash`, a random 100-bit readable code, and ASP.NET Core Data Protection for a session-bound QR payload that expires after 15 minutes or at check-in closure, whichever comes first. Only the hash is stored. A new pass rotates the booking credential; for a multi-session Outdoor Activity, an earlier pass must be refreshed after rotation.
+
+The service issues passes only during the in-person check-in window for active participants with confirmed places. Check-in requires an active session duty and Supervisor appointment, an active verified Institution, and a live session. It writes one `session.Attendance` row (`Present` or `Late`) and one `ops.AuditEvent`; duplicate scans return the existing attendance ID. A typed code uses the same verified booking but remains valid until check-in closes. Online attendance still uses report evidence, and QR check-in does not create completion or a Garden reward directly.
+
+This is a backend foundation, **not a live production endpoint**. The current browser demo still shows and checks its own local codes. Once server identity is adopted, a controller must derive the participant and Supervisor IDs from authenticated claims, add anti-forgery and rate limiting, then connect the participant pass and Supervisor scanner to these methods. It must not accept actor IDs from request bodies. The server service is registered only when the V5 connection is configured; no migration or protected database was touched in this change.
+
 ## Open owner decisions
 
 1. **Import batches have no table in the approved 58.** Options: add `session.AttendanceImport` (needs owner approval under `AGENTS.md`), or store batches in `ops.AuditEvent` with `files.SecureFile`.

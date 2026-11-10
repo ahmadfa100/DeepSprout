@@ -27,6 +27,7 @@
   const displayName = 'Your account';
   const initial = 'Y';
   const notice = '<strong>Notifications</strong><p>Loading…</p>';
+  let serverAccount = null;
 
   const headerMount = document.querySelector('[data-site-header]');
   if (headerMount) headerMount.outerHTML = `<header class="member-header" id="top">
@@ -40,6 +41,32 @@
       </div>
     </div>
   </header>`;
+  fetch('/account/session', { credentials: 'same-origin' }).then(response => {
+    if (!response.ok) throw new Error('Account session unavailable');
+    return response.json();
+  }).then(account => {
+    serverAccount = account;
+    const menu = document.querySelector('.member-account-menu');
+    const summary = document.querySelector('.member-account summary');
+    if (!menu || !summary) return;
+    menu.querySelector('a[href$="login.html"]')?.remove();
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/account/logout';
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden'; csrf.name = '__RequestVerificationToken'; csrf.value = account.requestToken;
+    const button = document.createElement('button');
+    button.type = 'submit'; button.textContent = 'Log out';
+    form.append(csrf, button);
+    menu.querySelector('.member-server-logout')?.remove();
+    form.className = 'member-server-logout';
+    const accountLink = document.createElement('a');
+    accountLink.href = '/account/profile'; accountLink.textContent = 'Account security';
+    menu.append(accountLink);
+    menu.append(form);
+    summary.querySelector('.member-avatar').textContent = account.displayName.charAt(0).toUpperCase();
+    summary.querySelector('.member-avatar + span').textContent = account.displayName.split(' ')[0];
+  }).catch(() => {});
   // Footer: working links only, grouped by what they are for. One brand
   // element — a single growth line ending in a leaf.
   const footerLink = (path, label) => `<a href="${root}${path}">${label}</a>`;
@@ -291,7 +318,7 @@
       ${links.map(link => `<a href="${root}${link.href}">${escapeHtml(link.label)} workspace</a>`).join('')}
       <details class="member-identity-switch"><summary>Switch person (demo)</summary><div>${people.map(p => `<button type="button" data-person="${escapeHtml(p.id)}"${me?.id === p.id ? ' aria-current="true"' : ''}>${escapeHtml(p.name)}</button>`).join('')}<button type="button" data-signout>Sign out on this device</button></div><small>Local demonstration identities — not real authentication.</small></details>`;
     menu.prepend(block);
-    if (me) { summary.querySelector('.member-avatar').textContent = me.name.charAt(0).toUpperCase(); summary.querySelector('.member-avatar + span').textContent = me.name.split(' ')[0]; }
+    if (serverAccount) { summary.querySelector('.member-avatar').textContent = serverAccount.displayName.charAt(0).toUpperCase(); summary.querySelector('.member-avatar + span').textContent = serverAccount.displayName.split(' ')[0]; }
     block.querySelectorAll('[data-person]').forEach(button => button.addEventListener('click', () => {
       repo.signInAs(button.dataset.person);
       try { sessionStorage.removeItem('deepsprout-account-choice'); } catch { /* ignore */ }

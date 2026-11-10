@@ -30,20 +30,21 @@ test('A1 · regular Individual answers an identified Initiative form; Representa
   as('p-zaid'); assert.match(err(() => dispatch('member.form.respond', {formId:'f-start', answers:{'q-start':'Distractions', 'q-confidence':'2'}})), /accepted participants/);
 });
 
-test('A1 · competition entry from regular Individual; window, duplicate and published results', () => {
-  reset('p-noor');
-  const eid = dispatch('member.competition.enter', {competitionId:'c-create', consent:true, text:'A short story about a first step.'});
-  assert.match(err(() => dispatch('member.competition.enter', {competitionId:'c-create', consent:true, text:'again'})), /already submitted/);
-  as('p-omar'); assert.match(err(() => dispatch('member.competition.enter', {competitionId:'c-create', consent:true, text:'x'})), /accepted participants/);
-  at('2026-11-05T09:00:00+03:00'); as('p-rania'); assert.match(err(() => dispatch('member.competition.enter', {competitionId:'c-create', consent:true, text:'late'})), /deadline has passed/);
-  at(PIN); as('p-maya');
-  dispatch('organization.entry.judge', {id:eid, scores:{'Clarity':4, 'Originality':5, 'Connection to the topic':4}, feedback:'Clear and warm.'});
-  let c = myInitiatives(read(), 'p-noor').find(m => m.initiative.id === 'i-today').competitions[0];
-  assert.equal(c.entry.scores, null, 'results hidden until published');
-  dispatch('organization.competition.results', {id:'c-create'});
-  c = myInitiatives(read(), 'p-noor').find(m => m.initiative.id === 'i-today').competitions[0];
-  assert.equal(c.entry.scores.Originality, 5); assert.equal(c.entry.feedback, 'Clear and warm.');
-  assert.equal(personalGardenEffects(read(), 'p-noor').some(e => e.sourceId === eid), false, 'entries never grow the Personal Garden');
+test('A1 · Supervisor runs a live quiz; regular Individual joins and plays; results show in My Initiatives', () => {
+  reset('p-hala');
+  const id = dispatch('supervisor.quiz.save', {title:'Group check-in quiz', initiativeId:'i-today', startAt:'2026-10-15T10:00:00+03:00',
+    questions:[{text:'First step?', options:['Plan it all', 'One small action'], answer:1, seconds:10}]});
+  assert.equal(read().competitions.find(c => c.id === id).createdRole, 'Supervisor');
+  assert.ok(read().notifications.some(n => n.recipientId === 'p-noor' && /Group check-in quiz/.test(n.text)), 'accepted participants are told');
+  as('p-noor'); const eid = dispatch('member.quiz.join', {competitionId:id, consent:true});
+  assert.match(err(() => dispatch('member.quiz.join', {competitionId:id, consent:true})), /already joined/);
+  as('p-omar'); assert.match(err(() => dispatch('member.quiz.join', {competitionId:id, consent:true})), /accepted participants/);
+  at('2026-10-15T10:00:11+03:00'); as('p-noor'); dispatch('member.quiz.answer', {competitionId:id, question:0, choice:1});
+  at('2026-10-15T10:05:00+03:00');
+  const c = myInitiatives(read(), 'p-noor').find(m => m.initiative.id === 'i-today').competitions.find(x => x.id === id);
+  assert.equal(c.label, 'Finished'); assert.equal(c.myRank, 1); assert.equal(c.winner.name, 'Noor Khalil');
+  as('p-rania'); assert.match(err(() => dispatch('member.quiz.join', {competitionId:id, consent:true})), /finished/);
+  assert.equal(personalGardenEffects(read(), 'p-noor').some(e => e.sourceId === eid), false, 'playing never grows the Personal Garden');
 });
 
 function absentNoor() {

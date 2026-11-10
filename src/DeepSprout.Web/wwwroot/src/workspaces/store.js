@@ -10,12 +10,14 @@ import {initiativeCommand} from './commands/initiative.js';
 import {outdoorCommand} from './commands/outdoor.js';
 import {platformCommand} from './commands/platform.js';
 import {attendanceCommand} from './commands/attendance.js';
+import {competitionCommand} from './commands/competition.js';
 import {id,now,nowMs,setClockOffset,requireThat,find,textRequired,expireOffers,audit,notify as notifyPerson} from './domain.js';
 import {migrate} from './migrate.js';
 import {busyInitiative} from './data/busy-initiative.js';
 import {addReportInboxDemo} from './data/report-inbox-demo.js';
 import {adminDemo,seedCommunity} from './data/admin-demo.js';
 import {supervisorDemo} from './data/supervisor-demo.js';
+import {addQuizDemo} from './data/quiz-demo.js';
 import {expireInitiativeOffers} from './commands/initiative.js';
 
 export const STORAGE_KEY='deepsprout-ecosystem-demo-v1';
@@ -25,7 +27,7 @@ export const demoEnabled=typeof location==='undefined'||location.protocol==='fil
 let memory;
 /** The seeded story happens around 16 Oct 2026; the demo clock starts there so open windows, offers and sessions agree. */
 export const STORY_DATE='2026-10-16T10:00:00+03:00';
-export function seed(){const s=structuredClone({...mentorship,...institution,...outdoor,...platform});s.people.forEach(p=>{if(p.verified&&!p.workspaces.includes('participant'))p.workspaces.push('participant');});s.organizations=[{...s.organization,memberIds:['p-maya']}];s.providers=[];for(const key of ['sessions','forms','competitions','team','partnerships'])s[key].forEach(x=>x.ownerId=s.organization.id);s.otpChallenges=[];migrate(s);normalizeActivityData(s);s.clock={offsetMs:Date.parse(STORY_DATE)-Date.now(),story:STORY_DATE};return s;}
+export function seed(){const s=structuredClone({...mentorship,...institution,...outdoor,...platform});s.people.forEach(p=>{if(p.verified&&!p.workspaces.includes('participant'))p.workspaces.push('participant');});s.organizations=[{...s.organization,memberIds:['p-maya']}];s.providers=[];for(const key of ['sessions','forms','competitions','team','partnerships'])s[key].forEach(x=>x.ownerId=s.organization.id);s.otpChallenges=[];migrate(s);normalizeActivityData(s);addQuizDemo(s);s.clock={offsetMs:Date.parse(STORY_DATE)-Date.now(),story:STORY_DATE};return s;}
 function persist(s){
   try{globalThis.localStorage?.setItem(STORAGE_KEY,JSON.stringify(s));}
   catch{setClockOffset(memory?.clock?.offsetMs);throw new Error('Your changes could not be saved. Free device storage or allow storage, then try again.');}
@@ -46,6 +48,7 @@ export function read(){
   setClockOffset(s.clock?.offsetMs);
   if(expireOffers(s))changed=true;
   if(expireInitiativeOffers(s))changed=true;
+  if(addQuizDemo(s))changed=true;
   if(changed)persist(s);
   memory=s;return structuredClone(s);
 }
@@ -159,9 +162,9 @@ export function dispatch(action,p={}) {
   if(area==='activity'){const org=orgFor(s);requireThat(org?.status==='Approved','The institution is not active.');let eid=p.experienceId;if(p.id&&action.startsWith('activity.experience'))eid=p.id;if(p.sessionId)eid=find(s.experienceSessions,p.sessionId).experienceId;if(p.id&&action.startsWith('activity.booking'))eid=find(s.bookings,p.id).experienceId;if(p.id&&action.startsWith('activity.offer'))eid=find(s.offers,p.id).experienceId;if(p.id&&action.startsWith('activity.appointment'))eid=find(s.appointments,p.id).experienceId;if(p.bookingId)eid=find(s.bookings,p.bookingId).experienceId;if(p.appointmentId)eid=find(s.appointments,p.appointmentId).experienceId;if(p.id&&action==='activity.attendance.correct')eid=find(s.attendance,p.id).experienceId;if(eid)requireThat(find(s.experiences,eid).ownerId===org.id,'This Outdoor Activity belongs to another institution.');p={...p,ownerId:org.id};}
   if(area==='organization')requireThat(orgFor(s)?.status==='Approved','The institution is not active.');
   let result;
-  for(const handler of [attendanceCommand,platformCommand,mentorshipCommand,initiativeCommand,institutionCommand,outdoorCommand]){result=handler(s,action,p,actor);if(result!==false)break;}
+  for(const handler of [competitionCommand,attendanceCommand,platformCommand,mentorshipCommand,initiativeCommand,institutionCommand,outdoorCommand]){result=handler(s,action,p,actor);if(result!==false)break;}
   requireThat(result!==false,'This action is unavailable.');
-  if(!['mentor.review','builder.save','student.focus.save','account.notice.read','member.notice.read'].includes(action)&&!action.includes('attendance'))audit(s,actor,action,p.id||p.title||p.name||p.experienceId||p.initiativeId||'Workspace',p.reason||'');
+  if(!['mentor.review','builder.save','student.focus.save','account.notice.read','member.notice.read','member.quiz.answer','participant.quiz.answer'].includes(action)&&!action.includes('attendance'))audit(s,actor,action,p.id||p.title||p.name||p.experienceId||p.initiativeId||'Workspace',p.reason||'');
   persist(s);return result;
 }
 export function snapshotForTests(s){persist(structuredClone(s));}

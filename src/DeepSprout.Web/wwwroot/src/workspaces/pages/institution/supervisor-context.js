@@ -48,12 +48,12 @@ function chip(c, active, page) {
   const tag = c.type === 'initiative' ? 'Initiative Supervisor' : 'Outdoor Activity appointment';
   return `<button type="button" class="iw-context ${active ? 'is-active' : ''} is-${c.type}" data-action="sup-context" data-ctx="${esc(c.key)}" data-page="${esc(page || 'dashboard')}" ${active ? 'aria-current="true"' : ''}><span class="iw-context-tag">${u.icon(c.type === 'initiative' ? 'nodes' : 'mountain')}${tag}</span><strong>${esc(c.title)}</strong><small>${esc(c.owner)}</small></button>`;
 }
-export const INSTITUTION_PAGES = ['applications','students','coaches','excuses'];
+export const INSTITUTION_PAGES = ['applications','students','coaches','excuses','competitions'];
 export const ACTIVITY_PAGES = ['experiences','cohorts','participants','evaluations'];
 export function notInContext(ctx, current, page) {
   const want = INSTITUTION_PAGES.includes(page) ? 'initiative' : 'activity';
   const other = supervisorContexts(ctx).find(c => c.type === want);
-  const titles = {applications:'Applications', students:'Students & Groups', coaches:'Coaches', excuses:'Notes & excuses', experiences:'Assigned Experiences', cohorts:'My Cohorts', participants:'Participants', evaluations:'Completion evaluations'};
+  const titles = {applications:'Applications', students:'Students & Groups', coaches:'Coaches', excuses:'Notes & excuses', competitions:'Competitions', experiences:'Assigned Experiences', cohorts:'My Cohorts', participants:'Participants', evaluations:'Completion evaluations'};
   return head({eyebrow:`NOT PART OF ${current.title.toUpperCase()}`, title:titles[page] || 'Not available here'}) + emptyState(want === 'initiative' ? 'This page belongs to an Initiative assignment.' : 'This page belongs to an Outdoor Activity appointment.',
     want === 'initiative' ? 'Applications, groups, Coaches and excuses are Institution Initiative duties. Outdoor Activity appointments never include them.' : 'Outdoor activities, activity groups and completion come from an Outdoor Activity appointment. Initiative grants never include Outdoor Activity operations.',
     other ? u.button(`Switch to ${other.title}`, 'sup-context', {ctx:other.key, page}, 'button primary') : '');

@@ -666,7 +666,7 @@ ASP.NET Core/C# rules and real data definitions remain authoritative for scoring
 | Online Session | Speaker/facilitator, date/time/timezone, capacity/mode, registration form, meeting-link access rules | Register and receive confirmation; external meeting link at permitted time |
 | In-person Workshop | Exact venue/address, date, capacity, age/safety terms, optional form | Register, confirm; QR check-in if adopted |
 | Hybrid Session | Two participation modes and potentially separate capacity pools | Select mode, complete appropriate registration questions |
-| Competition | Rules, eligibility, submission period, judging criteria, published outcome | Submit entry if eligible; follow review/judging lifecycle |
+| Competition | Live quiz (Kahoot-style), created by the Representative or an active Initiative Supervisor: title, start date/time, questions with 2–4 answers and a timer each. At the start time every player sees the same question; a correct answer earns 500–1,000 points (faster earns more); scoreboard after each question and a podium at the end. Earlier written-entry competitions stay readable. | Accepted participants join the room before or during the round, answer each question while it is open, and see their rank and the podium |
 | Outdoor Experience | Operator, venue, schedule, safety/contact information, seats, supervisor as permitted | Register or join Waitlist |
 | Camp | Verified Institution organizer, multi-session timetable, supervisor rules, registration and completion policy | Reserve place, attend sessions, receive verified completion if eligible |
 

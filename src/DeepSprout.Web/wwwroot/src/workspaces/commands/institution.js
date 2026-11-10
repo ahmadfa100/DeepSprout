@@ -82,7 +82,7 @@ export function enterCompetition(s,c,text,actor,p={}){
   const entry={id:id('entry'),competitionId:c.id,version:c.version||1,consent:{version:c.version||1,at:now()},personId:actor,text:textRequired(text,'Your entry'),status:'Submitted',created:now(),scores:{},feedback:''};requireThat(entry.text.length<=4000,'Keep your entry under 4,000 characters.');s.entries.push(entry);return entry.id;
 }
 
-function participationGuard(s,r,actor,p,kind){
+export function participationGuard(s,r,actor,p,kind){
   const person=find(s.people,actor), initiative=initiativeOfResource(s,r.id,r.initiativeId);
   requireThat(person.status==='Active'&&person.verified,'An active verified identity is required.');
   requireThat(!r.initiativeId||initiative?.id===r.initiativeId,'This resource has a conflicting Initiative scope.');

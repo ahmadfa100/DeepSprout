@@ -6,7 +6,8 @@ export const institution = {
   responses:[{id:'res-seed',formId:'f-start',version:1,personId:null,submitted:'2026-10-14',answers:{'q-start':'Unclear first step','q-confidence':'3'}}],
   enrollments:[{id:'en-noor',initiativeId:'i-today',personId:'p-noor',status:'Enrolled',created:'2026-10-14'}],
   sessionRegistrations:[{id:'sr-noor',sessionId:'s-intro',personId:'p-noor',mode:'Online',status:'Confirmed',attendance:'Not attended',completion:'Pending',created:'2026-10-14'}],
-  competitions:[{id:'c-create',title:'Small Steps, Shared Stories',topic:'Creative expression',rules:'Submit an original short story or visual idea about making a small start. No sensitive personal information.',audience:'Young adults',eligibility:'Ages 18–30',open:'2026-10-14',deadline:'2026-11-01',format:'Text',criteria:['Clarity','Originality','Connection to the topic'],judgeIds:['p-maya'],status:'Published',resultsPublished:false}],
+  // Live quiz competitions are seeded by data/quiz-demo.js.
+  competitions:[],
   entries:[],
   team:[{id:'team-maya',personId:'p-maya',name:'Maya Haddad',email:'maya@demo.example',position:'Program coordinator',capability:'Organization Owner',scope:'Horizon Youth Center',status:'Active'},{id:'team-leen',personId:'p-leen',name:'Leen Salem',email:'leen@demo.example',position:'Facilitator',capability:'Facilitator',scope:'Start Today',status:'Active'}],
   partnerships:[{id:'part-trails',initiativeId:'i-today',providerId:'prov-trails',purpose:'Offer an optional weekend experience alongside the Start Today initiative.',proposedComponent:'Linked Outdoor Experience',start:'2026-10-24',end:'2026-10-25',role:'Independent operator',scope:'Aggregate attendance and completion only',status:'Requested',experienceId:null,created:'2026-10-14'}]

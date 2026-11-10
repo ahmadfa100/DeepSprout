@@ -8,6 +8,9 @@ import {bookingEvidence} from '../workspaces/activity-completion.js';
  */
 import {initiativeForms,initiativeCompetitions,seatCap,seatsUsed,seatsLeft,registrationState,executionPhase,needsSupervisor,assignedActiveSupervisors,sessionRegistrationOpen,modeCapacity,confirmedInMode,practiceTypeOf,PRACTICE_TYPES,activeGrantsFor,today,queue} from '../workspaces/initiative-rules.js';
 import {taskBlockReason,institutionApproved,nowMs} from '../workspaces/domain.js';
+import {isQuiz} from '../workspaces/competition-rules.js';
+import {quizSummary} from './competition-view.js';
+export {quizView, quizSummary} from './competition-view.js';
 
 const nameOf = (s, pid) => s.people.find(p => p.id === pid)?.name || 'Unknown participant';
 const orgOf = (s, orgId) => s.organizations.find(o => o.id === orgId);
@@ -83,6 +86,7 @@ export function myInitiatives(s, personId) {
       return {id:f.id, title:f.title, purpose:f.purpose, version:f.version, status:f.status, questions:f.questions, permitted, canRespond:institutionApproved(s,initiative.ownerId) && permitted && f.status === 'Published' && !response && ['Published','Completed'].includes(initiative.status), response:response ? {id:response.id, version:response.version, submitted:response.submitted, answers:response.answers} : null};
     });
     const competitions = initiativeCompetitions(s, initiative).filter(c => c.status !== 'Draft').map(c => {
+      if (isQuiz(c)) return quizSummary(s, c, personId, nowMs(s));
       const entry = (s.entries || []).find(x => x.competitionId === c.id && x.personId === personId) || null;
       const windowOpen = (!c.open || day >= c.open) && (!c.deadline || day <= c.deadline);
       return {id:c.id, version:c.version||1, title:c.title, topic:c.topic, rules:c.rules, eligibility:c.eligibility, open:c.open, deadline:c.deadline, criteria:c.criteria || [], status:c.status, resultsPublished:Boolean(c.resultsPublished), windowOpen,

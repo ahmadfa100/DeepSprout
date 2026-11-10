@@ -1,3 +1,4 @@
+@model DeepSprout.Web.Account.LoginViewModel
 <!doctype html>
 <html lang="en">
 <head>
@@ -31,25 +32,28 @@
       </a>
       <h1 id="login-title">Welcome back!</h1>
       <p class="login-subtitle">Log in to continue growing with DeepSprout.</p>
-      <form id="login-form" novalidate>
+      <form id="login-form" method="post" action="/src/pages/auth/login/login.html" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl">
+        @Html.ValidationSummary(true, "", new { @class = "auth-server-error", role = "alert" })
         <div class="form-field">
           <label for="email">Email</label>
           <div class="input-wrap">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="m3.5 6 8.5 6.4L20.5 6"/></svg>
-            <input id="email" name="email" type="email" placeholder="you@@example.com" autocomplete="email" inputmode="email" required aria-describedby="email-error">
+            <input id="email" name="Email" type="email" value="@Model.Email" placeholder="you@@example.com" autocomplete="email" inputmode="email" required aria-describedby="email-error">
           </div>
-          <p class="field-error" id="email-error" aria-live="polite"></p>
+          <p class="field-error" id="email-error" aria-live="polite">@Html.ValidationMessageFor(m => m.Email)</p>
         </div>
         <div class="form-field password-field">
           <label for="password">Password</label>
           <div class="input-wrap">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/><circle cx="12" cy="16" r="1"/></svg>
-            <input id="password" name="password" type="password" placeholder="Your password" autocomplete="current-password" required aria-describedby="password-error">
+            <input id="password" name="Password" type="password" placeholder="Your password" autocomplete="current-password" required aria-describedby="password-error">
             <button class="password-toggle" type="button" aria-label="Show password" aria-pressed="false" aria-controls="password">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.3 12S6 6 12 6s9.7 6 9.7 6S18 18 12 18s-9.7-6-9.7-6Z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
-          <p class="field-error" id="password-error" aria-live="polite"></p>
+          <p class="field-error" id="password-error" aria-live="polite">@Html.ValidationMessageFor(m => m.Password)</p>
         </div>
         <button class="forgot-link" type="button" data-auth-action="forgot">Forgot password?</button>
         <button class="login-submit" type="submit">Log in <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-7-6 7 6-7 6"/></svg></button>
@@ -60,7 +64,7 @@
         <button type="button" data-auth-action="Apple"><svg class="apple-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.6 12.6c0-2.1 1.7-3.1 1.8-3.2-.9-1.4-2.3-1.6-2.8-1.6-1.2-.1-2.2.7-2.8.7-.7 0-1.6-.7-2.7-.7-1.4 0-2.7.8-3.4 2-.9 1.5-.7 4.3.7 6.5.7 1.1 1.6 2.4 2.8 2.3 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 2-1.1 2.7-2.2.8-1.2 1.1-2.4 1.1-2.5-.1 0-3-1.1-3-3.3ZM15.7 6.3c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.6.7-1 1.6-.9 2.5.9.1 1.8-.4 2.5-1.1Z"/></svg>Apple</button>
         <button type="button" data-auth-action="Facebook"><span class="facebook-mark" aria-hidden="true">f</span>Facebook</button>
       </div>
-      <p class="signup-line">New to DeepSprout? <a href="../../../../register.html">Create an account</a></p>
+      <p class="signup-line">New to DeepSprout? <a href="/src/pages/auth/register/register.html?returnUrl=@Uri.EscapeDataString(Model.ReturnUrl ?? "")">Create an account</a></p>
       <div class="admin-demo-entry"><button type="button" id="admin-demo-button">Preview the admin workspace <span aria-hidden="true">→</span></button><small>Local demo · no credentials needed</small></div>
     </section>
   </main>

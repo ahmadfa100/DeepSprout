@@ -3,9 +3,11 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>4180b84a-6c5a-4187-b594-a9a0a7aeec28</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.14" />
     <ProjectReference Include="../DeepSprout.Application/DeepSprout.Application.csproj" />
     <ProjectReference Include="../DeepSprout.Infrastructure/DeepSprout.Infrastructure.csproj" />
   </ItemGroup>

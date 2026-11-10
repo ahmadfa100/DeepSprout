@@ -286,10 +286,25 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .ex-session-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-12); align-items: center; }
 .ex-session-head small { display: block; color: var(--color-muted); margin-top: 2px; }
 .ex-inline-field select { padding: var(--space-6) var(--space-10); border: 1px solid var(--color-line); border-radius: var(--radius-pill); background: var(--color-surface); font: inherit; font-size: var(--text-caption); }
-.ex-qr { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: var(--space-16); align-items: center; margin-top: var(--space-12); padding: var(--space-14); border-radius: var(--radius-tile); background: var(--color-white); border: 1px dashed color-mix(in srgb, var(--color-leaf) 45%, var(--color-line)); }
-.ex-qr-code svg { display: block; width: 132px; height: 132px; }
-.ex-qr-code svg path, .ex-qr-code svg rect { stroke: none; }
-.ex-qr .ex-code { font-size: 1.25rem; }
+.ex-pass { margin-top: var(--space-12); overflow: hidden; border: 1px solid color-mix(in srgb, var(--color-pine) 18%, var(--color-line)); border-radius: var(--radius-tile); background: var(--color-white); box-shadow: 0 10px 30px rgba(23, 60, 51, .06); text-align: left; }
+.ex-pass-heading { display: flex; gap: var(--space-12); align-items: center; padding: var(--space-12) var(--space-14); background: var(--color-surface-soft); color: var(--color-pine); }
+.ex-pass-heading > div { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.ex-pass-heading strong { font-size: 1.05rem; line-height: 1.25; overflow-wrap: anywhere; }
+.ex-pass-kicker, .ex-pass-step, .ex-pass-code-label { font-size: .68rem; font-weight: var(--weight-bold); letter-spacing: .11em; text-transform: uppercase; }
+.ex-pass-kicker { color: var(--color-muted); }
+.ex-pass-mark { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 12px; background: var(--color-pine); color: var(--color-white); font-family: Georgia, serif; font-size: 1.05rem; letter-spacing: -.08em; }
+.ex-pass-state { flex: none; padding: 5px 9px; border-radius: var(--radius-pill); background: var(--color-mint); color: var(--color-pine); font-size: .72rem; font-weight: var(--weight-bold); }
+.ex-pass-main { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: var(--space-18); align-items: center; padding: var(--space-16); }
+.ex-pass-qr { display: grid; place-items: center; width: 180px; min-height: 180px; padding: 10px; border-radius: 14px; background: #fff; border: 1px solid color-mix(in srgb, var(--color-pine) 12%, #fff); color: var(--color-muted); text-align: center; }
+.ex-pass-qr svg { display: block; width: 158px; height: 158px; margin: 0; }
+.ex-pass-qr svg path, .ex-pass-qr svg rect { stroke: none; }
+.ex-pass-details { display: grid; justify-items: start; gap: var(--space-8); min-width: 0; }
+.ex-pass-step { color: var(--color-leaf); }
+.ex-pass-details p { margin: 0; color: var(--color-pine); line-height: 1.4; }
+.ex-pass-code-label { margin-top: var(--space-6); color: var(--color-muted); }
+.ex-pass-code { padding: 6px 10px; border-radius: 8px; background: var(--color-surface-soft); color: var(--color-pine); font-size: .96rem; letter-spacing: .08em; overflow-wrap: anywhere; }
+.ex-pass-details small { color: var(--color-muted); }
+.ex-pass-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px var(--space-12); padding: var(--space-8) var(--space-16); border-top: 1px solid var(--color-line); color: var(--color-muted); font-size: .72rem; }
 .ex-excuse { margin-top: var(--space-12); padding: var(--space-12) var(--space-14); border-radius: var(--radius-tile); background: color-mix(in srgb, var(--color-gold) 12%, var(--color-surface)); }
 .ex-excuse p { margin: 0 0 var(--space-6); }
 .ex-steps-compact { margin: var(--space-8) 0; }
@@ -303,7 +318,10 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
   .ex-initiative-head img, .ex-initiative-mark { width: 48px; height: 48px; }
   .ex-initiative-status { grid-column: 1 / -1; justify-content: flex-start; }
   .ex-session-head { grid-template-columns: 1fr; }
-  .ex-qr { grid-template-columns: 1fr; justify-items: start; }
+  .ex-pass-main { grid-template-columns: 1fr; justify-items: center; }
+  .ex-pass-details { width: 100%; }
+  .ex-pass-heading { flex-wrap: wrap; }
+  .ex-pass-state { margin-left: 50px; }
 }
 @media (prefers-reduced-motion: reduce) { .ex-initiative { animation: none; } }
 .ex-initiative { min-width: 0; }
@@ -329,7 +347,6 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .ex-sheet [data-activity-view] h2 { padding-right: 44px; overflow-wrap: anywhere; }
 .ex-sheet [data-activity-view] p, .ex-mine-item[data-booking-id] small { overflow-wrap: anywhere; }
 .ex-credential { margin-block: var(--space-18); }
-.ex-credential svg { display: block; width: min(240px, 100%); height: auto; margin-block: var(--space-10); }
 
 /* ======================================================================
    View Details (Oct 2026): one layout for every listing type — a readable
@@ -397,8 +414,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .exd-ref-line { margin: 0 !important; font-size: var(--text-caption) !important; color: var(--color-muted) !important; }
 .exd-offer { display: grid; gap: var(--space-8); padding: var(--space-12); border: 1.5px solid var(--color-leaf); border-radius: var(--radius-tile); }
 .exd-terms summary { cursor: pointer; font-size: var(--text-caption); font-weight: var(--weight-bold); }
-.exd-booking .ex-credential { padding: var(--space-12); border: 1px solid var(--color-line); border-radius: var(--radius-tile); text-align: center; }
-.exd-booking .ex-credential svg { max-width: 180px; margin: var(--space-8) auto; }
+.exd-booking .ex-credential { text-align: left; }
 
 @media (max-width: 900px) {
   .exd-grid { grid-template-columns: 1fr; }

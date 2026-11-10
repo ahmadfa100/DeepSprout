@@ -8,7 +8,7 @@
  *   People        who uses DeepSprout, in which role?
  *   Initiatives   what is running, coming, finished or cancelled?
  *   Community     which posts wait for approval, which were reported?
- *   Assessments   the four Lab tests and their wording.
+ *   Quick Setup   the six questions members answer during onboarding.
  * Data and decisions reuse the existing commands and the community store.
  */
 import * as u from '../../ui.js';
@@ -19,6 +19,7 @@ import {communityRecords,decideCommunity} from '../../admin-community.js';
 import {adminDashboard,activitiesGovernance,governanceAction,governanceChange} from './governance.js';
 import * as ds from '../../ds.js';
 import {kindLabel} from '../../activity-rules.js';
+import * as inst from '../../institution-application.js';
 export {governanceChange};
 
 const e = u.esc;
@@ -26,6 +27,22 @@ const WAITING = ['Submitted', 'Pending Verification', 'Needs More Info'];
 const KIND = {organization:'Institution', provider:'Outdoor Provider (retired path)', mentor:'Coach'};
 const PATH = {organization:'organizations', provider:'providers', mentor:'mentor-applications'};
 const HIDDEN = ['activity-catalog', 'policies', 'cms', 'entitlements', 'programs', 'system'];
+// Only these seeded, fictional records have real PDF fixtures. Applicant-selected
+// files elsewhere in this browser demo are names only and must not look downloadable.
+const DEMO_DOCUMENTS = {
+  'app-bright': ['registration-certificate.pdf', 'board-letter.pdf'],
+  'app-reads': ['library-license.pdf'],
+  'app-irbid': ['hub-registration.pdf'],
+  'app-horizon': ['organization-profile.pdf'],
+  'app-maya': ['mentor-profile.pdf']
+};
+const documentRow = (a, filename) => {
+  const sample = DEMO_DOCUMENTS[a.id]?.includes(filename);
+  const label = sample
+    ? `<a href="assets/demo/application-documents/${a.id}/${filename}" download="${e(filename)}" aria-label="Download sample PDF ${e(filename)}">${e(filename)}</a>`
+    : `<span>${e(filename)}</span>`;
+  return `<li>${u.icon('form')}${label}<small>${sample ? 'SAMPLE PDF' : 'NAME ONLY'}</small></li>`;
+};
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const ago = (s, v) => { if (!v) return '—'; const d = Math.round((Date.parse(`${clockDay(s)}T12:00`) - Date.parse(String(v).slice(0, 10) + 'T12:00')) / 864e5); return d <= 0 ? 'Today' : d === 1 ? 'Yesterday' : d < 14 ? `${d} days ago` : u.date(v); };
 const orgAvatar = name => `<span class="ad-org-mark" style="--h:${u.hueOf(name)}">${e(u.initials(name))}</span>`;
@@ -60,10 +77,10 @@ function requests(ctx) {
   const decided = apps.filter(a => !WAITING.includes(a.status)).sort((a, b) => String(b.updated).localeCompare(String(a.updated)));
   const list = tab === 'decided' ? decided : waiting;
   const row = a => `<article class="ad-request iw-reveal">
-    <div class="ad-request-who">${orgAvatar(a.name)}<div><h3>${u.link(a.name, `admin/${PATH[a.type]}/${a.id}`, 'ad-title-link')}</h3><p>${e([KIND[a.type], a.details?.institutionType, a.details?.city].filter(Boolean).join(' · '))}</p></div></div>
+    <div class="ad-request-who">${orgAvatar(a.name)}<div><h3>${u.link(a.name, `admin/${PATH[a.type]}/${a.id}`, 'ad-title-link')}</h3><p>${e([KIND[a.type], a.details?.institutionType, a.details?.sector, a.details?.city].filter(Boolean).join(' · '))}</p></div></div>
     <p class="ad-request-aim">${e(a.details?.description || a.details?.goals || 'No description provided.')}</p>
     <div class="ad-request-rep">${u.avatar(nameOf(s, a.personId))}<div><strong>${e(nameOf(s, a.personId))}</strong><small>${e(a.details?.position || 'Representative')}</small></div></div>
-    <div class="ad-request-meta">${statusPill(a)}<small>${e(tab === 'decided' ? `Decided ${u.date(a.updated)}` : `Sent ${ago(s, a.submitted)}`)}</small></div>
+    <div class="ad-request-meta">${statusPill(a)}${a.type === 'organization' ? (c => `<small class="ar-mini-check">${u.icon(c.ok === c.all ? 'check' : 'alert')}${c.ok}/${c.all} checks</small>`)({ok:inst.readiness(a, s.people.find(x => x.id === a.personId)).filter(x => x[1]).length, all:6}) : ''}<small>${e(tab === 'decided' ? `Decided ${u.date(a.updated)}` : `Sent ${ago(s, a.submitted)}`)}</small></div>
     <div class="ad-request-actions">${u.link('View details', `admin/${PATH[a.type]}/${a.id}`, `button ${tab === 'decided' ? 'quiet' : 'primary'} small`)}</div>
   </article>`;
   return head({eyebrow:'REQUESTS', title:'Institution requests', lead:'Institutions ask to join DeepSprout. See who they are and what they want to do, then approve or reject with a reason.'})
@@ -75,9 +92,58 @@ function statusPill(a) {
   return {Submitted:pill('Pending', 'New request'), 'Pending Verification':pill('Pending', 'Answered — review again'), 'Needs More Info':pill('Info Requested', 'Waiting for their answer'), Approved:pill('Approved'), Rejected:pill('Rejected'), Suspended:pill('Suspended')}[a.status] || pill(a.status);
 }
 
+/* Institution request: everything the Admin needs to verify, in reading order —
+   who the institution is, what it wants to do, how to reach it, the evidence,
+   and finally the person who will manage it. Decision and checklist stay beside. */
+const notGiven = '<span class="ar-none">Not provided</span>';
+const allFacts = rows => `<dl class="ad-facts ar-facts">${rows.map(([k, v, wide]) => `<div${wide ? ' class="is-wide"' : ''}><dt>${e(k)}</dt><dd>${v ? e(v) : notGiven}</dd></div>`).join('')}</dl>`;
+const yearsSince = (s, y) => { const n = Number(clockDay(s).slice(0, 4)) - Number(y); return Number.isFinite(n) && n >= 0 && y ? `${y} · ${plural(n, 'year')}` : y; };
+
+function decisionPanel(a, rep, open) {
+  if (open) return `<div class="ad-decide">${u.button('Approve', 'application-decide', {id:a.id, status:'Approved'}, 'button primary')}${u.button('Ask for more information', 'application-decide', {id:a.id, status:'Needs More Info'}, 'button quiet')}${u.button('Reject', 'application-decide', {id:a.id, status:'Rejected'}, 'button danger')}</div><p class="cw-fine">${u.icon('shield')}Approving opens the Institution workspace for ${e(rep?.name || 'the representative')}. They can publish initiatives right away.</p>`;
+  return `<div class="cw-decided">${statusPill(a)}${a.messages?.length ? `<p class="cw-quote">“${e(a.messages.at(-1).text)}”</p>` : ''}</div>${a.status === 'Approved' ? `<div class="ad-decide is-secondary">${u.button('Suspend institution', 'application-decide', {id:a.id, status:'Suspended'}, 'button danger small')}</div>` : a.status === 'Suspended' ? `<div class="ad-decide is-secondary">${u.button('Restore institution', 'application-decide', {id:a.id, status:'Approved'}, 'button quiet small')}</div>` : ''}`;
+}
+
+function institutionRequest(ctx, a) {
+  const {s} = ctx, d = a.details || {}, rep = s.people.find(x => x.id === a.personId), open = WAITING.includes(a.status);
+  const kinds = a.fileKinds || {}, files = a.files || [], ages = inst.ages(d.audienceAges), checks = inst.readiness(a, rep), ready = checks.filter(c => c[1]).length;
+  const others = s.applications.filter(x => x.personId === a.personId && x.id !== a.id && x.status !== 'Draft');
+  const waited = ago(s, a.submitted);
+  const chip = (icon, text) => text ? `<span class="ar-chip">${u.icon(icon)}${e(text)}</span>` : '';
+  // Documents: one row per expected slot; unslotted older files fall under "Other".
+  const slotOf = f => kinds[f] || 'other';
+  const docs = inst.DOCS.map(([slot, label, hint, important]) => {
+    const list = files.filter(f => slotOf(f) === slot), waived = slot === 'authorization' && d.authority === 'head';
+    const state = list.length ? '<span class="ar-doc-state is-ok">Attached</span>' : waived ? '<span class="ar-doc-state">Not needed · leads the institution</span>' : slot === 'other' ? '<span class="ar-doc-state">None</span>' : `<span class="ar-doc-state ${important ? 'is-missing' : ''}">Not attached</span>`;
+    return `<li class="ar-doc ${list.length ? 'has-files' : ''}"><div class="ar-doc-head"><div><strong>${e(label)}</strong><small>${e(hint)}</small></div>${state}</div>${list.length ? `<ul class="ad-files">${list.map(f => documentRow(a, f)).join('')}</ul>` : ''}</li>`;
+  }).join('');
+  const sample = files.some(f => DEMO_DOCUMENTS[a.id]?.includes(f)), nameOnly = files.some(f => !DEMO_DOCUMENTS[a.id]?.includes(f));
+  const history = [{at:a.submitted, who:rep?.name || a.name, text:'Sent the request'}, ...(a.messages || []).map(m => ({at:m.created, who:nameOf(s, m.actorId), text:m.text}))];
+  const address = [d.address, d.city, d.governorate !== d.city && d.governorate, d.country].filter(Boolean).join(', ');
+
+  return `<p class="breadcrumbs">${u.link('Requests', 'admin/organizations', 'text-link')} / ${e(a.name)}</p>`
+    + `<header class="ad-hero ar-hero iw-reveal">${orgAvatar(a.name)}<div><p class="eyebrow">INSTITUTION REQUEST · REF ${e(String(a.id).toUpperCase())}</p><h1>${e(a.name)}</h1><p class="iw-lead">${e([d.institutionType || d.type, d.sector, [d.city, d.country].filter(Boolean).join(', ')].filter(Boolean).join(' · '))}</p>`
+    + `<div class="ar-chips">${chip('calendar', d.founded && `Founded ${yearsSince(s, d.founded)}`)}${chip('nodes', d.parentBody)}${chip('people', ages.length && `Serves ${ages.join(', ')}`)}</div></div>`
+    + `<div class="ad-hero-status">${statusPill(a)}<small>Sent ${e(u.date(a.submitted))}</small>${open && waited !== 'Today' ? `<small class="ar-wait">${u.icon('clock')}Waiting since ${e(waited.toLowerCase())}</small>` : ''}</div></header>`
+    + `<div class="ad-detail-layout"><div class="ad-detail-main">`
+    + card('Who they are', allFacts([['Official name', a.name, true], ['Institution type', d.institutionType || d.type], ['Sector', d.sector], ['Affiliated to', d.parentBody], ['Founded', d.founded && yearsSince(s, d.founded)], ['Registration number', d.registrationNumber], ['Issued by', d.issuingAuthority]]), {eyebrow:'1 · IDENTITY'})
+    + card('What they want to do', `<blockquote class="ad-aim">${e(d.description || 'No description provided.')}</blockquote>${d.goals ? `<p class="ad-goal"><b>The change they hope to see</b>${e(d.goals)}</p>` : ''}<div class="ar-audience"><b>Who they serve</b>${ages.length ? `<div class="ar-ages">${ages.map(x => `<span>${e(x)}</span>`).join('')}</div>` : `<p>${notGiven}</p>`}</div>${allFacts([['Reach', d.size], ['Areas served', d.areasServed]])}`, {eyebrow:'2 · PURPOSE & AUDIENCE'})
+    + card('Location and contact', allFacts([['Address', address, true], ['Official email', d.officialEmail || a.email], ['Official phone', d.phone], ['Website', d.website], ['Social media', d.social]]), {eyebrow:'3 · CONTACT'})
+    + card('Supporting documents', `<ul class="ar-docs">${docs}</ul>${sample ? '<p class="iw-muted">Sample PDFs are fictional and contain no verification evidence.</p>' : ''}${nameOnly ? '<p class="iw-muted">Name-only entries have no file content stored in this browser demo.</p>' : ''}`, {eyebrow:'4 · EVIDENCE', extra:`<span class="ar-count">${plural(files.length, 'file')}</span>`})
+    + card('Representative', `<div class="ar-rep">${u.avatar(rep?.name || d.representative || a.name)}<div><strong>${e(rep?.name || d.representative || '—')}</strong><small>${e(d.position || 'Representative')} · ${e(a.name)}</small></div>${rep ? (rep.status === 'Active' ? pill('Active', 'Account active') : pill('Blocked', 'Account blocked')) : ''}</div>`
+      + allFacts([['Authority to represent', inst.authorityLabel(d.authority), true], ['Direct phone', d.repPhone], ['Account email', rep?.email], ['Email verified', rep ? (rep.verified ? 'Yes' : 'Not yet') : ''], ...(d.representative && rep?.name && d.representative !== rep.name ? [['Name typed on the form', d.representative]] : []), ['Other requests', others.length ? others.map(x => `${x.name} (${x.status})`).join(', ') : 'None']])
+      + (a.declaration ? `<figure class="ar-declaration"><blockquote>“${e(a.declaration.text)}”</blockquote><figcaption>${u.icon('check')}Signed by ${e(rep?.name || d.representative || 'the representative')} · ${e(u.date(a.declaration.at))}</figcaption></figure>` : `<p class="ar-declaration is-missing">${u.icon('alert')}No accuracy declaration on this request. It was sent before the declaration was required.</p>`), {eyebrow:'5 · WHO WILL MANAGE IT'})
+    + card('History', `<ol class="ad-timeline">${history.map(h => `<li><time>${e(u.date(h.at))}</time><div><strong>${e(h.who)}</strong><p>${e(h.text)}</p></div></li>`).join('')}</ol>`, {eyebrow:'CONVERSATION'})
+    + `</div><aside class="ad-detail-side">`
+    + card('Verification checklist', `<div class="ar-meter" style="--w:${Math.round(ready / checks.length * 100)}%"><span><b>${ready}</b> of ${checks.length} in place</span><i aria-hidden="true"></i></div><ul class="ar-checks">${checks.map(([label, ok, note]) => `<li class="${ok ? 'is-ok' : 'is-gap'}">${u.icon(ok ? 'check' : 'alert')}<div><strong>${e(label)}</strong><small>${e(note)}</small></div></li>`).join('')}</ul><p class="cw-fine">${u.icon('shield')}These only show what was sent. Open the documents and confirm the registration with the issuing authority before approving.</p>`, {eyebrow:'BEFORE YOU DECIDE'})
+    + card(open ? 'Your decision' : 'Decision', decisionPanel(a, rep, open), {cls:open ? 'cw-decision' : ''})
+    + `</aside></div>`;
+}
+
 function requestDetail(ctx) {
   const {s, route:r} = ctx, a = s.applications.find(x => x.id === r.id && PATH[x.type] === r.page);
   if (!a) return u.missing('request');
+  if (a.type === 'organization') return institutionRequest(ctx, a);
   const d = a.details || {}, rep = s.people.find(x => x.id === a.personId), open = WAITING.includes(a.status);
   const decide = open ? `<div class="ad-decide">${u.button('Approve', 'application-decide', {id:a.id, status:'Approved'}, 'button primary')}${u.button('Ask for more information', 'application-decide', {id:a.id, status:'Needs More Info'}, 'button quiet')}${u.button('Reject', 'application-decide', {id:a.id, status:'Rejected'}, 'button danger')}</div><p class="cw-fine">${u.icon('shield')}Approving opens the Institution workspace for ${e(rep?.name || 'the representative')}. They can publish initiatives right away.</p>`
     : `<div class="cw-decided">${statusPill(a)}${a.messages?.length ? `<p class="cw-quote">“${e(a.messages.at(-1).text)}”</p>` : ''}</div>${a.status === 'Approved' ? `<div class="ad-decide is-secondary">${u.button('Suspend institution', 'application-decide', {id:a.id, status:'Suspended'}, 'button danger small')}</div>` : a.status === 'Suspended' ? `<div class="ad-decide is-secondary">${u.button('Restore institution', 'application-decide', {id:a.id, status:'Approved'}, 'button quiet small')}</div>` : ''}`;
@@ -87,7 +153,7 @@ function requestDetail(ctx) {
     + `<div class="ad-detail-layout"><div class="ad-detail-main">
         ${card('What they want to do', `<blockquote class="ad-aim">${e(d.description || 'No description provided.')}</blockquote>${d.goals ? `<p class="ad-goal"><b>Their goal</b>${e(d.goals)}</p>` : ''}`, {eyebrow:'PURPOSE'})}
         ${card('About the institution', facts([['Type', d.institutionType || d.type], ['Location', [d.city, d.country].filter(Boolean).join(', ')], ['Reach', d.size], ['Founded', d.founded], ['Website', d.website], ['Phone', d.phone], ['Official email', a.email]]), {eyebrow:'DETAILS'})}
-        ${card('Documents', (a.files || []).length ? `<ul class="ad-files">${a.files.map(f => `<li>${u.icon('form')}<span>${e(f)}</span><small>PDF</small></li>`).join('')}</ul>` : '<p class="iw-muted">No documents attached.</p>', {eyebrow:'ATTACHED'})}
+        ${card('Documents', (a.files || []).length ? `<ul class="ad-files">${a.files.map(f => documentRow(a, f)).join('')}</ul>${a.files.some(f => DEMO_DOCUMENTS[a.id]?.includes(f)) ? '<p class="iw-muted">Sample PDFs are fictional and contain no verification evidence.</p>' : ''}${a.files.some(f => !DEMO_DOCUMENTS[a.id]?.includes(f)) ? '<p class="iw-muted">Name-only entries have no file content stored in this browser demo.</p>' : ''}` : '<p class="iw-muted">No documents attached.</p>', {eyebrow:'ATTACHED'})}
         ${card('History', `<ol class="ad-timeline">${history.map(h => `<li><time>${e(u.date(h.at))}</time><div><strong>${e(h.who)}</strong><p>${e(h.text)}</p></div></li>`).join('')}</ol>`, {eyebrow:'CONVERSATION'})}
       </div><aside class="ad-detail-side">
         ${card('Representative', `<div class="ad-rep">${u.avatar(rep?.name || d.representative || a.name)}<div><strong>${e(rep?.name || d.representative || '—')}</strong><small>${e(d.position || 'Representative')}</small></div></div>${facts([['Email', rep?.email], ['Phone', d.phone], ['Email verified', rep?.verified ? 'Yes' : 'Not yet'], ['Account', rep?.status]])}`, {eyebrow:'WHO APPLIED'})}
@@ -131,7 +197,7 @@ function institutionDetail(ctx, n) {
     + `<header class="ad-hero iw-reveal">${orgAvatar(o.name)}<div><p class="eyebrow">INSTITUTION</p><h1>${e(o.name)}</h1><p class="iw-lead">${e(o.description || '')}</p></div><div class="ad-hero-status">${pill(o.status)}${app ? (o.status === 'Suspended' ? u.button('Restore', 'application-decide', {id:app.id, status:'Approved'}, 'button quiet small') : u.button('Suspend institution', 'application-decide', {id:app.id, status:'Suspended'}, 'button danger small')) : ''}</div></header>`
     + stats([stat(x.inits.length, 'Initiatives'), stat(x.active, 'Running now'), stat(x.students, 'Students'), stat(x.coaches + x.supervisors, 'Staff')])
     + `<div class="ad-detail-layout"><div class="ad-detail-main">${card('Initiatives', initRows, {eyebrow:'WHAT THEY RUN'})}${card('Outdoor Activities', actRows, {eyebrow:'ORGANIZED BY THIS INSTITUTION', extra:u.link('Govern', 'admin/activities?tab=all', 'text-link')})}${card('Staff', staffRows, {eyebrow:'INVITED BY THE REPRESENTATIVE'})}</div>
-      <aside class="ad-detail-side">${card('Representative', `<div class="ad-rep">${u.avatar(o.representative || '')}<div><strong>${e(o.representative || '—')}</strong><small>${e(o.position || 'Representative')}</small></div></div>`, {eyebrow:'CONTACT PERSON'})}${card('Details', facts([['Type', o.type], ['Location', [o.city, o.country].filter(Boolean).join(', ')], ['Email', o.email], ['Phone', o.phone], ['Approved', app ? u.date(app.updated) : '']]))}</aside></div>`;
+      <aside class="ad-detail-side">${card('Representative', `<div class="ad-rep">${u.avatar(o.representative || '')}<div><strong>${e(o.representative || '—')}</strong><small>${e(o.position || 'Representative')}</small></div></div>`, {eyebrow:'CONTACT PERSON'})}${card('Details', facts([['Type', o.type], ['Sector', o.sector], ['Affiliated to', o.parentBody], ['Founded', o.founded], ['Registration', [o.registrationNumber, o.issuingAuthority].filter(Boolean).join(' · ')], ['Serves', inst.ages(o.audienceAges).join(', ')], ['Location', [o.city, o.country].filter(Boolean).join(', ')], ['Email', o.email], ['Phone', o.phone], ['Website', o.website], ['Approved', app ? u.date(app.updated) : '']]))}${app ? `<p class="cw-fine">${u.link('Open the original request', `admin/organizations/${app.id}`, 'text-link')}</p>` : ''}</aside></div>`;
 }
 
 /* ------------------------------------------------------------ people */
@@ -212,39 +278,23 @@ function communityDetail(ctx, comm) {
 
 /* ------------------------------------------------------------ assessments */
 
-const INSTRUMENTS = ['digital-habits', 'sustained-attention', 'inhibitory-control', 'depth-challenge'];
-const TEST_ICON = ['form', 'clock', 'shield', 'book'];
 function assessments(ctx) {
-  const {s, route:r} = ctx, defs = window.DeepSproutAssessments || {};
-  if (r.id) return assessmentEditor(ctx, defs);
-  return head({eyebrow:'ASSESSMENTS', title:'The four Lab tests', lead:'Every member takes these four tests in the Lab. Open one to edit its instructions and questions.'})
-    + `<div class="ad-tests">${s.assessments.map((a, i) => { const d = defs[INSTRUMENTS[i]] || {}, qs = (a.contentDraft || d).items || (a.contentDraft || d).questions; return `<article class="ad-test iw-reveal" style="--h:${[150, 200, 25, 265][i]}"><header><span class="ad-test-icon">${u.icon(TEST_ICON[i])}</span><div><h3>${e(a.title)}</h3><p>${e(d.kind || '')}</p></div></header><p class="ad-test-blurb">${e(d.blurb || a.description)}</p><dl class="ad-mini">${[[qs ? qs.length : d.trials || '—', qs ? (d.questions ? 'Questions' : 'Statements') : 'Trials'], [`${d.minutes || '—'} min`, 'Duration'], [d.version || '—', 'Live version']].map(([v, l]) => `<div><dd>${e(v)}</dd><dt>${e(l)}</dt></div>`).join('')}</dl><footer>${a.contentDraft ? pill('Pending', `Draft v${a.version} saved`) : pill('Approved', 'Same as live')}${u.link('Edit test', `admin/assessments/${a.id}`, 'button primary small')}</footer></article>`; }).join('')}</div>`
-    + `<p class="iw-footnote">${u.icon('shield')}Edits are saved as a new draft version. Members keep taking the live version until the draft is checked and published by the team.</p>`;
+  // Mirror the six prompts in pages/member/onboarding/quick-setup.js. This is a
+  // read-only product reference: the old Lab editor and its drafts are history.
+  const questions = [
+    ['What would you like to change?', 'Choose one', ['Spend less time on Reels and Shorts', 'Use my phone more intentionally', 'Make more time for real-life activities', 'Improve focus on things that matter to me']],
+    ['Which apps pull you in the most?', 'Choose all that apply', ['Instagram', 'TikTok', 'YouTube / Shorts', 'Facebook', 'Other']],
+    ['Roughly how much time do you spend scrolling each day?', 'Choose one · self-reported estimate', ['Less than 1 hour', '1–2 hours', '2–4 hours', 'More than 4 hours', 'I’m not sure']],
+    ['When does scrolling usually take over?', 'Choose one', ['Before bed', 'In the morning', 'During study or work', 'When I’m bored', 'It varies / I’m not sure']],
+    ['What would you love to make more time for?', 'Choose all that apply', ['Walking / sports', 'Reading / learning', 'Drawing / creativity', 'Friends / family', 'Personal hobbies', 'Other']],
+    ['How much time feels realistic for a small daily activity?', 'Choose one', ['5 minutes', '10 minutes', '15 minutes', '20 minutes']]
+  ];
+  return `<div class="ad-setup-page">`
+    + `<header class="ad-setup-hero iw-reveal"><div><p class="eyebrow">MEMBER ONBOARDING · QUICK SETUP</p><h1>Six questions. One gentle start.</h1><p>Members answer these during onboarding, one at a time, to shape a preliminary Week 1 plan. There is no test, score, or required Lab assessment.</p><div class="ad-setup-hero-actions"><span class="ad-setup-current">${u.icon('check')}Current member flow</span><span>Six questions · one at a time</span></div></div><div class="ad-setup-count" aria-hidden="true"><strong>06</strong><span>questions<br>in order</span></div></header>`
+    + `<div class="ad-setup-intro"><div><p class="eyebrow">THE QUESTION FLOW</p><h2>What members are asked</h2></div><p>Answers are personal setup inputs. They inform a plan proposal; they are not an assessment result.</p></div>`
+    + `<ol class="ad-setup-list">${questions.map(([title, type, options], i) => `<li class="ad-setup-question iw-reveal"><div class="ad-setup-index"><span>${String(i + 1).padStart(2, '0')}</span><i aria-hidden="true"></i></div><div class="ad-setup-content"><div class="ad-setup-question-head"><h3>${e(title)}</h3><span class="ad-setup-type">${e(type)}</span></div><ul class="ad-setup-options">${options.map(option => `<li>${e(option)}</li>`).join('')}</ul></div></li>`).join('')}</ol>`
+    + `<p class="ad-setup-note">${u.icon('shield')}This page reflects the current member flow. Previous Lab definitions and attempts remain historical records; no new test is required for onboarding or plan activation.</p></div>`;
 }
-function assessmentEditor(ctx, defs) {
-  const {s, route:r} = ctx, a = s.assessments.find(x => x.id === r.id);
-  if (!a) return u.missing('assessment');
-  const i = s.assessments.indexOf(a), base = defs[INSTRUMENTS[i]], d = a.contentDraft || base;
-  if (!d) return u.missing('assessment content');
-  const qs = d.items || d.questions || [], choice = !!d.questions;
-  const section = (n, title, hint, body) => `<section class="ad-edit-section iw-reveal"><header><b>${n}</b><div><h2>${e(title)}</h2><p>${e(hint)}</p></div></header>${body}</section>`;
-  return `<p class="breadcrumbs">${u.link('Back to assessment library', 'admin/assessments', 'text-link')}</p>`
-    + `<header class="ad-hero is-test iw-reveal" style="--h:${[150, 200, 25, 265][i]}"><span class="ad-test-icon is-big">${u.icon(TEST_ICON[i])}</span><div><p class="eyebrow">${e((d.kind || 'Assessment').toUpperCase())}</p><h1>${e(a.title)}</h1><p class="iw-lead">${e(d.blurb || '')}</p></div><div class="ad-hero-status">${pill('Approved', `Live ${base.version}`)}${a.contentDraft ? pill('Pending', `Draft v${a.version}`) : ''}</div></header>`
-    + `<form data-form="owner-assessment" data-id="${e(a.id)}" class="ad-editor"><div class="ad-editor-main">
-      ${section(1, 'Before the test', 'What members read before they start.', u.field('heading', 'Heading', d.intro.heading, 'text', true) + u.area('body', 'Instructions', d.intro.body, true) + u.area('blurb', 'What it measures (short)', d.blurb, true) + u.area('points', 'Before you begin — one point per line', d.intro.points.join('\n'), true))}
-      ${d.passage ? section(2, 'Reading passage', 'The text members read before the questions.', u.field('passageTitle', 'Passage title', d.passageTitle, 'text', true) + u.area('passage', 'Passage — leave a blank line between paragraphs', d.passage.join('\n\n'), true)) : ''}
-      ${section(d.passage ? 3 : 2, qs.length ? (choice ? 'Questions' : 'Statements') : 'How the task runs', qs.length ? (choice ? 'Each question has four options and one correct answer.' : `Members answer each statement on this scale: ${(d.scale || []).join(' · ')}.`) : 'This is a timed task. Timing and scoring are fixed by the test protocol.',
-        qs.length ? `${!choice && d.scale ? `<div class="ad-scale">${d.scale.map((x, k) => `<span><b>${k + 1}</b>${e(x)}</span>`).join('')}</div>` : ''}<div id="ao-questions" class="ad-questions">${qs.map((q, k) => questionCard(q, k, choice)).join('')}</div>${u.button('Add question', 'owner-question-add', {kind:choice ? 'choice' : 'statement'}, 'button quiet')}`
-          : `<dl class="ad-mini is-protocol">${[[d.trials, 'Trials'], [d.minGap && `${d.minGap} ms`, 'Shortest gap'], [d.maxGap && `${d.maxGap} ms`, 'Longest gap'], [d.stimulusMs && `${d.stimulusMs} ms`, 'Response window']].filter(([v]) => v).map(([v, l]) => `<div><dd>${e(v)}</dd><dt>${e(l)}</dt></div>`).join('')}</dl><p class="cw-fine">${u.icon('shield')}${e(d.records || 'The task records reaction times and accuracy.')}</p>`)}
-    </div><aside class="ad-editor-side">
-      <section class="iw-card ad-save"><h2>Save changes</h2><p>Saving creates draft v${a.version + (a.contentDraft ? 1 : 0)}. Members keep the live version (${e(base.version)}) until it is published.</p><p class="form-error" role="alert"></p><button class="button primary" type="submit">Save content draft</button>${u.link('Cancel', 'admin/assessments', 'button quiet')}<a class="text-link" href="src/pages/member/lab/assessment.html?test=${INSTRUMENTS[i]}" target="_blank" rel="noopener">Try the live test ↗</a></section>
-      ${card('Versions', `<ol class="ad-timeline">${[...(a.contentHistory || []).slice().reverse().map(h => `<li><time>${e(u.date(h.created))}</time><div><strong>Draft v${h.version}</strong>${u.button('View saved version', 'owner-assessment-history', {id:a.id, version:h.version}, 'text-link')}</div></li>`), `<li><time>Live</time><div><strong>${e(base.version)}</strong><p>What members take today.</p></div></li>`].join('')}</ol>`)}
-    </aside></form>`;
-}
-export function questionCard(q, k, choice) {
-  return `<div class="ao-question ad-question" data-question="${k}" data-kind="${choice ? 'choice' : 'statement'}"><span class="ad-q-num">${k + 1}</span><div class="ad-q-body">${u.area(`question-${k}`, choice ? 'Question' : 'Statement', q.text, true)}${choice ? `<fieldset class="ad-q-options"><legend>Answers <small>— tick the correct one</small></legend>${q.options.map((o, j) => `<div class="ad-opt"><label class="ad-opt-key" title="Mark as the correct answer"><input type="radio" name="answer-${k}" value="${j}" ${Number(q.answer) === j ? 'checked' : ''}><span>${String.fromCharCode(65 + j)}</span></label><input type="text" name="option-${k}-${j}" value="${e(o)}" required aria-label="Answer ${String.fromCharCode(65 + j)}" placeholder="Answer ${String.fromCharCode(65 + j)}"><em>Correct</em></div>`).join('')}</fieldset>` : ''}</div>${u.button('Remove', 'owner-question-remove', {}, 'button quiet small ad-q-remove')}</div>`;
-}
-
 /* ------------------------------------------------------------ decision history */
 
 function history(ctx) {
@@ -279,7 +329,7 @@ export function consoleAction(action, target, ctx) {
   if (action === 'application-decide') {
     const a = s.applications.find(x => x.id === d.id), first = nameOf(s, a.personId).split(' ')[0];
     const copy = {Approved:[`Approve ${a.name}?`, `${first} gets the Institution workspace and can publish initiatives right away.`, 'Note to the institution (optional)', 'Approve'], 'Needs More Info':['Ask for more information', `${first} sees your question on their request and can answer it.`, 'What do you need from them?', 'Send question'], Rejected:[`Reject ${a.name}?`, `${first} will see this reason. They can apply again later.`, 'Reason for rejecting', 'Reject request'], Suspended:[`Suspend ${a.name}?`, 'Their workspace closes and their initiatives stop accepting students. Their records are kept.', 'Reason for suspending', 'Suspend'], 'Approved-restore':[`Restore ${a.name}?`, 'Their workspace opens again.', 'Note (optional)', 'Restore']}[a.status === 'Suspended' && d.status === 'Approved' ? 'Approved-restore' : d.status];
-    u.modal(copy[0], `<p class="cw-sub">${e(copy[1])}</p>${u.area('reason', copy[2], '', d.status !== 'Approved')}`, v => { ctx.run('admin.application.decide', {id:d.id, status:d.status, reason:v.reason}, {Approved:`${a.name} is approved.`, 'Needs More Info':`Question sent to ${first}.`, Rejected:`${a.name} was rejected.`, Suspended:`${a.name} is suspended.`}[d.status]); ctx.render(); }, copy[3]);
+    u.modal(copy[0], `<p class="cw-sub">${e(copy[1])}</p>${u.area('reason', copy[2], d.status === 'Needs More Info' && a.type === 'organization' ? inst.missingAsk(a, s.people.find(x => x.id === a.personId)) : '', d.status !== 'Approved')}${d.status === 'Needs More Info' && a.type === 'organization' && inst.missingAsk(a, s.people.find(x => x.id === a.personId)) ? '<p class="cw-fine">Pre-filled from the gaps in the verification checklist. Edit it freely.</p>' : ''}`, v => { ctx.run('admin.application.decide', {id:d.id, status:d.status, reason:v.reason}, {Approved:`${a.name} is approved.`, 'Needs More Info':`Question sent to ${first}.`, Rejected:`${a.name} was rejected.`, Suspended:`${a.name} is suspended.`}[d.status]); ctx.render(); }, copy[3]);
     danger(['Rejected', 'Suspended'].includes(d.status));
     return true;
   }
@@ -312,12 +362,6 @@ export function consoleAction(action, target, ctx) {
     const copy = {visible:[d.report ? 'Restore this post?' : `Approve “${title}”?`, 'Members will see it in the community feed.', 'Note (optional)', 'Approve', `“${title}” is published.`], rejected:[`Reject “${title}”?`, 'The member’s post will not appear in the feed.', 'Reason', 'Reject', 'Post rejected.'], removed:[`Delete “${title}”?`, 'It disappears from the feed for everyone. It stays in your history with the reason.', 'Reason for deleting', 'Delete post', 'Post deleted.'], dismissed:['Keep this post?', 'The report is closed and the post stays in the feed.', 'Why it can stay', 'Keep post', 'Report closed. The post stays.']}[d.status];
     u.modal(copy[0], `<p class="cw-sub">${e(copy[1])}</p>${u.area('reason', copy[2], '', !['visible'].includes(d.status))}`, v => { decideCommunity({postId:d.post, reportId:d.report || null, status:d.status, reason:v.reason || 'Approved by the Admin.'}); u.toast(copy[4]); if (ctx.route.id) ctx.go(`admin/moderation${ctx.route.page === 'posts' ? '?tab=posts' : ''}`); else ctx.render(); }, copy[3]);
     danger(['removed', 'rejected'].includes(d.status));
-    return true;
-  }
-  if (action === 'owner-question-add') {
-    const list = document.getElementById('ao-questions'), k = Math.max(-1, ...[...list.children].map(x => Number(x.dataset.question))) + 1;
-    list.insertAdjacentHTML('beforeend', questionCard({text:'', options:['', '', '', ''], answer:0}, k, d.kind === 'choice'));
-    list.lastElementChild.querySelector('textarea').focus(); list.closest('form').dispatchEvent(new Event('input', {bubbles:true}));
     return true;
   }
   return false;

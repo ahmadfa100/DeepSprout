@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Smoke test for the MVC site. Start it first:  dotnet run --project src/DeepSprout.Web
-// Checks every routed page (200, HTML, equals its Razor view) and that every local
-// href/src/stylesheet/script it references resolves (no broken links or missing assets).
+// Checks public pages, anonymous challenges for protected pages, and local assets.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -35,12 +34,27 @@ async function exists(url) {
 }
 
 for (const { path: route, view } of routes) {
-  const response = await fetch(new URL(`/${route}`, base));
+  const protectedPage = route.startsWith('src/pages/member/') || [
+    'dashboard.html', 'profile.html', 'community.html', 'explore.html',
+    'garden.html', 'insights.html', 'lab.html', 'onboarding.html',
+    'recovery-plan.html', 'shield.html', 'training.html', 'weekly-review.html'
+  ].includes(route);
+  const response = await fetch(new URL(`/${route}`, base), { redirect: 'manual' });
+  if (protectedPage) {
+    assert.equal(response.status, 302, route);
+    assert.match(response.headers.get('location') ?? '', /^\/src\/pages\/auth\/login\/login\.html\?returnUrl=/, route);
+    continue;
+  }
   assert.equal(response.status, route === '404.html' ? 404 : 200, route);
   assert.match(response.headers.get('content-type') ?? '', /text\/html/, route);
   const rendered = norm(await response.text());
   const source = norm(await readFile(join(web, 'Views', `${view}.cshtml`), 'utf8')).replaceAll('@@', '@');
-  assert.equal(comparableView(rendered), comparableView(source), `Rendered markup differs from view: ${route}`);
+  if (route.startsWith('src/pages/auth/')) {
+    assert.match(rendered, /name="__RequestVerificationToken"/, route);
+    assert.match(rendered, /method="post"/, route);
+  } else {
+    assert.equal(comparableView(rendered), comparableView(source), `Rendered markup differs from view: ${route}`);
+  }
 
   const pageUrl = new URL(`/${route}`, base);
   for (const match of rendered.matchAll(/\b(?:href|src)\s*=\s*"([^"]+)"/g)) {
@@ -61,4 +75,4 @@ if (problems.length) {
   console.error(`Broken local references (${problems.length}):\n` + problems.join('\n'));
   process.exit(1);
 }
-console.log(`MVC smoke passed: home, ${routes.length} views, ${checked.size} unique local resources resolved, custom 404`);
+console.log(`MVC smoke passed: home, ${routes.length} routes, ${checked.size} unique local resources resolved, custom 404`);

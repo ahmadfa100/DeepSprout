@@ -1,10 +1,15 @@
 using DeepSprout.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DeepSprout.Web.Controllers;
 
 public sealed class PagesController(PageCatalog pages) : Controller
 {
+    [Authorize]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public IActionResult ShowProtected(string page) => Show(page);
+
     public IActionResult Show(string page)
     {
         if (!HttpMethods.IsGet(Request.Method) && !HttpMethods.IsHead(Request.Method))

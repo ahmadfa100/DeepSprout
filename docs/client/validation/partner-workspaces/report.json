@@ -4,5 +4,5 @@
   "errors": [],
   "screenshots": [],
   "checks": [],
-  "failure": "browserType.launch: Failed to launch chromium because executable doesn't exist at /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\n    at C:\\Users\\user\\Desktop\\DeepSprout\\DeepSprout\\tests\\client\\partner-browser.test.cjs:11:25\n    at Object.<anonymous> (C:\\Users\\user\\Desktop\\DeepSprout\\DeepSprout\\tests\\client\\partner-browser.test.cjs:98:3)"
+  "failure": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 3\n\n    at C:\\Users\\user\\Desktop\\DeepSprout\\DeepSprout\\tests\\client\\partner-browser.test.cjs:40:11"
 }

@@ -60,17 +60,15 @@ async function main() {
     await as('p-maya'); await ws('organization/forms/f-start/responses');
     assert.match(await text('main .table-scroll'), /Rania Yasin/); assert.match(await text('main .table-scroll'), /Distractions/);
   });
-  await step('S1b', 'Competition entry from My Initiatives → Representative judges and publishes → Individual sees permitted results', async () => {
+  await step('S1b', 'Live quiz from My Initiatives: join the room, the question opens by itself, answer locks in; Representative sees the player', async () => {
     await as('p-rania'); await member('#my-initiatives');
-    await click('[data-entry-open="c-create"]'); await page.fill('[data-entry-form="c-create"] textarea', 'I wrote the first line of a letter I had avoided for months.'); await page.locator('[data-entry-form="c-create"] [name=consent]').check(); await click('[data-entry-form="c-create"] button.ex-button');
-    assert.match(await text('#ex-my-initiatives'), /Entry submitted/);
-    await as('p-maya'); await ws('organization/competitions/c-create');
-    await click('[data-action=entry-judge]');
-    for (const i of [0, 1, 2]) await page.fill(`#dialog-body [name=score-${i}]`, '4');
-    await page.fill('#dialog-body [name=feedback]', 'Honest and specific.'); await save();
-    await click('[data-action=competition-results]');
-    await as('p-rania'); await member('#my-initiatives');
-    assert.match(await text('#ex-my-initiatives'), /Results published/); assert.match(await text('#ex-my-initiatives'), /Honest and specific/);
+    await click('[data-quiz-open="c-quiz-live"]'); await page.waitForSelector('.qa .qa-join');
+    await page.check('.qa [name=consent]'); await click('.qa .qa-join .qa-cta'); await page.waitForSelector('.qa .qa-you-in');
+    await clock('2026-10-16T18:00:10+03:00'); await page.waitForSelector('.qa [data-qa-choice="1"]', {timeout:5000});
+    await click('.qa [data-qa-choice="1"]'); await page.waitForSelector('.qa .qa-locked-scene');
+    await page.click('.qa [data-qa=close]'); await clock(PIN);
+    await as('p-maya'); await ws('organization/competitions/c-quiz-live');
+    assert.match(await text('main'), /Rania Yasin/);
   });
 
   // ---------------------------------------------------------------- S2

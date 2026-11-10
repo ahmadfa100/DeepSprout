@@ -5,29 +5,29 @@ import {assignedTasks,exploreInitiatives} from '../../src/DeepSprout.Web/wwwroot
 const as=personId=>dispatch('demo.signin',{personId});
 const reset=()=>{dispatch('demo.reset');dispatch('demo.clock',{at:'2026-10-15T09:00:00+03:00'});};
 const edit=fn=>{const s=read();fn(s);snapshotForTests(s);};
-test('member and participant form/competition commands share admission, owner, publication, dates, consent/version and duplicates',()=>{
+test('member and participant form/live-quiz commands share admission, owner, publication, dates, consent/version and duplicates',()=>{
  for(const prefix of ['member','participant']){
   reset();as('p-rania');edit(s=>s.admissions=s.admissions.filter(a=>a.personId!=='p-rania'));
   assert.throws(()=>dispatch(`${prefix}.form.respond`,{formId:'f-start',answers:{}}),/accepted participants/);
-  assert.throws(()=>dispatch(`${prefix}.competition.enter`,{competitionId:'c-create',consent:true,text:'Mine'}),/accepted participants/);
+  assert.throws(()=>dispatch(`${prefix}.quiz.join`,{competitionId:'c-quiz-live',consent:true}),/accepted participants/);
   edit(s=>{const a=structuredClone(s.admissions.find(a=>a.initiativeId==='i-today'&&a.status==='Accepted'));Object.assign(a,{id:'adm-round0',personId:'p-rania'});s.admissions.push(a);});
   const answers={'q-start':'Distractions','q-confidence':'4'};
   edit(s=>s.forms.find(f=>f.id==='f-start').ownerId='foreign-owner');assert.throws(()=>dispatch(`${prefix}.form.respond`,{formId:'f-start',answers}),/another Institution/);edit(s=>s.forms.find(f=>f.id==='f-start').ownerId='org-horizon');
   edit(s=>s.forms.find(f=>f.id==='f-start').close='2026-10-14');
   assert.throws(()=>dispatch(`${prefix}.form.respond`,{formId:'f-start',answers}),/deadline/);
-  edit(s=>{s.forms.find(f=>f.id==='f-start').close='2026-10-30';s.competitions.find(c=>c.id==='c-create').deadline='2026-10-14';});
-  assert.throws(()=>dispatch(`${prefix}.competition.enter`,{competitionId:'c-create',consent:true,text:'Mine'}),/deadline/);
-  edit(s=>{s.competitions.find(c=>c.id==='c-create').deadline='2026-11-01';s.organizations[0].status='Suspended';});
-  for(const [kind,p] of [['form',{formId:'f-start',answers}],['competition',{competitionId:'c-create',consent:true,text:'Mine'}]])assert.throws(()=>dispatch(`${prefix}.${kind}.${kind==='form'?'respond':'enter'}`,p),/Institution/);
+  edit(s=>s.forms.find(f=>f.id==='f-start').close='2026-10-30');
+  edit(s=>s.competitions.find(c=>c.id==='c-quiz-live').startAt='2026-10-14T08:00:00.000Z');assert.throws(()=>dispatch(`${prefix}.quiz.join`,{competitionId:'c-quiz-live',consent:true}),/finished/);
+  edit(s=>{s.competitions.find(c=>c.id==='c-quiz-live').startAt='2026-10-16T15:00:00.000Z';s.organizations[0].status='Suspended';});
+  for(const [action,p] of [['form.respond',{formId:'f-start',answers}],['quiz.join',{competitionId:'c-quiz-live',consent:true}]])assert.throws(()=>dispatch(`${prefix}.${action}`,p),/Institution/);
   edit(s=>s.organizations[0].status='Approved');
   assert.throws(()=>dispatch(`${prefix}.form.respond`,{formId:'f-start',answers,version:99}),/changed/);
   edit(s=>s.forms.find(f=>f.id==='f-start').consentRequired=true);
   assert.throws(()=>dispatch(`${prefix}.form.respond`,{formId:'f-start',answers}),/consent/);
   const response=dispatch(`${prefix}.form.respond`,{formId:'f-start',answers,version:1,consent:true});assert.equal(read().responses.find(r=>r.id===response).personId,'p-rania');
   assert.throws(()=>dispatch(`${prefix}.form.respond`,{formId:'f-start',answers,consent:true}),/already responded/);
-  assert.throws(()=>dispatch(`${prefix}.competition.enter`,{competitionId:'c-create',text:'No consent'}),/consent/);
-  const entry=dispatch(`${prefix}.competition.enter`,{competitionId:'c-create',consent:true,text:'Mine'});assert.equal(read().entries.find(r=>r.id===entry).personId,'p-rania');
-  assert.throws(()=>dispatch(`${prefix}.competition.enter`,{competitionId:'c-create',consent:true,text:'Again'}),/already submitted/);
+  assert.throws(()=>dispatch(`${prefix}.quiz.join`,{competitionId:'c-quiz-live'}),/consent/);assert.throws(()=>dispatch(`${prefix}.quiz.join`,{competitionId:'c-quiz-live',consent:true,version:99}),/changed/);
+  const entry=dispatch(`${prefix}.quiz.join`,{competitionId:'c-quiz-live',consent:true});assert.equal(read().entries.find(r=>r.id===entry).personId,'p-rania');
+  assert.throws(()=>dispatch(`${prefix}.quiz.join`,{competitionId:'c-quiz-live',consent:true}),/already joined/);
  }
 });
 test('suspended Institution blocks discovery/applications and restoration rechecks registration dates',()=>{

@@ -4,7 +4,7 @@ const entry = document.getElementById('register-entry');
 entry.innerHTML = choiceMarkup('../../../../workspaces.html#/auth/account/');
 let world, unbindChoices;
 function showStep(moveFocus = true) {
-  const step = location.hash.slice(1), individual = step === 'individual', partner = step === 'partner';
+  const step = location.hash.slice(1), individual = step === 'individual' || (!step && document.body.dataset.openForm === 'true'), partner = step === 'partner';
   entry.hidden = individual;
   entry.querySelector('.register-choice-content').hidden = partner;
   entry.querySelector('.register-partner-content').hidden = !partner;
@@ -42,7 +42,7 @@ const validate = () => {
   setError(nameInput, nameInput.value.trim() ? '' : 'Please enter your full name.');
   const address = email.value.trim();
   setError(email, !address ? 'Please enter your email address.' : email.validity.typeMismatch ? 'Please enter a valid email address.' : '');
-  setError(password, !password.value ? 'Please create a password.' : password.value.length < 8 ? 'Use at least 8 characters.' : '');
+  setError(password, !password.value ? 'Please create a password.' : password.value.length < 12 ? 'Use at least 12 characters.' : '');
   setError(confirmation, !confirmation.value ? 'Please confirm your password.' : confirmation.value !== password.value ? 'The passwords do not match.' : '');
   setError(terms, terms.checked ? '' : 'Please agree to the terms before continuing.');
   const firstInvalid = form.querySelector('[aria-invalid="true"]');
@@ -51,42 +51,12 @@ const validate = () => {
 };
 [nameInput, email, password, confirmation].forEach(input => input.addEventListener('input', () => {
   if (input.getAttribute('aria-invalid') === 'true') setError(input, '');
-  input.dataset.valid = String(Boolean(input.value.trim()) && input.validity.valid && (input !== password || input.value.length >= 8) && (input !== confirmation || input.value === password.value));
+  input.dataset.valid = String(Boolean(input.value.trim()) && input.validity.valid && (input !== password || input.value.length >= 12) && (input !== confirmation || input.value === password.value));
   if (input === password && confirmation.value) confirmation.dataset.valid = String(confirmation.value === password.value);
 }));
 terms.addEventListener('change', () => setError(terms, ''));
 let submitting = false;
-form.addEventListener('submit', async event => {
-  event.preventDefault();
-  if (submitting || !validate()) return;
-  submitting = true;
-  const submitButton = form.querySelector('[type=submit]');
-  submitButton.disabled = true;form.setAttribute('aria-busy','true');world.signal('submitting');
-  await new Promise(resolve => requestAnimationFrame(resolve));
-  // No account service is connected. The person is created once in the
-  // shared local identity store (the same person partner workspaces use);
-  // the password is never stored. An existing email is not merged silently.
-  try {
-    if (!window.DeepSproutRepo) throw new Error('Registration is unavailable. Please reload and try again.');
-    await window.DeepSproutRepo.run('member.register', { name: nameInput.value.trim(), email: email.value.trim(), consent: true });
-    try { sessionStorage.removeItem('deepsprout-account-choice'); } catch { /* ignore */ }
-  } catch (error) {
-    setError(email, error.message);
-    email.focus();
-    submitting = false;submitButton.disabled = false;form.removeAttribute('aria-busy');world.signal('error');
-    return;
-  }
-  window.DeepSprout?.bind();
-  form.removeAttribute('aria-busy');world.signal('local-complete');
-  password.value = '';confirmation.value = '';
-  toast.textContent = 'No account service is connected yet — your password was not sent or stored. Taking you to the first run…';
-  toast.hidden = true;
-  toast.hidden = false;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    location.href = '../../member/onboarding/onboarding.html';
-  }, 1400);
-});
+form.addEventListener('submit', event => { if (!validate()) event.preventDefault(); });
 document.querySelectorAll('.password-toggle').forEach(button => button.addEventListener('click', () => {
   const input = document.getElementById(button.getAttribute('aria-controls'));
   const showing = input.type === 'password';

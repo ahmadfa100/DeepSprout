@@ -79,7 +79,19 @@ const api = {
     if (!p) return [];
     return (s.notifications || []).filter(n => n.recipientId === p.id).slice(0, 30);
   },
-  subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); }
+  subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+  /** Open the live quiz game screen for the bound person. */
+  async openCompetition(competitionId) {
+    const {openArena} = await import('./quiz-arena.js');
+    return openArena({
+      mode: 'player',
+      getView: () => { const s = read(), p = boundPerson(s); return selectors.quizView(s, competitionId, p?.id || null, nowMs(s)); },
+      now: () => nowMs(read()),
+      join: consent => { const v = selectors.quizView(read(), competitionId, null, nowMs(read())); return this.run('member.quiz.join', {competitionId, consent, version: v?.version}); },
+      answer: (question, choice) => this.run('member.quiz.answer', {competitionId, question, choice}),
+      subscribe: fn => this.subscribe(fn)
+    });
+  }
 };
 
 window.DeepSproutRepo = api;
