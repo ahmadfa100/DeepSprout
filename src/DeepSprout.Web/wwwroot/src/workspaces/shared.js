@@ -7,7 +7,6 @@ import {completionEvidence} from './activity-completion.js';
 export const nameOf=(s,pid)=>s.people.find(x=>x.id===pid)?.name||'Unknown demo participant';
 export const ownGroups=ctx=>ctx.s.groups.filter(x=>x.ownerId===ctx.person.id);
 export const studentGroups=ctx=>ctx.s.groups.filter(x=>x.memberIds.includes(ctx.person.id));
-export const studentTasks=ctx=>ctx.s.assignments.filter(x=>x.status==='Active'&&studentGroups(ctx).some(g=>g.id===x.groupId)&&(!x.studentId||x.studentId===ctx.person.id));
 export const ownedInitiatives=ctx=>ctx.s.initiatives.filter(x=>x.ownerId===orgFor(ctx.s)?.id);
 /** Outdoor Activities owned by the signed-in Representative's Institution. */
 export const ownedExperiences=ctx=>ctx.s.experiences.filter(x=>x.ownerId===orgFor(ctx.s)?.id);

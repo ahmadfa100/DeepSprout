@@ -14,5 +14,3 @@ export const navigation={
  admin:[['overview','home','Dashboard'],['§','Governance'],['organizations','mail','Requests'],['institutions','nodes','Institutions'],['initiatives','calendar','Initiatives'],['activities','mountain','Outdoor Activities'],['§','Platform'],['users','people','People'],['moderation','shield','Community'],['assessments','edit','Quick Setup'],['system-journey','nodes','System Journey']],
  participant:[['discover','mountain','Explore opportunities'],['registrations','calendar','My Registrations'],['initiatives','nodes','My Initiatives'],['account','settings','My Account']]
 };
-/** Menu entries only (no group labels). */
-export const pagesOf = area => (navigation[area] || []).filter(([key]) => key !== '§');
