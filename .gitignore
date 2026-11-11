@@ -1,31 +1,60 @@
-# Local operating-system and Python artifacts
+# Operating-system files
 .DS_Store
-__pycache__/
-*.py[cod]
+Thumbs.db
+ehthumbs.db
+desktop.ini
 
-# Local credentials and machine-specific tool permissions
+# Local credentials, keys and machine-specific tool permissions
 .env
 .env.*
 !.env.example
 .claude/settings.local.json
+src/DeepSprout.Web/.keys/
+*.pfx
+*.p12
 
-# .NET build and local tooling
+# .NET build output and local tooling
 **/bin/
 **/obj/
 .dotnet/
 .nuget/
 .tools/
-*.log
-validation-results.jsonl
-validation-errors.txt
-src/DeepSprout.Web/.keys/
+*.binlog
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
 
-# Visual Studio local state
+# IDE local state (Visual Studio, Rider); .vscode/settings.json is shared and tracked
 .vs/
+.idea/
 *.suo
 *.user
+*.DotSettings.user
 
+# Node.js dependencies
 node_modules/
-TestResults/
+
+# Python bytecode and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+
+# Playwright local output (curated screenshots under docs/ stay tracked)
+test-results/
+playwright-report/
+blob-report/
+
+# Logs, dumps and disposable local outputs
 *.log
+*.dmp
+validation-results.jsonl
+validation-errors.txt
 artifacts/
+.tmp/
+
+# Local SQL Server data files and backups
+*.mdf
+*.ldf
+*.bak
+*.bacpac
