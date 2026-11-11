@@ -5,7 +5,7 @@
  * kinds of authority are never merged. Counts come from the records.
  */
 import * as u from '../../ui.js';
-import {esc,nameOf,pill,head,stats,stat,card,attention,emptyState,summary,fmtDate,personCell} from './common.js';
+import {esc,pill,head,stats,stat,card,attention,emptyState,summary,fmtDate} from './common.js';
 import {checkInWindow,windowMessage,today} from '../../initiative-rules.js';
 import {nowMs} from '../../domain.js';
 import * as ds from '../../ds.js';

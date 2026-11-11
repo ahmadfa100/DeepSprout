@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {dispatch,read,snapshotForTests} from '../../src/DeepSprout.Web/wwwroot/src/workspaces/store.js';
 import {exploreOutdoorActivities,myActivityBookings} from '../../src/DeepSprout.Web/wwwroot/src/shared/selectors.js';
-import {seats,occupied,activityOpen} from '../../src/DeepSprout.Web/wwwroot/src/workspaces/domain.js';
+import {occupied,activityOpen} from '../../src/DeepSprout.Web/wwwroot/src/workspaces/domain.js';
 import {sessionTimestamp} from '../../src/DeepSprout.Web/wwwroot/src/workspaces/initiative-rules.js';
 const as=personId=>dispatch('demo.signin',{personId});
 /**

@@ -1,6 +1,6 @@
 import {institutionApproved,clockDay} from '../domain.js';
 import {initiativeOfResource} from '../initiative-rules.js';
-import {id,now,requireThat,find,textRequired,numberIn,dates,audit} from '../domain.js';
+import {id,now,requireThat,find,textRequired,numberIn,dates} from '../domain.js';
 import {normalizeInitiative} from '../migrate.js';
 import {isRepresentative,MAX_SEATS} from '../initiative-rules.js';
 /** Publication blockers for the six-step builder (master §15.2). A missing Supervisor is a warning, never a blocker. */

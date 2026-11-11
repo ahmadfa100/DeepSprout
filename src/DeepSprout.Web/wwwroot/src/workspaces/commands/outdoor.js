@@ -1,7 +1,7 @@
 import {bookingEvidence,reconcileCompletion,decideCompletion} from '../activity-completion.js';
 import {normalizeExperience,experienceTerms,activityPublishBlockers,validateRevision} from '../activity-rules.js';
 import {assertWindow,checkInWindow} from '../initiative-rules.js';
-import {activityOwnerApproved,bookingNotice,bookingDestination,activityOpen,offerHours,requireBookingEligibility,id,now,nowMs,notify,requireThat,find,textRequired,numberIn,dates,assigned,supervisedPerson,occupied,seats,reward,audit,offerNext} from '../domain.js';
+import {activityOwnerApproved,bookingNotice,requireBookingEligibility,id,now,nowMs,notify,requireThat,find,textRequired,numberIn,dates,assigned,supervisedPerson,occupied,seats,audit,offerNext} from '../domain.js';
 /**
  * Institution-owned Outdoor Activities. Owner commands use the `activity.*`
  * prefix and are authorized in store.js against the Representative's own

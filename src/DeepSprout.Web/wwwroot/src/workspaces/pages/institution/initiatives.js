@@ -4,8 +4,8 @@
  * three distinct facts.
  */
 import * as u from '../../ui.js';
-import {esc,nameOf,pill,head,stats,stat,card,attention,emptyState,ring,tabs,summary,initiativeSwitcher,withInitiative,fmtDate,sessionWhen} from './common.js';
-import {seatCap,MAX_SUPERVISORS,representativeOrg} from '../../initiative-rules.js';
+import {esc,nameOf,pill,stats,stat,card,tabs,summary,withInitiative,fmtDate} from './common.js';
+import {MAX_SUPERVISORS} from '../../initiative-rules.js';
 import {renderRepDashboard,renderInitiativeCards} from './rep-dashboard.js';
 import {deliveryLabel} from '../../commands/institution.js';
 import * as ds from '../../ds.js';

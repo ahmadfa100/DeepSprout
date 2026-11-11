@@ -1,5 +1,5 @@
 import {goals,mutate,uid} from './store.js';
-import {esc,date,badge,button,section,field,select,textarea,table,row,openDialog,confirmAction,toast,contentHeader,bars} from './ui.js';
+import {esc,date,badge,button,section,field,select,textarea,table,row,openDialog,confirmAction,toast,contentHeader} from './ui.js';
 const person=(data,id)=>data.users.find(u=>u.id===id)?.name||'Unknown user';
 function plans(data) {
   const rows=data.plans.map(p=>row([esc(p.id),esc(person(data,p.userId)),esc(p.goal),badge(p.status),date(p.start),esc(p.stage),`<div class="mini-progress"><i style="width:${p.progress}%"></i></div>${p.progress}%`],{status:p.status}));

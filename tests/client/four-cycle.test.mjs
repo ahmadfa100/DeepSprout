@@ -7,7 +7,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {read,dispatch,workspaces,snapshotForTests,seed} from '../../src/DeepSprout.Web/wwwroot/src/workspaces/store.js';
+import {read,dispatch,workspaces,seed} from '../../src/DeepSprout.Web/wwwroot/src/workspaces/store.js';
 import {normalizeActivityData,activityBlockers} from '../../src/DeepSprout.Web/wwwroot/src/workspaces/activity-rules.js';
 import {publishBlockers} from '../../src/DeepSprout.Web/wwwroot/src/workspaces/commands/institution.js';
 import {exploreInitiatives,exploreOutdoorActivities,myActivityBookings,activityReport} from '../../src/DeepSprout.Web/wwwroot/src/shared/selectors.js';

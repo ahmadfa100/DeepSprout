@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {read,seed,dispatch,workspaces,inviteState,snapshotForTests,STORAGE_KEY} from '../../src/DeepSprout.Web/wwwroot/src/workspaces/store.js';
+import {read,dispatch,workspaces,inviteState,snapshotForTests,STORAGE_KEY} from '../../src/DeepSprout.Web/wwwroot/src/workspaces/store.js';
 import {seats,occupied} from '../../src/DeepSprout.Web/wwwroot/src/workspaces/domain.js';
 const as=personId=>dispatch('demo.signin',{personId});
 // Pinned operational clock (16 Oct 2026 update) so seeded windows reproduce on any day.
