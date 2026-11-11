@@ -229,10 +229,10 @@ async function main() {
     await ws(`supervisor/schedule/${sessionId}`); await click(`[data-action=session-assign]`); await page.check('#dialog-body input[name=supervisorIds][value="p-hala"]'); await dialogSave();
     await ws(`supervisor/attendance/${sessionId}`);
     assert.match(await text('main'), /Check-in opens/, 'window policy shown before the session');
-    await store((m, at) => m.dispatch('demo.clock', {at}), '2026-10-28T17:05:00+03:00'); await page.reload(); await page.waitForTimeout(400);
-    await page.fill('[data-form=ac-checkin] [name=code]', code.toLowerCase()); await click('[data-form=ac-checkin] button.primary');
+    await store((m, at) => m.dispatch('demo.clock', {at}), '2026-10-28T17:05:00+03:00'); await page.reload(); await page.waitForTimeout(400); await click('.ac-more summary');
+    await page.fill('[data-form=ac-checkin] [name=code]', code.toLowerCase()); await click('[data-form=ac-checkin] button.secondary');
     assert.equal((await read()).sessionAttendance.filter(a => a.sessionId === sessionId && a.personId === 'p-ahmad').length, 1);
-    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.primary');
+    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.secondary');
     assert.match(await text('[data-form=ac-checkin] .form-error'), /Already checked in/);
     assert.equal((await read()).sessionAttendance.filter(a => a.sessionId === sessionId && a.personId === 'p-ahmad').length, 1);
   });
@@ -249,7 +249,7 @@ async function main() {
     await as('p-zaid'); await member('explore/explore.html', '#my-initiatives');
     await click(`[data-excuse="${att.id}"]`); await page.fill(`[data-excuse-form="${att.id}"] textarea`, 'I had a fever that day.'); await click(`[data-excuse-form="${att.id}"] button`);
     await as('p-hala'); await ws(`supervisor/excuses?initiative=${initiativeId}`); await click('[data-action=excuse-recommend]'); await page.fill('#dialog-body [name=note]', 'Plausible; first absence.'); await dialogSave();
-    await as(lina); await ws(`organization/attendance?initiative=${initiativeId}`); await click('[data-action=excuse-decide][data-decision=Accepted]'); await page.fill('#dialog-body [name=reason]', 'Medical reason accepted.'); await dialogSave();
+    await as(lina); await ws(`organization/attendance?view=excuses&initiative=${initiativeId}`); await click('[data-action=excuse-decide][data-decision=Accepted]'); await page.fill('#dialog-body [name=reason]', 'Medical reason accepted.'); await dialogSave();
     await as('p-zaid'); await member('explore/explore.html', '#my-initiatives'); await page.reload(); await page.waitForTimeout(600);
     assert.match(await text('#ex-my-initiatives'), /Excused Absence/);
     assert.equal((await read()).sessionAttendance.find(a => a.id === att.id).status, 'Absent');

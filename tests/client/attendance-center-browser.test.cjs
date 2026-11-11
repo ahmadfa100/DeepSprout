@@ -51,7 +51,7 @@ async function main() {
   const save = async () => { await page.click('#dialog-save'); await page.waitForTimeout(400); const e = await page.textContent('#dialog-error').catch(() => ''); if (e) throw new Error(`Dialog: ${e}`); };
   const text = sel => page.textContent(sel);
   const shot = async name => { if (SHOTS) await page.screenshot({path:`${SHOTS}/${name}.png`, fullPage:true}); };
-  const rowStatus = async name => (await page.locator('.ac-table.is-roster tbody tr', {hasText:name}).locator('.ac-status').first().textContent()).trim();
+  const rowStatus = async name => (await page.locator('.ac-person', {hasText:name}).locator('.ac-person-side .ac-status').first().textContent()).trim();
   const noOverflow = async label => { const o = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); assert.ok(o <= 1, `${label}: horizontal overflow ${o}px`); };
 
   await page.goto(`${BASE}/workspaces.html`);
@@ -72,15 +72,15 @@ async function main() {
   await step('A1', 'Attendance starts with assigned sessions (no scanner, no roster); filters and search work; unassigned sessions are not listed', async () => {
     await ws('supervisor/attendance');
     assert.equal((await text('main h1')).trim(), 'Attendance');
-    assert.match(await text('main .iw-lead'), /Manage attendance, imports, and exceptions\./);
-    assert.equal(await page.locator('[data-form=ac-checkin], .ac-table.is-roster, .ac-drop').count(), 0, 'overview has no QR scanner, roster or upload');
+    assert.match(await text('main .iw-lead'), /Check students in, read meeting reports/);
+    assert.equal(await page.locator('[data-form=ac-checkin], .ac-people, .ac-drop').count(), 0, 'overview has no scanner, roster or upload');
     const main = await text('main');
-    for (const t of ['All Sessions', 'Needs Attention', 'Completed', 'Online focus clinic', 'Hall planning circle', 'Start with one small step']) assert.match(main, new RegExp(t));
+    for (const t of ['All sessions', 'Needs attention', 'Completed', 'Online focus clinic', 'Hall planning circle', 'Start with one small step']) assert.match(main, new RegExp(t));
     assert.doesNotMatch(main, /Session without a Supervisor/);
     const row = page.locator('.ac-row', {hasText:'Online focus clinic'});
-    assert.match(await row.textContent(), /Online/); assert.match(await row.textContent(), /Report import/); assert.match(await row.textContent(), /Awaiting attendance report/); assert.match(await row.textContent(), /Open session details/);
+    assert.match(await row.textContent(), /Online/); assert.match(await row.textContent(), /Awaiting attendance report/); assert.match(await row.textContent(), /Upload meeting report/, 'the next step follows the format');
     await shot('ac-overview');
-    await click('nav.iw-tabs a:has-text("Needs Attention")'); assert.match(page.url(), /view=attention/);
+    await click('.ac-filters a:has-text("Needs attention")'); assert.match(page.url(), /filter=attention/);
     assert.ok(await page.locator('.ac-row', {hasText:'Online focus clinic'}).count());
     await ws('supervisor/attendance'); await page.fill('main input[data-filter=search]', 'hall'); await page.waitForTimeout(200);
     assert.equal(await page.locator('.ac-row:not([hidden])').count(), 1, 'search narrows the list');
@@ -89,23 +89,24 @@ async function main() {
   await step('A2', 'Online session details show the honest integration status and report import, not in-person QR check-in', async () => {
     await ws(`supervisor/attendance/${ids.online}`);
     assert.match(await text('main h1'), /Online focus clinic/);
-    for (const t of ['Verified', 'Not recorded', 'Needs review', 'Meeting integration', 'Not connected', 'Attendance report import', 'Drag and drop the attendance report here', 'Browse files']) assert.match(await text('main'), new RegExp(t));
+    for (const t of ['Not recorded', 'Needs review', 'Meeting report', 'not connected to meeting platforms', 'Drop the participant report here', 'Zoom', 'Google Meet', 'Browse files']) assert.match(await text('main'), new RegExp(t));
     assert.equal(await page.locator('[data-form=ac-checkin]').count(), 0, 'no QR check-in for an online session');
     await shot('ac-online-upload');
   });
 
   await step('A3', 'Uploading a CSV shows a real matching preview: merged rejoins, Present/Late, review, unmatched, missing', async () => {
     await page.setInputFiles(`#ac-file-${ids.online}`, {name:'zoom-participants.csv', mimeType:'text/csv', buffer:CSV});
-    await page.waitForSelector('.ac-preview'); await page.waitForTimeout(200);
+    await page.waitForSelector('.ac-found'); await page.waitForTimeout(200);
     const t = await text('.ac-import');
     assert.match(t, /zoom-participants\.csv/); assert.match(t, /Zoom/);
     assert.match(await text('.ac-tile.is-present'), /2/);
-    const row = name => page.locator('.ac-preview tbody tr', {hasText:name}).textContent();
-    assert.match(await row('noor@demo.example'), /Will record Present/); assert.match(await row('noor@demo.example'), /2 rows merged/);
-    assert.match(await row('rania@demo.example'), /Will record Late/);
+    const row = name => page.locator('.ac-found-row', {hasText:name}).textContent();
+    assert.match(await text('.ac-found-lead'), /We read \d+ people/);
+    assert.match(await row('noor@demo.example'), /Will record · Present/); assert.match(await row('noor@demo.example'), /2 joins merged/);
+    assert.match(await row('rania@demo.example'), /Will record · Late/);
     assert.match(await row('dana@demo.example'), /Needs review/);
-    assert.match(await row('Tariq'), /Name match only/);
-    assert.match(await row('guest.caller@example.com'), /Unmatched/);
+    assert.match(await row('Tariq'), /name match/);
+    assert.match(await row('guest.caller@example.com'), /Not on roster/);
     assert.equal((await read()).sessionAttendance.filter(a => a.sessionId === ids.online).length, 0, 'preview writes nothing');
     await shot('ac-online-preview');
   });
@@ -115,24 +116,24 @@ async function main() {
     assert.match(await text('.ac-confirm'), /2 attendance records/);
     await shot('ac-online-confirm');
     await click('[data-action=ac-import-confirm]');
-    assert.match(await text('.ac-done'), /Import complete/);
+    assert.match(await text('.ac-done'), /Report imported/);
     const s = await read(), recs = s.sessionAttendance.filter(a => a.sessionId === ids.online);
     assert.deepEqual(recs.map(a => `${a.personId}:${a.status}:${a.method}`).sort(), ['p-noor:Present:report-import', 'p-rania:Late:report-import']);
     assert.equal(s.attendanceReviews.filter(r => r.sessionId === ids.online && r.status === 'Open').length, 3);
     await ws(`supervisor/attendance/${ids.online}?tab=participants`);
     assert.equal(await rowStatus('Noor Khalil'), 'Present'); assert.equal(await rowStatus('Rania Yasin'), 'Late'); assert.equal(await rowStatus('Dana Qasem'), 'Needs Review'); assert.equal(await rowStatus('Hiba Saad'), 'Not Recorded');
-    assert.match(await text('.ac-table.is-roster'), /Report import/);
-    assert.equal(await page.locator('.ac-table.is-roster button:text-is("Present"), .ac-table.is-roster button:text-is("Absent")').count(), 0, 'no per-participant Present/Absent buttons');
+    assert.match(await text('.ac-people'), /Report import/);
+    assert.equal(await page.locator('.ac-people button:text-is("Absent")').count(), 0, 'nobody is marked Absent by a button');
     await shot('ac-online-participants');
   });
 
   await step('A5', 'Re-importing the same file is refused; a re-export dropped as .xlsx creates no duplicates', async () => {
     await ws(`supervisor/attendance/${ids.online}`);
-    assert.match(await text('.ac-import'), /Import complete/, 'the finished import stays visible until a new one starts');
+    assert.match(await text('.ac-import'), /Report imported/, 'the finished import stays visible until a new one starts');
     await click('[data-action=ac-import-reset]');
     await page.setInputFiles(`#ac-file-${ids.online}`, {name:'zoom-participants.csv', mimeType:'text/csv', buffer:CSV});
-    await page.waitForSelector('.ac-preview');
-    assert.match(await text('.ac-tile.is-present'), /0/); assert.match(await text('.ac-preview'), /Already recorded/);
+    await page.waitForSelector('.ac-found');
+    assert.match(await text('.ac-tile.is-present'), /0/); assert.match(await text('.ac-found'), /Already recorded/);
     await click('[data-action=ac-import-step][data-step="3"]'); await click('[data-action=ac-import-confirm]');
     assert.match(await text('#workspace-toast'), /already imported/);
     const before = (await read()).sessionAttendance.length;
@@ -143,7 +144,7 @@ async function main() {
       const zone = document.querySelector(`[data-drop-import="${id}"]`);
       for (const type of ['dragenter', 'dragover', 'drop']) zone.dispatchEvent(new DragEvent(type, {bubbles:true, cancelable:true, dataTransfer:dt}));
     }, {id:ids.online, bytes:[...XLSX]});
-    await page.waitForSelector('.ac-preview');
+    await page.waitForSelector('.ac-found');
     assert.match(await text('.ac-file'), /zoom-participants\.xlsx/);
     await click('[data-action=ac-import-step][data-step="3"]'); await click('[data-action=ac-import-confirm]');
     assert.match(await text('.ac-done'), /0 attendance records created/);
@@ -154,13 +155,14 @@ async function main() {
   await step('A6', 'Add Participant: focused modal, eligible people only, reason required; the roster updates without marking Present', async () => {
     await ws(`supervisor/attendance/${ids.online}?tab=participants`);
     await click('[data-action=ac-add]');
-    assert.match(await text('#dialog-body'), /does not mark them present/);
+    assert.match(await text('#dialog-body'), /Add only/);
+    await page.click('#dialog-body label:has(input[name=status][value=""]) span');
     assert.equal(await page.locator('#dialog-body input[name=personId][value="p-lama"]').isDisabled(), true, 'pending applicant cannot be chosen');
     await page.check('#dialog-body input[name=personId][value="p-yousef"]');
     await page.fill('#dialog-body [name=reason]', 'Joined by phone; registered with the front desk.');
     await save();
     assert.equal(await rowStatus('Yousef Amin'), 'Not Recorded');
-    assert.match(await page.locator('.ac-table.is-roster tbody tr', {hasText:'Yousef Amin'}).textContent(), /Added by Hala Mansour/);
+    assert.match(await page.locator('.ac-person', {hasText:'Yousef Amin'}).textContent(), /Added by Hala Mansour/);
   });
 
   await step('A7', 'Excuses & exceptions: a name-only row is resolved with a note; history records the import and the review', async () => {
@@ -168,7 +170,7 @@ async function main() {
     assert.match(await text('main'), /Phone guest/);
     await click('.ac-review:has-text("Tariq") [data-action=ac-review]');
     await page.selectOption('#dialog-body [name=personId]', 'p-tariq');
-    await page.check('#dialog-body input[name=decision][value="Present"]');
+    await page.click('#dialog-body label:has(input[name=decision][value="Present"]) span');
     await page.fill('#dialog-body [name=reason]', 'Display name matches his registration.'); await save();
     assert.equal((await read()).sessionAttendance.find(a => a.sessionId === ids.online && a.personId === 'p-tariq').method, 'review-resolved');
     await ws(`supervisor/attendance/${ids.online}?tab=history`);
@@ -191,12 +193,13 @@ async function main() {
     await clock('2026-10-20T20:04:00+03:00');
     await ws(`supervisor/attendance/${ids.room}`);
     assert.equal(await page.locator('.ac-import').count(), 0, 'no report import for an in-person session');
-    assert.match(await text('main'), /QR check-in/); assert.match(await text('main'), /Check-in open/);
+    assert.match(await text('main'), /Check-in screen/); assert.match(await text('main'), /Check-in open/);
+    await click('.ac-more summary');
     const code = (await read()).sessionRegistrations.find(r => r.sessionId === ids.room && r.personId === 'p-noor').code;
-    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.primary');
-    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.primary');
+    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.secondary');
+    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.secondary');
     assert.match(await text('[data-form=ac-checkin] .form-error'), /Already checked in/);
-    assert.match(await text('.ac-progress'), /1 of 2 in-person participants checked in/);
+    assert.match(await text('.ac-arrivals .ac-count'), /1\s*\/\s*2/);
     const rec = (await read()).sessionAttendance.find(a => a.sessionId === ids.room && a.personId === 'p-noor');
     assert.equal(rec.status, 'Present'); assert.equal(rec.method, 'booking-code');
     await shot('ac-inperson');
@@ -204,10 +207,25 @@ async function main() {
     assert.ok(qr >= 21, 'booking QR encodes with the bundled generator');
   });
 
+  await step('A9b', 'Check-in screen: full-screen rotating QR for the room; a stale code from a phone is refused', async () => {
+    await click('[data-action=ac-screen]'); await page.waitForTimeout(500);
+    assert.match(page.url(), new RegExp(`supervisor/attendance/${ids.room}/screen`));
+    assert.equal(await page.locator('.ac-screen .ac-screen-qr svg').count(), 1, 'a QR is shown');
+    assert.match((await text('[data-venue-code]')).trim(), /^[A-Z2-9]{3} [A-Z2-9]{3}$/);
+    assert.match(await text('.ac-screen'), /1\s*of 2/);
+    await shot('ac-screen');
+    await page.click('.ac-screen-tools a'); await page.waitForTimeout(400);
+    assert.doesNotMatch(page.url(), /screen/);
+    await as('p-rania'); await ws(`student/checkin/${ids.room}?c=AAAAAA`); await page.waitForTimeout(900);
+    assert.match(await text('main'), /expired/); assert.equal(await page.locator('form[data-form=self-checkin] input[name=code]').count(), 1, 'the student can type the code instead');
+    assert.equal((await read()).sessionAttendance.filter(a => a.sessionId === ids.room && a.personId === 'p-rania').length, 0);
+    await as('p-hala');
+  });
+
   await step('A10', 'Hybrid session separates verification by participation mode', async () => {
     await ws('supervisor/attendance/s-intro');
-    assert.equal(await page.locator('.ac-mode-group').count(), 2);
-    assert.match(await text('.ac-mode-group:nth-of-type(1)'), /report import/); assert.match(await text('main'), /QR check-in/);
+    assert.equal(await page.locator('.ac-modehead').count(), 2);
+    assert.match(await text('main'), /Meeting report/); assert.match(await text('main'), /Check-in screen/);
     await shot('ac-hybrid');
   });
 

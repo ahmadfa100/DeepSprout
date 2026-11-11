@@ -21,7 +21,7 @@ BALANCE → GROW → LIVING IDLE. This milestone contains no Reels or disruption
 | `src/js/hero-v2/native-motion.js` | Playback of motion recorded from the approved native controller |
 | `src/js/hero-v2/intro-gate.js` | Native scroll intent, smooth acceleration and completion gate |
 | `src/js/hero-v2/hero.js` | Lifecycle, visibility, replay, reduced motion, CTA and diagnostics |
-| `assets/hero-v2/` | Environment, seven transparent sprites, first-paint image, matching Bimo stills, local Inter/OFL fonts, `.riv`, motion clips and editable source derivatives |
+| `assets/hero-v2/` | Environment, seven transparent sprites, first-paint image, matching Azm stills, local Inter/OFL fonts, `.riv`, motion clips and editable source derivatives |
 | `scripts/hero-v2/export-bimo.py` | Reproducible native-motion export; no upload or signing |
 | `scripts/hero-v2/compare-frames.py` | Labeled gold/live review sheet |
 | `tests/hero-opening-v2.test.cjs` | Playback, scroll, real hidden-tab, loading, reduced-motion, accessibility and capture validation |
@@ -36,11 +36,11 @@ These are master-clock seconds; scroll input changes playback speed, not phase o
 
 | Time | State and behavior |
 | --- | --- |
-| 0–1.2 | ARRIVAL. Seven ground stones; awake, calm Bimo; full initial composition holds. Scroll cannot shorten this hold. |
-| 1.2–3.8 | LIFT. Each stone travels through an eased lift with slight rotation and size change. Starts stagger by 35 ms. Bimo stays awake. |
-| 3.8–5.4 | VERTICAL ALIGNMENT. All seven converge toward the vertical stack. Bimo's recorded pose settles in stages: head/gaze first, then arms, eyelids and calmer breathing; complete by 5.3 s. Character scale settles gradually. |
+| 0–1.2 | ARRIVAL. Seven ground stones; awake, calm Azm; full initial composition holds. Scroll cannot shorten this hold. |
+| 1.2–3.8 | LIFT. Each stone travels through an eased lift with slight rotation and size change. Starts stagger by 35 ms. Azm stays awake. |
+| 3.8–5.4 | VERTICAL ALIGNMENT. All seven converge toward the vertical stack. Azm's recorded pose settles in stages: head/gaze first, then arms, eyelids and calmer breathing; complete by 5.3 s. Character scale settles gradually. |
 | 5.4–6.4 | PERFECT BALANCE. Micro-settle; the top heart/chart stones exchange through shallow side paths to reconcile their different ordering in gold 02 and 03. No GROW illumination yet. |
-| 6.4–8.2 | GROW. Stone illumination travels top to bottom at 95 ms intervals. Soft winding energy activates; a seed travels down the stack and Bimo from 6.55–7.38. Root draw starts at 7.05. Leaves, bloom and a restrained light sweep across “More living.” respond. |
+| 6.4–8.2 | GROW. Stone illumination travels top to bottom at 95 ms intervals. Soft winding energy activates; a seed travels down the stack and Azm from 6.55–7.38. Root draw starts at 7.05. Leaves, bloom and a restrained light sweep across “More living.” respond. |
 | 8.2 onward | LIVING IDLE. Master clock ends at exactly 8.2; intro gate opens once. Only the separate ambient timelines continue. |
 
 The primary CTA opens the existing local focus-check interaction. “See how it
@@ -49,7 +49,7 @@ works” explicitly replays the opening. It never auto-replays.
 ## 3. First paint
 
 A composed arrival WebP contains the environment, seven ground stones and the
-actual approved Bimo awake render. It is available in HTML before JavaScript.
+actual approved Azm awake render. It is available in HTML before JavaScript.
 Live text remains accessible DOM text. Critical image and local-font preloads
 start in the head; seven stone elements also have their initial positions inline.
 Once the individual stone images, matching awake still and fonts are ready, the
@@ -64,7 +64,7 @@ network delivery; there is no claim of zero-byte instant rendering.
 
 ## 4. Rive strategy and limitation
 
-Bimo uses the approved V2 vector geometry, bindings, view model and state machine.
+Azm uses the approved V2 vector geometry, bindings, view model and state machine.
 Its Luau controller and pose library are unchanged in the derivative export
 source. Preview background, debug labels and debug font are removed.
 
@@ -80,7 +80,7 @@ problems. This export uses no Rive account upload or signing service.
 Pointer tracking stays disabled; external gaze ownership stays enabled and
 centered. Stage 0 is awake; stage 1 is deep focus. The canvas remains invisible
 through runtime initialization and pose setup, then the poster above it fades away over 160 ms after two painted frames are verified. The canvas itself does not fade. Late deep-focus initialization also allows the original state transition to settle. DPR is capped at 2; a ResizeObserver watches the stable world bounds.
-The persistent bitmap is sized from the world viewport, never from the animated Bimo box. Only actual viewport changes resize it, retaining its previous pixels synchronously. Visibility, pause, reduced motion and teardown stop Rive and host playback.
+The persistent bitmap is sized from the world viewport, never from the animated Azm box. Only actual viewport changes resize it, retaining its previous pixels synchronously. Visibility, pause, reduced motion and teardown stop Rive and host playback.
 If Rive fails, matching awake/focus stills remain in place.
 
 **Deliberate limitation:** the full Luau controller does not execute in the
@@ -193,11 +193,11 @@ This is a close continuous reconstruction, **not a pixel-identical match**.
 
 | Frame | Remaining difference and reason |
 | --- | --- |
-| 00 | Approved vector Bimo has a slimmer body, flatter ceramic shading and more relaxed awake arms than the raster gold character. Ground stones are separate derived sprites, so silhouettes, moss and glyph details vary slightly. Original rooted arrival ground light is deferred to GROW. |
-| 01 | Stone centers and suspended arrangement follow the gold; shapes and trails are more restrained. Approved awake Bimo remains relaxed rather than reproducing the illustrated palms-up pose. |
+| 00 | Approved vector Azm has a slimmer body, flatter ceramic shading and more relaxed awake arms than the raster gold character. Ground stones are separate derived sprites, so silhouettes, moss and glyph details vary slightly. Original rooted arrival ground light is deferred to GROW. |
+| 01 | Stone centers and suspended arrangement follow the gold; shapes and trails are more restrained. Approved awake Azm remains relaxed rather than reproducing the illustrated palms-up pose. |
 | 02 | Same seven-stone vertical arrangement and deep-focus timing; the approved rig's face/body styling differs. The environment and character pedestal remain stable rather than following the gold frame's shifting rock/camera details. |
-| 03 | Final order is chart/heart/lotus/clock/book/community/sprout. Approved Bimo proportions and hand details differ; glow stays quiet until GROW. |
-| 04 | Gold shows seven overhead stones **and another seven on the ground**. The explicit exactly-seven rule takes precedence: the original seven stay overhead; none are duplicated. Bimo stays in deep focus as requested, although gold 04 shows open eyes. Bloom and organic root energy are more restrained than the gold illustration. |
+| 03 | Final order is chart/heart/lotus/clock/book/community/sprout. Approved Azm proportions and hand details differ; glow stays quiet until GROW. |
+| 04 | Gold shows seven overhead stones **and another seven on the ground**. The explicit exactly-seven rule takes precedence: the original seven stay overhead; none are duplicated. Azm stays in deep focus as requested, although gold 04 shows open eyes. Bloom and organic root energy are more restrained than the gold illustration. |
 | 05 | The same duplicate-ground-stone conflict applies. Breathing, stable stack, roots and ambient motion remain; approved vector styling, lower glow intensity and sparse floating leaves differ from the raster frame. |
 
 Across all states, one environment plate preserves the arrival scene instead
@@ -210,13 +210,13 @@ this V2 milestone.
 ### Asset provenance
 
 The environment is an ImageGen precise edit of gold 00: remove baked text,
-buttons, Bimo, seven glyph stones and roots; preserve camera, lake, mountains,
+buttons, Azm, seven glyph stones and roots; preserve camera, lake, mountains,
 clouds, sun, foliage and base rock. The transparent atlas derives seven stones
 from gold 00/01, preserving glyph order and moss/leaves. A second precise edit
 removes dense grass and daisies so suspended stones do not carry ground bouquets.
 Images are not substituted whole storyboard frames during playback.
 
 Editable authoring assets are `environment.png` and `stones-atlas.png`; alpha-bbox
-cropping and lossless WebP packaging produce the seven sprites. Matching Bimo
+cropping and lossless WebP packaging produce the seven sprites. Matching Azm
 stills and the composed arrival image are rendered from the actual approved rig
 and live scene. Font licensing is included under `assets/hero-v2/fonts/OFL.txt`.

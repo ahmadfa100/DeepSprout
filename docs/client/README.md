@@ -15,7 +15,7 @@ The [authoritative DeepSprout specification](../../DeepSprout.md) defines the ap
 - [Hero opening](experience/hero-opening.md)
 - [Hero opening V2](experience/hero-opening-v2.md)
 - [Hero V2 continuity patch](experience/hero-opening-v2-patch.md)
-- [Bimo continuity](experience/hero-opening-v2-bimo-continuity.md)
+- [Azm continuity](experience/hero-opening-v2-bimo-continuity.md)
 - [Reels experience](experience/reels-experience.md)
 - [Vortex and clarity](experience/vortex-clarity.md)
 - [Product journey](experience/product-journey.md)

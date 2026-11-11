@@ -14,12 +14,12 @@
 import {id, now, nowMs, requireThat, find, textRequired, notify, audit, institutionApproved, activityOwnerApproved} from '../domain.js';
 import {bookingCode} from '../migrate.js';
 import {confirmedInMode, modeCapacity, windowMessage} from '../initiative-rules.js';
-import {sessionRef, roleFor, roster, windowOf, isLive, buildPreview, checkInOutcome, usesImport, usesQR, importsFor, openReviews, BOOKED} from '../attendance/model.js';
+import {sessionRef, roleFor, roster, windowOf, isLive, buildPreview, checkInOutcome, usesImport, usesQR, importsFor, openReviews, venueCodeValid, BOOKED} from '../attendance/model.js';
 import {initiativeCommand} from './initiative.js';
 import {outdoorCommand} from './outdoor.js';
 
 const memberLink = 'src/pages/member/explore/explore.html#my-initiatives';
-const ACTIVITY_METHOD = {'qr':'QR scan', 'booking-code':'Booking code', 'manual-exception':'Manual check-in', 'report-import':'Report import', 'review-resolved':'Reviewed import', 'finalized':'Finalized · no check-in', 'finalized-report':'Finalized · not in the complete report'};
+const ACTIVITY_METHOD = {'qr':'QR scan', 'venue-qr':'Venue QR', 'booking-code':'Booking code', 'manual-exception':'Manual check-in', 'report-import':'Report import', 'review-resolved':'Reviewed import', 'finalized':'Finalized · no check-in', 'finalized-report':'Finalized · not in the complete report'};
 const personName = (s, pid) => s.people.find(p => p.id === pid)?.name || 'Participant';
 const when = (s, at) => new Date(at).toLocaleString('en-GB', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Amman'});
 
@@ -114,6 +114,40 @@ export function attendanceCommand(s, action, p, actor) {
     return status;
   }
 
+  if (action === 'attendance.screen.open') {
+    const {ref} = context(s, p.sessionId, actor);
+    requireThat(usesQR(ref.format), 'The check-in screen is for in-person participants. Online attendance comes from the meeting report.');
+    if (!ref.ss.checkinScreen?.secret) {
+      const bytes = new Uint8Array(16); globalThis.crypto.getRandomValues(bytes);
+      ref.ss.checkinScreen = {secret:Array.from(bytes, b => b.toString(16).padStart(2, '0')).join(''), openedBy:actor, at:now()};
+      log(s, ref, actor, 'screen', 'Check-in screen opened');
+    }
+    return true;
+  }
+
+  // The participant checks in from their own phone by scanning the venue screen.
+  if (action === 'attendance.self.checkin') {
+    const ref = sessionRef(s, p.sessionId);
+    requireThat(ref, 'This session no longer exists.');
+    requireThat(isLive(ref), 'Check-in is closed: this session is not active.');
+    requireThat(ref.kind === 'initiative' ? institutionApproved(s, ref.parent.ownerId) : activityOwnerApproved(s, ref.parent.ownerId), 'The Institution is not active.');
+    for (const key of ['attendanceImports', 'attendanceReviews', 'attendanceLog']) s[key] ||= [];
+    const entry = roster(s, ref, null).find(e => e.personId === actor);
+    requireThat(entry, 'You are not on the confirmed list for this session. Please speak to the Supervisor at the venue.');
+    requireThat(entry.mode === 'In-person', 'You registered to join online. Your attendance comes from the meeting report.');
+    if (entry.record) return {status:entry.record.status, at:entry.record.at || entry.record.created, already:true};
+    const w = windowOf(s, ref);
+    requireThat(w.state === 'open', windowMessage(w, ref.tz));
+    requireThat(ref.ss.checkinScreen?.secret, 'The check-in screen for this session is not open yet.');
+    requireThat(venueCodeValid(s, ref.ss, p.code), 'This code has expired. Scan the screen again; it changes every 20 seconds.');
+    const status = checkInOutcome(s, ref);
+    const rec = writeRecord(s, ref, entry, {status, method:'venue-qr', actor});
+    closeReviewsFor(s, ref, actor, actor, 'Checked in at the venue.');
+    log(s, ref, actor, 'record', `${personName(s, actor)} checked in at the venue · ${status}`);
+    audit(s, actor, 'Attendance self check-in', ref.ss.title, status);
+    return {status, at:rec.at || rec.created, already:false};
+  }
+
   if (action === 'attendance.exception') {
     const {ref} = context(s, p.sessionId, actor);
     requireThat(windowOf(s, ref).state !== 'early', 'Exceptions can be recorded once check-in opens.');
@@ -144,6 +178,8 @@ export function attendanceCommand(s, action, p, actor) {
     requireThat(!roster(s, ref, actor).some(e => e.personId === person.id), `${person.name} is already on this session’s roster.`);
     const mode = ref.format === 'Hybrid' ? p.mode : ref.format;
     requireThat(['Online', 'In-person'].includes(mode), 'Choose how this participant will attend.');
+    const mark = ['Present', 'Late'].includes(p.status) ? p.status : null;
+    if (mark) requireThat(windowOf(s, ref).state !== 'early', 'Attendance can be marked once check-in opens. Add them now and mark them at the session.');
     if (ref.kind === 'initiative') {
       const admission = s.admissions.find(a => a.initiativeId === ref.parent.id && a.personId === person.id);
       requireThat(admission?.status === 'Accepted', `${person.name} is not an accepted participant of ${ref.parent.title}. Only admitted participants can be added.`);
@@ -157,7 +193,8 @@ export function attendanceCommand(s, action, p, actor) {
       requireThat(booking, `${person.name} has no confirmed booking for ${ref.parent.title}. Only booked participants can be added.`);
       (ref.ss.rosterAdditions ||= []).push({personId:person.id, mode, reason, actorId:actor, at:now()});
     }
-    log(s, ref, actor, 'roster-add', `${person.name} added to the roster (${mode}) · attendance Not Recorded`, {reason, personId:person.id});
+    if (mark) writeRecord(s, ref, roster(s, ref, actor).find(e => e.personId === person.id), {status:mark, method:'manual-exception', reason:`Added at the session: ${reason}`, actor});
+    log(s, ref, actor, 'roster-add', `${person.name} added to the roster (${mode}) · ${mark || 'attendance Not Recorded'}`, {reason, personId:person.id});
     audit(s, actor, 'Session roster addition', ref.ss.title, `${person.name} · ${reason}`);
     return person.id;
   }

@@ -14,7 +14,7 @@ Open <http://127.0.0.1:8792/hero-reels-lab.html> and scroll. Add `?reelsDebug` f
 the review APIs:
 
 ```js
-reelsLab.seekExit(.42);   // Bimo's final inward arc.
+reelsLab.seekExit(.42);   // Azm's final inward arc.
 reelsLab.seekExit(.70);   // Full dark void: the end of section 2.
 linesLab.seek(.13);       // Section 3, 0–1. Scene keys are listed below.
 linesLab.state;           // Scene, line count, lit count, year, word box, handoff line.

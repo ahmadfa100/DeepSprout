@@ -1,5 +1,5 @@
 /**
- * Onboarding 2.0: Meet Green → six questions → "You're ready to begin" → the story → Home.
+ * Onboarding 2.0: Meet Azm → six questions → "You're ready to begin" → the story → Home.
  *
  * Answers are saved after every change (device-local demo state and the personal journal), so a
  * refresh resumes on the same question with the same answers. Finishing records the setup and a

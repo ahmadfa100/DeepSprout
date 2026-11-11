@@ -119,7 +119,7 @@ export const TABLES = [
     },
     purpose: 'The personal (Individual) workspace and journey: onboarding stage, Journey Level, goal, versioned setup answers, preferences, Shield settings.',
     ar: 'المساحة الشخصية: مرحلة الإعداد والهدف والتفضيلات وإعدادات Shield.',
-    feature: 'Onboarding 2.0 (Register → Meet Bimo → six questions → HeroReels story → Home), Profile, Shield → Usage Reminder.',
+    feature: 'Onboarding 2.0 (Register → Meet Azm → six questions → HeroReels story → Home), Profile, Shield → Usage Reminder.',
     why: 'Exists only for people who enabled the Individual workspace (an invited student has none). Keeps Person narrow.',
   },
 
@@ -616,7 +616,7 @@ export const TABLES = [
   },
   {
     n: 'governance.ContentRelease', base: 'governance.ContentRelease', rv: true, drop: ['SupersedesId', 'IsRollback'],
-    json: { PayloadJson: 'The content: Bimo texts, Garden Rules (target garden.rules), site copy.' },
+    json: { PayloadJson: 'The content: Azm texts, Garden Rules (target garden.rules), site copy.' },
     purpose: 'Admin-edited content with draft and published versions. Also stores the Garden Rules.',
     ar: 'محتوى تحرره الإدارة بمسودة ونشر؛ ويحمل قواعد الحديقة.',
     feature: 'Admin → Content Studio, Garden Rules.',

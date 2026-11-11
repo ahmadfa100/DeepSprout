@@ -11,7 +11,8 @@
  *  - Institution-invited Coach: an active Initiative grant; teaches only the
  *    Initiative groups allocated to them (see initiative-rules.js).
  */
-import {nowMs, clockDay, requireThat} from './domain.js';
+import {nowMs, clockDay, requireThat, taskIsFor, taskAudience, pickedTask} from './domain.js';
+export {taskIsFor, taskAudience, pickedTask};
 import {practiceTypeOf} from './initiative-rules.js';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -94,8 +95,38 @@ export function taskState(s, a, personId) {
   const overdue = ['Assigned', 'In Progress', 'Needs Revision'].includes(base) && String(a.due) < clockDay(s);
   return {status:base, sub, overdue};
 }
+/* ------------------------------------------------------ files & review */
+
+/** Small references to task files kept in the browser attachment store (never the file itself). */
+export const MAX_TASK_FILES = 5;
+export function fileRefs(list) {
+  return (Array.isArray(list) ? list : []).map(f => ({id:String(f?.id || ''), name:String(f?.name || '').slice(0, 160), type:String(f?.type || ''), size:Math.max(0, Number(f?.size) || 0), ...(f?.sample ? {sample:true, caption:f.caption, body:f.body, hue:f.hue} : {})})).filter(f => f.id && f.name);
+}
+/** What a Coach can say about the work itself. It never rates a person or their wellbeing. */
+export const REVIEW_CRITERIA = [
+  ['followed', 'Followed the task', 'Did what the task asked'],
+  ['reflection', 'Reflection', 'Said what they noticed or learned'],
+  ['evidence', 'Evidence', 'Sent what was asked for']
+];
+export const REVIEW_LEVELS = ['Getting there', 'Solid', 'Excellent'];
+export const RATING_WORDS = ['', 'A start', 'Getting there', 'Good work', 'Great work', 'Outstanding'];
+/** Keep only known criteria and levels, and a whole-star rating from 1 to 5. */
+export function cleanEvaluation(p = {}) {
+  const rating = Number(p.rating);
+  const criteria = Object.fromEntries(REVIEW_CRITERIA.map(([key]) => [key, p.criteria?.[key]]).filter(([, v]) => REVIEW_LEVELS.includes(v)));
+  const out = {...(Number.isInteger(rating) && rating >= 1 && rating <= 5 ? {rating} : {}), ...(Object.keys(criteria).length ? {criteria} : {})};
+  return Object.keys(out).length ? out : null;
+}
+/** Plain words for who a task goes to. */
+export function audienceLabel(s, a, g) {
+  if (a.studentId) return `For ${s.people.find(p => p.id === a.studentId)?.name || 'one student'}`;
+  if (pickedTask(a)) return `For ${a.recipientIds.length} chosen students`;
+  if (a.batch?.kind === 'all-groups') return `Sent to all ${a.batch.size} groups`;
+  return 'Whole group';
+}
+
 /** Assignments that apply to one member of a group (whole-group or addressed to them). */
-export const tasksFor = (s, g, personId) => s.assignments.filter(a => a.groupId === g.id && (!a.studentId || a.studentId === personId));
+export const tasksFor = (s, g, personId) => s.assignments.filter(a => a.groupId === g.id && taskIsFor(a, personId));
 
 /* ------------------------------------------------------------ completion */
 
@@ -165,7 +196,7 @@ export function groupWorkMetrics(s, g, from, to) {
   const periodSubs = subs.filter(x => inPeriod(x.submitted, from, to));
   const cut = [to, clockDay(s)].filter(Boolean).sort()[0];
   let expected = 0, overdue = 0;
-  for (const a of assignments) for (const pid of a.studentId ? [a.studentId] : g.memberIds) {
+  for (const a of assignments) for (const pid of taskAudience(a, g)) {
     expected++;
     const sub = subs.find(x => x.assignmentId === a.id && x.studentId === pid);
     if (String(a.due) < cut && (!sub || ['Needs Revision'].includes(sub.status))) overdue++;

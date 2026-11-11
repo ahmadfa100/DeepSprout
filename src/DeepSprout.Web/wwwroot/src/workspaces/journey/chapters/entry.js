@@ -26,7 +26,7 @@ export default f => ({
     {
       id: 'entry-individual',
       title: 'An Individual creates one identity',
-      summary: 'Joining as an Individual creates one recoverable identity. Meet Bimo, six personal setup questions and the HeroReels story lead to Home at Journey Level 1 (Chapter 8).',
+      summary: 'Joining as an Individual creates one recoverable identity. Meet Azm, six personal setup questions and the HeroReels story lead to Home at Journey Level 1 (Chapter 8).',
       show: ['individual', 'identity'],
       at: { individual: [300, 270], identity: [700, 270] },
       edges: ['individual>identity'], flows: ['individual>identity'], token: 'key',

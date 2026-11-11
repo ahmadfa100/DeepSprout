@@ -13,6 +13,7 @@ import {esc,head,stats,stat,card,emptyState,attention,bars,ring,feed,pill,nameOf
 import {collectiveScene} from '../institution/garden.js';
 import {clockDay} from '../../domain.js';
 import {isActiveCoach} from '../../initiative-rules.js';
+import {taskAudience} from '../../domain.js';
 import {independentStatus,coachApplication,programGroups,invitationStatus,taskState,tasksFor,completionRoster,completionPolicyText,programGroupGarden,programMetrics,groupWorkMetrics,PROGRAM_GARDEN_POLICY,COMPLETION_RULES,INDEPENDENT_REQUIRED,isProgramGroup,PROGRAM_BUILDABLE} from '../../coach-rules.js';
 
 const stats4 = items => stats(items).replace('class="iw-stats', 'class="iw-stats is-4');
@@ -148,7 +149,7 @@ export function groupDetail(ctx, g) {
   if (tab === 'programs') content = pr ? card(pr.title, `${u.timeline(pr.stages)}${u.link('Open Program', `mentor/programs/${pr.id}`)}`, {eyebrow:`PARENT PROGRAM · VERSION ${pr.version}`}) : emptyState('No parent Program', 'Attach this earlier group to one of your Programs.', canOperate ? u.button('Attach to a Program', 'group-edit', {id:g.id}) : '');
   if (tab === 'activity') {
     const list = s.assignments.filter(a => a.groupId === g.id);
-    content = u.table(['Task', 'Due', 'Approved', 'Submitted · revision', 'Overdue', 'Status'], list.map(a => { const people = a.studentId ? [a.studentId] : g.memberIds, states = people.map(pid => taskState(s, a, pid)); return {search:a.title, status:a.status, cells:[`${esc(a.title)}<p class="iw-muted">${esc(a.activity)} · v${a.version || 1}</p>`, esc(fmtDate(a.due)), `${states.filter(x => x.status === 'Approved').length} / ${people.length}`, `${states.filter(x => x.status === 'Submitted').length} · ${states.filter(x => x.status === 'Needs Revision').length}`, String(states.filter(x => x.overdue).length), pill(a.status)]}; }));
+    content = u.table(['Task', 'Due', 'Approved', 'Submitted · revision', 'Overdue', 'Status'], list.map(a => { const people = taskAudience(a, g), states = people.map(pid => taskState(s, a, pid)); return {search:a.title, status:a.status, cells:[`${esc(a.title)}<p class="iw-muted">${esc(a.activity)} · v${a.version || 1}</p>`, esc(fmtDate(a.due)), `${states.filter(x => x.status === 'Approved').length} / ${people.length}`, `${states.filter(x => x.status === 'Submitted').length} · ${states.filter(x => x.status === 'Needs Revision').length}`, String(states.filter(x => x.overdue).length), pill(a.status)]}; }));
   }
   if (tab === 'settings') content = card('Group settings', `<p>Parent Program: <strong>${esc(programName(s, g))}</strong>. Enrollment: ${esc(g.enrollment)}. Capacity: ${g.capacity}. Archiving keeps every submission, review and membership record.</p><ol class="iw-history">${(g.history || []).slice().reverse().map(h => `<li><time>${esc(fmtDate(h.at))}</time><span>${esc(h.change)}${h.reason ? ` · ${esc(h.reason)}` : ''}</span></li>`).join('')}</ol><div class="actions">${canOperate ? u.button('Edit group', 'group-edit', {id:g.id}) + u.button('Archive group', 'group-archive', {id:g.id}, 'button quiet') : ''}</div>`);
   return `<p class="breadcrumbs">${u.link('My Groups', 'mentor/groups', 'text-link')} / ${esc(programName(s, g))}</p>` + head({eyebrow:`GROUP · ${esc(programName(s, g)).toUpperCase()}`, title:g.name, lead:g.purpose, actions:pill(g.status)}) + approvalPanel(ctx)

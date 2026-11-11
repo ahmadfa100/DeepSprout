@@ -69,8 +69,8 @@ test('Representative · creates, edits before the start, cannot edit after; past
   assert.equal(read().competitions.find(x => x.id === id).version, 2, 'question changes bump the version');
   at(plus(1000));
   assert.match(err(() => dispatch('organization.quiz.save', {id, title:'Too late', initiativeId:'i-today', startAt:'2026-10-16T10:00:00+03:00', questions:QUESTIONS})), /already started/);
-  const open = create('organization', {startAt:'2026-10-20T10:00:00+03:00', initiativeId:null});
-  assert.equal(read().competitions.find(x => x.id === open).initiativeId, null, 'a round can be open to all verified participants');
+  // Every round belongs to one Initiative (forms.Form CK_Form_Owner); there is no open-to-all round.
+  assert.match(err(() => create('organization', {startAt:'2026-10-20T10:00:00+03:00', initiativeId:null})), /Choose the initiative/);
 });
 
 test('Supervisor · only inside an assigned initiative; loses authority when the grant ends; Representative can cancel it', () => {
@@ -121,11 +121,33 @@ test('Read model · hides the correct answer until the reveal; shows distributio
   assert.equal(host.me.blocker, 'Sign in to join this competition.');
 });
 
-test('Seeded demo · scheduled round in the lobby and a finished Supervisor warm-up with a podium', () => {
+test('Seeded demo · lobby with waiting players, finished rounds with full podiums, a draft, and demo players that never become people', () => {
   reset();
   const s = read(), now = Date.parse(PIN);
-  assert.equal(quizView(s, 'c-quiz-live', 'p-noor', now).phase.phase, 'lobby');
+  const live = quizView(s, 'c-quiz-live', 'p-noor', now);
+  assert.equal(live.phase.phase, 'lobby'); assert.equal(live.players.length, 6, 'six demo players already waiting');
   const warm = quizView(s, 'c-quiz-warmup', 'p-noor', now);
   assert.equal(warm.phase.phase, 'podium'); assert.equal(warm.createdRole, 'Supervisor');
-  assert.deepEqual(warm.standings.map(r => r.name), ['Noor Khalil', 'Rania Yasin']);
+  assert.equal(warm.standings.length, 7);
+  assert.ok(warm.standings.findIndex(r => r.name === 'Noor Khalil') < warm.standings.findIndex(r => r.name === 'Rania Yasin'));
+  assert.equal(quizView(s, 'c-quiz-trivia', 'p-noor', now).standings.length, 9);
+  assert.equal(s.competitions.find(c => c.id === 'c-quiz-draft').status, 'Draft');
+  assert.ok(s.entries.filter(e => e.demo).every(e => e.personId.startsWith('bot-') && !s.people.some(p => p.id === e.personId)));
+});
+
+test('Demo players join and answer on schedule: the read model only shows what has happened', () => {
+  reset();
+  const s = read(), c = s.competitions.find(x => x.id === 'c-quiz-demo');
+  assert.ok(c, 'a round starting soon after the demo loads');
+  const start = Date.parse(c.startAt), plan = quizSchedule(c);
+  assert.ok(quizView(s, c.id, null, start - 175000).players.length < quizView(s, c.id, null, start - 1000).players.length, 'players trickle into the lobby');
+  const open = plan.items[0].openAt;
+  assert.equal(quizView(s, c.id, null, open + 100).answeredCount, 0, 'nobody answers in the first instant');
+  assert.ok(quizView(s, c.id, null, plan.items[0].closeAt - 1).answeredCount >= 6, 'most demo players answer before the timer ends');
+  reset('p-maya');
+  const id = dispatch('organization.quiz.demo', {initiativeId:'i-today'});
+  assert.equal(read().entries.filter(e => e.competitionId === id && e.demo).length, 8);
+  as('p-noor'); dispatch('member.quiz.join', {competitionId:id, consent:true});
+  as('p-maya'); dispatch('organization.quiz.cancel', {id});
+  assert.equal(read().notifications.filter(n => /cancelled by the organizer/.test(n.text) && n.recipientId.startsWith('bot-')).length, 0, 'demo players are never notified');
 });

@@ -1,4 +1,4 @@
-/* Onboarding 2.0 — one warm canvas from Meet Green through the six questions to the story.
+/* Onboarding 2.0 — one warm canvas from Meet Azm through the six questions to the story.
    Ivory #fbf6ea · cream surface #fffdf7 · forest #24442f · ink #1f3a2b · sage #a9c58c · line #1d211f. */
 :root{--ivory:#fbf6ea;--surface:#fffdf7;--forest:#24442f;--forest-2:#2f5a3e;--ink:#1f3a2b;--muted:#566459;--sage:#a9c58c;--sage-soft:#e3ecd4;--line:#1d211f;--hand:Kalam,'Segoe Print','Comic Sans MS',cursive;--ease:cubic-bezier(.22,.61,.36,1)}
 *{box-sizing:border-box}
@@ -44,7 +44,7 @@ button{font:inherit}
 .qs-btn-quiet:hover{text-decoration-color:var(--ink)}
 .qs-btn:focus-visible,.qs-brand:focus-visible{outline:3px solid #b98a1c;outline-offset:3px}
 
-/* Meet Green */
+/* Meet Azm */
 .qs-meet{display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:clamp(24px,5vw,72px)}
 .qs-bimo{position:relative;margin:0;justify-self:center;width:min(380px,100%);aspect-ratio:700/860}
 .qs-bimo img{position:relative;width:100%;height:auto;display:block;animation:qs-bimo-in 1.1s var(--ease) .15s backwards,qs-bimo-float 6s ease-in-out 1.4s infinite}

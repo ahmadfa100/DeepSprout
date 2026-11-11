@@ -105,10 +105,10 @@ async function main() {
     const code = (await read()).sessionRegistrations.find(r => r.sessionId === 's-workshop' && r.personId === 'p-rania').code;
     await as(newSup); await ws('supervisor/schedule/s-workshop'); await click('[data-action=session-assign]'); await page.check(`#dialog-body input[name=supervisorIds][value="${newSup}"]`); await save();
     await ws('supervisor/attendance/s-workshop');
-    assert.match(await text('main'), /Check-in opens/); assert.equal(await page.locator('[data-form=ac-checkin] button.primary').isDisabled(), true);
-    await clock('2026-10-25T16:05:00+03:00'); await page.reload(); await page.waitForTimeout(500);
-    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.primary');
-    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.primary');
+    assert.match(await text('main'), /Check-in opens/); assert.equal(await page.locator('[data-form=ac-checkin] button.secondary').isDisabled(), true);
+    await clock('2026-10-25T16:05:00+03:00'); await page.reload(); await page.waitForTimeout(500); await click('.ac-more summary');
+    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.secondary');
+    await page.fill('[data-form=ac-checkin] [name=code]', code); await click('[data-form=ac-checkin] button.secondary');
     assert.match(await text('[data-form=ac-checkin] .form-error'), /Already checked in/);
     await clock('2026-10-25T18:31:00+03:00'); await page.reload(); await page.waitForTimeout(500);
     await click('[data-action=ac-finalize]'); await page.check('#dialog-body input[name=inPersonCheckInRan]'); await save();
@@ -128,7 +128,7 @@ async function main() {
     await as(newSup); await ws('supervisor/excuses?initiative=i-today');
     await click('[data-action=excuse-evidence]'); await page.waitForSelector('#dialog-body img.iw-evidence-view'); await page.click('[data-dialog-close]');
     await click('[data-action=excuse-recommend]'); await page.fill('#dialog-body [name=note]', 'Note attached; first absence.'); await save();
-    await as('p-maya'); await ws('organization/attendance?initiative=i-today');
+    await as('p-maya'); await ws('organization/attendance?view=excuses&initiative=i-today');
     await click('[data-action=excuse-evidence]'); await page.waitForSelector('#dialog-body img.iw-evidence-view'); await page.click('[data-dialog-close]');
     await click('[data-action=excuse-decide][data-decision=Accepted]'); await page.fill('#dialog-body [name=reason]', 'Medical note accepted.'); await save();
     const ex = (await read()).excuses.find(e => e.attendanceId === attId);

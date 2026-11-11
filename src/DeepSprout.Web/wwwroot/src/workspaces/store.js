@@ -14,10 +14,13 @@ import {competitionCommand} from './commands/competition.js';
 import {id,now,nowMs,setClockOffset,requireThat,find,textRequired,expireOffers,audit,notify as notifyPerson} from './domain.js';
 import {migrate} from './migrate.js';
 import {busyInitiative} from './data/busy-initiative.js';
+import {addMayaInstitutionDemo} from './data/maya-institution-demo.js';
+import {addSamiSupervisorDemo} from './data/sami-supervisor-demo.js';
 import {addReportInboxDemo} from './data/report-inbox-demo.js';
 import {adminDemo,seedCommunity} from './data/admin-demo.js';
 import {supervisorDemo} from './data/supervisor-demo.js';
 import {addQuizDemo} from './data/quiz-demo.js';
+import {addCoachTaskDemo} from './data/coach-task-demo.js';
 import {expireInitiativeOffers} from './commands/initiative.js';
 
 export const STORAGE_KEY='deepsprout-ecosystem-demo-v1';
@@ -27,7 +30,7 @@ export const demoEnabled=typeof location==='undefined'||location.protocol==='fil
 let memory;
 /** The seeded story happens around 16 Oct 2026; the demo clock starts there so open windows, offers and sessions agree. */
 export const STORY_DATE='2026-10-16T10:00:00+03:00';
-export function seed(){const s=structuredClone({...mentorship,...institution,...outdoor,...platform});s.people.forEach(p=>{if(p.verified&&!p.workspaces.includes('participant'))p.workspaces.push('participant');});s.organizations=[{...s.organization,memberIds:['p-maya']}];s.providers=[];for(const key of ['sessions','forms','competitions','team','partnerships'])s[key].forEach(x=>x.ownerId=s.organization.id);s.otpChallenges=[];migrate(s);normalizeActivityData(s);addQuizDemo(s);s.clock={offsetMs:Date.parse(STORY_DATE)-Date.now(),story:STORY_DATE};return s;}
+export function seed(){const s=structuredClone({...mentorship,...institution,...outdoor,...platform});s.people.forEach(p=>{if(p.verified&&!p.workspaces.includes('participant'))p.workspaces.push('participant');});s.organizations=[{...s.organization,memberIds:['p-maya']}];s.providers=[];for(const key of ['sessions','forms','competitions','team','partnerships'])s[key].forEach(x=>x.ownerId=s.organization.id);s.otpChallenges=[];migrate(s);normalizeActivityData(s);s.clock={offsetMs:Date.parse(STORY_DATE)-Date.now(),story:STORY_DATE};addQuizDemo(s);addMayaInstitutionDemo(s);s.institutionDemoVersion=1;addSamiSupervisorDemo(s);s.samiSupervisorDemoVersion=1;return s;}
 function persist(s){
   try{globalThis.localStorage?.setItem(STORAGE_KEY,JSON.stringify(s));}
   catch{setClockOffset(memory?.clock?.offsetMs);throw new Error('Your changes could not be saved. Free device storage or allow storage, then try again.');}
@@ -45,10 +48,21 @@ export function read(){
   else{s=memory||seed();changed=!memory;}
   // Outdoor Provider retirement: keep one untouched copy, then re-home or archive legacy Provider records (never delete).
   if(s.providerDataVersion!==1||s.activityDataVersion!==2){if(raw){try{const key=`${STORAGE_KEY}:backup:before-activity-v2`;if(!globalThis.localStorage?.getItem(key))globalThis.localStorage?.setItem(key,raw);}catch{throw new Error('Outdoor Activity migration paused: the original backup could not be saved.');}}if(normalizeActivityData(s))changed=true;}
+  // Maya's requested Institution sample is an additive, one-time browser upgrade.
+  if(demoEnabled&&['p-maya','p-sami'].includes(s.session?.personId)&&s.institutionDemoVersion!==1&&s.initiatives.some(i=>i.id==='i-today'&&i.ownerId==='org-horizon')){
+    if(raw){try{const key=`${STORAGE_KEY}:backup:before-maya-institution-demo-v1`;if(!globalThis.localStorage?.getItem(key))globalThis.localStorage?.setItem(key,raw);}catch{throw new Error('Institution sample data was not added because a backup could not be saved.');}}
+    addMayaInstitutionDemo(s);s.institutionDemoVersion=1;changed=true;
+  }
+  if(demoEnabled&&s.session?.personId==='p-sami'&&s.samiSupervisorDemoVersion!==1&&s.people.some(p=>p.id==='p-sami')){
+    if(raw){try{const key=`${STORAGE_KEY}:backup:before-sami-supervisor-demo-v1`;if(!globalThis.localStorage?.getItem(key))globalThis.localStorage?.setItem(key,raw);}catch{throw new Error('Supervisor sample data was not added because a backup could not be saved.');}}
+    if(addSamiSupervisorDemo(s)){s.samiSupervisorDemoVersion=1;changed=true;}
+  }
   setClockOffset(s.clock?.offsetMs);
   if(expireOffers(s))changed=true;
   if(expireInitiativeOffers(s))changed=true;
   if(addQuizDemo(s))changed=true;
+  // Coach task sample (files, reviews, every audience): added for people trying the demo in a browser, never under automated tests.
+  if(demoEnabled&&typeof location!=='undefined'&&!globalThis.navigator?.webdriver&&addCoachTaskDemo(s))changed=true;
   if(changed)persist(s);
   memory=s;return structuredClone(s);
 }
@@ -101,7 +115,9 @@ export function dispatch(action,p={}) {
     requireThat(demoEnabled,'Sample data is available only in local development.');
     const addInitiative=!s.admissions.some(a=>a.id==='adm-dana');
     const addAdmin=!s.applications.some(a=>a.id==='app-bright');
-    if(!addInitiative&&!addAdmin)return false;
+    const addInstitution=s.institutionDemoVersion!==1;
+    const addSupervisor=s.samiSupervisorDemoVersion!==1;
+    if(!addInitiative&&!addAdmin&&!addInstitution&&!addSupervisor)return false;
     const snapshot=globalThis.localStorage?.getItem(STORAGE_KEY);
     const backupKey=`${STORAGE_KEY}:backup:before-rich-demo-v1`;
     if(snapshot&&!globalThis.localStorage?.getItem(backupKey)){
@@ -109,11 +125,14 @@ export function dispatch(action,p={}) {
       catch{throw new Error('Sample data was not added because a backup could not be saved.');}
     }
     const signedIn=s.session.personId;
-    if(addInitiative)busyInitiative(s);
+    if(addInitiative&&s.groups.some(g=>g.id==='g-today-a')&&s.groups.some(g=>g.id==='g-today-b'))busyInitiative(s);
+    if(addInstitution){addMayaInstitutionDemo(s);s.institutionDemoVersion=1;}
+    if(addSupervisor&&addSamiSupervisorDemo(s))s.samiSupervisorDemoVersion=1;
     if(addAdmin)adminDemo(s);
     s.session.personId=signedIn;
     persist(s);return true;
   }
+  if(action==='demo.coach-tasks'){requireThat(demoEnabled,'Sample tasks are available only in local development.');s.coachTaskDemoVersion=0;const added=addCoachTaskDemo(s);persist(s);return added;}
   if(action==='demo.report-inbox'){requireThat(demoEnabled,'Sample reports are available only in local development.');requireThat(s.organizations.some(o=>o.id==='org-horizon'&&o.memberIds.includes(actor)),'Open the Institution workspace to preview sample reports.');requireThat(addReportInboxDemo(s),'The Start Today initiative is needed for this sample.');persist(s);return;}
   if(action==='auth.logout'){s.session.personId=null;persist(s);return;}
   if(action==='demo.clock'){requireThat(demoEnabled,'The demo clock is a local development control.');s.clock||={offsetMs:0};if(p.reset)s.clock.offsetMs=0;else if(p.at){const at=Date.parse(p.at);requireThat(Number.isFinite(at),'Choose a valid demo date and time.');s.clock.offsetMs=at-Date.now();}else{const hours=Number(p.hours);requireThat(Number.isFinite(hours)&&Math.abs(hours)<=24*60,'Choose a clock change of at most 60 days.');s.clock.offsetMs+=hours*3600000;}setClockOffset(s.clock.offsetMs);expireOffers(s);expireInitiativeOffers(s);persist(s);return s.clock.offsetMs;}

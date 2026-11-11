@@ -23,7 +23,7 @@ DeepSprout joins a **personal Recovery Journey** with practice, browser support,
 - [Product preview](#product-preview)
 - [What the platform does](#what-the-platform-does)
 - [The Recovery Journey](#the-recovery-journey)
-- [Meet Bimo](#meet-bimo)
+- [Meet Azm](#meet-azm)
 - [Garden and evidence](#garden-and-evidence)
 - [Connected workspaces](#connected-workspaces)
 - [Operational workflows](#operational-workflows)
@@ -39,7 +39,7 @@ DeepSprout joins a **personal Recovery Journey** with practice, browser support,
 
 Short-form feeds can consume time a person meant to spend on rest, relationships, learning, or simply being offline. DeepSprout helps people, especially young people, notice that pattern and make intentional changes. Reading or focused work can support that goal, but becoming maximally productive is not a requirement. DeepSprout is neither a clinical treatment nor a general habit tracker.
 
-The personal journey is supported by four distinct systems: **Recovery Plan** schedules and adapts actions; **Activities** holds practice and an optional offline routine; **Digital Shield** offers browser-scoped protection and usage reminders; **Lab and Insights** retain measurement and its source. **Explore** brings Institution Initiatives, workshops, and Institution-owned Outdoor Activities into the same participation journey. Community and the original companion Bimo make the experience more welcoming. See [master §§1–2](DeepSprout.md#1-vision-positioning-users-and-product-boundaries) for product boundaries.
+The personal journey is supported by four distinct systems: **Recovery Plan** schedules and adapts actions; **Activities** holds practice and an optional offline routine; **Digital Shield** offers browser-scoped protection and usage reminders; **Lab and Insights** retain measurement and its source. **Explore** brings Institution Initiatives, workshops, and Institution-owned Outdoor Activities into the same participation journey. Community and the original companion Azm make the experience more welcoming. See [master §§1–2](DeepSprout.md#1-vision-positioning-users-and-product-boundaries) for product boundaries.
 
 ## Current page and cycle guide
 
@@ -47,7 +47,7 @@ The [3 November 2026 guide](docs/current-product-guide.md) inventories the publi
 
 ## Product preview
 
-![Actual desktop render of the current DeepSprout home page, with Bimo beside the introductory message](docs/assets/readme/home-preview.png)
+![Actual desktop render of the current DeepSprout home page, with Azm beside the introductory message](docs/assets/readme/home-preview.png)
 
 The image above is a **local browser capture** of the homepage at 1440 × 900 with a seeded demo account, taken for an earlier documentation pass. The current page may have changed since that capture. The [root entry](http://127.0.0.1:8765/) and `/index.html` are served by the same MVC view.
 
@@ -55,7 +55,7 @@ The image above is a **local browser capture** of the homepage at 1440 × 900 wi
 
 | Area | Purpose | Current checkout |
 | --- | --- | --- |
-| Onboarding with Bimo | Meet Bimo, six quick questions, HeroReels story, then Home at Journey Level 1 with a preliminary Week 1 plan | Browser-local flow; [Onboarding 2.0 report](docs/implementation/onboarding2-reconciliation-report.md) |
+| Onboarding with Azm | Meet Azm, six quick questions, HeroReels story, then Home at Journey Level 1 with a preliminary Week 1 plan | Browser-local flow; [Onboarding 2.0 report](docs/implementation/onboarding2-reconciliation-report.md) |
 | Recovery Plan | One continuous journey with usually 28-day cycles, an actionable week, review, future-only adjustment, and continuation decisions | Browser-local versioned journal |
 | Meaningful Practices | Depth Practice, Listening & Recall, Practical Micro-Challenge, and Protected Work; independent levels and evidence | Four local players and versioned content |
 | Offline Routine | Small personally chosen real-world commitments | Local self-report, separate from system-scored practice |
@@ -69,17 +69,17 @@ The image above is a **local browser capture** of the homepage at 1440 × 900 wi
 
 ## The Recovery Journey
 
-**Account creation → Meet Bimo → Six quick questions → HeroReels story (watch or skip) → Home at Journey Level 1 → Review a preliminary Week 1 plan → Explicit activation → Weekly actions and reviews → Insights → Continued cycles.** The four Lab assessments are optional and keep their historical results. Setup answers personalize the first proposal; they are not cognitive scores.
+**Account creation → Meet Azm → Six quick questions → HeroReels story (watch or skip) → Home at Journey Level 1 → Review a preliminary Week 1 plan → Explicit activation → Weekly actions and reviews → Insights → Continued cycles.** The four Lab assessments are optional and keep their historical results. Setup answers personalize the first proposal; they are not cognitive scores.
 
 ![Diagram of first-run steps and the nested weekly Recovery Cycle](docs/assets/readme/recovery-cycle.svg)
 
-A **Journey** is the person's continuing history, beginning at Level 1. A **Recovery Cycle** is one bounded planning interval within it, normally four weeks in the present demo. A **week** contains scheduled actions, rest or routine context, and a review. A **Meaningful Practice** is an activity attempt with its own content and evidence; a scheduled action only points to it. **Lab assessments** are optional separate measurements; their old weekly eligibility rule is retired. The weekly review can accept a suggested next week, keep pace, or explicitly adjust future work. A cycle ending leads to review and a deliberate next-cycle or maintenance choice; elapsed days are not a recovery score. Details: [master §§4–5](DeepSprout.md#4-individual-onboarding-bimo-six-questions-the-story-and-journey-level-1).
+A **Journey** is the person's continuing history, beginning at Level 1. A **Recovery Cycle** is one bounded planning interval within it, normally four weeks in the present demo. A **week** contains scheduled actions, rest or routine context, and a review. A **Meaningful Practice** is an activity attempt with its own content and evidence; a scheduled action only points to it. **Lab assessments** are optional separate measurements; their old weekly eligibility rule is retired. The weekly review can accept a suggested next week, keep pace, or explicitly adjust future work. A cycle ending leads to review and a deliberate next-cycle or maintenance choice; elapsed days are not a recovery score. Details: [master §§4–5](DeepSprout.md#4-individual-onboarding-azm-six-questions-the-story-and-journey-level-1).
 
-## Meet Bimo
+## Meet Azm
 
-<p align="center"><img src="src/DeepSprout.Web/wwwroot/assets/hero-v2/bimo-awake.png" alt="Original approved Bimo character, a small ivory and sage companion with a leaf sprout" width="230"></p>
+<p align="center"><img src="src/DeepSprout.Web/wwwroot/assets/hero-v2/bimo-awake.png" alt="Original approved Azm character, a small ivory and sage companion with a leaf sprout" width="230"></p>
 
-Bimo is DeepSprout's **original approved companion**. Bimo welcomes people, guides the first-run sequence, and explains selected milestones in a calm, friendly voice. The image above is an existing runtime asset; source references and poses live in [`docs/references/bimo/`](docs/references/bimo/). Bimo is a guide in the interface, not a claim that a conversational AI service is running.
+Azm is DeepSprout's **original approved companion**. Azm welcomes people, guides the first-run sequence, and explains selected milestones in a calm, friendly voice. The image above is an existing runtime asset; source references and poses live in [`docs/references/bimo/`](docs/references/bimo/). Azm is a guide in the interface, not a claim that a conversational AI service is running.
 
 ## Garden and evidence
 
@@ -120,7 +120,7 @@ These flows document the current browser-local demo. The v4.1 target removes ind
 | Area | Public entry points | Destination routes |
 | --- | --- | --- |
 | Public and access | [Home](http://127.0.0.1:8765/), [former story landing](http://127.0.0.1:8765/landing.html), [Pricing](http://127.0.0.1:8765/pricing.html), [Register](http://127.0.0.1:8765/register.html), [Login](http://127.0.0.1:8765/login.html), [Partner entry](http://127.0.0.1:8765/partners.html) | MVC Razor views under [`src/DeepSprout.Web/Views/`](src/DeepSprout.Web/Views/) |
-| Individual first run | [Onboarding](http://127.0.0.1:8765/onboarding.html), [Home](http://127.0.0.1:8765/) | Meet Bimo → six questions → HeroReels story (watch or skip) → Home at Journey Level 1. The [Lab](http://127.0.0.1:8765/lab.html) is optional. |
+| Individual first run | [Onboarding](http://127.0.0.1:8765/onboarding.html), [Home](http://127.0.0.1:8765/) | Meet Azm → six questions → HeroReels story (watch or skip) → Home at Journey Level 1. The [Lab](http://127.0.0.1:8765/lab.html) is optional. |
 | Individual ongoing | [Recovery Plan](http://127.0.0.1:8765/recovery-plan.html), [Weekly Review](http://127.0.0.1:8765/weekly-review.html), [Activities](http://127.0.0.1:8765/training.html), [Shield](http://127.0.0.1:8765/shield.html), [Garden](http://127.0.0.1:8765/garden.html), [Insights](http://127.0.0.1:8765/insights.html), [Explore](http://127.0.0.1:8765/explore.html), [Community](http://127.0.0.1:8765/community.html), [Profile](http://127.0.0.1:8765/profile.html) | Historic `.html` URLs resolve through [the MVC route manifest](src/DeepSprout.Web/page-routes.json). |
 | Partner and administration | [Partner workspaces](http://127.0.0.1:8765/workspaces.html#/auth/login), [legacy Admin](http://127.0.0.1:8765/admin.html#/dashboard) | Hash routes such as `#/mentor/dashboard`, `#/organization/initiatives`, `#/provider/waitlist`, `#/supervisor/attendance`, `#/admin/overview` |
 
@@ -152,7 +152,7 @@ DeepSprout is **one ASP.NET Core MVC solution**. The pages are Razor views in `s
 │   │   ├── Controllers/           # PagesController (page routing)
 │   │   ├── Models/                # PageCatalog (routes from page-routes.json)
 │   │   ├── Views/                 # 46 Razor views grouped by area
-│   │   ├── wwwroot/               # assets/ (media, Bimo, vendor) and src/ (page JS/CSS, workspaces)
+│   │   ├── wwwroot/               # assets/ (media, Azm, vendor) and src/ (page JS/CSS, workspaces)
 │   │   ├── Program.cs  page-routes.json  appsettings.json
 │   ├── DeepSprout.Domain/         # Domain records (no persistence dependency)
 │   ├── DeepSprout.Application/    # Command contracts and DTOs
@@ -165,9 +165,9 @@ DeepSprout is **one ASP.NET Core MVC solution**. The pages are Razor views in `s
 ├── docs/                          # Product guide, database architecture, design/validation records
 │   ├── architecture/database/     # Approved 58-table design, persistence contract, EF Core adoption
 │   ├── client/                    # Former client architecture, design and validation records
-│   └── references/                # Approved Bimo and design references
+│   └── references/                # Approved Azm and design references
 ├── tools/                         # README diagram and media helper scripts
-├── experiments/                   # Independent Bimo/visual experiments
+├── experiments/                   # Independent Azm/visual experiments
 ├── DeepSprout.md  DESIGN.md  DeepSprout-DESIGN.md  AGENTS.md
 ```
 
@@ -192,7 +192,7 @@ The spec's [§29 snapshot](DeepSprout.md#29-current-implementation-versus-agreed
 
 | Status | Scope |
 | --- | --- |
-| **Implemented in the local demo** | Static public/member pages; six-question Bimo onboarding, HeroReels handoff and Home at Level 1; optional Lab interfaces and user-confirmed local plan activation; four practice players; local Recovery cycles and reviews; institution/Coach/Student/Supervisor/Provider records and example flows; received Institution report inbox; community interactions; root Pages-ready homepage |
+| **Implemented in the local demo** | Static public/member pages; six-question Azm onboarding, HeroReels handoff and Home at Level 1; optional Lab interfaces and user-confirmed local plan activation; four practice players; local Recovery cycles and reviews; institution/Coach/Student/Supervisor/Provider records and example flows; received Institution report inbox; community interactions; root Pages-ready homepage |
 | **Partial or simulated** | Local identity, permissions, QR/code checks, notices, demo capacity and clocks, payment acknowledgements, Admin split, source coverage and some cross-workspace edge cases. Extension pairing/enforcement is restricted to supported local Chrome conditions |
 | **Next validation and product work** | Re-run cross-workspace acceptance after active changes; consolidate Admin by capability; settle Garden direction and thresholds; test additional accessibility, responsive and error states; validate extension distribution and consent policy |
 | **Implemented MVC presentation and database foundation** | 46 routed Razor views and static assets; the approved 58-table design as SQL script, EF Core model and two tested migrations (not yet applied to `DeepSprout_V5_Demo`); product records remain browser-local |
@@ -222,6 +222,6 @@ Responsive layouts, keyboard controls and reduced-motion states have targeted im
 
 ## Contributing and license
 
-Start with [`DeepSprout.md`](DeepSprout.md), then read [`AGENTS.md`](AGENTS.md), [`DESIGN.md`](DESIGN.md) and the [documentation map](docs/README.md). Keep changes scoped, add evidence for a changed cross-workspace effect, preserve Bimo's approved artwork, and document whether a feature is local demonstration or production behavior. For homepage changes, regenerate the root entry; for diagram changes, run `python3 tools/build_readme_diagrams.py`. Open an issue or pull request with the affected route, expected behavior and test result.
+Start with [`DeepSprout.md`](DeepSprout.md), then read [`AGENTS.md`](AGENTS.md), [`DESIGN.md`](DESIGN.md) and the [documentation map](docs/README.md). Keep changes scoped, add evidence for a changed cross-workspace effect, preserve Azm's approved artwork, and document whether a feature is local demonstration or production behavior. For homepage changes, regenerate the root entry; for diagram changes, run `python3 tools/build_readme_diagrams.py`. Open an issue or pull request with the affected route, expected behavior and test result.
 
 No repository-level `LICENSE` file is present. The root `package.json` contains an `ISC` metadata field, but that alone is not presented here as a verified license for all source and artwork. Ask the repository owner before reusing or redistributing assets outside the project.

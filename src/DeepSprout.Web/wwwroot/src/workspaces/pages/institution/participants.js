@@ -6,6 +6,7 @@
 import * as u from '../../ui.js';
 import {esc,nameOf,emailOf,pill,head,stats,stat,card,personCell,tabs,emptyState,summary,initiativeSwitcher,withInitiative,fmtDate,picker} from './common.js';
 import {seatCap,seatsUsed} from '../../initiative-rules.js';
+import {taskIsFor} from '../../domain.js';
 
 const GROUPS = {
   flagged:['Pending','Queued'],
@@ -21,7 +22,7 @@ function attendanceSummary(s, initiativeId, pid) {
 }
 function taskSummary(s, initiativeId, pid) {
   const groups = s.groups.filter(g => g.initiativeId === initiativeId && g.parentType === 'initiative');
-  const assignments = s.assignments.filter(a => groups.some(g => g.id === a.groupId && (g.memberIds.includes(pid))) && a.status !== 'Cancelled' && (!a.studentId || a.studentId === pid));
+  const assignments = s.assignments.filter(a => groups.some(g => g.id === a.groupId && (g.memberIds.includes(pid))) && a.status !== 'Cancelled' && taskIsFor(a, pid));
   const approved = s.submissions.filter(x => x.studentId === pid && x.status === 'Approved' && assignments.some(a => a.id === x.assignmentId)).length;
   return assignments.length ? `<small>${approved}/${assignments.length} tasks approved</small>` : '<small>No tasks yet</small>';
 }

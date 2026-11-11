@@ -1,4 +1,4 @@
-# Bimo Rive V2
+# Azm Rive V2
 
 A separate, editable vector rig for Rive CLI **1.5.1**. V1 remains in
 `../bimo-rive/` and was not edited. This experiment does not change the website.

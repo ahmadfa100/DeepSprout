@@ -7,6 +7,7 @@ import {renderReportInbox,inboxReportAction,inboxReportSubmit} from './report-in
 import * as u from '../../ui.js';
 import {esc,nameOf,pill,head,stats,stat,card,bars,funnel,ring,emptyState,initiativeSwitcher,fmtDate,summary} from './common.js';
 import {seatCap} from '../../initiative-rules.js';
+import {taskAudience} from '../../domain.js';
 import {groupMetrics} from '../../commands/initiative.js';
 import {activityReport} from '../../../shared/activity-selectors.js';
 
@@ -23,7 +24,7 @@ export function initiativeReport(s, i, {from = '', to = '', groupId = ''} = {}) 
   const excuses = (s.excuses || []).filter(e => e.initiativeId === i.id && inRange(e.created, from, to) && inGroup(e.personId));
   const assignments = s.assignments.filter(a => groups.some(g => g.id === a.groupId) && a.status !== 'Cancelled');
   const subs = s.submissions.filter(x => assignments.some(a => a.id === x.assignmentId) && inRange(x.submitted, from, to));
-  const expected = assignments.reduce((n, a) => n + (a.studentId ? 1 : (groups.find(g => g.id === a.groupId)?.memberIds.length || 0)), 0);
+  const expected = assignments.reduce((n, a) => n + taskAudience(a, groups.find(g => g.id === a.groupId)).length, 0);
   const forms = s.forms.filter(f => f.initiativeId === i.id || (i.components || []).some(c => c.resourceId === f.id));
   const competitions = s.competitions.filter(c => (i.components || []).some(x => x.resourceId === c.id));
   const completions = (s.completions || []).filter(c => c.initiativeId === i.id && inGroup(c.personId));

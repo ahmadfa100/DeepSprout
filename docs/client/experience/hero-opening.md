@@ -27,7 +27,7 @@ python3 -m http.server 8791 --bind 127.0.0.1
 
 SVG is used for the illustrated stones because their current motion needs only transforms. Each stone has a separate outer transform, idle transform and aura. The shared 1600 × 1000 coordinate space and explicit layer ordering leave room for later front/back planes, stone wobble/fall and Reel choreography. Those later phases are not implemented.
 
-## Bimo V2
+## Azm V2
 
 Artboard: `Bimo V2`. State machine: `Bimo V2 narrative states`. Auto-bound model: `BimoV2`.
 
@@ -53,11 +53,11 @@ Times begin after the live rig is ready (or the bounded loading timeout). Text a
 | 0.1–1.7 s | Headline lines softly resolve from slight blur and vertical offsets. Body and CTAs follow. No letter bounce or typewriter. |
 | 0.48–2.22 s | Seven stones arrive from restrained individual offsets, with slight depth/rotation differences. |
 | 2.2–3.32 s | Staggered final corrections resolve into the 1–2–4 formation. |
-| 3.4–4.5 s | Stone auras illuminate sequentially; a warm green seed travels toward Bimo and the ground. A soft light sweep crosses “More living.” |
+| 3.4–4.5 s | Stone auras illuminate sequentially; a warm green seed travels toward Azm and the ground. A soft light sweep crosses “More living.” |
 | 4.36–5.93 s | Roots draw outward, leaves open and motes fade. |
 | After 5.93 s | Separate slow, reversible idle motion: 1–2 px stone drift, cloud/lake drift, tiny foliage rotation and soft root glow. The intro never automatically repeats. |
 
-`See how it works` replays deliberately. An unobtrusive corner pause button pauses both the scene and Rive. The focus check does not change Bimo's pose.
+`See how it works` replays deliberately. An unobtrusive corner pause button pauses both the scene and Rive. The focus check does not change Azm's pose.
 
 ## Performance and accessibility
 
@@ -85,4 +85,4 @@ Phase images: A arrival, B alignment, C balanced, D growth, E idle. Additional s
 
 The supplied primary PNG was read from `Client/references/storyboards/hero-opening/less-scrolling-more-living.png`. The alternate `hero-opening-target.png` filename did not exist. The supplied SVG was read from Downloads (`DeepSprout_Figma_Editable_Text_Final 1.svg`); `hero-base.svg` did not exist. The SVG contains 786 paths, no text elements and only two groups: it is a flattened color trace, not separated editable scene objects. The story was provided in the Arabic attachment rather than `hero-story.md`. Both canonical reference sheets live under `Client/references/rive-v2/`.
 
-The scenery therefore follows the target's composition, palette and illustrated motifs with newly structured vector geometry rather than embedding its large traced asset or PNG. It has cleaner, flatter shading and fewer botanical details than the painted target. Bimo retains the approved V2 proportions, which are taller and slimmer than the generated target character. The final stones use small leaf veins and a deliberate 1–2–4 formation, never an orbit. On mobile the copy stacks above the scene, so the complete world extends beyond a short phone viewport. No subsequent narrative acts or product sections have been added.
+The scenery therefore follows the target's composition, palette and illustrated motifs with newly structured vector geometry rather than embedding its large traced asset or PNG. It has cleaner, flatter shading and fewer botanical details than the painted target. Azm retains the approved V2 proportions, which are taller and slimmer than the generated target character. The final stones use small leaf veins and a deliberate 1–2–4 formation, never an orbit. On mobile the copy stacks above the scene, so the complete world extends beyond a short phone viewport. No subsequent narrative acts or product sections have been added.

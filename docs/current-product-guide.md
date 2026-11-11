@@ -8,7 +8,7 @@
 
 ## What DeepSprout is
 
-DeepSprout is a digital wellbeing project for people who want to spend less time in unintentional short-form feeds and more time in meaningful activities. The personal experience combines a continuous Recovery Journey, usually organized into four-week cycles, with attention practices, a small offline routine, optional browser support, periodic Lab check-ins and source-labelled Insights. Bimo is the original companion used in welcoming and guidance. The Garden makes eligible participation visible; it is not a medical recovery score. Institutions, Coaches, invited Students, Outdoor Providers and Supervisors can also run real-world initiatives, programs and experiences in connected demonstration workspaces.
+DeepSprout is a digital wellbeing project for people who want to spend less time in unintentional short-form feeds and more time in meaningful activities. The personal experience combines a continuous Recovery Journey, usually organized into four-week cycles, with attention practices, a small offline routine, optional browser support, periodic Lab check-ins and source-labelled Insights. Azm is the original companion used in welcoming and guidance. The Garden makes eligible participation visible; it is not a medical recovery score. Institutions, Coaches, invited Students, Outdoor Providers and Supervisors can also run real-world initiatives, programs and experiences in connected demonstration workspaces.
 
 The **running website** is available through ASP.NET Core MVC Razor views in `src/DeepSprout.Web`, with existing CSS and JavaScript under `wwwroot`. Personal and partner records are kept in browser storage and seeded fixtures. It is a functional local demonstration, not a deployed clinical service, secure multi-user platform or payment system. The solution contains an EF Core SQL Server context, migrations and database validation tests. MVC page routing is implemented; server-backed product commands and authentication are not.
 
@@ -29,7 +29,7 @@ The **running website** is available through ASP.NET Core MVC Razor views in `sr
 
 | Page | Current purpose |
 | --- | --- |
-| [Home](../src/DeepSprout.Web/Views/Home/Index.cshtml) (`/` or `/index.html`) | Member-aware introduction with Bimo, four destination cards, this week's action, real-world ideas, available Provider opportunities, a visual journey, community preview and next actions. |
+| [Home](../src/DeepSprout.Web/Views/Home/Index.cshtml) (`/` or `/index.html`) | Member-aware introduction with Azm, four destination cards, this week's action, real-world ideas, available Provider opportunities, a visual journey, community preview and next actions. |
 | [Story landing](../src/DeepSprout.Web/Views/Public/Landing.cshtml) | Earlier scroll-driven “Break the Loop” public narrative. It remains a separate page. |
 | [Pricing](../src/DeepSprout.Web/Views/Public/Pricing.cshtml) | Free and Plus comparison and explanatory sections. Displayed prices and upgrade controls are a prototype; checkout is not connected. |
 | [Register](../src/DeepSprout.Web/Views/Auth/Register.cshtml) / [Login](../src/DeepSprout.Web/Views/Auth/Login.cshtml) | Individual entry and local form demonstration. No real email, social sign-in, password account service or server session. |
@@ -44,7 +44,7 @@ The links above point to the Razor view sources. [The MVC route manifest](../src
 
 | Page | What the person can see or do |
 | --- | --- |
-| [Onboarding](../src/DeepSprout.Web/Views/Member/Onboarding.cshtml) | Onboarding 2.0: Meet Bimo, exactly six questions with a top progress bar and save/resume, then “You’re ready to begin” and the story. No mandatory assessment. |
+| [Onboarding](../src/DeepSprout.Web/Views/Member/Onboarding.cshtml) | Onboarding 2.0: Meet Azm, exactly six questions with a top progress bar and save/resume, then “You’re ready to begin” and the story. No mandatory assessment. |
 | [Lab](../src/DeepSprout.Web/Views/Member/Lab.cshtml) and [assessment player](../src/DeepSprout.Web/Views/Member/Assessment.cshtml) | Digital Habits, Sustained Attention, Inhibitory Control and Depth Challenge are optional; attempt history, official/practice distinction and validity remain. Historical weekly records are kept; no new weekly window is generated. |
 | [Starting Point](../src/DeepSprout.Web/Views/Member/StartingPoint.cshtml) | Opens the Week 1 preview directly at Journey Level 1 (or explains optional Lab results when present), asks for an initial offline commitment, and activates the plan only after an explicit choice. Results are task evidence, not diagnosis. |
 | [Roadmap / Recovery Plan](../src/DeepSprout.Web/Views/Member/RecoveryPlan.cshtml) | Overview, This week, Adjust and History tabs; current action, four-week direction, routine and support tools. Changes apply to future work and preserve recorded history. |
@@ -121,7 +121,7 @@ The separate `/admin.html` legacy Admin uses `#/dashboard`, `#/users`, `#/activi
 
 ## End-to-end cycles
 
-1. **Personal recovery:** register locally → Meet Bimo → six questions → the story (watch or skip) → Home at Journey Level 1 with a Week 1 proposal → user-chosen plan activation (Lab assessments optional) → Home and Roadmap → practice/routine/optional Shield → weekly review → source-labelled Insights and earned Garden effects → another week or cycle. No official Lab reassessment is scheduled.
+1. **Personal recovery:** register locally → Meet Azm → six questions → the story (watch or skip) → Home at Journey Level 1 with a Week 1 proposal → user-chosen plan activation (Lab assessments optional) → Home and Roadmap → practice/routine/optional Shield → weekly review → source-labelled Insights and earned Garden effects → another week or cycle. No official Lab reassessment is scheduled.
 2. **Institution Initiative:** Representative builds/publishes an Initiative → it enters regular Explore → Individual applies → authorized Representative/Supervisor admission → group and Coach assignments → sessions, forms and participation → Supervisor facts and reports → Representative's received report inbox. One application, seat, session registration, attendance fact and completion record are distinct.
 3. **Institution staff and Supervisor:** Representative invites staff into a specific Initiative; Supervisor acts only after the relevant grant is active. The Supervisor handles roster, session attendance, excuses and operational Insights; Coach reports can be included in a submitted Supervisor summary. The Representative makes the final excuse decision. A new report inbox provides a readable received document, attachments and downloads.
 4. **Independent Coach Program:** Admin approves a Coach → Coach creates/publishes an invite-only Program and group → invitation is accepted by a matching person → Coach assigns tasks → Student submits → Coach approves, asks for revision or rejects → reporting and Group Garden reflect eligible evidence → Program completion preserves history. An optional Institution link does not transfer Program ownership.
@@ -134,7 +134,7 @@ The separate `/admin.html` legacy Admin uses `#/dashboard`, `#/users`, `#/activi
 
 | Layer | Present | Boundary |
 | --- | --- | --- |
-| MVC web app | Razor pages with browser-local Individual and partner commands, seeded demonstrations and original Bimo assets | Records and authorization can be changed by someone controlling the browser; no real identity, email, payment, server session or synchronized multi-user capacity. |
+| MVC web app | Razor pages with browser-local Individual and partner commands, seeded demonstrations and original Azm assets | Records and authorization can be changed by someone controlling the browser; no real identity, email, payment, server session or synchronized multi-user capacity. |
 | Browser extension | Optional MV3 Chrome extension for ten supported domain families on the documented local origins | No mobile app control, Reels-only detection, production distribution or authenticated server sync. Browser data is partial and local. |
 | Server/database | MVC page host; the approved [58-table design](architecture/database/README.md) as SQL script, EF Core model (`DeepSproutV5DbContext`) and two migrations verified on disposable databases. The older 129-table M1 code remains only for the historical `DeepSprout_Validation` database. | No page reads or writes SQL Server; production authorization and server persistence are not implemented. See the [persistence contract](architecture/database/persistence-contract.md). |
 | Product/design | [Target specification](../DeepSprout.md), [design guidance](../DESIGN.md) and dated implementation evidence | The target's older four-tree Garden decision conflicts with the newer one-main-plant design instruction. Preserve the current UI until that separate Garden task resolves the scene and evidence mapping. |

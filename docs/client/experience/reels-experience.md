@@ -13,7 +13,7 @@ original intro completion gate. The same seven DOM stones and the same 700×860
 Rive canvas remain mounted throughout. There is no scene reload or character swap.
 
 Two locally vendored Three.js 0.180.0 renderers composite back scene → approved
-Bimo Rive layer → front scene. Real camera-space Z assigns media, chips and debris
+Azm Rive layer → front scene. Real camera-space Z assigns media, chips and debris
 to the appropriate scene. Original foreground foliage fades only as the trap
 engulfs the world. Live HTML contains all primary narrative copy and controls.
 
@@ -26,7 +26,7 @@ Reproducibility: `scripts/reels/export-narrative.py`, `compare-frames.py`, and
 
 ## Narrative mapping
 
-| Progress | State | Bimo | Media and stones |
+| Progress | State | Azm | Media and stones |
 | --- | --- | --- | --- |
 | 0–.10 | Post Hero calm | DEEP FOCUS | Same balanced stack; no reels or decoders |
 | .10–.23 | Tiny distraction | Senses cue → opens eyes → NOTICE | One tiny peripheral chip; micro-vibration then settle |
@@ -51,7 +51,7 @@ Stones retain their original names and gain persistent DOM IDs `stone_01` throug
 quadratic fall, impact compression, then capture/scatter. They keep the original
 artwork; instanced environmental rubble adds fragments without replacing stones.
 
-## Bimo and media
+## Azm and media
 
 The approved native controller was sampled into nine clips: NOTICE, CONCERNED,
 OVERWHELMED, each with left/center/right external gaze. No RML, geometry, original
@@ -75,7 +75,7 @@ The throat uses a custom polar/logarithmic turbulence shader: continuous spiral
 arms, layered noise, violet/magenta emission, thin warm filaments and a dark core.
 Perspective ribbon meshes follow curved paths through the same center. Cards,
 faceted rubble and leaves populate front, middle and distant planes. Selected
-near-camera media samples receive blur. Gentle camera push/roll and Bimo recoil
+near-camera media samples receive blur. Gentle camera push/roll and Azm recoil
 increase after .70; the center migrates behind him as the trap takes over.
 
 The original illustrated environment remains underneath. A multiplying violet atmosphere, weakening roots, dimmer foliage and eventual shader
@@ -95,7 +95,7 @@ Reduced motion uses representative static stage compositions, zero ambient
 clock, and no video requests. Primary copy stays semantic HTML. Hidden hero
 buttons become inert; the pause control and existing focus-check dialog work.
 WebGL failure/context loss uses a static poster composition instead of a blank
-story. Original decoded Bimo posters remain available if Rive fails.
+story. Original decoded Azm posters remain available if Rive fails.
 
 Measured timings are in `validation.json`; they describe this Apple M3/Chrome
 session, not a device-independent frame-rate guarantee. Final continuous-scroll
@@ -112,13 +112,13 @@ and full-resolution 1440×900 and 1280×800 PNGs in the evidence directory.
 
 | Gold | Comparison / remaining deviation |
 | --- | --- |
-| 00 Calm | Same Hero V2 composition, seven stones, closed eyes and roots. Existing vector Bimo differs from the painted reference. A small scroll cue is added. |
+| 00 Calm | Same Hero V2 composition, seven stones, closed eyes and roots. Existing vector Azm differs from the painted reference. A small scroll cue is added. |
 | 01 Tiny distraction | Now a single peripheral chip, delayed NOTICE, and a small vibration/settle. Live narrative copy replaces the concept's hero wording. Original gold comparison captures predate this pacing refinement. |
-| 02 Temptation | Three spatial cards around Bimo and restrained paths. Supplied real media replaces the reference's dog/food/landscape imagery. |
+| 02 Temptation | Three spatial cards around Azm and restrained paths. Supplied real media replaces the reference's dog/food/landscape imagery. |
 | 03 Collapse | Original top stone visibly falls with a guarded reaction; seven cards. The original plateau is graded, not physically cracked or repainted. |
 | 04 Swarm | 10–16 cards, depth, leaves/rubble and growing violet funnel. Shader atmosphere is procedural rather than painted storm-cloud artwork. |
-| 05 Burst | Dominant luminous throat, foreground clipping/blur, debris, stolen-time chips, camera push. Approved Bimo has a subtler worried mouth/guarded pose than the reference's leaping expression. |
-| 06 Trap | Dense surrounding planes, smaller tilted Bimo, almost-obscured world, final DOM copy. Stones scatter/shrink rather than breaking into new illustrated glyph fragments. |
+| 05 Burst | Dominant luminous throat, foreground clipping/blur, debris, stolen-time chips, camera push. Approved Azm has a subtler worried mouth/guarded pose than the reference's leaping expression. |
+| 06 Trap | Dense surrounding planes, smaller tilted Azm, almost-obscured world, final DOM copy. Stones scatter/shrink rather than breaking into new illustrated glyph fragments. |
 
 This is a continuous authored implementation and a review candidate, not a
 pixel-identical reproduction or an assertion of user visual approval.
@@ -153,7 +153,7 @@ Early boundaries changed from **0/.08/.20/.36** to **0/.10/.23/.38**.
 The .52/.70/.88 boundaries and later choreography remain unchanged.
 
 - .10–.14: one small “1 new reel” chip fades in near the right edge. It drifts
-  slightly inward through .23; no card crosses Bimo during this introduction.
+  slightly inward through .23; no card crosses Azm during this introduction.
 - .155–.205: the existing native head/neck channels slowly blend toward NOTICE.
   Eye channels remain in deep focus until .18, then open through .21. Body
   channels blend during .19–.22; the emotion stage reaches NOTICE at .22.
@@ -179,5 +179,5 @@ native target progress ahead immediately while Stage 1 took **2,167 ms**;
 cue-to-head onset took **917 ms**, and NOTICE-to-card onset took **417 ms**.
 There were no page errors. Nine visual captures cover the early beats plus burst
 and trap. A 982-sample comparison against the previous commit confirmed identical
-stone poses from .38 and native Bimo bindings from .43 onward. Shader, media,
+stone poses from .38 and native Azm bindings from .43 onward. Shader, media,
 Hero architecture, artwork and styles remain unchanged.

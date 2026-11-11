@@ -1,5 +1,6 @@
 /*
- * Representative · Outdoor Activity → Attendance tab (read only).
+ * Representative · Outdoor Activity → Attendance tab: a summary per session
+ * with a link to the shared session attendance page.
  *
  * Attendance is recorded in one place: Supervisor → Attendance
  * (pages/supervisor/attendance-center.js). This tab shows the same records
@@ -31,14 +32,14 @@ function sessionCard(ctx, e, ss) {
     ? `<div class="table-scroll" tabindex="0" role="region" aria-label="${esc(`Attendance · ${ss.title}`)}"><table class="ac-table is-cards"><thead><tr><th scope="col">Participant</th><th scope="col">Attendance</th><th scope="col">Verification source</th><th scope="col">Recorded</th></tr></thead><tbody>${rows}</tbody></table></div>`
     : '<p class="ac-muted">No confirmed bookings for this session yet.</p>';
   return `<section class="ac-source iw-reveal"><div class="ac-source-head"><span class="ac-source-icon">${u.icon('calendar')}</span><div><h3>${esc(ss.title)}</h3><p>${esc(`${fmtDate(ss.date)} · ${ss.time}–${ss.endTime || ss.time} · ${ref.format === 'In-person' ? 'In person' : ref.format}`)}</p></div>${staff}</div>
-    <div class="ac-hero-status">${m.sources.map(chip).join('')}${m.finalized ? chip({label:'Finalized', tone:'positive'}) : ''}</div>
+    <div class="ac-hero-status">${m.sources.map(chip).join('')}${m.finalized ? chip({label:'Finalized', tone:'positive'}) : ''}${u.link('Open attendance', `organization/attendance/${ss.id}`, 'button quiet small')}</div>
     <p class="ac-muted">${esc(`${c.verified} verified (${c.present} present · ${c.late} late) · ${c.notRecorded} not recorded · ${c.review} in review · ${c.absent} absent`)}</p>${table}</section>`;
 }
 
 export function renderActivityAttendance(ctx, e) {
   const sessions = ctx.s.experienceSessions.filter(x => x.experienceId === e.id).slice().sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
   const intro = `<div class="ds-section-head"><div><p class="eyebrow">PRESENCE, CLEARLY RECORDED</p><h2>Attendance</h2></div></div>
-    <p class="ac-hint iw-reveal">${u.icon('shield')}The appointed Supervisor records attendance in Supervisor → Attendance, from booking QR check-ins or a reasoned exception. You see the same records here, read only. Missing evidence stays Not Recorded; it is never counted as Absent on its own.</p>`;
+    <p class="ac-hint iw-reveal">${u.icon('shield')}Participants check in on the session’s check-in screen, or staff record a reasoned exception. Open a session’s attendance to run the screen or add a participant. Missing evidence stays Not Recorded; it is never counted as Absent on its own.</p>`;
   if (!sessions.length) return intro + '<p class="ac-muted">Add a session to the schedule first. Each check-in belongs to a specific session.</p>';
   return intro + `${sessions.map(ss => sessionCard(ctx, e, ss)).join('')}`;
 }

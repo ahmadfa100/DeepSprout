@@ -7,7 +7,7 @@
  * registration, factual attendance, excuse, Coach report and Supervisor
  * summary. Reports, Explore cards and Gardens are derived from these.
  */
-import {institutionApproved,id,now,nowMs,clockISO,requireThat,find,textRequired,numberIn,notify} from '../domain.js';
+import {institutionApproved,id,now,nowMs,clockISO,requireThat,find,textRequired,numberIn,notify,pickedTask,taskAudience} from '../domain.js';
 import {displayCode,bookingCode} from '../migrate.js';
 import {MAX_SUPERVISORS,SEATED,REAPPLY_BLOCKED,seatCap,seatsUsed,queue,activeGrantsFor,isActiveSupervisor,isActiveCoach,isRepresentative,representativesOf,registrationState,sessionRegistrationOpen,modeCapacity,confirmedInMode,assignedActiveSupervisors,today} from '../initiative-rules.js';
 import {startTask,submitTask} from './mentorship.js';
@@ -68,7 +68,7 @@ function eligibleAge(initiative, age) {
 }
 function removeFromGroups(s, initiativeId, personId, actor, action) {
   for (const g of s.groups.filter(x => x.parentType === 'initiative' && x.initiativeId === initiativeId && x.memberIds.includes(personId))) {
-    for(const a of s.assignments.filter(a=>a.groupId===g.id&&(!a.studentId||a.studentId===personId)))a.recipientIds=[...new Set([...(a.recipientIds||[]),personId])];
+    for(const a of s.assignments.filter(a=>a.groupId===g.id&&!pickedTask(a)&&(!a.studentId||a.studentId===personId)))a.recipientIds=[...new Set([...(a.recipientIds||[]),personId])];
     g.memberIds = g.memberIds.filter(x => x !== personId);
     (g.memberHistory ||= []).push({personId, action, at:now(), actorId:actor});
   }
@@ -629,7 +629,7 @@ export function groupMetrics(s, g, from, to) {
   const assignments = s.assignments.filter(a => a.groupId === g.id && a.status !== 'Cancelled');
   const subs = s.submissions.filter(x => assignments.some(a => a.id === x.assignmentId));
   const periodSubs = subs.filter(x => inPeriod(x.submitted, from, to));
-  const expected = assignments.reduce((n, a) => n + (a.studentId ? 1 : g.memberIds.length), 0);
+  const expected = assignments.reduce((n, a) => n + taskAudience(a, g).length, 0);
   const overdue = assignments.filter(a => a.due < (to || '9999')).reduce((n, a) => n + (a.studentId ? [a.studentId] : g.memberIds).filter(pid => !subs.some(x => x.assignmentId === a.id && x.studentId === pid && x.status === 'Approved') && !subs.some(x => x.assignmentId === a.id && x.studentId === pid && x.status === 'Submitted')).length, 0);
   return {members:g.memberIds.length, assignments:assignments.length, expectedSubmissions:expected, submitted:periodSubs.length, approved:periodSubs.filter(x => x.status === 'Approved').length, needsRevision:periodSubs.filter(x => x.status === 'Needs Revision').length, rejected:periodSubs.filter(x => x.status === 'Rejected').length, awaitingReview:subs.filter(x => x.status === 'Submitted').length, overdue};
 }

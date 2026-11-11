@@ -59,6 +59,49 @@ export function assignedSessions(s, personId) {
   return out;
 }
 
+/** Every live session an Institution Representative can run attendance for. */
+export function institutionSessions(s, personId) {
+  const out = [];
+  for (const ss of s.sessions || []) {
+    if (ss.status !== 'Published' || ss.attendanceRequired === false) continue;
+    const ref = sessionRef(s, ss.id);
+    if (ref && !['Cancelled', 'Archived'].includes(ref.parent.status) && isRepresentative(s, {ownerId:ref.parent.ownerId}, personId)) out.push(ref);
+  }
+  for (const es of s.experienceSessions || []) {
+    const ref = sessionRef(s, es.id);
+    if (ref && ['Published', 'Active', 'Completed'].includes(ref.parent.status) && isRepresentative(s, {ownerId:ref.parent.ownerId}, personId)) out.push(ref);
+  }
+  return out;
+}
+
+/* ---------------------------------------------------------- venue QR */
+
+/**
+ * The check-in screen shows a code that changes every VENUE_SLOT_MS. A code
+ * stays valid for the current and the two previous slots (about a minute),
+ * so a photo of the screen sent home stops working quickly.
+ * Browser demo only: the secret sits in local storage, so this is not
+ * tamper-proof. The server design (AttendanceQrService) signs codes instead.
+ */
+export const VENUE_SLOT_MS = 20000;
+const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const fnv = text => { let h = 0x811c9dc5; for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h >>> 0; };
+export const venueSlot = s => Math.floor(nowMs(s) / VENUE_SLOT_MS);
+export function venueCode(ss, slot) {
+  const secret = ss?.checkinScreen?.secret;
+  if (!secret) return null;
+  const a = fnv(`${secret}:${ss.id}:${slot}`), b = fnv(`${slot}:${secret}:${ss.id}`);
+  let out = '';
+  for (let i = 0; i < 6; i++) out += CODE_ALPHABET[((i < 3 ? a : b) >>> ((i % 3) * 10)) & 31];
+  return out;
+}
+export function venueCodeValid(s, ss, code) {
+  const value = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, ''), slot = venueSlot(s);
+  return Boolean(value) && [0, 1, 2].some(k => venueCode(ss, slot - k) === value);
+}
+/** Where the participant's phone lands after scanning: their own check-in page. */
+export const selfCheckinPath = (ref, code) => `${ref.kind === 'initiative' ? 'student' : 'participant'}/checkin/${ref.ss.id}${code ? `?c=${code}` : ''}`;
+
 /* ------------------------------------------------------------- roster */
 
 const recordOf = (s, ref, entry) => ref.kind === 'initiative'
@@ -227,11 +270,11 @@ export function buildPreview(s, ref, records, viewerId) {
 
 const METHOD_LABELS = {
   'qr':'QR scan', 'booking-code':'Booking code', 'online-verified':'Online roster (earlier record)', 'manual-exception':'Manual exception', 'roster':'Marked absent (earlier record)',
-  'close-out':'Not checked in at close', 'report-import':'Report import', 'review-resolved':'Reviewed import', 'finalized':'Finalized · no check-in', 'finalized-report':'Finalized · not in the complete report'
+  'close-out':'Not checked in at close', 'venue-qr':'Self check-in · venue QR', 'report-import':'Report import', 'review-resolved':'Reviewed import', 'finalized':'Finalized · no check-in', 'finalized-report':'Finalized · not in the complete report'
 };
 export const methodLabel = m => { const base = String(m || '').split(' ·')[0]; return METHOD_LABELS[base] ? METHOD_LABELS[base] + (String(m).includes('corrected') ? ' · corrected' : '') : String(m || 'Recorded'); };
 export const importsFor = (s, sessionId) => (s.attendanceImports || []).filter(x => x.sessionId === sessionId).sort((a, b) => String(b.at).localeCompare(String(a.at)));
-const finalizedOf = (ref, viewerId) => ref.kind === 'initiative' ? ref.ss.attendanceFinalized || (ref.ss.closedOut ? {at:null, legacy:true} : null) : (ref.ss.closedBy || []).find(x => x.actorId === viewerId) || null;
+const finalizedOf = (ref, viewerId) => ref.kind === 'initiative' ? ref.ss.attendanceFinalized || (ref.ss.closedOut ? {at:(ref.ss.history || []).findLast(h => /Attendance closed/.test(h.change || ''))?.at || null, legacy:true} : null) : (ref.ss.closedBy || []).find(x => x.actorId === viewerId) || null;
 export function pendingExcuses(s, ref, role = 'supervisor') {
   if (ref.kind !== 'initiative') return [];
   return (s.excuses || []).filter(e => e.sessionId === ref.ss.id && (role === 'representative' ? e.status === 'Recommended' : e.status === 'Submitted'));

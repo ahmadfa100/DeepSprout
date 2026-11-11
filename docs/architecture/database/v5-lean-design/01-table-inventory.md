@@ -105,7 +105,7 @@
 
 - **Purpose:** The personal (Individual) workspace and journey: onboarding stage, Journey Level, goal, versioned setup answers, preferences, Shield settings.
 - **بالعربي:** المساحة الشخصية: مرحلة الإعداد والهدف والتفضيلات وإعدادات Shield.
-- **Feature using it:** Onboarding 2.0 (Register → Meet Bimo → six questions → HeroReels story → Home), Profile, Shield → Usage Reminder.
+- **Feature using it:** Onboarding 2.0 (Register → Meet Azm → six questions → HeroReels story → Home), Profile, Shield → Usage Reminder.
 - **Why it is independent:** Exists only for people who enabled the Individual workspace (an invited student has none). Keeps Person narrow.
 - **Keys:** PK `Id`; FKs: PersonId → Person, LastAssessmentAttemptId → AssessmentAttempt
 - **Unique:** (PersonId)

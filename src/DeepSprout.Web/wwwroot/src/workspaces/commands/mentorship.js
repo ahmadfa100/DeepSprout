@@ -1,7 +1,7 @@
 import {assignmentDefinition} from '../activity-contract.js';
-import {taskBlockReason,institutionApproved,id,now,nowMs,clockDay,requireThat,find,textRequired,numberIn,dates,ownGroup,ownProgram,reward,audit,notify} from '../domain.js';
+import {taskBlockReason,taskIsFor,taskAudience,pickedTask,institutionApproved,id,now,nowMs,clockDay,requireThat,find,textRequired,numberIn,dates,ownGroup,ownProgram,reward,audit,notify} from '../domain.js';
 import {isActiveCoach,practiceTypeOf} from '../initiative-rules.js';
-import {requireIndependentCoach,isProgramGroup,programOf,programGroups,syncProgramGroups,normalizeProgram,invitationStatus,completionStatus,programMetrics,isEmail,PROGRAM_BUILDABLE,DEFAULT_COMPLETION} from '../coach-rules.js';
+import {fileRefs,cleanEvaluation,MAX_TASK_FILES,requireIndependentCoach,isProgramGroup,programOf,programGroups,syncProgramGroups,normalizeProgram,invitationStatus,completionStatus,programMetrics,isEmail,PROGRAM_BUILDABLE,DEFAULT_COMPLETION} from '../coach-rules.js';
 
 /**
  * One assignment engine for both parents (master §13.1): an independent
@@ -27,19 +27,22 @@ function programWorkOpen(s,g){
 }
 /** Where a person reads their tasks: the regular Individual Activities page, or the limited Student workspace. */
 const taskLink=(s,pid,assignmentId)=>s.people.find(p=>p.id===pid)?.individual?'src/pages/member/training/training.html#assigned':`workspaces.html#/student/tasks${assignmentId?`/${assignmentId}`:''}`;
-const recipients=(g,a)=>a.studentId?[a.studentId]:g.memberIds;
+const recipients=(g,a)=>taskAudience(a,g);
 
-export function startTask(s,p,actor){const a=find(s.assignments,p.id),g=find(s.groups,a.groupId);requireThat(a.status==='Active'&&memberOK(s,g,actor)&&(!a.studentId||a.studentId===actor),'This task is outside your membership.');programWorkOpen(s,g);requireThat(!taskBlockReason(s,a,g,actor),taskBlockReason(s,a,g,actor));s.taskDrafts[`${actor}:${a.id}`]={status:'In Progress',text:s.taskDrafts[`${actor}:${a.id}`]?.text||'',started:now()};}
+export function startTask(s,p,actor){const a=find(s.assignments,p.id),g=find(s.groups,a.groupId);requireThat(a.status==='Active'&&memberOK(s,g,actor)&&taskIsFor(a,actor),'This task is outside your membership.');programWorkOpen(s,g);requireThat(!taskBlockReason(s,a,g,actor),taskBlockReason(s,a,g,actor));s.taskDrafts[`${actor}:${a.id}`]={status:'In Progress',text:s.taskDrafts[`${actor}:${a.id}`]?.text||'',started:now()};}
 export function submitTask(s,p,actor){
   const a=find(s.assignments,p.assignmentId),g=find(s.groups,a.groupId);
-  requireThat(g.status!=='Archived'&&a.status==='Active'&&memberOK(s,g,actor)&&(!a.studentId||a.studentId===actor),'This task is no longer assigned to you.');
+  requireThat(g.status!=='Archived'&&a.status==='Active'&&memberOK(s,g,actor)&&taskIsFor(a,actor),'This task is no longer assigned to you.');
   programWorkOpen(s,g);
   requireThat(!taskBlockReason(s,a,g,actor),taskBlockReason(s,a,g,actor));
   const existing=s.submissions.find(x=>x.assignmentId===a.id&&x.studentId===actor);
   requireThat(!existing||['Needs Revision','Rejected'].includes(existing.status),'This task is already submitted.');
-  const text=textRequired(p.text,'Your reflection');
-  if(existing){existing.history.push({text:existing.text,status:existing.status,feedback:existing.feedback,created:existing.submitted,attempt:existing.attempt||1,assignmentVersion:existing.assignmentVersion||1,activityReference:structuredClone(existing.activityReference||null),instructionsSnapshot:existing.instructionsSnapshot||a.instructions});Object.assign(existing,{text,file:p.file||'',status:'Submitted',submitted:now(),attempt:(existing.attempt||1)+1,assignmentVersion:a.version||1,activityReference:structuredClone(a.definitionSnapshot||null),instructionsSnapshot:a.instructions});}
-  else s.submissions.push({id:id('submission'),assignmentId:a.id,studentId:actor,text,file:p.file||'',status:'Submitted',submitted:now(),feedback:'',history:[],attempt:1,assignmentVersion:a.version||1,activityReference:structuredClone(a.definitionSnapshot||null),instructionsSnapshot:a.instructions});
+  const files=fileRefs(p.files);requireThat(!Array.isArray(p.files)||p.files.length<=MAX_TASK_FILES,`Attach up to ${MAX_TASK_FILES} files.`);
+  // A file can stand in for the written reflection; with no file, the reflection is required.
+  const text=files.length?String(p.text||'').trim():textRequired(p.text,'Your reflection');
+  const file=files.map(f=>f.name).join(', ')||p.file||'';
+  if(existing){existing.history.push({text:existing.text,files:existing.files||[],evaluation:existing.evaluation||null,status:existing.status,feedback:existing.feedback,created:existing.submitted,attempt:existing.attempt||1,assignmentVersion:existing.assignmentVersion||1,activityReference:structuredClone(existing.activityReference||null),instructionsSnapshot:existing.instructionsSnapshot||a.instructions});Object.assign(existing,{text,file,files,evaluation:null,status:'Submitted',submitted:now(),attempt:(existing.attempt||1)+1,assignmentVersion:a.version||1,activityReference:structuredClone(a.definitionSnapshot||null),instructionsSnapshot:a.instructions});}
+  else s.submissions.push({id:id('submission'),assignmentId:a.id,studentId:actor,text,file,files,status:'Submitted',submitted:now(),feedback:'',history:[],attempt:1,assignmentVersion:a.version||1,activityReference:structuredClone(a.definitionSnapshot||null),instructionsSnapshot:a.instructions});
   delete s.taskDrafts[`${actor}:${a.id}`];
   const reviewer=g.parentType==='initiative'?g.coachId:(g.ownerId||a.ownerId);
   if(reviewer)notify(s,reviewer,`New submission for “${a.title}”.`,'workspaces.html#/mentor/reviews','review');
@@ -122,7 +125,7 @@ export function mentorshipCommand(s,action,p,actor) {
   }
   if(action==='mentor.member.remove') {
     requireIndependentCoach(s,actor);const g=ownGroup(s,actor,p.groupId);requireThat(g.memberIds.includes(p.personId),'This person is not a current member.');
-    for(const a of s.assignments.filter(a=>a.groupId===g.id&&(!a.studentId||a.studentId===p.personId))){a.recipientIds=[...new Set([...(a.recipientIds||[]),p.personId])];}
+    for(const a of s.assignments.filter(a=>a.groupId===g.id&&!pickedTask(a)&&(!a.studentId||a.studentId===p.personId))){a.recipientIds=[...new Set([...(a.recipientIds||[]),p.personId])];}
     g.memberIds=g.memberIds.filter(x=>x!==p.personId);
     const m=s.memberships.find(x=>x.groupId===g.id&&x.personId===p.personId&&['Active','Approved'].includes(x.status));
     if(m){m.status='Removed';history(m,actor,'Removed by Coach',{reason:p.reason||''});}else s.memberships.push({id:id('membership'),groupId:g.id,programId:g.programId||null,personId:p.personId,status:'Removed',created:now(),history:[{at:now(),actorId:actor,change:'Removed by Coach',reason:p.reason||''}]});
@@ -260,20 +263,41 @@ export function mentorshipCommand(s,action,p,actor) {
 
   /* ------------------------------------------------------ assignments */
   if(action==='mentor.assignment.create') {
-    const g=groupAuthority(s,actor,p.groupId);
-    requireThat(!['Archived','Completed','Closed'].includes(g.status),'Archived groups cannot receive assignments.');
-    if(isProgramGroup(g)){requireThat(g.programId,'Attach this group to one of your Programs first.');requireThat(find(s.programs,g.programId).status==='Published','Assign work only while the Program is published (not draft, paused, completed or cancelled).');}
+    // Audience: one group (optionally one student), hand-picked students (across groups), or every group the Coach teaches.
+    const audience=['students','all-groups'].includes(p.audience)?p.audience:'group';
+    const files=fileRefs(p.attachments);requireThat(!Array.isArray(p.attachments)||p.attachments.length<=MAX_TASK_FILES,`Attach up to ${MAX_TASK_FILES} files.`);
     requireThat(s.activityCatalog.some(x=>x.title===p.activity&&x.status==='Published'),'Choose a published activity.');
-    if(p.studentId)requireThat(g.memberIds.includes(p.studentId),'Choose a current member of this group.');
     if(p.start&&p.due)requireThat(p.due>=p.start,'The due date must follow the start date.');
-    const record={id:id('assignment'),ownerId:actor,groupId:g.id,studentId:p.studentId||null,
-      initiativeId:g.parentType==='initiative'?g.initiativeId:p.initiativeId||null,programId:isProgramGroup(g)?g.programId:p.programId||null,
-      ...assignmentDefinition(s,p.activity),activity:p.activity,practiceType:practiceTypeOf(p.activity),title:textRequired(p.title,'Title'),instructions:textRequired(p.instructions,'Instructions'),
-      evidence:p.evidence||'',start:p.start||'',due:textRequired(p.due,'Due date'),required:p.required!==false,review:p.review||'Coach review',
-      status:'Active',recipientIds:p.studentId?[p.studentId]:[...g.memberIds],created:now(),version:1,history:[]};
-    s.assignments.push(record);
-    for(const pid of recipients(g,record))notify(s,pid,`New task: ${record.title} · due ${record.due}.`,taskLink(s,pid,record.id),'task');
-    return record.id;
+    const checkGroup=g=>{requireThat(!['Archived','Completed','Closed'].includes(g.status),'Archived groups cannot receive assignments.');if(isProgramGroup(g)){requireThat(g.programId,'Attach this group to one of your Programs first.');requireThat(find(s.programs,g.programId).status==='Published','Assign work only while the Program is published (not draft, paused, completed or cancelled).');}return g;};
+    let plan=[];
+    if(audience==='all-groups'){
+      const gids=[...new Set(Array.isArray(p.groupIds)?p.groupIds:[])];requireThat(gids.length,'Choose at least one group.');
+      plan=gids.map(gid=>({g:checkGroup(groupAuthority(s,actor,gid)),studentIds:null}));
+    }else if(audience==='students'){
+      const pids=[...new Set(Array.isArray(p.studentIds)?p.studentIds:[])];requireThat(pids.length,'Choose at least one student.');
+      const pool=[...new Set([p.groupId,...(Array.isArray(p.groupIds)?p.groupIds:[])].filter(Boolean))].map(gid=>checkGroup(groupAuthority(s,actor,gid)));
+      const byGroup=new Map();
+      for(const pid of pids){const g=pool.find(x=>x.memberIds.includes(pid));requireThat(g,'Choose current members of your groups.');byGroup.set(g,[...(byGroup.get(g)||[]),pid]);}
+      plan=[...byGroup].map(([g,studentIds])=>({g,studentIds}));
+    }else{
+      const g=checkGroup(groupAuthority(s,actor,p.groupId));
+      if(p.studentId)requireThat(g.memberIds.includes(p.studentId),'Choose a current member of this group.');
+      plan=[{g,studentIds:p.studentId?[p.studentId]:null}];
+    }
+    const title=textRequired(p.title,'Title'),instructions=textRequired(p.instructions,'Instructions'),due=textRequired(p.due,'Due date');
+    const batch=plan.length>1?{id:id('batch'),kind:audience,size:plan.length}:null;
+    const ids=plan.map(({g,studentIds})=>{
+      const one=studentIds?.length===1?studentIds[0]:null,many=Boolean(studentIds&&studentIds.length>1);
+      const record={id:id('assignment'),ownerId:actor,groupId:g.id,studentId:one,...(many?{audience:'students'}:{}),
+        initiativeId:g.parentType==='initiative'?g.initiativeId:p.initiativeId||null,programId:isProgramGroup(g)?g.programId:p.programId||null,
+        ...assignmentDefinition(s,p.activity),activity:p.activity,practiceType:practiceTypeOf(p.activity),title,instructions,
+        evidence:p.evidence||'',start:p.start||'',due,required:p.required!==false,review:p.review||'Coach review',attachments:files,...(batch?{batch}:{}),
+        status:'Active',recipientIds:studentIds?[...studentIds]:[...g.memberIds],created:now(),version:1,history:[]};
+      s.assignments.push(record);
+      for(const pid of recipients(g,record))notify(s,pid,`New task: ${record.title} · due ${record.due}.`,taskLink(s,pid,record.id),'task');
+      return record.id;
+    });
+    return ids.length===1?ids[0]:ids;
   }
   if(action==='mentor.assignment.reschedule') {
     const a=find(s.assignments,p.id),g=groupAuthority(s,actor,a.groupId);programWorkOpen(s,g);requireThat(a.status==='Active','Only an active task can be rescheduled.');
@@ -302,8 +326,9 @@ export function mentorshipCommand(s,action,p,actor) {
     requireThat(sub.status==='Submitted','This submission has already been reviewed.');
     requireThat(['Approved','Needs Revision','Rejected'].includes(p.decision),'Choose a review decision.');
     if(p.decision!=='Approved')textRequired(p.feedback,'Feedback');
-    sub.status=p.decision;sub.feedback=p.feedback||'Your work has been approved. Thank you for taking this small step.';sub.internalNote=String(p.internalNote||'').trim();sub.reviewedBy=actor;sub.reviewedAt=now();
-    sub.history.push({decision:p.decision,feedback:sub.feedback,internalNote:sub.internalNote,actorId:actor,created:now(),attempt:sub.attempt||1,assignmentVersion:sub.assignmentVersion||a.version||1});
+    const evaluation=cleanEvaluation(p);
+    sub.status=p.decision;sub.evaluation=evaluation;sub.feedback=p.feedback||'Your work has been approved. Thank you for taking this small step.';sub.internalNote=String(p.internalNote||'').trim();sub.reviewedBy=actor;sub.reviewedAt=now();
+    sub.history.push({decision:p.decision,evaluation,feedback:sub.feedback,internalNote:sub.internalNote,actorId:actor,created:now(),attempt:sub.attempt||1,assignmentVersion:sub.assignmentVersion||a.version||1});
     if(p.decision==='Approved')reward(s,sub.id,sub.studentId,a.groupId,a.title,g.parentType==='initiative'?'Coach-reviewed Initiative task':'Coach-reviewed Program task',g.parentType==='initiative'?{initiativeId:g.initiativeId}:{programId:g.programId||null});
     notify(s,sub.studentId,`${a.title}: ${p.decision}.`,taskLink(s,sub.studentId,a.id),'review');
     audit(s,actor,p.decision,a.title,sub.feedback);return;

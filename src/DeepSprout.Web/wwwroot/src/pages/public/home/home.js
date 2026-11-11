@@ -1,6 +1,6 @@
 /**
  * Home — live cards and real numbers from the shared journey state, plus the
- * scroll-driven "how it works" journey that Bimo walks along.
+ * scroll-driven "how it works" journey that Azm walks along.
  */
 (() => {
   const Account = window.DeepSproutAccount;

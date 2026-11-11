@@ -1,6 +1,6 @@
-# Bimo Rive narrative rig
+# Azm Rive narrative rig
 
-This isolated Rive CLI 1.5.1 experiment builds an editable, full-body Bimo in
+This isolated Rive CLI 1.5.1 experiment builds an editable, full-body Azm in
 interactive FOCUS, DEEP FOCUS, NOTICE, CONCERNED, and OVERWHELMED. DEEP FOCUS is a pose within FOCUS,
 not a new emotional stage. Its proportions and colors follow the canonical artwork in
 `../../Client/references/bimo/bimo-original.png`, with parts guided by

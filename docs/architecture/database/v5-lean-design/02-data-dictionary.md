@@ -232,7 +232,7 @@ The personal (Individual) workspace and journey: onboarding stage, Journey Level
 
 **CHECK:** `CK_IndividualProfile_JourneyLevel`: JourneyLevel >= 1 · `CK_IndividualProfile_SetupAnswers`: (SetupAnswersJson IS NULL AND SetupAnswersVersion IS NULL) OR (SetupAnswersJson IS NOT NULL AND SetupAnswersVersion IS NOT NULL AND SetupAnswersVersion >= 1 AND LEFT(LTRIM(SetupAnswersJson), 1) = N'{')
 
-**Used by:** Onboarding 2.0 (Register → Meet Bimo → six questions → HeroReels story → Home), Profile, Shield → Usage Reminder.
+**Used by:** Onboarding 2.0 (Register → Meet Azm → six questions → HeroReels story → Home), Profile, Shield → Usage Reminder.
 
 ---
 
@@ -1614,7 +1614,7 @@ Admin-edited content with draft and published versions. Also stores the Garden R
 | TargetCode | nvarchar(120) |  |  |  |
 | VersionNo | int |  |  |  |
 | Status | nvarchar(16) |  | 'Draft' | Values: Draft, Published, Superseded |
-| PayloadJson | nvarchar(max) |  |  | JSON: The content: Bimo texts, Garden Rules (target garden.rules), site copy. |
+| PayloadJson | nvarchar(max) |  |  | JSON: The content: Azm texts, Garden Rules (target garden.rules), site copy. |
 | PublishedByPersonId | bigint | Y |  | FK → iam.Person |
 | PublishedAtUtc | datetime2(3) | Y |  |  |
 | CreatedAtUtc | datetime2(3) |  | SYSUTCDATETIME() |  |

@@ -16,7 +16,6 @@
 .auth-form .app-section .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
 .app-section .app-wide { grid-column: 1 / -1; }
 .app-hint { display: block; margin: -10px 0 14px; font-size: 12px; color: #7a877f; }
-.app-section .field select { appearance: auto; }
 
 .app-chips { margin: 0 0 18px; padding: 0; border: 0; }
 .app-chips legend { margin-bottom: 9px; padding: 0; font-size: 12px; font-weight: 500; }

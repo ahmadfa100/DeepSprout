@@ -20,7 +20,7 @@ export function createBimo({root,signal,isStopped,sceneTime}){
   async load(){
    if(!window.rive)return;
    rive.RuntimeLoader.setWasmUrl(new URL('../../../assets/vendor/rive/rive.wasm',import.meta.url).href);
-   const response=await fetch(new URL('../../../assets/hero-v2/motion-clips.json',import.meta.url));if(!response.ok)throw Error('Bimo motion asset unavailable');const clips=await response.json();
+   const response=await fetch(new URL('../../../assets/hero-v2/motion-clips.json',import.meta.url));if(!response.ok)throw Error('Azm motion asset unavailable');const clips=await response.json();
    if(disposed)return;
    await new Promise(resolve=>{
     instance=new rive.Rive({canvas,src:new URL('../../../assets/hero-v2/bimo.riv',import.meta.url).href,artboard:'Bimo V2',stateMachine:'Bimo V2 narrative states',autoBind:true,autoplay:true,layout:new rive.Layout({fit:rive.Fit.Contain,alignment:rive.Alignment.Center}),onLoad:()=>{

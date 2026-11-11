@@ -8,7 +8,7 @@ import * as u from '../../ui.js';
 import * as ds from '../../ds.js';
 import {sessionRoster} from '../../../shared/selectors.js';
 import {summary} from '../institution/common.js';
-import {clockDay} from '../../domain.js';
+import {clockDay,taskIsFor} from '../../domain.js';
 import {timelineEvents, renderTimeline, scopeFor} from '../../timeline.js';
 
 const ATT = [{key:'present', label:'Present', tone:'good'}, {key:'late', label:'Late', tone:'warning'}, {key:'absent', label:'Absent', tone:'critical'}, {key:'none', label:'Not recorded', tone:'muted'}];
@@ -27,7 +27,7 @@ export function attendanceRows(s, sessions) {
 export function taskRows(s, groups) {
   return groups.map(g => {
     const v = {approved:0, submitted:0, revision:0, open:0};
-    for (const a of s.assignments.filter(a => a.groupId === g.id && a.status === 'Active')) for (const pid of g.memberIds.filter(pid => !a.studentId || a.studentId === pid)) {
+    for (const a of s.assignments.filter(a => a.groupId === g.id && a.status === 'Active')) for (const pid of g.memberIds.filter(pid => taskIsFor(a, pid))) {
       const sub = s.submissions.find(x => x.assignmentId === a.id && x.studentId === pid);
       if (!sub) v.open++; else if (sub.status === 'Approved') v.approved++; else if (sub.status === 'Needs Revision') v.revision++; else if (sub.status === 'Submitted') v.submitted++; else v.open++;
     }

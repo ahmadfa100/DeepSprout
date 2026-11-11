@@ -126,6 +126,32 @@ The service issues passes only during the in-person check-in window for active p
 
 This is a backend foundation, **not a live production endpoint**. The current browser demo still shows and checks its own local codes. Once server identity is adopted, a controller must derive the participant and Supervisor IDs from authenticated claims, add anti-forgery and rate limiting, then connect the participant pass and Supervisor scanner to these methods. It must not accept actor IDs from request bodies. The server service is registered only when the V5 connection is configured; no migration or protected database was touched in this change.
 
+## Redesign, 11 November 2026
+
+Owner feedback: the center was hard to read and attendance felt buried. One page now serves both roles.
+
+| Who | Overview | One session |
+|---|---|---|
+| Supervisor | `#/supervisor/attendance` | `#/supervisor/attendance/<sessionId>` |
+| Representative | `#/organization/attendance`, with tabs Sessions · Attendance record · Excuses (`?view=record`, `?view=excuses`) | `#/organization/attendance/<sessionId>` |
+
+**Overview.** A spotlight card shows the live or next session with one next step chosen from its format and time: *Open check-in screen*, *Upload meeting report*, *Review rows*, *Finalize attendance*. Every row has an attendance ring and the same next-step button. Filters: All sessions, Needs attention, Completed (`?filter=`).
+
+**Session page.** It reads top to bottom instead of using tabs: a hero with the attendance ring and legend, then three numbered sections and the history.
+1. **Take attendance**, chosen by format. In person: the check-in screen card, live arrivals, and a folded *Other ways* panel (booking code, camera scan of a pass, mark present by hand). Online: drop the participant report; the people found are listed with minutes bars against the 75% line, then confirmed. Hybrid: both, labelled by mode.
+2. **Participants**: status filter pills, search, and **Add a student**. A student can be added as *Present*, *Late* or *Add only* (Present and Late only once check-in opens).
+3. **Excuses & reviews**: report rows to review and the session's excuses. The Supervisor recommends; the Representative accepts or rejects on the same page.
+
+A *Finish attendance* band appears only when someone is still Not Recorded after check-in closes. History and imports are folded at the end.
+
+**Check-in screen** (`…/attendance/<sessionId>/screen`). A full-screen display for a projector or tablet: a large QR, the six-character code, a countdown bar, the live count and arrivals. The code changes every 20 seconds and is accepted for the current and two previous slots (about a minute), so a photo sent home stops working. Escape or *Close* returns to the session.
+
+**Participant check-in** (`#/student/checkin/<sessionId>?c=CODE`, or `#/participant/checkin/…` for Outdoor Activities). Scanning opens it and checks the participant in at once. Without a camera, they type the code. Only confirmed in-person participants can check in, only while the window is open; a second scan returns the existing record.
+
+New commands: `attendance.screen.open` (staff; creates the session's screen secret) and `attendance.self.checkin` (participant). `attendance.participant.add` accepts an optional `status`. New record method: `venue-qr`.
+
+Browser demo only: the screen secret is stored in local storage, so these codes are not tamper-proof. The server design remains `AttendanceQrService` (signed, expiring payloads). No table was added.
+
 ## Open owner decisions
 
 1. **Import batches have no table in the approved 58.** Options: add `session.AttendanceImport` (needs owner approval under `AGENTS.md`), or store batches in `ops.AuditEvent` with `files.SecureFile`.

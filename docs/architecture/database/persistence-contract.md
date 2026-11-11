@@ -55,7 +55,7 @@ The string person IDs in the browser (`p-ahmad`, `person-<uuid>`) are not SQL ID
 
 ## 3. Onboarding 2.0 contract
 
-**Flow:** Register → Meet Bimo → six Quick Setup questions → HeroReels story (watch or skip) → Home at Journey Level 1 with a preliminary Week 1 plan → the person reviews it and chooses **Activate my plan**. No Lab assessment is required at any step.
+**Flow:** Register → Meet Azm → six Quick Setup questions → HeroReels story (watch or skip) → Home at Journey Level 1 with a preliminary Week 1 plan → the person reviews it and chooses **Activate my plan**. No Lab assessment is required at any step.
 
 **Setup answers (`SetupAnswersVersion = 2`).** One JSON object, stored with its version; the database rejects answers without a version, a version without answers, and anything that is not a JSON object.
 
@@ -80,8 +80,8 @@ The string person IDs in the browser (`p-ahmad`, `person-<uuid>`) are not SQL ID
 
 | Browser state (mirror + journal) | Stage |
 |---|---|
-| Registered, Meet Bimo not finished | `Started` |
-| Meet Bimo seen or a Quick Setup draft exists, setup not saved | `QuickSetup` |
+| Registered, Meet Azm not finished | `Started` |
+| Meet Azm seen or a Quick Setup draft exists, setup not saved | `QuickSetup` |
 | Setup saved, story in progress (server-side flows only; the browser does not record it) | `Story` |
 | Setup saved, no plan activated | `Home` |
 | `plan.activate` recorded | `Activated` |

@@ -27,7 +27,7 @@ Codex added `JourneyLevel` to `recovery.RecoveryJourney`, `SetupVersion` and `Se
 
 The original migration note follows unchanged.
 
-**Current product contract (7 November 2026):** Register → Meet Bimo → six quick setup questions → HeroReels story (watch or skip) → Home at Journey Level 1. Home offers a preliminary personalized Week 1 plan. Activation happens only after the person reviews the preview and chooses **Activate my plan**. No Lab assessment is required. The previous eight-question and four-baseline first-run paths, and the automatic weekly Lab pair, are superseded.
+**Current product contract (7 November 2026):** Register → Meet Azm → six quick setup questions → HeroReels story (watch or skip) → Home at Journey Level 1. Home offers a preliminary personalized Week 1 plan. Activation happens only after the person reviews the preview and chooses **Activate my plan**. No Lab assessment is required. The previous eight-question and four-baseline first-run paths, and the automatic weekly Lab pair, are superseded.
 
 ### Observed ownership and affected records
 

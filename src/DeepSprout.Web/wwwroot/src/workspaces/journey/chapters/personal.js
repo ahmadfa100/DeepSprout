@@ -6,8 +6,8 @@ export default f => ({
     {
       id: 'pers-start', overview: true,
       title: 'A more intentional start',
-      summary: 'A new Individual meets Bimo, answers six quick setup questions about goals, distractions, scrolling and offline life, then watches or skips the HeroReels story and reaches Home at Journey Level 1.',
-      brief: 'Meet Bimo, answer six setup questions, then watch or skip the story.',
+      summary: 'A new Individual meets Azm, answers six quick setup questions about goals, distractions, scrolling and offline life, then watches or skips the HeroReels story and reaches Home at Journey Level 1.',
+      brief: 'Meet Azm, answer six setup questions, then watch or skip the story.',
       show: ['individual', 'setup'],
       at: { individual: [300, 270], setup: [700, 270] },
       edges: ['individual>setup'], flows: ['individual>setup'], token: 'spark',

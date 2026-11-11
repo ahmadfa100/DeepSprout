@@ -6,7 +6,7 @@
 
 ## Implemented
 
-- The served MVC Individual route remains Meet Bimo → six quick questions → HeroReels (watch or skip) → Home. It stores a preliminary Week 1 proposal; only the plan preview's **Activate my plan** control creates a plan.
+- The served MVC Individual route remains Meet Azm → six quick questions → HeroReels (watch or skip) → Home. It stores a preliminary Week 1 proposal; only the plan preview's **Activate my plan** control creates a plan.
 - Browser first-run state starts at Journey Level 1. A legacy stored Level 0 is read as Level 1 without resetting a plan, earned practice levels, attempts, or history. Profile and Home label this as a journey starting point rather than a cognitive or recovery score.
 - Lab assessments remain optional. Previously recorded attempts, versions, scores and window IDs are unchanged. The old automatic weekly window no longer schedules official tasks; no new reassessment policy is inferred. Insights shows missing results as unknown.
 - `IndividualProfile` gains nullable versioned JSON setup fields and accepts the new `QuickSetup`, `Story`, and `Home` stages while retaining historical stages and same-person assessment links. `RecoveryJourney` gains a Level 1 default and a positive-level constraint. These are schema preparations; browser answers are **not** synchronized to SQL Server.

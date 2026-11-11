@@ -9,7 +9,7 @@ Each folder contains original screenshots, measurements, reports, or recordings 
 | `hero-opening/` | First hero phase and responsive captures |
 | `hero-v2/` | V2 phases, gold comparisons, and validation report |
 | `hero-v2-patch/` | Transition sequences, lifecycle checks, and ambient patch |
-| `hero-v2-bimo-continuity/` | Before/after Bimo captures and measurements |
+| `hero-v2-bimo-continuity/` | Before/after Azm captures and measurements |
 | `reels/` | Reels sequence, recordings, and lifecycle reports |
 | `reels-pacing/` | Reels timing and narrative pacing |
 | `vortex-clarity/` | Desktop, mobile, reduced-motion, and fallback checks |

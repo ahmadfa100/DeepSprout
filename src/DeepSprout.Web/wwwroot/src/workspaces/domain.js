@@ -79,10 +79,14 @@ export function requireBookingEligibility(s,e,b) {
   if(b.eligibility){requireThat(b.eligibility.consent&&b.eligibility.version===(e.version||1)&&b.eligibility.age>=Number(e.minAge||0)&&(!e.maxAge||b.eligibility.age<=Number(e.maxAge)),'Eligibility or consent changed. Cancel and submit a new booking.');}
   requireThat(!s.bookings.some(x=>x.id!==b.id&&x.experienceId===e.id&&x.personId===b.personId&&!['Cancelled','Rejected','Offer Expired','Declined'].includes(x.status)),'You already have a booking for this Outdoor Activity.');
 }
+/** Who one task is for: hand-picked students, one student, or everyone currently in its group. */
+export const pickedTask=a=>a?.audience==='students'&&Array.isArray(a.recipientIds);
+export const taskIsFor=(a,personId)=>pickedTask(a)?a.recipientIds.includes(personId):!a.studentId||a.studentId===personId;
+export const taskAudience=(a,g)=>pickedTask(a)?[...a.recipientIds]:a.studentId?[a.studentId]:[...(g?.memberIds||[])];
 /** Shared task state for both Student and Individual reads and writes. Date-only deadlines include the entire Amman day. */
 export function taskBlockReason(s,a,g,personId,{window=true}={}) {
   if(a.status!=='Active')return 'This assignment is cancelled or inactive. Earlier work stays in your history.';
-  if(!g||!g.memberIds.includes(personId)||a.studentId&&a.studentId!==personId)return 'This task is outside your current membership.';
+  if(!g||!g.memberIds.includes(personId)||!taskIsFor(a,personId))return 'This task is outside your current membership.';
   if(['Archived','Completed','Closed','Cancelled','Suspended'].includes(g.status))return 'This group is not active.';
   if(g.parentType==='initiative'){
     const i=s.initiatives.find(i=>i.id===g.initiativeId);

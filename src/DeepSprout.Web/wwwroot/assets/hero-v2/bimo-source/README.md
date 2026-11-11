@@ -1,4 +1,4 @@
-# Bimo V2 hero export source
+# Azm V2 hero export source
 
 A derivative of `experiments/bimo-rive-v2`, retaining its original vector geometry,
 view model, state machine, `bimo_controller.luau` and `pose_library.luau`.

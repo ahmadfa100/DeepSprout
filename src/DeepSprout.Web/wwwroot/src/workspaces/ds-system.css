@@ -676,3 +676,23 @@ details.tl-row[open] { background: var(--ds-surface-2); }
   .ds-meter i, .ds-bar-track i { background: Highlight; }
   .ds-chip { border: 1px solid CanvasText; }
 }
+
+/* ---------------------------------------------------------------- native selects
+ * One calm dropdown look for every plain <select> in the workspaces: no OS
+ * chrome, a soft chevron, and the same hover/focus states as text inputs.
+ * Pickers (.iw-picker-native) and multi-selects keep their own behaviour. */
+select:not([multiple]):not([size]):not(.iw-picker-native) {
+  -webkit-appearance: none; appearance: none;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f6b4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; background-size: 18px;
+  text-overflow: ellipsis; cursor: pointer;
+  transition: border-color .18s, box-shadow .18s, background-color .18s;
+}
+.field select:not([multiple]):not([size]):not(.iw-picker-native) { border-radius: 12px; font-weight: 500; color: var(--ws-forest, #173e35); }
+select:not([multiple]):not([size]):not(.iw-picker-native):hover { border-color: #9cb79a; }
+select:not([multiple]):not([size]):not(.iw-picker-native):focus-visible { outline: none; border-color: #2f6b4a; box-shadow: 0 0 0 4px rgb(47 107 74 / 14%); }
+select:not([multiple]):not([size]):not(.iw-picker-native):disabled { opacity: .6; cursor: not-allowed; }
+select:not([multiple]):not([size]):not(.iw-picker-native):has(option[value=""]:checked) { color: #7a877f; }
+select option { color: #233e36; font-weight: 400; }
+.iw-scope.is-select select { padding-right: 26px; background-position: right 2px center; background-size: 16px; }

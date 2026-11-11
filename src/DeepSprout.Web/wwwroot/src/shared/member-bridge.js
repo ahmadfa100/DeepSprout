@@ -18,6 +18,8 @@ import * as selectors from './selectors.js';
 import {nowMs, clockDay} from '../workspaces/domain.js';
 import {labels, defaults} from '../workspaces/navigation.js';
 import * as attachments from './attachments.js';
+import * as taskKit from './task-kit.js';
+import {REVIEW_CRITERIA, REVIEW_LEVELS} from '../workspaces/coach-rules.js';
 
 const CHOICE_KEY = 'deepsprout-account-choice';
 const listeners = new Set();
@@ -37,6 +39,9 @@ function boundPerson(s) {
 const api = {
   selectors,
   attachments,
+  /** Shared look for Coach tasks (to-do list, files, evaluation) and the review vocabulary it shows. */
+  taskKit,
+  review:{criteria:REVIEW_CRITERIA, levels:REVIEW_LEVELS},
   /** Open restricted excuse evidence: the command checks permission and logs the access first. */
   async openEvidence(excuseId) {
     const ref = this.run('initiative.excuse.evidence', {id:excuseId});

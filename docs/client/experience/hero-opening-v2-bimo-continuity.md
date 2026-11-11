@@ -1,12 +1,12 @@
-# Bimo continuity — fixed stage
+# Azm continuity — fixed stage
 
-Scope: Bimo continuity only. Environment source artwork, environment motion, all seven stone assets, stone animation, the intro gate, hero copy, and the Rive artwork remain unchanged. No Reels work.
+Scope: Azm continuity only. Environment source artwork, environment motion, all seven stone assets, stone animation, the intro gate, hero copy, and the Rive artwork remain unchanged. No Reels work.
 
 ## Reproduction and remaining root cause
 
 Manually reloaded the existing in-app browser before editing, inspected full-page INTRO and focus screenshots, and observed the large character becoming smaller and moving down. Replay alone was not a reliable baseline: its old wrapper could retain the ending dimensions until the sizing tween ran again.
 
-The previous bitmap fix left `timeline.js` animating Bimo's wrapper from `{left:854, top:180, width:420, height:534}` to `{left:888, top:358, width:340, height:378}` between 3.8 and 5.4 seconds. `object-fit:contain` consequently changed the actual character scale and feet location. The remaining failure was visual/layout continuity: the baseline canvas remained painted, so alpha-only telemetry did not catch it. Its apparent height fell by about 80 pixels; the foot anchor moved almost 60 pixels vertically at 1440 × 900.
+The previous bitmap fix left `timeline.js` animating Azm's wrapper from `{left:854, top:180, width:420, height:534}` to `{left:888, top:358, width:340, height:378}` between 3.8 and 5.4 seconds. `object-fit:contain` consequently changed the actual character scale and feet location. The remaining failure was visual/layout continuity: the baseline canvas remained painted, so alpha-only telemetry did not catch it. Its apparent height fell by about 80 pixels; the foot anchor moved almost 60 pixels vertically at 1440 × 900.
 
 The full-scene first-paint image also baked in the larger INTRO character. That duplicate could bypass a fixed wrapper and stretch differently at another viewport aspect ratio.
 
@@ -18,7 +18,7 @@ The full-scene first-paint image also baked in the larger INTRO character. That 
 - The renderer remains `opacity:1`; matching decoded poster images cover initialization and fade away after painted frames exist.
 - INTRO uses the same containment as DEEP FOCUS from the beginning. The original native head, arms, torso and eye motion play internally.
 - The original controller's planted-leg calculation runs after clip blending, maintaining both foot anchors despite torso settling and breathing. Rive artwork and native source scripts are unchanged.
-- The existing scene poster is rendered from the same environment and seven ground stones with Bimo excluded. His one persistent stage sits above it, including first paint. This eliminates the duplicated large character.
+- The existing scene poster is rendered from the same environment and seven ground stones with Azm excluded. His one persistent stage sits above it, including first paint. This eliminates the duplicated large character.
 
 ## Measurements at 1440 × 900
 
@@ -46,6 +46,6 @@ Fixed apparent character height is approximately 338.4–339.7 pixels (less than
 
 The measurements include stage and parent rectangles, CSS sizes, bitmap dimensions, transform/origin, visibility, opacity, runtime status, Rive emotion inputs, native transform channels, calculated foot anchors, rendered sole bounds, and painted pixel counts. Live frames are also checked at animation-frame cadence for visible painted pixels and the same canvas identity.
 
-Additional Bimo checks cover narrow layout, Rive delayed by 5.6 seconds, pause/resume during the transition, replay, aggressive scroll, reduced motion, and JavaScript-free first paint. Preservation hashes document every unchanged environment/stone asset and module.
+Additional Azm checks cover narrow layout, Rive delayed by 5.6 seconds, pause/resume during the transition, replay, aggressive scroll, reduced motion, and JavaScript-free first paint. Preservation hashes document every unchanged environment/stone asset and module.
 
 Run `tests/hero-opening-v2-bimo-continuity.test.cjs` for the 100 ms audit and screenshots; run `tests/hero-opening-v2-bimo-lifecycle.test.cjs` for lifecycle regressions. `PLAYWRIGHT_MODULE` and `CHROME_PATH` can select locally installed tools; `HERO_URL` or the first CLI argument selects the local server.

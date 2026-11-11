@@ -192,15 +192,15 @@ After authentication, the MVC application resolves identity, onboarding state, w
 
 ---
 
-# 4. Individual onboarding: Bimo, six questions, the story and Journey Level 1
+# 4. Individual onboarding: Azm, six questions, the story and Journey Level 1
 
-> **Onboarding 2.0 (November 2026) supersedes the earlier first-run sequence** (Meet Bimo → Before We Begin → eight-question setup → four mandatory assessments → Starting Point → plan). The four Lab assessments remain available as **optional** activities and historical records; they never block onboarding, Home or plan activation.
+> **Onboarding 2.0 (November 2026) supersedes the earlier first-run sequence** (Meet Azm → Before We Begin → eight-question setup → four mandatory assessments → Starting Point → plan). The four Lab assessments remain available as **optional** activities and historical records; they never block onboarding, Home or plan activation.
 
 ## 4.1 End-to-end first-run sequence
 
 ```mermaid
 flowchart TD
-  A[Individual signup] --> B[Meet Bimo]
+  A[Individual signup] --> B[Meet Azm]
   B --> C[Quick Setup: exactly six questions, one at a time]
   C --> D[Transition: You're ready to begin]
   D --> E[HeroReels story: new illustrated opening → You're not alone onward, unchanged]
@@ -213,9 +213,9 @@ flowchart TD
 - Completed users are never sent through the questions again: `onboarding.html` shows a short *Welcome back* state (story, Home, change answers). `onboarding.html?step=setup` re-opens the six questions with answers prefilled.
 - Unfinished setup resumes after a refresh on the same question with the same answers (saved after every change).
 
-## 4.2 Meet Bimo — one short welcome screen
+## 4.2 Meet Azm — one short welcome screen
 
-Original approved Bimo art only (`assets/hero-v2/bimo-awake.png`) on a warm ivory canvas with soft botanical accents and a subtle entrance. Copy: **Hi, I'm Bimo.** — *I'll help you make a little more room for what matters. Six short questions, a short story, and you're in.* One primary CTA **Let's Begin**; secondary **Skip the introduction** (skips this screen only). No marketing clutter. This screen is separate from the HeroReels story.
+Original approved Azm art only (`assets/hero-v2/bimo-awake.png`) on a warm ivory canvas with soft botanical accents and a subtle entrance. Copy: **Hi, I'm Azm.** — *I'll help you make a little more room for what matters. Six short questions, a short story, and you're in.* One primary CTA **Let's Begin**; secondary **Skip the introduction** (skips this screen only). No marketing clutter. This screen is separate from the HeroReels story.
 
 ## 4.3 Quick Setup — exactly six questions
 
@@ -238,7 +238,7 @@ After Question 6 the bar fills to 100%, the question leaves, and a minimal scene
 
 ## 4.3b The HeroReels story — new first half
 
-The first half (Bimo meditating, balanced stones, notifications, reels escalation, black hole) is replaced by an original hand-drawn sequence (`src/js/reels/dawn*.js`, `src/styles/reels/dawn.css`): an original faceless character in a sage sweater resting under a tree at sunrise → one Reel, then another → attention threads pulled from the sun, a flower and the tree toward the Reels → a choreographed storm of Reels around the person → night falls, the Reels fade to a few traces → one luminous thread that becomes the line *You're not alone* begins with. **Everything from "You're not alone" onward is unchanged**; a small adapter outside it (`thread-bridge.js`) carries the thread across the seam.
+The first half (Azm meditating, balanced stones, notifications, reels escalation, black hole) is replaced by an original hand-drawn sequence (`src/js/reels/dawn*.js`, `src/styles/reels/dawn.css`): an original faceless character in a sage sweater resting under a tree at sunrise → one Reel, then another → attention threads pulled from the sun, a flower and the tree toward the Reels → a choreographed storm of Reels around the person → night falls, the Reels fade to a few traces → one luminous thread that becomes the line *You're not alone* begins with. **Everything from "You're not alone" onward is unchanged**; a small adapter outside it (`thread-bridge.js`) carries the thread across the seam.
 
 ## 4.3c Home · Journey Level 1 — New Beginning
 
@@ -272,13 +272,13 @@ New users arrive at their real Individual Home at **Journey Level 1 — New Begi
 
 **Result scene:** `Your Starting Point` shows four distinct categories, valid task results and concise caveats. A clean, coordinated animation assembles the results; do not imply a medical diagnosis or common 0–100 brain score.
 
-**Plan-building scene:** a distinct, short illustrated transition: understanding goals → matching approved activity candidates → proposing a four-week roadmap → ready for review. Phase 1 should calculate from real demo inputs where feasible and label fixed demonstration behavior; the later service owns production computation. Bimo may appear contextually in one meaningful frame.
+**Plan-building scene:** a distinct, short illustrated transition: understanding goals → matching approved activity candidates → proposing a four-week roadmap → ready for review. Phase 1 should calculate from real demo inputs where feasible and label fixed demonstration behavior; the later service owns production computation. Azm may appear contextually in one meaningful frame.
 
 **Plan Preview:** user sees goal, proposed 28-day cycle, overall four-week direction, the *first detailed week*, recommended practice cadence, one chosen personal offline routine, and possible Shield support. The user can change permitted preferences and timing, see a recomputed preview if needed, then **Activate My Plan**. Do not start irreversible commitments merely because a preview was generated.
 
 **Product Tour:** short contextual overlays showing Home (next action), Recovery Plan (planning), Activities (execution), Digital Shield (protection), Garden (visual achievements), Insights (measurement), Lab (assessments) and Explore (initiatives/experiences). Tour should be skippable, replayable from Help and not a mandatory ten-step wizard.
 
-**Returning users:** use onboarding state to resume Bimo, an unfinished quick-setup question, the story or Home. Completed users are not required to answer the new questions again. Optional Lab attempts resume within Lab; partial attempts are never shown as completed results. Existing plans and progress remain intact.
+**Returning users:** use onboarding state to resume Azm, an unfinished quick-setup question, the story or Home. Completed users are not required to answer the new questions again. Optional Lab attempts resume within Lab; partial attempts are never shown as completed results. Existing plans and progress remain intact.
 
 ---
 
@@ -551,7 +551,7 @@ Every activity definition is versioned and has: category, goal tags, estimated t
 
 ## 9.1 Approved visual and ownership contract
 
-The **Personal Garden** is one fixed, large, clean white/ivory scene. It contains **exactly four distinct, comparatively small trees**, mapped one-to-one to Depth Practice, Listening & Recall, Practical Micro-Challenge, and Protected Work. There is **no central fifth journey tree**. Each existing type tree can progress through versioned, source-backed stages; a completion never plants another tree. The scene does not expand into beds, zones, paths, biomes, or a collection inventory. Home's preview must depict this same model. Bimo may celebrate an earned change, but manual watering grants nothing.
+The **Personal Garden** is one fixed, large, clean white/ivory scene. It contains **exactly four distinct, comparatively small trees**, mapped one-to-one to Depth Practice, Listening & Recall, Practical Micro-Challenge, and Protected Work. There is **no central fifth journey tree**. Each existing type tree can progress through versioned, source-backed stages; a completion never plants another tree. The scene does not expand into beds, zones, paths, biomes, or a collection inventory. Home's preview must depict this same model. Azm may celebrate an earned change, but manual watering grants nothing.
 
 A qualifying Offline Routine record may unlock a **small flower**; actual eligible session attendance may unlock a **rabbit**; verified eligible Institution camp completion may unlock a **birdhouse**. Decorations are bounded policy effects, not one object per check-in. Initiative Completion is recorded in history/reporting and may yield an Initiative collective milestone; it does not add a Personal Garden tree or decoration. Joining, booking, clicking, posting, a paid purchase, or an accepted absence excuse never grants an attendance reward.
 
@@ -618,7 +618,7 @@ Data coverage and tracking scope must be indicated. A disconnected extension mea
 
 ## 10.4 Insights page specification
 
-1. **Compact identity-rich hero:** `Understand Your Progress`; Bimo illustration optional but smaller than in the old half-page banner; clear data period and source-coverage controls.
+1. **Compact identity-rich hero:** `Understand Your Progress`; Azm illustration optional but smaller than in the old half-page banner; clear data period and source-coverage controls.
 2. **At-a-glance cards:** no more than a few credible metrics; currently tracked goal, due practice completion and offline routine, each with period/source.
 3. **Digital Usage:** dedicated well-labeled chart for supported site activity and goal threshold; separate reported phone-use summary if present.
 4. **Practice & Plan:** adherence and training level progress. Link to detailed Recovery Plan History rather than duplicating the entire heatmap.
@@ -799,7 +799,7 @@ These are target page requirements; current implementation categories are in §2
 | Public Home `index.html`, Landing `landing.html` | Product story, entry CTAs, feature/partner routes, legal/support links; responsive accessible motion | Public published content only; no fake live totals or placeholder links presented as working |
 | Register `register.html`; Partner `partners.html` / `#/auth/register` | Individual/Partner selection, direct Institution Representative profile/verification path, consent, validation, pending/rejected states | One human identity; no public Admin/Coach/Supervisor/Provider role grant; Platform Admin reviews Institution/Representative |
 | Login `login.html`, Invitation `join.html?token=…`, workspace switcher `#/auth/workspaces` | Credentials or demo identity, invitation preview/email match/OTP, accept/decline, expiry/recovery, allowed workspaces | Role grant only after valid scoped invitation and verification; no duplicate identity |
-| Bimo/Setup `onboarding.html` | Meet Bimo, exactly six one-at-a-time questions, save/resume, then HeroReels story | Browser-local personal setup; no Lab task is required |
+| Azm/Setup `onboarding.html` | Meet Azm, exactly six one-at-a-time questions, save/resume, then HeroReels story | Browser-local personal setup; no Lab task is required |
 | Lab `lab.html`, `src/pages/member/lab/assessment.html?test=…` | Optional assessments, saved partial state, practice label, version/history/coverage | Private versioned Attempt records; historical windows retained; no new weekly eligibility assumed |
 | Starting Point `src/pages/member/onboarding/starting-point.html` | Optional results when present, preliminary Week 1 preview, goal/schedule/commitment, explicit Activate | Creates one personal Plan visible in Home/Recovery without any required assessment |
 | Home `index.html` / `src/pages/member/dashboard/dashboard.html` | Next action, personal goal, plan/week, four-tree Garden preview, offline ideas, relevant Explore opportunities, Initiative status, Community and how-it-works, final CTA | Links to actual owned records; no invented testimonial, metrics or partner-only listing |
@@ -973,7 +973,7 @@ For every script record fixture, exact route/control, action, expected and actua
 
 | Demo | Steps and precise acceptance |
 |---|---|
-| **A. Personal Individual** | Register → Bimo → six setup questions → HeroReels story (watch or skip) → Home at Level 1 with a preliminary Week 1 proposal → explicit plan preview/activation → valid practice and offline routine → Garden/Insights. Lab tasks remain optional and no weekly official reassessment is scheduled. No false score/usage or quiet-day decay; one event gives at most one authorized reward. |
+| **A. Personal Individual** | Register → Azm → six setup questions → HeroReels story (watch or skip) → Home at Level 1 with a preliminary Week 1 proposal → explicit plan preview/activation → valid practice and offline routine → Garden/Insights. Lab tasks remain optional and no weekly official reassessment is scheduled. No false score/usage or quiet-day decay; one event gives at most one authorized reward. |
 | **B. Institution to Individual** | Admin approves entity/Representative → Rep completes six builder stages and publishes unique structured Initiative → it appears in **regular** `explore.html` (draft hidden) → Individual applies → Rep and Supervisor see same application → Supervisor approves once → group/Coach allocated → separate session booking → in-person QR or typed code/manual exception, or online roster verification → factual attendance/report/rabbit if eligible → another student submits excuse → Supervisor recommends → Rep decides → `Absent + accepted excuse` visible, no rabbit. Test 135th/136th and 3rd/4th active Supervisor per Initiative. |
 | **C. Coach to collective Garden** | Rep invites Coach without central reapproval → active group assignment → Coach creates approved practice assignment/due/review → limited Student My Tasks and full Individual Activities → Assigned show same task semantics → submit → Needs Revision → resubmit → Approve → one corresponding type-tree effect when eligible and one Initiative-level Group Garden contribution → Coach periodic report → source-derived Supervisor Insights → Rep report and original drilldown. Other Coach roster/private Lab denied. |
 | **D. Institution Activity, queue and camp** | Verified Institution publishes a small-capacity standalone or Initiative-linked Camp → regular Explore shows the actual Institution organizer → bookings fill seats → next person Queued → cancellation creates Offered hold → Accept confirms one seat, or Decline/clock-driven Expire reoffers → appointed Supervisor validates check-in → separate completion criteria → Institution report and bounded birdhouse. No duplicate booking/reward or payment claim. |
@@ -1084,13 +1084,13 @@ These questions do **not** reopen D10/D13/D19/D28/D37/D38 or justify reducing th
 - **Theme:** premium, refined, calm **ivory/cream and pastel sage green**, dark forest/navy headings, clean warm white surfaces, restrained organic leaves and subtle network texture.
 - **Typography:** deliberate readable hierarchy, consistent font family/weights, generous whitespace, strong alignment, not mixed type styles in random cards.
 - **UI:** quietly rounded cards, proportional widths, controlled shadow/borders, excellent desktop/mobile layouts, consistent header/footer/iconography.
-- **Illustration:** preserve **original Bimo mascot design and project artwork**. Do not use generic sprout/robot lookalikes in final assets; avoid overly photorealistic mascot styles.
+- **Illustration:** preserve **original Azm mascot design and project artwork**. Do not use generic sprout/robot lookalikes in final assets; avoid overly photorealistic mascot styles.
 - **Motion:** coordinated, meaningful scene-to-scene transitions using image layers/CSS, lightweight neural/organic motif when appropriate. Avoid decorative motion in every card, excessive glowing effects or distracting parallax. Respect reduced-motion users.
 - **Auth backgrounds:** Individual (personal growing plant/neural root network) and Partner (interconnected people/institutions/activities), shared brand, smooth transition.
 - **Home:** premium full page with polished hero, separate intentional content sections, credible imagery only when real and relevant.
 - **Recovery Plan:** precise information density, calm segmented tabs, coherent week direction and obvious action links to Activities; not a plain giant table.
 - **Garden:** fixed white/ivory scene with exactly four distinct, small practice-type trees, no central fifth; visual quietness is the defining design requirement.
-- **Insights:** data clarity and honest legend/coverage take priority over decorative scores; Bimo landscape banner can be shortened.
+- **Insights:** data clarity and honest legend/coverage take priority over decorative scores; Azm landscape banner can be shortened.
 - **Admin:** functional sidebar, editing controls within audited CMS; not a clone of the Individual top navbar.
 
 ## 27.2 Copy that emerged from the discussion
@@ -1101,9 +1101,9 @@ These questions do **not** reopen D10/D13/D19/D28/D37/D38 or justify reducing th
 > Join as Individual — Personal journey, activities, community and experiences.
 > Join as a Partner — Lead programs, represent an institution or organize experiences.
 
-**Bimo — Screen 1:**
+**Azm — Screen 1:**
 
-> Hey, I'm Bimo!
+> Hey, I'm Azm!
 > I'll be your friend along the way. Let's discover your starting point and build a plan that fits you.
 
 **Historical assessment intro — superseded by six-question Quick Setup:**
@@ -1113,7 +1113,7 @@ These questions do **not** reopen D10/D13/D19/D28/D37/D38 or justify reducing th
 > Your answers and results are private by default. DeepSprout will use them to help build a plan around your goals.
 > There are no perfect answers. Just be yourself!
 
-**Current first run:** Meet Bimo → six questions → HeroReels (watch or skip) → Home at Level 1. The Week 1 preview and explicit activation follow from Home; the following historical results copy applies only to optional Lab results.
+**Current first run:** Meet Azm → six questions → HeroReels (watch or skip) → Home at Level 1. The Week 1 preview and explicit activation follow from Home; the following historical results copy applies only to optional Lab results.
 
 **Suggested results and plan scenes:** `Your Starting Point` → `Building Your Plan` → `Activate My Plan`.
 
@@ -1166,7 +1166,7 @@ This specification is the **upstream product contract**. Before intensive implem
 | **Class/Domain UML** | Aggregates, entities, value objects, domain events and ownership boundaries |
 | **ERD & Database Constraints** | Normalized schema, keys, cardinalities, uniqueness and concurrency strategies |
 | **MVC Route and View Contract** | Controller actions, routes, view/form models, validation errors, authorization, anti-forgery and idempotency guarantees |
-| **Frontend Design System** | Components, typography, palettes, Bimo scenes, animations, responsive states and page templates |
+| **Frontend Design System** | Components, typography, palettes, Azm scenes, animations, responsive states and page templates |
 | **Role-specific UX Specifications** | Individual, invited Student, Institution Representative, Initiative Coach, scoped Supervisor and one Admin page/state contracts |
 | **Test & Demo Plan** | Integration/security/concurrency cases proving real ASP.NET Core and SQL Server behavior |
 | **Commercial Specification** | Actual prices, quotas, billing terms and entitlement tables once decided |

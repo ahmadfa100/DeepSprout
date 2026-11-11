@@ -83,13 +83,16 @@ test('1 · Overview lists only the Supervisor’s authorized, assigned sessions'
   const hala = assignedSessions(read(), 'p-hala').map(r => r.ss.id);
   assert.ok(hala.includes('s-kickoff') && hala.includes('s-intro'));
   assert.ok(!hala.some(id => id.startsWith('es-')), 'no Outdoor Activity sessions without an appointment');
-  assert.deepEqual(assignedSessions(read(), 'p-sami').map(r => r.ss.id).sort(), ['es-circle', 'es-walk'], 'appointment sessions only');
+  assert.deepEqual(assignedSessions(read(), 'p-sami').map(r => r.ss.id).sort(), [
+    'es-circle', 'es-maya-city-walk', 'es-sami-hills-circle', 'es-sami-hills-walk',
+    'es-sami-park', 'es-walk', 's-sami-focus-checkin'
+  ], 'accepted appointment and assigned initiative sessions only');
   assert.deepEqual(assignedSessions(read(), 'p-karim'), [], 'a Coach has no attendance sessions');
   const unassigned = session({title:'No Supervisor', supervisorIds:[]});
   assert.ok(!assignedSessions(read(), 'p-hala').some(r => r.ss.id === unassigned), 'not assigned → not listed');
   assert.equal(roleFor(read(), sessionRef(read(), unassigned), 'p-maya'), 'representative', 'an unsupervised session stays manageable by the Representative');
   dispatch('initiative.staff.revoke', {id:'grant-hala', reason:'Rotation'});
-  assert.deepEqual(assignedSessions(read(), 'p-hala'), [], 'revoked grant → nothing listed');
+  assert.ok(!assignedSessions(read(), 'p-hala').some(r => r.parent.id === 'i-today'), 'revoked grant → its sessions disappear');
   as('p-hala'); assert.match(err(() => dispatch('attendance.finalize', {sessionId:'s-kickoff'})), /assigned Supervisor or the Institution Representative/);
 });
 
@@ -272,4 +275,42 @@ test('Outdoor Activity sessions use the same center: cohort scope, check-in, ros
   assert.equal(dispatch('attendance.finalize', {sessionId:'es-walk'}).absent, 0, 'Omar stays Not Recorded without a confirmed desk');
   assert.equal(roster(read(), ref(), 'p-sami').find(e => e.personId === 'p-omar').status, 'Not Recorded');
   as('p-hala'); assert.match(err(() => dispatch('attendance.checkin', {sessionId:'es-walk', code:'DS-OMAR-24'})), /assigned Supervisor or the Institution Representative/);
+});
+
+test('Venue check-in screen · rotating code, self check-in from the student’s phone, expiry and guards', async () => {
+  const {venueCode, venueSlot, venueCodeValid, institutionSessions} = await import('../../src/DeepSprout.Web/wwwroot/src/workspaces/attendance/model.js');
+  busy();
+  const sid = session({format:'In-person', time:'20:00', endTime:'21:00'});
+  register(sid, [['p-noor', 'In-person'], ['p-rania', 'In-person']]);
+  at(T('19:55')); as('p-noor');
+  assert.match(err(() => dispatch('attendance.screen.open', {sessionId:sid})), /assigned Supervisor or the Institution Representative/);
+  assert.match(err(() => dispatch('attendance.self.checkin', {sessionId:sid, code:'AAAAAA'})), /screen for this session is not open/);
+  as('p-hala'); dispatch('attendance.screen.open', {sessionId:sid});
+  const ss = read().sessions.find(x => x.id === sid), code = venueCode(ss, venueSlot(read()));
+  assert.match(code, /^[A-Z2-9]{6}$/);
+  assert.equal(venueCodeValid(read(), ss, code.toLowerCase()), true);
+  as('p-noor');
+  assert.match(err(() => dispatch('attendance.self.checkin', {sessionId:sid, code:'ZZZZZZ'})), /expired/);
+  const res = dispatch('attendance.self.checkin', {sessionId:sid, code});
+  assert.equal(res.status, 'Present'); assert.equal(res.already, false);
+  assert.equal(dispatch('attendance.self.checkin', {sessionId:sid, code}).already, true, 'a second scan does not duplicate');
+  assert.equal(statusOf(sid, 'p-noor'), 'Present');
+  as('p-dana'); assert.match(err(() => dispatch('attendance.self.checkin', {sessionId:sid, code})), /not on the confirmed list/);
+  // A photo of the screen stops working after about a minute.
+  at(T('20:12')); as('p-rania');
+  assert.match(err(() => dispatch('attendance.self.checkin', {sessionId:sid, code})), /expired/);
+  const fresh = venueCode(read().sessions.find(x => x.id === sid), venueSlot(read()));
+  assert.equal(dispatch('attendance.self.checkin', {sessionId:sid, code:fresh}).status, 'Late');
+  assert.ok(institutionSessions(read(), 'p-maya').some(r => r.ss.id === sid), 'the Representative sees the session');
+});
+
+test('Add a student at the session · optionally marked Present at once, never before check-in opens', () => {
+  busy();
+  const sid = session({format:'In-person', time:'20:00', endTime:'21:00'});
+  register(sid, [['p-noor', 'In-person']]);
+  at(T('12:00')); as('p-hala');
+  assert.match(err(() => dispatch('attendance.participant.add', {sessionId:sid, personId:'p-rania', status:'Present', reason:'Came without registering'})), /once check-in opens/);
+  at(T('20:05')); as('p-maya');
+  dispatch('attendance.participant.add', {sessionId:sid, personId:'p-rania', status:'Present', reason:'Came without registering'});
+  assert.equal(statusOf(sid, 'p-rania'), 'Present');
 });

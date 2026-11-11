@@ -14,7 +14,7 @@ Journeys come from the current pages (`Client/src/pages/member/*`, `Client/src/w
 | 1 | Register, verify email, sign in, lockout | `Person`, `OtpChallenge`, `ConsentRecord` | PRESERVED WITH SIMPLER IMPLEMENTATION | Password hash and failed-login counter are columns of `Person` (no separate credential table). |
 | 2 | One identity, Workspace Switcher | `Person`, `OrganizationMember`, `StaffAppointment`, `GroupMembership` | FULLY PRESERVED | Workspaces are computed from active rows. |
 | 3 | Partner application (Coach / Institution / Provider), "needs more info" thread | `VerificationCase`, `Organization`, `SecureFile` | FULLY PRESERVED | The thread (`Application.messages` in the Client) is `MessagesJson`. |
-| 4 | Onboarding: Meet Bimo → Setup → Starting Point | `IndividualProfile`, `ContentRelease` | FULLY PRESERVED | |
+| 4 | Onboarding: Meet Azm → Setup → Starting Point | `IndividualProfile`, `ContentRelease` | FULLY PRESERVED | |
 | 5 | Four baseline assessments, pause/resume | `AssessmentAttempt`, `InstrumentVersion` | PRESERVED WITH SIMPLER IMPLEMENTATION | Responses are saved into `ResponsesJson`; score into `ScoresJson`/`PrimaryScore`. |
 | 6 | Weekly reassessment window, "missed" state | `AssessmentAttempt` (`WindowKey`) | PRESERVED WITH SIMPLER IMPLEMENTATION | Window is computed (`checkInWindow()`); window length is still an open policy. |
 | 7 | Compare results; "not comparable" across scoring versions | `AssessmentAttempt.ScoringVersion`, `InstrumentVersion` | PRESERVED WITH SIMPLER IMPLEMENTATION | Compare only equal `ScoringVersion`. Re-scoring overwrites (see owner item 3). |

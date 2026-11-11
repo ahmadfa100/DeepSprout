@@ -130,58 +130,65 @@
   document.addEventListener('click', event => {
     if (!event.target.closest('.member-notifications') && noticePanel) { noticePanel.hidden = true; noticeButton?.setAttribute('aria-expanded', 'false'); }
   });
-  // Dev-only switch between the seeded demo account and an empty one. It
-  // appears on a local server or with ?dev=1, and shows the demo clock so an
-  // audience is never misled about which date the figures are "as of".
-  const mountDevSwitch = Account => {
-    if (!Account?.devMode()) return;
-    Account.load().then(account => {
-      const fmt = Account.format;
-      const plan = account.plan();
-      const personal=account.personalClock();
-      const clock=`${fmt.date(account.today,{weekday:true,year:true})}${plan?` · day ${plan.day}`:''} · ${personal.source}${personal.seedAsOf?` · original story ${personal.seedAsOf}`:''}`;
-      const option = (id, title, note) => `<label class="dev-switch-option"><input type="radio" name="dev-account" value="${id}"${account.id === id ? ' checked' : ''}><span><strong>${title}</strong><small>${note}</small></span></label>`;
-      // A journal produced by the presenter's scenario builder is synthetic too.
-      const scenario = (() => { try { return JSON.parse(localStorage.getItem('deepsprout-demo-scenarios-v1') || '{}')[Account.person()?.id] || null; } catch { return null; } })();
-      const shell = document.createElement('div');
-      shell.className = 'dev-switch';
-      shell.innerHTML = `<button class="dev-switch-pill" type="button" aria-expanded="false" aria-controls="dev-switch-panel"><span class="dev-switch-dot" aria-hidden="true"></span><span>Demo</span><b>${account.seeded ? 'Seeded' : scenario ? 'Scenario' : 'Empty'}</b></button>
-        <div class="dev-switch-panel" id="dev-switch-panel" role="group" aria-label="Demo data" hidden>
-          <p class="dev-switch-eyebrow">Dev only · demo data</p>
-          <fieldset class="dev-switch-options" data-active="${account.id}"><legend class="visually-hidden">Account</legend><span class="dev-switch-thumb" aria-hidden="true"></span>
-            ${option('demo', 'Ahmad', 'Seeded story')}${option('empty', 'New account', 'Nothing recorded')}
-          </fieldset>
-          <p class="dev-switch-clock"><span>Clock</span>${clock}</p>
-          <p class="dev-switch-note">${scenario ? `Synthetic presentation scenario, built ${fmt.date(scenario.builtAt.slice(0, 10), {year: true})} through the real engines. Restore it from the presenter page.` : account.asOfNote}</p>
-          <button type="button" class="dev-switch-reset" hidden>Reset demo changes</button>
-        </div>`;
-      document.body.append(shell);
-      const pill = shell.querySelector('.dev-switch-pill');
-      const panel = shell.querySelector('.dev-switch-panel');
-      const setOpen = open => {
-        panel.hidden = !open;
-        pill.setAttribute('aria-expanded', String(open));
-        shell.classList.toggle('is-open', open);
-      };
-      pill.addEventListener('click', () => setOpen(panel.hidden));
-      shell.querySelectorAll('input[name="dev-account"]').forEach(input => input.addEventListener('change', () => {
-        shell.querySelector('.dev-switch-options').dataset.active = input.value;
-        // Let the thumb finish its slide before the page reloads.
-        setTimeout(() => Account.choose(input.value), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260);
-      }));
-      const reset = shell.querySelector('.dev-switch-reset');
-      const showReset = () => {
-        const count = account.changeCount();
-        reset.hidden = !count;
-        reset.textContent = `Reset demo changes (${count})`;
-      };
-      showReset();
-      window.addEventListener('deepsprout:account', showReset);
-      reset.addEventListener('click', () => { Account.resetChanges(); location.reload(); });
-      document.addEventListener('keydown', event => { if (event.key === 'Escape' && !panel.hidden) { setOpen(false); pill.focus(); } });
-      document.addEventListener('click', event => { if (!shell.contains(event.target)) setOpen(false); });
-    }).catch(() => { /* The switch is a dev convenience; a page without data still renders. */ });
+  // The original Azm art opens a local guided chat preview. Replies are
+  // intentionally preset until a real assistant service is available.
+  const mountAzmChat = () => {
+    const shell = document.createElement('aside');
+    shell.className = 'azm-chat';
+    shell.setAttribute('aria-label', 'Azm chat');
+    shell.innerHTML = `<section class="azm-chat-panel" id="azm-chat-panel" aria-label="Chat with Azm" hidden>
+        <header class="azm-chat-heading"><span class="azm-chat-avatar" aria-hidden="true"><img src="${root}assets/hero-v2/bimo-awake.png" alt=""></span><span><strong>Chat with Azm</strong><small>Guided chat preview</small></span><button class="azm-chat-close" type="button" aria-label="Close Azm chat">×</button></header>
+        <div class="azm-chat-messages" role="log" aria-live="polite" aria-relevant="additions text"></div>
+        <div class="azm-chat-suggestions" aria-label="Suggested questions"><button type="button">Help me focus</button><button type="button">What can I do offline?</button><button type="button">Where do I start?</button></div>
+        <form class="azm-chat-form"><label class="azm-chat-label" for="azm-chat-input">Message Azm</label><div class="azm-chat-compose"><textarea id="azm-chat-input" rows="1" maxlength="800" placeholder="Ask Azm something…"></textarea><button type="submit" aria-label="Send message">↑</button></div></form>
+        <p class="azm-chat-disclosure">Preview replies are preset. Messages are not sent or saved.</p>
+      </section>
+      <button class="azm-chat-launcher" type="button" aria-label="Chat with Azm" aria-controls="azm-chat-panel" aria-expanded="false"><span class="azm-chat-avatar" aria-hidden="true"><img src="${root}assets/hero-v2/bimo-awake.png" alt=""></span><span class="azm-chat-launcher-label">Ask Azm</span></button>`;
+    document.body.append(shell);
+    const launcher = shell.querySelector('.azm-chat-launcher');
+    const panel = shell.querySelector('.azm-chat-panel');
+    const input = shell.querySelector('#azm-chat-input');
+    const messages = shell.querySelector('.azm-chat-messages');
+    const suggestions = shell.querySelector('.azm-chat-suggestions');
+    const addMessage = (who, message) => {
+      const line = document.createElement('p');
+      line.className = `azm-chat-message azm-chat-message-${who}`;
+      line.textContent = message;
+      messages.append(line);
+      messages.scrollTop = messages.scrollHeight;
+    };
+    const replyTo = message => {
+      if (/focus|concentrat|distract|scroll|study|work/i.test(message)) return 'Let’s make the next step small. Put your phone aside, choose one task, and try a short Depth Practice in Activities.';
+      if (/offline|outside|walk|activity|idea|bored/i.test(message)) return 'An easy offline start: take a five-minute walk and notice three things around you. Explore has more activities when you’re ready.';
+      if (/start|begin|plan|roadmap|next/i.test(message)) return 'Start with one action you can do today. Your Roadmap shows your plan, and Activities has short practices you can try right away.';
+      if (/garden|grow|plant/i.test(message)) return 'Your Garden reflects eligible participation recorded in DeepSprout. Open Garden to see its current state and the evidence behind it.';
+      if (/hi|hello|hey/i.test(message)) return 'Hi! I’m Azm. You can ask me about focus, offline ideas, your Roadmap, or where to begin.';
+      return 'I can help you find a place to start. Try asking about focus, an offline idea, your Roadmap, or the Garden.';
+    };
+    const send = message => {
+      const text = message.trim();
+      if (!text) return;
+      addMessage('you', text);
+      addMessage('azm', replyTo(text));
+      suggestions.hidden = true;
+      input.value = '';
+      input.focus();
+    };
+    const setOpen = open => {
+      panel.hidden = !open;
+      launcher.setAttribute('aria-expanded', String(open));
+      if (open) input.focus();
+      else launcher.focus();
+    };
+    addMessage('azm', 'Hi, I’m Azm. What would you like a little help with today?');
+    launcher.addEventListener('click', () => setOpen(panel.hidden));
+    shell.querySelector('.azm-chat-close').addEventListener('click', () => setOpen(false));
+    shell.querySelector('.azm-chat-form').addEventListener('submit', event => { event.preventDefault(); send(input.value); });
+    input.addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(input.value); } });
+    suggestions.querySelectorAll('button').forEach(button => button.addEventListener('click', () => send(button.textContent)));
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && !panel.hidden) setOpen(false); });
   };
+  if (page !== 'pricing') mountAzmChat();
   // The header shows the account the page's figures come from, so the name
   // and the data never disagree.
   const showAccountName = Account => Account.load().then(account => {
@@ -284,7 +291,6 @@
     // Any change on the account (a review saved, a name edited) updates the header too.
     window.addEventListener('deepsprout:account', () => showAccountName(Account));
     document.addEventListener('visibilitychange', () => { if (!document.hidden) showAccountName(Account); });
-    mountDevSwitch(Account);
   };
 
   /* ------------------------------------------------ one identity, one bell

@@ -740,18 +740,42 @@
   const quizWhen = iso => new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Amman' }).format(new Date(iso));
   const ordinal = n => { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
   /** Live quiz rounds (Kahoot-style): join the room, then play on the full-screen game screen. */
+  const QUIZ_SHAPES = ['<path d="M16 4.5 29 27.5H3Z"/>', '<path d="M16 2.5 29.5 16 16 29.5 2.5 16Z"/>', '<circle cx="16" cy="16" r="13"/>', '<rect x="4" y="4" width="24" height="24" rx="3.5"/>'];
+  const quizHue = v => [...String(v || '')].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 360, 17);
+  const quizFace = name => `<span class="ex-quiz-face" style="--h:${quizHue(name)}" title="${esc(name)}">${esc(name.split(/\s+/).map(x => x[0]).slice(0, 2).join('').toUpperCase())}</span>`;
+  const quizClock = ms => { const t = Math.max(0, Math.ceil(ms / 1000)), d = Math.floor(t / 86400), h = Math.floor(t % 86400 / 3600), m = Math.floor(t % 3600 / 60), s = t % 60, p = x => String(x).padStart(2, '0'); return d ? `${d}d ${p(h)}h ${p(m)}m` : h ? `${h}h ${p(m)}m ${p(s)}s` : `${p(m)}:${p(s)}`; };
+  /** Live quiz rounds (Kahoot-style): a small dark game card; the round itself plays on the full-screen game screen. */
   function quizItem(c) {
-    const tone = { Scheduled: 'pending', 'Live now': 'confirmed', Finished: 'complete', Cancelled: 'cancelled' }[c.label] || 'pending';
-    const finished = c.phase === 'podium';
+    const finished = c.phase === 'podium', live = c.label === 'Live now';
     const label = c.label === 'Cancelled' ? '' : finished ? (c.joined ? 'See your result' : 'See the podium')
-      : c.joined ? (c.phase === 'lobby' ? 'Open the room' : 'Play now') : c.canJoin ? (c.phase === 'lobby' ? 'Join the room' : 'Join and play') : '';
-    const detail = finished ? (c.myRank ? `you finished ${ordinal(c.myRank)}` : c.winner ? `winner: ${c.winner.name}` : 'nobody played') : `${c.players} in the room${c.joined ? ' · you’re in' : ''}`;
-    return `<li class="ex-session"><div class="ex-session-head"><div><strong>${esc(c.title)}</strong><small>Live quiz · ${c.questionCount} questions · ${esc(quizWhen(c.startAt))} · ${esc(detail)}</small></div><div class="ex-mine-actions"><span class="ex-status" data-status="${tone}">${esc(c.label)}</span>${label ? `<button type="button" class="ex-button ex-small" data-quiz-open="${c.id}">${label} ${icon('i-arrow')}</button>` : !finished && c.label !== 'Cancelled' && !c.joined ? '<span class="ex-muted">For accepted participants</span>' : ''}</div></div></li>`;
+      : c.joined ? (c.phase === 'lobby' ? 'Open the room' : 'Play now') : c.canJoin ? (c.phase === 'lobby' ? 'Join the room' : 'Jump in') : '';
+    const now = Repo()?.nowMs() ?? Date.now();
+    const info = finished
+      ? `<span class="ex-quiz-clock"><small>${c.myRank ? 'You finished' : 'Winner'}</small><b>${c.myRank ? ordinal(c.myRank) : esc(c.winner?.name || '—')}</b></span>${c.podium?.length ? `<span class="ex-quiz-podium" aria-label="Top three">${[1, 0, 2].map(k => c.podium[k] ? `<span class="ex-quiz-step is-${k + 1}">${quizFace(c.podium[k].name)}<i></i></span>` : '').join('')}</span>` : ''}`
+      : live ? '<span class="ex-quiz-clock"><small>On air</small><b>Playing now</b></span>'
+      : c.label === 'Cancelled' ? '<span class="ex-quiz-clock"><small>Cancelled</small><b>Called off</b></span>'
+      : `<span class="ex-quiz-clock"><small>Starts in</small><b data-quiz-until="${c.startMs}">${quizClock(c.startMs - now)}</b></span>`;
+    const room = c.players ? `<span class="ex-quiz-room"><span class="ex-quiz-stack">${(c.avatars || []).map(quizFace).join('')}</span>${c.players} ${finished ? 'played' : 'in the room'}${c.joined && !finished ? ' · you’re in' : ''}</span>` : '<span class="ex-quiz-room">Be the first in the room</span>';
+    return `<li class="ex-quiz${live ? ' is-live' : ''}${finished ? ' is-finished' : ''}${c.label === 'Cancelled' ? ' is-cancelled' : ''}">
+      <span class="ex-quiz-glyphs" aria-hidden="true">${QUIZ_SHAPES.map((s, i) => `<svg class="g${i}" viewBox="0 0 32 32">${s}</svg>`).join('')}</span>
+      <div class="ex-quiz-main"><span class="ex-quiz-top"><span class="ex-quiz-pill">${live ? '<i class="rec"></i>' : c.phase === 'lobby' ? '<i></i>' : ''}${esc(c.label)}</span><span>Live quiz · ${c.questionCount} questions · ${esc(quizWhen(c.startAt))}</span></span>
+        <strong class="ex-quiz-title">${esc(c.title)}</strong>
+        <span class="ex-quiz-info">${info}${room}</span></div>
+      <div class="ex-quiz-cta">${label ? `<button type="button" class="ex-quiz-btn" data-quiz-open="${c.id}"><span>${label}</span><span class="ex-quiz-btn-icon">${icon('i-arrow')}</span></button>` : !finished && c.label !== 'Cancelled' && !c.joined ? '<span class="ex-quiz-note">For accepted participants</span>' : ''}</div></li>`;
   }
+  // Countdowns on quiz cards tick in place; the list re-renders when a round starts.
+  setInterval(() => {
+    const nodes = document.querySelectorAll('[data-quiz-until]');
+    if (!nodes.length || !Repo()) return;
+    const now = Repo().nowMs(); let started = false;
+    nodes.forEach(n => { const left = Number(n.dataset.quizUntil) - now; if (left <= 0) started = true; n.textContent = quizClock(left); });
+    if (started && !document.querySelector('dialog.qa[open]')) renderMyInitiatives();
+  }, 1000);
+  if (!document.querySelector('link[href*="Bricolage+Grotesque"]')) document.head.append(Object.assign(document.createElement('link'), { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&display=swap' }));
   function competitionsBlock(entry) {
     if (!entry.competitions.length) return '';
     const quizzes = entry.competitions.filter(c => c.format === 'Quiz'), written = entry.competitions.filter(c => c.format !== 'Quiz');
-    return `<h4>Competitions</h4>${quizzes.length ? `<ul class="ex-form-list">${quizzes.map(quizItem).join('')}</ul>` : ''}${written.length ? `<ul class="ex-form-list">${written.map(c => `<li class="ex-session"><div class="ex-session-head"><div><strong>${esc(c.title)}</strong><small>${esc(c.topic || '')} · entries ${esc(fmtWhen(c.open))} – ${esc(fmtWhen(c.deadline))}</small></div><div class="ex-mine-actions">${c.entry ? `<span class="ex-status" data-status="${c.resultsPublished ? 'complete' : 'pending'}">${esc(c.resultsPublished ? 'Results published' : c.entry.status === 'Reviewed' ? 'Reviewed · results pending' : 'Entry submitted')}</span>` : c.canEnter ? `<button type="button" class="ex-button ex-small" data-entry-open="${c.id}">Enter</button>` : `<span class="ex-muted">${!c.windowOpen ? 'Submission window closed' : 'For accepted participants'}</span>`}</div></div>
+    return `<h4>Competitions</h4>${quizzes.length ? `<ul class="ex-quiz-list">${quizzes.map(quizItem).join('')}</ul>` : ''}${written.length ? `<ul class="ex-form-list">${written.map(c => `<li class="ex-session"><div class="ex-session-head"><div><strong>${esc(c.title)}</strong><small>${esc(c.topic || '')} · entries ${esc(fmtWhen(c.open))} – ${esc(fmtWhen(c.deadline))}</small></div><div class="ex-mine-actions">${c.entry ? `<span class="ex-status" data-status="${c.resultsPublished ? 'complete' : 'pending'}">${esc(c.resultsPublished ? 'Results published' : c.entry.status === 'Reviewed' ? 'Reviewed · results pending' : 'Entry submitted')}</span>` : c.canEnter ? `<button type="button" class="ex-button ex-small" data-entry-open="${c.id}">Enter</button>` : `<span class="ex-muted">${!c.windowOpen ? 'Submission window closed' : 'For accepted participants'}</span>`}</div></div>
       <details class="ex-policy"><summary>Rules &amp; judging criteria</summary><p>${esc(c.rules)}</p><p class="ex-muted">${esc(c.eligibility || '')}</p><ul>${c.criteria.map(k => `<li>${esc(k)}</li>`).join('')}</ul></details>
       ${c.entry ? `<div class="ex-excuse"><p><strong>Your entry</strong> · ${esc(fmtWhen(c.entry.created))}</p><p>${esc(c.entry.text)}</p>${c.resultsPublished ? `<p><strong>Feedback:</strong> ${esc(c.entry.feedback || '—')}</p><ul>${Object.entries(c.entry.scores || {}).map(([k, v]) => `<li>${esc(k)}: ${esc(v)}/5</li>`).join('')}</ul>` : '<p class="ex-muted">Scores and feedback appear here when the institution publishes results.</p>'}</div>` : ''}
       <form class="ex-form ex-inline-form" data-entry-form="${c.id}" data-version="${c.version || 1}" hidden><label class="ex-field"><span>Your original entry</span><textarea name="text" rows="5" maxlength="4000" required></textarea><small>No sensitive personal information. Entering is not winning, and it adds nothing to your Garden.</small></label><label class="ex-consent"><input type="checkbox" name="consent" required><span>I meet the eligibility conditions and this is my original work.</span></label><p class="ex-error" role="alert" hidden></p><div class="ex-sheet-actions"><button class="ex-button ex-small">Submit entry</button><button type="button" class="ex-button is-quiet ex-small" data-entry-cancel="${c.id}">Cancel</button></div></form></li>`).join('')}</ul>` : ''}`;

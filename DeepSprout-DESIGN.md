@@ -93,7 +93,7 @@ components:
 
 **Art direction:** calm, premium, friendly, credible, botanical and highly readable. Use warm ivory/cream, pastel sage, dark forest headings, generous whitespace, restrained original illustrations, and a clear hierarchy. Avoid gamified visual noise, repetitive generic cards, and unverifiable progress displays. English UI copy is the current product direction; support future Arabic RTL.
 
-**Important status:** The visual direction is derived from the [v4.1 target](DeepSprout.md) and [P0 scope map](docs/architecture/p0-target-v4.1.md). Exact hex values, sizes, Inter font choice, and radii are **starter proposals**, not approved brand tokens. Inspect current MVC Razor views, runtime CSS, assets and rendered pages before changing styles. Preserve the ivory/sage identity and original Bimo art. The one-main-plant Garden remains a separately scoped design change.
+**Important status:** The visual direction is derived from the [v4.1 target](DeepSprout.md) and [P0 scope map](docs/architecture/p0-target-v4.1.md). Exact hex values, sizes, Inter font choice, and radii are **starter proposals**, not approved brand tokens. Inspect current MVC Razor views, runtime CSS, assets and rendered pages before changing styles. Preserve the ivory/sage identity and original Azm art. The one-main-plant Garden remains a separately scoped design change.
 
 ## Colors
 
@@ -138,9 +138,9 @@ components:
 - **Cards:** content-first, succinct; avoid repeated card-within-card patterns. Use real data, not pretend live user counts, testimonials or fake scores.
 - **Forms:** clear persistent labels, compact helpful validation, keyboard states, appropriate multi-step progress and save/resume where needed.
 - **Register:** top-level exactly two entry cards: Join as Individual and Join as Partner. Botanical personal scene for Individual; more interconnected people/organizations motifs for Partner, with gentle transitions. Partner goes directly to Institution Representative registration. Coach and Supervisor enter through scoped invitations.
-- **Bimo:** only approved original mascot assets; use sparingly in onboarding and meaningful contextual moments. Do not regenerate a lookalike.
-- **Onboarding 2.0:** one warm ivory canvas from Meet Bimo through exactly six one-at-a-time questions (slim top progress bar, completed-questions fill, Back/Continue, save/resume) to “You’re ready to begin”, whose hand-drawn sun becomes the story’s opening. Kalam 700 for the voice of onboarding and the story, DM Sans/Inter for supporting text.
-- **HeroReels opening:** simple hand-drawn illustration (organic dark outlines, flat pastel fills, light paper grain) with an original faceless character in a sage sweater; the story’s own character is not Bimo. Everything from “You’re not alone” onward is protected and unchanged.
+- **Azm:** only approved original mascot assets; use sparingly in onboarding and meaningful contextual moments. Do not regenerate a lookalike.
+- **Onboarding 2.0:** one warm ivory canvas from Meet Azm through exactly six one-at-a-time questions (slim top progress bar, completed-questions fill, Back/Continue, save/resume) to “You’re ready to begin”, whose hand-drawn sun becomes the story’s opening. Kalam 700 for the voice of onboarding and the story, DM Sans/Inter for supporting text.
+- **HeroReels opening:** simple hand-drawn illustration (organic dark outlines, flat pastel fills, light paper grain) with an original faceless character in a sage sweater; the story’s own character is not Azm. Everything from “You’re not alone” onward is protected and unchanged.
 - **Journey Level 1 (Home):** a motivational starting point with “Assessment status: Not established yet” when no optional result exists and a preliminary Week 1 proposal from the six answers — never invented scores, usage figures or percentages.
 - **Home:** dedicated Hero, Your Goal, Your Garden, Offline Ideas, Outdoor Experiences, Join an Initiative, Community preview, How It Works, final CTA, Footer. One state-aware next-action CTA.
 - **Recovery Plan:** calm four-week roadmap with Overview, This Week, Adjust, History. Never label elapsed time or adherence as medical recovery percentage.
@@ -162,7 +162,7 @@ components:
 - **Do** preserve source distinctions: registration is not attendance, participation is not completion, and activity records are not a clinical recovery score.
 - **Do** treat Garden as a deliberately minimal central one-plant composition.
 - **Don't** rebuild the project in React/Next.js to match a generic skill example. This checkout is an ASP.NET Core MVC solution with Razor views and static runtime assets.
-- **Don't** introduce invented Bimo art, paid-gated recovery, fake metrics, generic gamification, endlessly scrolling feed or arbitrary extra features.
+- **Don't** introduce invented Azm art, paid-gated recovery, fake metrics, generic gamification, endlessly scrolling feed or arbitrary extra features.
 - **Don't** transform every page into the same pastel bento dashboard; distinguish marketing/Individual vs professional/Admin information density.
 - **Don't** apply a reference website's palette wholesale; references are inspiration, not DeepSprout's approved brand.
 - **Don't** treat the provisional numeric tokens above as a final owner-approved decision. Record updates explicitly after visual review.

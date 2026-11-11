@@ -1213,6 +1213,33 @@ td .cw-meter { width: 90px; margin-top: 5px; }
 .shell.mentor .iw-attention li { padding: 15px 16px; }
 .shell.mentor .iw-attention strong { font-size: 14.5px; }
 .shell.mentor .iw-attention p { margin-top: 3px; font-size: 13px; }
+/* The dashboard is a short working overview; full rosters live on their own pages. */
+.shell.mentor .cw-dashboard-preview > .iw-card { background: #fffefa; }
+.shell.mentor .cw-dashboard-preview .iw-card-head { align-items: center; padding-bottom: 14px; border-bottom: 1px solid #e8ecdf; }
+.shell.mentor .cw-dashboard-preview .iw-card-head h2 { font-size: 20px; }
+.shell.mentor .cw-dashboard-preview .iw-card-head .text-link { font-size: 13px; font-weight: 650; white-space: nowrap; }
+.shell.mentor .cw-dashboard-preview .iw-attention li { background: #f9f8f0; border-color: transparent; }
+.shell.mentor .cw-dashboard-preview .iw-attention li.is-critical { background: #fbf1eb; }
+.shell.mentor .cw-dashboard-preview .iw-attention li > .button { white-space: nowrap; }
+.cw-dashboard-preview .cw-roster-group + .cw-roster-group { margin-top: 20px; padding-top: 18px; border-top: 1px solid #e8ecdf; }
+.cw-dashboard-preview .cw-roster-title { margin-bottom: 10px; }
+.cw-dashboard-preview .cw-roster-title small { font-variant-numeric: tabular-nums; }
+.cw-dashboard-preview .cw-roster li { background: #f8faf4; border-color: transparent; }
+.cw-dashboard-preview .cw-roster li:hover { background: #f1f5e9; box-shadow: none; }
+.cw-dashboard-inline-link { display: inline-flex; align-items: center; gap: 6px; margin: 10px 0 0 4px; color: var(--iw-forest); font-size: 13px; font-weight: 650; text-decoration: none; }
+.cw-dashboard-inline-link:hover, .cw-dashboard-inline-link:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+.cw-dashboard-more { margin-top: 14px; }
+.cw-dashboard-more summary { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; color: var(--iw-forest); font-size: 13px; font-weight: 650; cursor: pointer; list-style: none; }
+.cw-dashboard-more summary::-webkit-details-marker { display: none; }
+.cw-dashboard-more summary::after { content: '⌄'; display: inline-block; font-size: 18px; line-height: 1; transition: transform .2s var(--iw-ease); }
+.cw-dashboard-more[open] summary::after { transform: rotate(180deg); }
+.cw-dashboard-more .iw-attention { margin-top: 8px; }
+.cw-dashboard-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px 18px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #e8ecdf; font-size: 13px; color: var(--iw-muted); }
+.cw-dashboard-footer .text-link { font-weight: 650; }
+@media (max-width: 520px) {
+  .shell.mentor .cw-dashboard-preview .iw-card-head { flex-wrap: wrap; }
+  .cw-dashboard-preview .cw-roster-title { flex-wrap: wrap; }
+}
 .shell.mentor .iw-agenda { gap: 12px; }
 .shell.mentor .iw-agenda li { padding: 12px 14px; }
 .cw-mini-table td { padding: 12px 8px; }

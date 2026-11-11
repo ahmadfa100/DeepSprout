@@ -7,7 +7,7 @@ for review, not an assertion that the hero is approved.
 
 ## 1. Exact disappearance cause
 
-The Bimo `ResizeObserver` watched the animated `.bimo` container. GSAP changes
+The Azm `ResizeObserver` watched the animated `.bimo` container. GSAP changes
 that container's width and height continuously between master seconds 3.8 and
 5.4. Every notification called `resizeDrawingSurfaceToCanvas()`, which writes
 both `canvas.width` and `canvas.height`. Each assignment clears the bitmap.
@@ -89,7 +89,7 @@ far-cloud movement; no mouse-driven camera motion is present.
 
 ## 6. Lake
 
-A dedicated SVG behind Bimo and the stones carries three sparse, horizontally
+A dedicated SVG behind Azm and the stones carries three sparse, horizontally
 fading reflection bands. They drift +13, −19 and +23 artboard px over 13, 9.7 and
 16.1 s, with low-opacity variation. GROW briefly adds a wider 0.16-opacity
 highlight at 7.05 s, returning to zero by 8.2. There is no moving texture noise.
@@ -121,7 +121,7 @@ rectangles and full-scene captures preserve the actual size/position evidence.
 | Focus image delayed 5 s | 505 | 25 | 9,756 | 2 initial; 0 during transition |
 | Immediate aggressive scroll | 270 | 25 | 9,756 | 2 initial; 0 during transition |
 
-**Zero empty Bimo frames in all 1,774 audited frames.** One persistent canvas
+**Zero empty Azm frames in all 1,774 audited frames.** One persistent canvas
 identity in each run. Visual inspection of the sheets shows continuous body,
 head, face and attached limbs; eyes gradually close and arms open. The outer
 box continues its authored smooth scale/position easing; no renderer pop-in.
@@ -129,7 +129,7 @@ box continues its authored smooth scale/position easing; no renderer pop-in.
 The full existing suite also passes at 1440×900 and 1280×800: all six states,
 seven stones, aggressive-scroll gate, delayed runtime, real hidden/restored
 Chrome tab, reduced motion, pause/resume and dialog keyboard focus return.
-No console errors. A further lifecycle check confirms both clouds and the master clock remain frozen in a real hidden tab. Across 89 sampled frames around actual viewport changes, Bimo stayed painted (minimum 2,065 alpha samples). The lifecycle report is included. Both validation suites and their raw reports are included.
+No console errors. A further lifecycle check confirms both clouds and the master clock remain frozen in a real hidden tab. Across 89 sampled frames around actual viewport changes, Azm stayed painted (minimum 2,065 alpha samples). The lifecycle report is included. Both validation suites and their raw reports are included.
 
 ## 9. Transition proof
 
@@ -161,7 +161,7 @@ python3 Client/scripts/hero-v2/transition-sheet.py --sequence delayed-rive-trans
 
 ## 10. Remaining visual differences
 
-Bimo is still the previously approved, flatter vector rig rather than the raster
+Azm is still the previously approved, flatter vector rig rather than the raster
 robot in the gold frames. The original hand variants briefly crossfade during
 pose interpolation; fingers may have a faint overlapping outline, while the
 palm/body remain visible and attached. Existing gold/frame differences documented

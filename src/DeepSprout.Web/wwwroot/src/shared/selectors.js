@@ -7,7 +7,7 @@ import {bookingEvidence} from '../workspaces/activity-completion.js';
  * workspaces and tests all read through these.
  */
 import {initiativeForms,initiativeCompetitions,seatCap,seatsUsed,seatsLeft,registrationState,executionPhase,needsSupervisor,assignedActiveSupervisors,sessionRegistrationOpen,modeCapacity,confirmedInMode,practiceTypeOf,PRACTICE_TYPES,activeGrantsFor,today,queue} from '../workspaces/initiative-rules.js';
-import {taskBlockReason,institutionApproved,nowMs} from '../workspaces/domain.js';
+import {taskBlockReason,institutionApproved,nowMs,taskIsFor,pickedTask} from '../workspaces/domain.js';
 import {isQuiz} from '../workspaces/competition-rules.js';
 import {quizSummary} from './competition-view.js';
 export {quizView, quizSummary} from './competition-view.js';
@@ -103,7 +103,7 @@ export function myInitiatives(s, personId) {
 
 export function assignedTasks(s, personId) {
   const groups = s.groups;
-  return s.assignments.filter(a => (!a.studentId || a.studentId === personId) && (groups.some(g=>g.id===a.groupId&&g.memberIds.includes(personId)) || a.recipientIds?.includes(personId) || s.submissions.some(x=>x.assignmentId===a.id&&x.studentId===personId))).map(a => {
+  return s.assignments.filter(a => taskIsFor(a, personId) && (groups.some(g=>g.id===a.groupId&&g.memberIds.includes(personId)) || a.recipientIds?.includes(personId) || s.submissions.some(x=>x.assignmentId===a.id&&x.studentId===personId))).map(a => {
     const g = groups.find(x => x.id === a.groupId);
     const submission = s.submissions.find(x => x.assignmentId === a.id && x.studentId === personId) || null;
     const draft = s.taskDrafts?.[`${personId}:${a.id}`];
@@ -114,10 +114,11 @@ export function assignedTasks(s, personId) {
     const program = g.programId ? s.programs.find(p => p.id === g.programId) : null;
     const overdue = !['Approved','Rejected'].includes(status) && status !== 'Submitted' && a.due < today(s);
     return {id:a.id, title:a.title, activity:a.activity, practiceType:a.practiceType || practiceTypeOf(a.activity), activityId:a.activityId||null,activityVersion:a.activityVersion||null,contentVersion:a.contentVersion||null,definitionSnapshot:a.definitionSnapshot||null,instructions:a.instructions, evidence:a.evidence || '', start:a.start || '', due:a.due, required:a.required, review:a.review,
+      attachments:(a.attachments || []).map(f => ({...f})), audience:a.studentId ? 'you' : pickedTask(a) ? 'chosen' : a.batch?.kind === 'all-groups' ? 'all-groups' : 'group', created:a.created || '', version:a.version || 1, changes:(a.history || []).map(h => ({change:h.change, reason:h.reason || '', at:h.at})),
       status, actionable, cancelReason:a.cancelReason||'', overdue, groupId:g.id, groupName:g.name, coach:nameOf(s, g.parentType === 'initiative' ? g.coachId : a.ownerId), authorName:nameOf(s, a.ownerId),
       context:initiative ? {type:'initiative', id:initiative.id, title:initiative.title} : {type:'program', id:program?.id || g.id, title:program?.title || g.name},
       initiativeId:initiative?.id || null,
-      submission:submission ? {id:submission.id, file:submission.file||'', text:submission.text, status:submission.status, feedback:submission.feedback, submitted:submission.submitted, attempt:submission.attempt || 1, history:(submission.history || []).map(({text,status,feedback,decision,created,attempt,assignmentVersion})=>({text,status,feedback,decision,created,attempt,assignmentVersion}))} : null,
+      submission:submission ? {id:submission.id, file:submission.file||'', files:(submission.files || []).map(f => ({...f})), text:submission.text, status:submission.status, feedback:submission.feedback, evaluation:submission.evaluation || null, reviewedAt:submission.reviewedAt || '', submitted:submission.submitted, attempt:submission.attempt || 1, history:(submission.history || []).map(({text,files,status,feedback,decision,evaluation,created,attempt,assignmentVersion})=>({text,files:files || [],status,feedback,decision,evaluation:evaluation || null,created,attempt,assignmentVersion}))} : null,
       locked:Boolean(reason), lockedReason:reason};
   }).sort((a, b) => String(a.due).localeCompare(String(b.due)));
 }
