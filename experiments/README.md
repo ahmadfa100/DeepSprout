@@ -5,4 +5,4 @@
 
 Each folder is a self-contained Rive CLI authoring project. Required fonts, licenses, configuration, and agent instructions remain with each project. `build/` contains disposable local outputs and is ignored by Git; the project guides describe how to regenerate captures and validation results.
 
-Website export derivatives live under `Client/assets/hero/bimo-source/` and `Client/assets/hero-v2/bimo-source/`. Retain these distinct authoring projects even when some supporting files match.
+Website export derivatives live under `src/DeepSprout.Web/wwwroot/assets/hero/bimo-source/` and `src/DeepSprout.Web/wwwroot/assets/hero-v2/bimo-source/`. Retain these distinct authoring projects even when some supporting files match.
