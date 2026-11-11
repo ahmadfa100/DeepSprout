@@ -4,6 +4,13 @@ Thumbs.db
 ehthumbs.db
 desktop.ini
 
+# Editor backups, merge leftovers and Office lock files
+*.swp
+*~
+*.orig
+*.rej
+~$*
+
 # Local credentials, keys and machine-specific tool permissions
 .env
 .env.*
@@ -32,28 +39,39 @@ coverage/
 *.user
 *.DotSettings.user
 
-# Node.js dependencies
+# Node.js dependencies and caches
 node_modules/
+.npm/
+.eslintcache
+npm-debug.log*
 
-# Python bytecode and virtual environments
+# Python bytecode, caches and virtual environments
 __pycache__/
 *.py[cod]
+.pytest_cache/
 .venv/
+venv/
 
 # Playwright local output (curated screenshots under docs/ stay tracked)
 test-results/
 playwright-report/
 blob-report/
+playwright/.cache/
 
-# Logs, dumps and disposable local outputs
+# Logs, dumps, caches and disposable local outputs
 *.log
 *.dmp
+*.stackdump
+*.tmp
+*.temp
+.cache/
 validation-results.jsonl
 validation-errors.txt
 artifacts/
 .tmp/
 
-# Local SQL Server data files and backups
+# Local database files and backups
+*.sqlite
 *.mdf
 *.ldf
 *.bak
