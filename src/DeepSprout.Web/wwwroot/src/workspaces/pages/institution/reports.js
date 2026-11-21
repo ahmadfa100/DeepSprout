@@ -94,7 +94,8 @@ export function renderSupervisorInsights(ctx, initiatives) {
 }
 
 export function reportAction(action, target, ctx) {
-  if(inboxReportAction(action,target,ctx))return true;
+  const inboxAction=inboxReportAction(action,target,ctx);
+  if(inboxAction)return inboxAction;
   const d = target.dataset, s = ctx.s;
   if (action === 'report-open') {
     const r = (d.kind === 'coach' ? s.coachReports : s.supervisorSummaries).find(x => x.id === d.id);

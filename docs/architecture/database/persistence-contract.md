@@ -20,7 +20,7 @@ The string person IDs in the browser (`p-ahmad`, `person-<uuid>`) are not SQL ID
 
 ## 2. Workflow → table mapping
 
-"Fits" means the approved tables can hold the workflow's records without a new table. None of these rows is connected yet.
+"Fits" means the approved tables can hold the workflow's records without a new table. The Community server API now uses its v5 tables; the existing browser pages remain on their local stores. Other workflows below are not connected yet.
 
 | Workflow (UI) | Browser source today | Approved tables | Fit |
 |---|---|---|---|
@@ -47,7 +47,7 @@ The string person IDs in the browser (`p-ahmad`, `person-<uuid>`) are not SQL ID
 | Sessions, attendance, excuses, completion | graph `sessions`, `sessionRegistrations`, `sessionAttendance`, `excuses`, `completions`; Attendance Center adds `attendanceImports`, `attendanceReviews`, `attendanceLog` and `experienceSessions[].rosterAdditions` | `session.*`; import batches → `ops.AuditEvent` + `files.SecureFile` unless a `session.AttendanceImport` table is approved | Fits for attendance facts; **two open decisions**: import-batch storage and how "Needs Review" is stored (see [attendance record](../../implementation/attendance-management-center.md#open-owner-decisions)) |
 | Outdoor activities, bookings, cohorts, incidents | graph `experiences`, `experienceSessions`, `bookings`, `offers`, `cohorts` (owner = Institution) | `provider.Experience` (`OrganizationId` = Institution), `ExperienceRevision`, `ExperienceBooking`, `ProviderCohort`, `ProviderIncident`, `session.Session` | Fits |
 | Forms, surveys, competitions | graph `forms`, `responses`, `competitions`, `entries` | `forms.Form`, `FormVersion`, `FormResponse`, `CompetitionJudgment` | Fits |
-| Community | community keys | `community.Post`, `Comment`, `PostInteraction`, `ContentReport` | Feed fits; quiz rooms are browser-local and have no approved database table or cross-device transport |
+| Community | community keys; separate `/api/community` server endpoints | `community.Post`, `Comment`, `PostInteraction`, `ContentReport` | Feed API uses v5; member and Admin pages still use local stores. Quiz rooms are browser-local and have no approved database table or cross-device transport ([proposal](../community-quiz-backend-proposal.md)) |
 | Notifications, audit | graph `notifications`, `audit` | `ops.Notification`, `ops.OutboxMessage`, `ops.AuditEvent` | Fits |
 | Admin content, Garden rules | graph `cms`; legacy admin store | `governance.ContentRelease` | Fits; two browser stores must become one source |
 | Subscriptions, payments, entitlements | legacy admin store, graph `entitlements` (demo only) | none: commercial tables were deferred by the owner | Not persisted by design |

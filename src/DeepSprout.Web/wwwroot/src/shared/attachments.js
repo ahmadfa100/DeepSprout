@@ -16,6 +16,8 @@ export const RULES = {types:['application/pdf','image/jpeg','image/png'], extens
 /** Coach task files and student submissions: documents, PDFs and images. Checked by extension, because browsers report office types unevenly. */
 export const TASK_RULES = {extensions:['pdf','doc','docx','ppt','pptx','xls','xlsx','txt','png','jpg','jpeg','webp'], maxBytes:5 * 1024 * 1024, maxFiles:5, label:'PDF, Word, PowerPoint, Excel, text or image'};
 export const TASK_ACCEPT = TASK_RULES.extensions.map(x => `.${x}`).join(',');
+export const REPORT_RULES = {extensions:['pdf','doc','docx','txt'], maxBytes:5 * 1024 * 1024, label:'PDF, Word or text'};
+export const REPORT_ACCEPT = REPORT_RULES.extensions.map(x => `.${x}`).join(',');
 
 function open() {
   return new Promise((resolve, reject) => {

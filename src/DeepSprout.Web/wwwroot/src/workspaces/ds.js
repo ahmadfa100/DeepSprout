@@ -6,7 +6,7 @@
  * table twin, a legend for 2+ series, and a keyboard-reachable tooltip.
  * Motion is transform/opacity only and is skipped under reduced motion.
  */
-import {esc, icon, href} from './ui.js';
+import {esc, icon, href, kpiIcon} from './ui.js';
 
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fmt = n => Number.isFinite(Number(n)) ? Number(n).toLocaleString('en-GB') : String(n ?? '—');
@@ -45,9 +45,9 @@ export const chip = (status, label = status) => `<span class="ds-chip is-${toneO
  * sparkline of real per-period counts (never invented). `href` makes the tile
  * the shortcut to the queue it counts.
  */
-export function kpi({label, value, of = null, hint = '', href: to = '', tone = '', trend = null, unit = ''}) {
+export function kpi({label, value, of = null, hint = '', href: to = '', tone = '', trend = null, unit = '', glyph = ''}) {
   const pct = of ? Math.min(100, Math.round(Number(value) / Math.max(1, Number(of)) * 100)) : null;
-  const inner = `<span class="ds-kpi-label">${esc(label)}</span><span class="ds-kpi-value"><b data-count="${esc(value)}">${esc(fmt(value))}</b>${unit ? `<em>${esc(unit)}</em>` : ''}${of !== null ? `<small>/ ${esc(fmt(of))}</small>` : ''}</span>${pct !== null ? `<span class="ds-meter" role="img" aria-label="${esc(`${value} of ${of}`)}"><i style="--w:${pct}%"></i></span>` : ''}${trend && trend.length > 1 ? sparkline(trend, label) : ''}${hint ? `<span class="ds-kpi-hint">${esc(hint)}</span>` : ''}`;
+  const inner = `${kpiIcon(label, glyph)}<span class="ds-kpi-label">${esc(label)}</span><span class="ds-kpi-value"><b data-count="${esc(value)}">${esc(fmt(value))}</b>${unit ? `<em>${esc(unit)}</em>` : ''}${of !== null ? `<small>/ ${esc(fmt(of))}</small>` : ''}</span>${pct !== null ? `<span class="ds-meter" role="img" aria-label="${esc(`${value} of ${of}`)}"><i style="--w:${pct}%"></i></span>` : ''}${trend && trend.length > 1 ? sparkline(trend, label) : ''}${hint ? `<span class="ds-kpi-hint">${esc(hint)}</span>` : ''}`;
   return to ? `<a class="ds-kpi ${tone ? `is-${tone}` : ''}" href="${href(to)}">${inner}<span class="ds-kpi-go" aria-hidden="true">${icon('arrow')}</span></a>` : `<div class="ds-kpi ${tone ? `is-${tone}` : ''}">${inner}</div>`;
 }
 export const kpis = (items, cls = '') => `<div class="ds-kpis iw-reveal ${cls}">${items.join('')}</div>`;

@@ -61,7 +61,10 @@ export function sessionRegistrationOpen(s, session) {
   if (session.registrationClose && day > session.registrationClose) return false;
   return true;
 }
-export const modeCapacity = (session, mode) => mode === 'Online' ? Number(session.onlineCapacity || session.capacity || 0) : Number(session.inPersonCapacity || session.capacity || 0);
+export const modeCapacity = (session, mode) => {
+  const capacity = mode === 'Online' ? session.onlineCapacity : session.inPersonCapacity;
+  return capacity === null ? null : Number(capacity || session.capacity || 0);
+};
 export const confirmedInMode = (s, session, mode) => (s.sessionRegistrations || []).filter(r => r.sessionId === session.id && r.mode === mode && r.status === 'Confirmed').length;
 
 /** Activity catalogue title → Personal Garden practice-type tree (master §9.1). */

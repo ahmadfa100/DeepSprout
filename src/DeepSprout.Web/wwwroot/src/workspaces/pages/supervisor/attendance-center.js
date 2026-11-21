@@ -20,7 +20,7 @@ import {esc, nameOf, emailOf, emptyState, fmtDate, repInitiatives} from '../inst
 import {assignedSessions, institutionSessions, sessionRef, sessionSummary, roleFor, buildPreview, requiredMinutes, methodLabel, addCandidates, usesQR, usesImport, importsFor, windowOf, rulesFor, venueCode, venueSlot, VENUE_SLOT_MS, selfCheckinPath} from '../../attendance/model.js';
 import {readReport} from '../../attendance/report.js';
 import {today, confirmedInMode, modeCapacity, activeGrantsFor} from '../../initiative-rules.js';
-import {meetingUrl} from '../../session-access.js';
+import {meetingUrl,meetingPlatform,MEETING_PLATFORMS} from '../../session-access.js';
 import {nowMs} from '../../domain.js';
 import {dispatch, demoEnabled} from '../../store.js';
 import {renderExcuses} from '../institution/operations.js';
@@ -213,7 +213,7 @@ function steps(current) {
 }
 function importBlock(ctx, ref, m) {
   const {s, person:p} = ctx, id = ref.ss.id, st = wizard.get(id) || {step:1}, {scheduled, required, rules} = requiredMinutes(s, ref);
-  const url = meetingUrl(ref.ss.meeting || ''), platform = /zoom\.us/i.test(url) ? 'Zoom' : /meet\.google/i.test(url) ? 'Google Meet' : /teams\./i.test(url) ? 'Microsoft Teams' : '';
+  const url = meetingUrl(ref.ss.meeting || ''), platform = MEETING_PLATFORMS[ref.ss.meetingSetup?.platform || meetingPlatform(url)]?.name || '';
   const rulesLine = `Counts as attended: at least ${rules.minimumPercent}% of the session (${required} of ${scheduled} min). Late: joined more than ${rules.lateAfterMinutes} min after the start. Shorter attendance goes to review, never straight to Absent.`;
   const last = m.imports[0];
   const lastLine = last ? `<p class="ac-muted ac-last">${u.icon('history')}Last report: ${esc(last.fileName)} · ${esc(stamp(last.at, ref.tz))} · ${esc(nameOf(s, last.actorId))}</p>` : '';
@@ -440,8 +440,8 @@ export function centerAction(action, target, ctx) {
   }
   if (action === 'ac-add') {
     const list = addCandidates(s, ref, ctx.person.id), eligible = list.filter(x => x.eligible), w = windowOf(s, ref);
-    const seats = mode => Math.max(0, modeCapacity(ref.ss, mode) - confirmedInMode(s, ref.ss, mode));
-    const modeField = ref.format === 'Hybrid' ? `<fieldset class="ac-seg-field"><legend>Attends</legend>${(ref.kind === 'initiative' ? [['In-person', `In person · ${seats('In-person')} left`], ['Online', `Online · ${seats('Online')} left`]] : [['In-person', 'In person'], ['Online', 'Online']]).map(([v, l], i) => `<label><input type="radio" name="mode" value="${v}" ${i ? '' : 'checked'} required><span>${esc(l)}</span></label>`).join('')}</fieldset>` : '';
+    const seats = mode => modeCapacity(ref.ss, mode) === null ? 'no seat limit' : `${Math.max(0, modeCapacity(ref.ss, mode) - confirmedInMode(s, ref.ss, mode))} left`;
+    const modeField = ref.format === 'Hybrid' ? `<fieldset class="ac-seg-field"><legend>Attends</legend>${(ref.kind === 'initiative' ? [['In-person', `In person · ${seats('In-person')}`], ['Online', `Online · ${seats('Online')}`]] : [['In-person', 'In person'], ['Online', 'Online']]).map(([v, l], i) => `<label><input type="radio" name="mode" value="${v}" ${i ? '' : 'checked'} required><span>${esc(l)}</span></label>`).join('')}</fieldset>` : '';
     const markField = w.state === 'early' ? `<p class="ac-muted">${u.icon('clock')}Check-in has not opened yet, so they are added as Not Recorded.</p>` : `<fieldset class="ac-seg-field"><legend>Attendance</legend>${[['Present', 'Here now · Present'], ['Late', 'Here · Late'], ['', 'Add only']].map(([v, l], i) => `<label><input type="radio" name="status" value="${v}" ${i ? '' : 'checked'}><span>${esc(l)}</span></label>`).join('')}</fieldset>`;
     const who = ref.kind === 'initiative' ? `students accepted into ${ref.parent.title}` : `people with a confirmed booking for ${ref.parent.title}`;
     const options = list.length ? `<div class="ac-pick" role="radiogroup" aria-label="Eligible students">${list.map(x => `<label class="ac-pick-row${x.eligible ? '' : ' is-disabled'}" data-pick="${esc(`${x.name} ${x.email}`.toLowerCase())}"><input type="radio" name="personId" value="${esc(x.personId)}" ${x.eligible ? '' : 'disabled'} required>${u.avatar(x.name)}<span><strong>${esc(x.name)}</strong><small>${esc(x.email)}</small></span><em>${esc(x.why)}</em></label>`).join('')}</div>` : `<div class="ac-calm">${u.icon('people')}<div><strong>Everyone eligible is already on this list.</strong><p>Only ${esc(who)} can be added. New people apply or book first.</p></div></div>`;

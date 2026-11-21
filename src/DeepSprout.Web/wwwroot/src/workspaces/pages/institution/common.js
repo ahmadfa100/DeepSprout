@@ -24,9 +24,9 @@ export function head({eyebrow, title, lead = '', actions = '', meta = ''}) {
   return `<header class="iw-head iw-reveal"><div class="iw-head-copy"><p class="eyebrow">${esc(eyebrow)}</p><h1>${esc(title)}</h1>${lead ? `<p class="iw-lead">${esc(lead)}</p>` : ''}${meta ? `<div class="iw-head-meta">${meta}</div>` : ''}</div>${actions ? `<div class="actions">${actions}</div>` : ''}</header>`;
 }
 /** A stat tile. `of` adds a quiet denominator and an animated meter. */
-export function stat(value, label, {of = null, hint = '', href = '', tone = ''} = {}) {
+export function stat(value, label, {of = null, hint = '', href = '', tone = '', glyph = ''} = {}) {
   const pct = of ? Math.min(100, Math.round(Number(value) / Number(of) * 100)) : null;
-  const inner = `<span class="iw-stat-label">${esc(label)}</span><span class="iw-stat-value"><b data-count="${esc(value)}">${esc(value)}</b>${of !== null ? `<small> / ${esc(of)}</small>` : ''}</span>${pct !== null ? `<span class="iw-meter" aria-hidden="true"><i style="--w:${pct}%"></i></span>` : ''}${hint ? `<span class="iw-stat-hint">${esc(hint)}</span>` : ''}`;
+  const inner = `${u.kpiIcon(label, glyph)}<span class="iw-stat-label">${esc(label)}</span><span class="iw-stat-value"><b data-count="${esc(value)}">${esc(value)}</b>${of !== null ? `<small> / ${esc(of)}</small>` : ''}</span>${pct !== null ? `<span class="iw-meter" aria-hidden="true"><i style="--w:${pct}%"></i></span>` : ''}${hint ? `<span class="iw-stat-hint">${esc(hint)}</span>` : ''}`;
   return href ? `<a class="iw-stat ${tone ? `is-${tone}` : ''}" href="${u.href(href)}">${inner}</a>` : `<div class="iw-stat ${tone ? `is-${tone}` : ''}">${inner}</div>`;
 }
 export const stats = items => `<div class="iw-stats iw-reveal">${items.join('')}</div>`;

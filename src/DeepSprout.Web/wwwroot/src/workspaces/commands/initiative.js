@@ -13,7 +13,7 @@ import {MAX_SUPERVISORS,SEATED,REAPPLY_BLOCKED,seatCap,seatsUsed,queue,activeGra
 import {startTask,submitTask} from './mentorship.js';
 import {respondToForm,enterCompetition} from './institution.js';
 import {assertWindow,checkInWindow,initiativeOfResource,canViewExcuseEvidence,ATTACHMENT_RULES} from '../initiative-rules.js';
-import {meetingUrl,sessionAccess,sessionEmailPreview} from '../session-access.js';
+import {meetingUrl,cleanMeetingSetup,meetingDetail,sessionAccess,sessionEmailPreview} from '../session-access.js';
 
 const HOUR = 3600000;
 const LIVE = ['Published'];
@@ -323,17 +323,18 @@ export function initiativeCommand(s, action, p, actor) {
     const venue = p.format === 'In-person' ? textRequired(p.venue, 'Venue name') : '';
     const address = p.format === 'In-person' ? textRequired(p.address, 'Street address or map location') : '';
     const meeting = p.format === 'Online' ? meetingUrl(p.meeting) : '';
-    requireThat(p.format !== 'Online' || meeting, 'Enter a valid HTTPS Google Meet or Zoom link.');
+    requireThat(p.format !== 'Online' || meeting, 'Set up the online meeting first: a Google Meet, Zoom or Microsoft Teams link.');
+    const meetingSetup = meeting ? cleanMeetingSetup(p.meetingSetup, meeting) : null;
     const onlineCapacity = p.format === 'In-person' ? 0 : numberIn(p.onlineCapacity, 1, 1000, 'Online seats');
-    const inPersonCapacity = p.format === 'Online' ? 0 : numberIn(p.inPersonCapacity, 1, 1000, 'In-person seats');
+    const inPersonCapacity = p.format === 'Online' ? 0 : String(p.inPersonCapacity ?? '').trim() === '' ? null : numberIn(p.inPersonCapacity, 1, 1000, 'In-person seats');
     if (p.registrationOpen && p.registrationClose) requireThat(p.registrationClose >= p.registrationOpen, 'Registration must close after it opens.');
     const supervisorIds = (p.supervisorIds || []).filter(pid => isActiveSupervisor(s, initiative.id, pid));
-    const fields = {initiativeId:initiative.id, ownerId:initiative.ownerId, title, speaker, description:String(p.description || ''), agenda:String(p.agenda || ''), date:p.date, time:p.time, endTime:p.endTime, timezone:p.timezone || initiative.timezone || 'Asia/Amman', format:p.format, venue, address, meeting, onlineCapacity, inPersonCapacity, capacity:onlineCapacity + inPersonCapacity, registrationOpen:p.registrationOpen || '', registrationClose:p.registrationClose || p.date, attendanceRequired:p.attendanceRequired !== false, completionRule:String(p.completionRule || 'Attendance only'), instructions:String(p.instructions || ''), eligibility:'Accepted participants of this initiative', supervisorIds, checkInPolicy:p.checkInMode === 'anytime' ? {mode:'anytime', before:0, after:0} : {mode:'window', before:numberIn(p.checkInBefore ?? 30, 0, 240, 'Minutes before start'), after:numberIn(p.checkInAfter ?? 30, 0, 720, 'Minutes after end')}};
+    const fields = {initiativeId:initiative.id, ownerId:initiative.ownerId, title, speaker, description:String(p.description || ''), agenda:String(p.agenda || ''), date:p.date, time:p.time, endTime:p.endTime, timezone:p.timezone || initiative.timezone || 'Asia/Amman', format:p.format, venue, address, meeting, meetingSetup, onlineCapacity, inPersonCapacity, capacity:inPersonCapacity === null ? null : onlineCapacity + inPersonCapacity, registrationOpen:p.registrationOpen || '', registrationClose:p.registrationClose || p.date, attendanceRequired:p.attendanceRequired !== false, completionRule:String(p.completionRule || 'Attendance only'), instructions:String(p.instructions || ''), eligibility:'Accepted participants of this initiative', supervisorIds, checkInPolicy:p.checkInMode === 'anytime' ? {mode:'anytime', before:0, after:0} : {mode:'window', before:numberIn(p.checkInBefore ?? 30, 0, 240, 'Minutes before start'), after:numberIn(p.checkInAfter ?? 30, 0, 720, 'Minutes after end')}};
     if (p.id) {
       const ss = find(s.sessions, p.id); requireThat(ss.initiativeId === initiative.id, 'This session belongs to another initiative.');
       requireThat(ss.status !== 'Cancelled', 'A cancelled session cannot be edited.');
       const moved = ss.status === 'Published' && (ss.date !== fields.date || ss.time !== fields.time || ss.venue !== fields.venue || ss.address !== fields.address || ss.meeting !== fields.meeting || ss.format !== fields.format);
-      if (ss.status === 'Published') requireThat(fields.onlineCapacity >= confirmedInMode(s, ss, 'Online') && fields.inPersonCapacity >= confirmedInMode(s, ss, 'In-person'), 'Seats cannot drop below confirmed registrations.');
+      if (ss.status === 'Published') requireThat(fields.onlineCapacity >= confirmedInMode(s, ss, 'Online') && (fields.inPersonCapacity === null || fields.inPersonCapacity >= confirmedInMode(s, ss, 'In-person')), 'Seats cannot drop below confirmed registrations.');
       const before = `${ss.date} ${ss.time} · ${ss.format} · ${ss.venue}`;
       Object.assign(ss, fields); (ss.history ||= []).push({at:now(), actorId:actor, change:moved ? `Rescheduled from ${before}` : 'Details updated', reason:p.reason || ''});
       if (moved) for (const r of s.sessionRegistrations.filter(r => r.sessionId === ss.id && r.status === 'Confirmed')) {
@@ -352,7 +353,7 @@ export function initiativeCommand(s, action, p, actor) {
     const ss = find(s.sessions, p.id), initiative = ss.initiativeId ? initiativeOf(s, ss.initiativeId) : null;
     if (initiative) requireRep(s, initiative, actor); else return false;
     requireThat(ss.status === 'Draft', 'This session is already published.');
-    requireThat(ss.format !== 'Online' || meetingUrl(ss.meeting), 'Add a Google Meet or Zoom link before publishing.');
+    requireThat(ss.format !== 'Online' || meetingUrl(ss.meeting), 'Set up the online meeting (Google Meet, Zoom or Microsoft Teams) before publishing.');
     requireThat(ss.format !== 'In-person' || (ss.venue && (ss.address || ss.venue)), 'Add the on-site location before publishing.');
     ss.status = 'Published'; ss.history.push({at:now(), actorId:actor, change:'Published'});
     const access = sessionAccess(ss);
@@ -390,7 +391,7 @@ export function initiativeCommand(s, action, p, actor) {
     requireThat(!s.sessionRegistrations.some(x => x.personId === actor && x.sessionId === ss.id && x.status !== 'Cancelled'), 'You are already registered for this session.');
     const mode = ss.format === 'Hybrid' ? p.mode : ss.format;
     requireThat(['Online','In-person'].includes(mode), 'Choose a participation mode.');
-    requireThat(confirmedInMode(s, ss, mode) < modeCapacity(ss, mode), 'This participation mode is full.');
+    requireThat(modeCapacity(ss, mode) === null || confirmedInMode(s, ss, mode) < modeCapacity(ss, mode), 'This participation mode is full.');
     const r = {id:id('session-registration'), sessionId:ss.id, personId:actor, mode, status:'Confirmed', attendance:'Not attended', completion:'Pending', created:now()};
     r.code = bookingCode(r.id);
     s.sessionRegistrations.push(r);
@@ -516,11 +517,15 @@ export function initiativeCommand(s, action, p, actor) {
     const initiative = initiativeOf(s, p.initiativeId);
     requireThat(isActiveSupervisor(s, initiative.id, actor), 'Only an active Supervisor can submit a summary.');
     requireThat(p.from && p.to && p.to >= p.from, 'Choose a valid reporting period.');
+    if (p.attachment) {
+      const file = p.attachment, extension = String(file.name || '').split('.').pop().toLowerCase();
+      requireThat(/^att-[a-z0-9-]+$/i.test(String(file.id || '')) && ['pdf','doc','docx','txt'].includes(extension) && Number(file.size) > 0 && Number(file.size) <= 5 * 1024 * 1024, 'Attach one PDF, Word or text file up to 5 MB.');
+    }
     // The Supervisor may choose which Coach reports go with the summary; otherwise every report in the period.
     const inPeriod = s.coachReports.filter(r => r.initiativeId === initiative.id && r.status === 'Submitted' && r.period.to >= p.from && r.period.from <= p.to);
     const chosen = [].concat(p.coachReportIds || []).filter(Boolean);
     const coachReportIds = chosen.length ? s.coachReports.filter(r => r.initiativeId === initiative.id && r.status === 'Submitted' && chosen.includes(r.id)).map(r => r.id) : inPeriod.map(r => r.id);
-    const summary = {id:id('sup-summary'), initiativeId:initiative.id, authorId:actor, period:{from:p.from, to:p.to}, metrics:initiativeMetrics(s, initiative, p.from, p.to), coachReportIds, summary:textRequired(p.summary, 'Summary'), issues:String(p.issues || '').trim(), recommendations:String(p.recommendations || '').trim(), status:'Submitted', submitted:now()};
+    const summary = {id:id('sup-summary'), initiativeId:initiative.id, authorId:actor, period:{from:p.from, to:p.to}, metrics:initiativeMetrics(s, initiative, p.from, p.to), coachReportIds, summary:textRequired(p.summary, 'Summary'), issues:String(p.issues || '').trim(), recommendations:String(p.recommendations || '').trim(), attachment:p.attachment ? {id:p.attachment.id, name:String(p.attachment.name).slice(0, 120), type:String(p.attachment.type || ''), size:Number(p.attachment.size)} : null, status:'Submitted', submitted:now()};
     s.supervisorSummaries.push(summary);
     for (const r of s.coachReports.filter(x => coachReportIds.includes(x.id))) r.review = {...(r.review || {}), sentIn:summary.id, sentAt:now()};
     noticeAll(s, representativesOf(s, initiative), `${personOf(s, actor).name} submitted a Supervisor summary for ${initiative.title}.`, `workspaces.html#/organization/reports?initiative=${initiative.id}`);
@@ -541,12 +546,14 @@ export function initiativeCommand(s, action, p, actor) {
     requireThat(['everyone', 'coaches', 'coach'].includes(p.audience), 'Choose who the meeting is with.');
     if (p.audience === 'coach') requireThat(activeGrantsFor(s, initiative.id, 'coach').some(g => g.personId === p.coachId), 'Choose a Coach of this initiative.');
     requireThat(p.date && p.time, 'Choose a date and time.');
-    const meeting = {id:id('meeting'), initiativeId:initiative.id, organizerId:actor, title:textRequired(p.title, 'Title'), audience:p.audience, coachId:p.audience === 'coach' ? p.coachId : null, date:p.date, time:p.time, minutes:Number(p.minutes) || 45, format:p.format || 'Online', place:String(p.place || '').trim(), note:String(p.note || '').trim(), status:'Scheduled', created:now()};
+    const format = p.format === 'In-person' ? 'In-person' : 'Online', link = format === 'Online' ? meetingUrl(p.meeting) : '';
+    requireThat(format !== 'Online' || link, 'Set up the online meeting first: a Google Meet, Zoom or Microsoft Teams link.');
+    const meeting = {id:id('meeting'), initiativeId:initiative.id, organizerId:actor, title:textRequired(p.title, 'Title'), audience:p.audience, coachId:p.audience === 'coach' ? p.coachId : null, date:p.date, time:p.time, minutes:Number(p.minutes) || 45, format, place:format === 'In-person' ? String(p.place || '').trim() : '', meeting:link, meetingSetup:link ? cleanMeetingSetup(p.meetingSetup, link) : null, note:String(p.note || '').trim(), status:'Scheduled', created:now()};
     (s.supervisorMeetings ||= []).push(meeting);
     const coaches = activeGrantsFor(s, initiative.id, 'coach').map(g => g.personId);
     const students = s.groups.filter(g => g.parentType === 'initiative' && g.initiativeId === initiative.id).flatMap(g => g.memberIds);
     const invited = p.audience === 'coach' ? [p.coachId] : p.audience === 'coaches' ? coaches : [...coaches, ...students];
-    noticeAll(s, invited, `${personOf(s, actor).name} scheduled “${meeting.title}” on ${meeting.date} at ${meeting.time}.`, `workspaces.html#/mentor/dashboard`);
+    noticeAll(s, invited, `${personOf(s, actor).name} scheduled “${meeting.title}” on ${meeting.date} at ${meeting.time}.${link ? ` Join: ${meetingDetail(meeting.meetingSetup, link)} · ${link}` : meeting.place ? ` Room: ${meeting.place}` : ''}`, `workspaces.html#/mentor/dashboard`);
     return meeting.id;
   }
   if (action === 'initiative.supervisor.meeting.cancel') {

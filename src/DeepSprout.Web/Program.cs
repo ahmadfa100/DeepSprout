@@ -96,6 +96,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             OnChallenge = context =>
             {
                 context.HandleResponse();
+                if (context.Request.Path.StartsWithSegments("/api"))
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return Task.CompletedTask;
+                }
                 context.Response.Redirect("/src/pages/auth/login/login.html?returnUrl=" +
                     Uri.EscapeDataString(context.Request.PathBase + context.Request.Path + context.Request.QueryString));
                 return Task.CompletedTask;
@@ -112,7 +117,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
     app.UseHttpsRedirection();
 }
-app.UseStatusCodePagesWithReExecute("/404.html");
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api"),
+    branch => branch.UseStatusCodePagesWithReExecute("/404.html"));
 if (app.Environment.IsDevelopment())
 {
     app.Use(async (context, next) =>
@@ -154,6 +160,7 @@ app.UseAuthorization();
 #pragma warning disable ASP0014
 app.UseEndpoints(endpoints =>
 {
+    endpoints.MapControllers();
     endpoints.MapControllerRoute("home", "", new { controller = "Pages", action = "Show", page = "index.html" });
 
     endpoints.MapControllerRoute("account-login", "src/pages/auth/login/login.html", new { controller = "Account", action = "Login" });

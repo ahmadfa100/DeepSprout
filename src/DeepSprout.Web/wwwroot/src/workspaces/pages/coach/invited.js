@@ -16,6 +16,8 @@ import * as kit from '../../../shared/task-kit.js';
 import '../../task-composer.js';
 import {institutionGroups} from './independent.js';
 import {coachInsights} from './insights.js';
+import {meetingUrl,MEETING_PLATFORMS} from '../../session-access.js';
+import {glyph} from '../../meeting-setup.js';
 
 /* ------------------------------------------------------------ records */
 
@@ -127,7 +129,7 @@ export function dashboard(ctx) {
   const mine = new Set(groups.flatMap(g => g.memberIds));
   // Meetings the Supervisor scheduled with this Coach (alone, with all Coaches, or with everyone).
   const meetings = (s.supervisorMeetings || []).filter(m => m.status !== 'Cancelled' && m.date >= day && inits.some(ii => ii.id === m.initiativeId) && (m.audience !== 'coach' || m.coachId === p.id)).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).slice(0, 2);
-  const meetingRows = meetings.map(m => { const d = dayMonth(m.date); return `<li class="is-meeting"><time><b>${d.getDate()}</b><span>${esc(d.toLocaleDateString('en-GB', {month:'short'}))}</span></time><div><strong>${esc(m.title)}</strong><small>${esc(m.time)} · ${esc(m.format)} · with ${esc(nameOf(s, m.organizerId))}</small></div>${pill('Upcoming', 'Meeting')}</li>`; }).join('');
+  const meetingRows = meetings.map(m => { const d = dayMonth(m.date); return `<li class="is-meeting"><time><b>${d.getDate()}</b><span>${esc(d.toLocaleDateString('en-GB', {month:'short'}))}</span></time><div><strong>${esc(m.title)}</strong><small>${esc(m.time)} · ${esc(m.format)} · with ${esc(nameOf(s, m.organizerId))}</small>${meetingUrl(m.meeting) ? `<a class="ms-join" href="${esc(meetingUrl(m.meeting))}" target="_blank" rel="noopener noreferrer">${glyph(m.meetingSetup?.platform, 'is-xs')}Join ${esc(MEETING_PLATFORMS[m.meetingSetup?.platform]?.name || 'meeting')} ↗${m.meetingSetup?.passcode ? `<span>Passcode ${esc(m.meetingSetup.passcode)}</span>` : ''}</a>` : ''}</div>${pill('Upcoming', 'Meeting')}</li>`; }).join('');
   const agenda = meetingRows + [...upcoming, ...recent].map(x => { const att = (s.sessionAttendance || []).filter(a => a.sessionId === x.id && mine.has(a.personId)); const d = dayMonth(x.date); return `<li class="${x.date < day ? 'is-past' : ''}"><time><b>${d.getDate()}</b><span>${esc(d.toLocaleDateString('en-GB', {month:'short'}))}</span></time><div><strong>${esc(x.title)}</strong><small>${esc(x.time)} · ${esc(x.format)}</small></div>${x.date >= day ? pill('Upcoming') : att.length ? `<span class="cw-att">${att.filter(a => a.status !== 'Absent').length} of ${att.length} of your students came</span>` : '<span class="cw-att">Not recorded</span>'}</li>`; }).join('');
 
   return hero(`You coach ${groups.map(g => `<strong>${esc(g.name)}</strong>`).join(' and ')}. ${waiting.length ? `${plural(waiting.length, 'piece')} of work ${waiting.length === 1 ? 'is' : 'are'} waiting for your review.` : 'Nothing is waiting for your review.'}`,

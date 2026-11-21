@@ -183,7 +183,7 @@ export function attendanceCommand(s, action, p, actor) {
     if (ref.kind === 'initiative') {
       const admission = s.admissions.find(a => a.initiativeId === ref.parent.id && a.personId === person.id);
       requireThat(admission?.status === 'Accepted', `${person.name} is not an accepted participant of ${ref.parent.title}. Only admitted participants can be added.`);
-      requireThat(confirmedInMode(s, ref.ss, mode) < modeCapacity(ref.ss, mode), `The ${mode === 'Online' ? 'online' : 'in-person'} places for this session are full.`);
+      requireThat(modeCapacity(ref.ss, mode) === null || confirmedInMode(s, ref.ss, mode) < modeCapacity(ref.ss, mode), `The ${mode === 'Online' ? 'online' : 'in-person'} places for this session are full.`);
       const reg = {id:id('session-registration'), sessionId:ref.ss.id, personId:person.id, mode, status:'Confirmed', attendance:'Not attended', completion:'Pending', created:now(), addedBy:actor, addedReason:reason, source:'staff-added'};
       reg.code = bookingCode(reg.id);
       s.sessionRegistrations.push(reg);

@@ -13,6 +13,10 @@ import {groupMetrics} from '../../commands/initiative.js';
 import {standing} from '../coach/invited.js';
 import {supervisorInsights,supervisorTimeline} from './insights.js';
 import {nowMs} from '../../domain.js';
+import {REPORT_ACCEPT} from '../../../shared/attachments.js';
+import {submitSummary} from './report-file.js';
+import {meetingUrl,MEETING_PLATFORMS} from '../../session-access.js';
+import {meetingField,mountMeetingField,guardMeeting,glyph} from '../../meeting-setup.js';
 
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const day = v => new Date(`${String(v).slice(0, 10)}T12:00`);
@@ -125,6 +129,7 @@ export function reports(ctx, i) {
       <fieldset class="sv-pick"><legend>Coach reports to attach</legend>${ready.length ? ready.map(x => `<label><input type="checkbox" name="coachReportIds" value="${esc(x.id)}" checked><span>${u.avatar(nameOf(s, x.authorId))}<span><b>${esc(nameOf(s, x.authorId))}</b><small>${esc(s.groups.find(g => g.id === x.groupId)?.name || '')} · ${esc(fmtDate(x.period.to))}</small></span></span></label>`).join('') : '<p class="iw-muted">No new reports to attach. Counts are attached automatically.</p>'}</fieldset>
       <div class="form-grid">${u.field('from', 'From', r.query.get('from') || [i.start, i.registrationOpen].filter(Boolean).sort()[0], 'date', true)}${u.field('to', 'To', r.query.get('to') || [i.end, w.d].sort()[0], 'date', true)}</div>
       ${u.area('summary', 'Summary — what is going well, what is not', '', true)}${u.area('issues', 'Needs the Representative’s decision (optional)', '')}${u.area('recommendations', 'Your recommendations (optional)', '')}
+      <label class="field"><span>Supporting document (Optional)</span><input type="file" name="attachment" accept="${REPORT_ACCEPT}"><small>PDF, Word or text · up to 5 MB. The file is available to your Institution in this browser only.</small></label>
       <p class="form-error" role="alert"></p><button class="button primary" type="submit">Send to Representative</button>
     </form></section>`;
   return head({eyebrow:'COACH REPORTS', title:'Coach reports', lead:'Read what each Coach sent, add your notes or corrections, then send one summary to the Representative.'})
@@ -141,7 +146,7 @@ export function schedule(ctx, i) {
   const items = [...w.sessions.map(x => ({at:x.date, time:`${x.time}–${x.endTime}`, title:x.title, kind:'session', x})), ...w.meetings.map(m => ({at:m.date, time:`${m.time} · ${m.minutes} min`, title:m.title, kind:'meeting', m}))].sort((a, b) => (a.at + a.time).localeCompare(b.at + b.time));
   const up = items.filter(x => x.at >= w.d), past = items.filter(x => x.at < w.d).reverse();
   const who = m => { const ids = m.audience === 'coach' ? [m.coachId] : m.audience === 'coaches' ? w.coaches : [...w.coaches, ...w.students.map(x => x.pid)]; return `<span class="iw-avatar-stack">${ids.slice(0, 6).map(pid => u.avatar(nameOf(s, pid))).join('')}</span><small>${esc(meetingWho(s, m))}${ids.length > 1 ? ` · ${plural(ids.length, 'person', 'people')}` : ''}</small>`; };
-  const row = it => it.kind === 'meeting' ? `<li class="sv-item is-meeting"><time><b>${day(it.at).getDate()}</b><span>${esc(day(it.at).toLocaleDateString('en-GB', {month:'short'}))}</span></time><div class="sv-item-main"><strong>${esc(it.title)}</strong><small>${esc(it.time)} · ${esc(it.m.format)}${it.m.place ? ` · ${esc(it.m.place)}` : ''}</small>${it.m.note ? `<p>${esc(it.m.note)}</p>` : ''}</div><div class="sv-item-who">${who(it.m)}</div>${pill('Upcoming', 'Your meeting')}<div class="ad-row-actions">${it.at >= w.d ? u.button('Cancel', 'sv-meeting-cancel', {id:it.m.id}, 'button quiet small') : ''}</div></li>`
+  const row = it => it.kind === 'meeting' ? `<li class="sv-item is-meeting"><time><b>${day(it.at).getDate()}</b><span>${esc(day(it.at).toLocaleDateString('en-GB', {month:'short'}))}</span></time><div class="sv-item-main"><strong>${esc(it.title)}</strong><small>${esc(it.time)} · ${esc(it.m.format)}${meetingUrl(it.m.meeting) ? ` · ${esc(MEETING_PLATFORMS[it.m.meetingSetup?.platform]?.name || 'Online meeting')}` : it.m.place ? ` · ${esc(it.m.place)}` : ''}</small>${meetingUrl(it.m.meeting) ? `<a class="ms-join" href="${esc(meetingUrl(it.m.meeting))}" target="_blank" rel="noopener noreferrer">${glyph(it.m.meetingSetup?.platform, 'is-xs')}Join meeting ↗${it.m.meetingSetup?.passcode ? `<span>Passcode ${esc(it.m.meetingSetup.passcode)}</span>` : ''}</a>` : ''}${it.m.note ? `<p>${esc(it.m.note)}</p>` : ''}</div><div class="sv-item-who">${who(it.m)}</div>${pill('Upcoming', 'Your meeting')}<div class="ad-row-actions">${it.at >= w.d ? u.button('Cancel', 'sv-meeting-cancel', {id:it.m.id}, 'button quiet small') : ''}</div></li>`
     : `<li class="sv-item is-session"><time><b>${day(it.at).getDate()}</b><span>${esc(day(it.at).toLocaleDateString('en-GB', {month:'short'}))}</span></time><div class="sv-item-main"><strong>${u.link(it.title, `supervisor/schedule/${it.x.id}`, 'ad-title-link')}</strong><small>${esc(it.time)} · ${esc(it.x.format)}${it.x.venue ? ` · ${esc(it.x.venue)}` : ''}</small></div><div class="sv-item-who"><small>${(it.x.supervisorIds || []).length ? `Supervisor: ${esc((it.x.supervisorIds || []).map(pid => nameOf(s, pid)).join(', '))}` : '<span class="iw-warn-text">Needs a Supervisor</span>'}</small></div>${(it.x.supervisorIds || []).includes(p.id) ? pill('Active', 'Your duty') : pill('neutral', 'Session')}<div class="ad-row-actions">${(it.x.supervisorIds || []).includes(p.id) && it.at <= w.d ? u.link('Attendance', `supervisor/attendance/${it.x.id}`, 'button quiet small') : ''}</div></li>`;
   return head({eyebrow:'SCHEDULE', title:'Sessions & meetings', lead:'The initiative’s sessions, and the meetings you hold with everyone or with one Coach.', actions:u.button('New meeting', 'sv-meeting', {initiative:i.id}, 'button primary')})
     + card('Coming up', up.length ? `<ol class="sv-list">${up.map(row).join('')}</ol>` : calm('Nothing scheduled.', 'Create a meeting with your Coaches or with everyone.'), {eyebrow:`${up.length} AHEAD`, extra:'<span class="sv-key"><i class="is-meeting"></i>Meeting <i class="is-session"></i>Session</span>'})
@@ -156,10 +161,30 @@ export function deskAction(action, target, ctx) {
     const i = s.initiatives.find(x => x.id === (d.initiative || ctx.localUI.initiativeId)), coaches = activeGrantsFor(s, i.id, 'coach').map(g => g.personId);
     const audience = `<fieldset class="sv-audience"><legend>Who is it with?</legend>${[['everyone', 'Everyone', 'All students and all Coaches', 'people'], ['coaches', 'All coaches', plural(coaches.length, 'Coach', 'Coaches'), 'nodes'], ['coach', 'One coach', 'Choose below', 'people']].map(([v, l, sub, ic], n) => `<label><input type="radio" name="audience" value="${v}" ${n === 1 ? 'checked' : ''}><span>${u.icon(ic)}<b>${l}</b><small>${esc(sub)}</small></span></label>`).join('')}</fieldset>`;
     const coachPick = `<div class="sv-coach-pick">${picker({attrs:'name="coachId"', label:'Coach', placeholder:'Choose a coach', options:coaches.map(pid => ({value:pid, label:nameOf(s, pid), sub:s.groups.filter(g => g.coachId === pid).map(g => g.name).join(', ') || 'No group yet', person:true})), inline:true})}</div>`;
-    u.modal('New meeting', u.field('title', 'Title', '', 'text', true, 'placeholder="e.g. Coaches check-in"') + audience + coachPick + `<div class="form-grid">${u.field('date', 'Date', today(s), 'date', true)}${u.field('time', 'Time', '10:00', 'time', true)}</div><div class="form-grid">${u.select('minutes', 'Length', [['20', '20 minutes'], ['30', '30 minutes'], ['45', '45 minutes'], ['60', '1 hour']], '30')}${u.select('format', 'Where', [['Online', 'Online'], ['In-person', 'In person']], 'Online')}</div>${u.field('place', 'Link or room (optional)', '')}${u.area('note', 'Agenda (optional)', '')}`,
+    u.modal('New meeting', u.field('title', 'Title', '', 'text', true, 'placeholder="e.g. Coaches check-in"') + audience + coachPick + `<div class="form-grid">${u.field('date', 'Date', today(s), 'date', true)}${u.field('time', 'Time', '10:00', 'time', true)}</div><div class="form-grid">${u.select('minutes', 'Length', [['20', '20 minutes'], ['30', '30 minutes'], ['45', '45 minutes'], ['60', '1 hour'], ['90', '1 h 30 min'], ['120', '2 hours']], '30')}</div>
+      <fieldset class="iw-session-mode"><legend>Where will it happen?</legend><div class="iw-session-options"><label><input type="radio" name="format" value="Online" checked><span><strong>Online</strong><small>Google Meet, Zoom or Microsoft Teams</small></span></label><label><input type="radio" name="format" value="In-person"><span><strong>In person</strong><small>A room people come to</small></span></label></div></fieldset>
+      <section class="iw-session-access" data-sv-panel="Online" aria-label="Online meeting">${meetingField()}</section>
+      <section class="iw-session-access" data-sv-panel="In-person" aria-label="Room" hidden>${u.field('place', 'Room', '', 'text', false, 'placeholder="e.g. Room 2, Horizon Youth Center"')}</section>${u.area('note', 'Agenda (optional)', '')}`,
       v => { ctx.run('initiative.supervisor.meeting', {...v, initiativeId:i.id}, v.audience === 'coach' ? `Meeting scheduled with ${nameOf(s, v.coachId)}.` : v.audience === 'coaches' ? 'Meeting scheduled with all Coaches.' : 'Meeting scheduled with everyone.'); ctx.render(); }, 'Schedule meeting');
     const dlg = document.getElementById('workspace-dialog'), sync = () => dlg.querySelector('.sv-coach-pick')?.toggleAttribute('hidden', dlg.querySelector('[name=audience]:checked')?.value !== 'coach');
     dlg.querySelectorAll('[name=audience]').forEach(x => x.addEventListener('change', sync)); sync();
+    const form = document.getElementById('dialog-form'), meetingBox = form.querySelector('[data-ms-field]');
+    const where = () => form.querySelector('input[name="format"]:checked')?.value || 'Online';
+    const syncWhere = () => form.querySelectorAll('[data-sv-panel]').forEach(panel => { const on = panel.dataset.svPanel === where(); panel.hidden = !on; panel.querySelectorAll('input').forEach(x => { x.disabled = !on; }); });
+    form.querySelectorAll('input[name="format"]').forEach(x => x.addEventListener('change', syncWhere)); syncWhere();
+    mountMeetingField(meetingBox, {
+      title:() => form.elements.title.value.trim(), hostEmail:ctx.person.email || '', cohosts:() => [],
+      when:{
+        get:() => ({date:form.elements.date.value, time:form.elements.time.value, minutes:Number(form.elements.minutes.value), tz:'Asia/Amman'}),
+        set:w => {
+          form.elements.date.value = w.date; form.elements.time.value = w.time;
+          const sel = form.elements.minutes;
+          if (![...sel.options].some(o => Number(o.value) === w.minutes)) sel.add(new Option(w.minutes < 60 ? `${w.minutes} minutes` : `${Math.floor(w.minutes / 60)} h${w.minutes % 60 ? ` ${w.minutes % 60} min` : ''}`, String(w.minutes)));
+          sel.value = String(w.minutes);
+        }
+      }
+    });
+    guardMeeting(form, meetingBox, () => where() === 'Online');
     return true;
   }
   if (action === 'sv-meeting-cancel') {
@@ -180,7 +205,5 @@ export function deskAction(action, target, ctx) {
 export function deskSubmit(form, ctx) {
   if (form.dataset.form !== 'supervisor-summary') return false;
   const ids = [...form.querySelectorAll('[name=coachReportIds]:checked')].map(x => x.value);
-  ctx.run('initiative.supervisor.summary', {initiativeId:form.dataset.initiative, ...u.formValues(form), coachReportIds:ids}, ids.length ? `Summary sent with ${plural(ids.length, 'coach report')}.` : 'Summary sent to the Representative.');
-  ctx.render();
-  return true;
+  return submitSummary(form, ctx, ids.length ? `Summary sent with ${plural(ids.length, 'coach report')}.` : 'Summary sent to the Representative.');
 }

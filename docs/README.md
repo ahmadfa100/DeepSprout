@@ -18,6 +18,9 @@ Start here. Each question has exactly one current answer; anything not listed as
 | What does the running demo do, page by page? | [Current product guide](current-product-guide.md) |
 | What is the database? | [Database index](architecture/database/README.md): 58 application tables, v5-lean-2 |
 | Where does each feature store its data today, and where will it go? | [Persistence contract](architecture/database/persistence-contract.md) |
+| Where should backend implementation start? | [Backend implementation plan](implementation/backend-start-plan.md) |
+| What Community server endpoints exist? | [Community server API](implementation/community-server-api.md) |
+| What schema would cross-device quiz rooms need? | [Community quiz backend proposal](architecture/community-quiz-backend-proposal.md) (pending owner review) |
 | How does EF Core build or adopt the database? | [EF Core adoption](architecture/database/efcore-v5-adoption.md) |
 | What are the old 129-table database and EF code? | [Historical M1 database](architecture/database/historical-m1-validation-database.md) |
 | How should pages look? | [DESIGN.md](../DESIGN.md) → [DeepSprout-DESIGN.md](../DeepSprout-DESIGN.md); [client design notes](client/README.md) |
@@ -37,5 +40,5 @@ Older round reports, cycle audits, phase audits and database design generations 
 
 | Implemented (browser-local demo) | Future work |
 |---|---|
-| All Individual, partner and Admin pages; Onboarding 2.0; local journals and the ecosystem graph | Server commands, ASP.NET Core Identity and resource authorization |
+| All Individual, partner and Admin pages; Onboarding 2.0; local journals and the ecosystem graph; Community server API (not yet used by pages) | Remaining server commands, resource authorization and connecting pages to SQL Server |
 | Approved 58-table SQL script, negative tests, EF Core model and two migrations verified on disposable databases | Adopting and upgrading `DeepSprout_V5_Demo`; connecting pages to SQL Server; importing browser journals |

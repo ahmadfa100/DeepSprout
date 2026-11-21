@@ -7,7 +7,8 @@
  * list kept in the view could fall behind the modules that need it. That is
  * how the Attendance page once rendered without its styles.
  *
- * Add new workspace stylesheets here, never in the view. ds-system.css stays last.
+ * Add new workspace stylesheets here, never in the view. ds-theme.css (the
+ * "Forest & Pearl" visual reference for all four cycles) stays last.
  */
 @import url("../styles/theme.css");
 @import url("workspaces.css");
@@ -19,6 +20,7 @@
 @import url("admin-console.css");
 @import url("supervisor-desk.css");
 @import url("attendance-center.css");
+@import url("meeting-setup.css");
 @import url("competitions.css");
 @import url("../styles/initiative-portal.css");
 @import url("journey/journey.css");
@@ -27,3 +29,4 @@
 @import url("ds-system.css");
 @import url("../shared/task-kit.css");
 @import url("coach-tasks.css");
+@import url("ds-theme.css");

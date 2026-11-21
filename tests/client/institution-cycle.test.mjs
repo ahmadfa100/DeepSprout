@@ -219,6 +219,22 @@ test('E · session booking, Needs Supervisor gate, QR/code, duplicate, roster, A
   s = read(); assert.equal(needsSupervisor(s, s.sessions.find(x => x.id === sid)), true, 'warning restored when the appointment lapses');
 });
 
+test('On-site seats can be left blank without limiting session registration', () => {
+  reset('p-maya');
+  const details = {initiativeId:'i-today', title:'Open planning circle', speaker:'Maya Haddad', date:'2026-10-28', time:'16:00', endTime:'17:00', format:'In-person', venue:'Horizon Hall', address:'1 Horizon Street, Amman', inPersonCapacity:''};
+  const sid = dispatch('initiative.session.save', details);
+  assert.equal(read().sessions.find(ss => ss.id === sid).inPersonCapacity, null);
+  dispatch('initiative.session.publish', {id:sid});
+  as('p-rania'); dispatch('member.session.register', {sessionId:sid, consent:true});
+  as('p-noor'); dispatch('participant.session.register', {sessionId:sid, consent:true});
+  assert.equal(myInitiatives(read(), 'p-rania').find(m => m.initiative.id === 'i-today').sessions.find(ss => ss.id === sid).seats.inPerson, null);
+  as('p-maya');
+  assert.throws(() => dispatch('initiative.session.save', {...details, id:sid, inPersonCapacity:1}), /Seats cannot drop below confirmed registrations/);
+  dispatch('initiative.session.save', {...details, id:sid});
+  assert.equal(read().sessions.find(ss => ss.id === sid).inPersonCapacity, null);
+  assert.throws(() => dispatch('initiative.session.save', {...details, id:sid, inPersonCapacity:0}), /In-person seats must be between 1 and 1000/);
+});
+
 test('F · Coach report → Supervisor summary → Rep reports; completion adds history but no Personal Garden object', () => {
   reset('p-karim');
   assert.throws(() => dispatch('initiative.coach.report', {groupId:'g-today-b', from:'2026-10-01', to:'2026-10-31', observations:'x', submit:true}), /currently assigned/);
@@ -237,6 +253,17 @@ test('F · Coach report → Supervisor summary → Rep reports; completion adds 
   assert.ok(initiativeGarden(s, 'i-today').completedMilestone);
   assert.equal(exploreInitiatives(s, 'p-zaid').some(c => c.id === 'i-today'), false, 'completed initiative leaves new discovery');
   assert.equal(myInitiatives(s, 'p-noor').find(m => m.initiative.id === 'i-today').admission.status, 'Completed');
+});
+
+test('Supervisor summary keeps one optional document reference for the Institution', () => {
+  reset('p-hala');
+  const fields = {initiativeId:'i-today', from:'2026-10-14', to:'2026-10-25', summary:'The group is progressing.'};
+  const attachment = {id:'att-report-123', name:'weekly-report.pdf', type:'application/pdf', size:1024};
+  const id = dispatch('initiative.supervisor.summary', {...fields, attachment});
+  assert.deepEqual(read().supervisorSummaries.find(r => r.id === id).attachment, attachment);
+  assert.throws(() => dispatch('initiative.supervisor.summary', {...fields, attachment:{...attachment, name:'weekly-report.exe'}}), /Attach one PDF, Word or text file/);
+  const plain = dispatch('initiative.supervisor.summary', fields);
+  assert.equal(read().supervisorSummaries.find(r => r.id === plain).attachment, null);
 });
 
 test('Migration upgrades a schema-1 graph in place, keeps enrollments as Applications and is idempotent', () => {

@@ -811,7 +811,7 @@
       actions = `${attendChip('Registered')}<button type="button" class="ex-button is-quiet ex-small" data-session-cancel="${reg.id}">Cancel registration</button>`;
     } else if (accepted && ss.open) {
       const modes = ss.format === 'Hybrid' ? ['In-person', 'Online'] : [ss.format];
-      actions = `<label class="ex-inline-field"><span class="visually-hidden">Mode</span><select data-mode-for="${ss.id}">${modes.map(m => `<option value="${m}"${(m === 'Online' ? ss.seats.online : ss.seats.inPerson) < 1 ? ' disabled' : ''}>${m} · ${m === 'Online' ? ss.seats.online : ss.seats.inPerson} left</option>`).join('')}</select></label><button type="button" class="ex-button ex-small" data-session-register="${ss.id}">Register</button>`;
+      actions = `<label class="ex-inline-field"><span class="visually-hidden">Mode</span><select data-mode-for="${ss.id}">${modes.map(m => { const remaining = m === 'Online' ? ss.seats.online : ss.seats.inPerson; return `<option value="${m}"${remaining !== null && remaining < 1 ? ' disabled' : ''}>${m} · ${remaining === null ? 'no seat limit' : `${remaining} left`}</option>`; }).join('')}</select></label><button type="button" class="ex-button ex-small" data-session-register="${ss.id}">Register</button>`;
     } else actions = `<span class="ex-muted">${accepted ? 'Registration closed' : 'For accepted students'}</span>`;
     const credential = reg && !ss.attendance ? (reg.mode === 'In-person'
       ? passMarkup(ss.title, reg.code, reg.code, ss.venue || 'Venue in session details')
