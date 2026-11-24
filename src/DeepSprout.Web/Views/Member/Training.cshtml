@@ -15,12 +15,14 @@
   <link rel="stylesheet" href="../../../../src/styles/page-hero.css">
   <link rel="stylesheet" href="../../../../src/styles/individual-ui.css">
   <link rel="stylesheet" href="training.css?v=20261030-1">
+  <link rel="stylesheet" href="/src/pages/member/training/interactive-practice.css">
   <link rel="stylesheet" href="../../../../src/shared/task-kit.css?v=20261111-1">
   <script type="module" src="../../../../src/shared/member-bridge.js"></script>
   <script src="../../../js/data/personal-access.js" defer></script>
   <script src="../../../../src/js/data/account.js" defer></script>
   <script src="../../../../src/layouts/member-layout/member-layout.js" defer></script>
   <script src="../../../../src/js/ui/individual-ui.js" defer></script>
+  <script src="/src/pages/member/training/interactive-practice.js" defer></script>
   <script src="training.js?v=20261030-1" defer></script>
   <script src="offline-routine.js?v=20261030-1" defer></script>
   <script src="assigned.js?v=20261111-1" defer></script>
@@ -28,6 +30,8 @@
 </head>
 <body data-page="training" data-root="../../../../">
   <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-shapes" viewBox="0 0 32 32"><circle cx="9" cy="9" r="5"/><path d="m23 4 5 10H18z"/><rect x="4" y="18" width="10" height="10" rx="1.5"/><path d="m23 18 5 5-5 5-5-5z"/></symbol>
+    <symbol id="i-evidence" viewBox="0 0 32 32"><rect x="3" y="4" width="11" height="9" rx="2"/><rect x="18" y="19" width="11" height="9" rx="2"/><path d="M8.5 13v9a2 2 0 0 0 2 2H18M18 8h10M18 12h7"/></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
     <symbol id="i-book" viewBox="0 0 32 32"><path d="M16 7c-4-3-9-3-13-2v19c5-1 10 0 13 3 3-3 8-4 13-3V5c-4-1-9-1-13 2Zm0 0v20"/></symbol>
     <symbol id="i-headphones" viewBox="0 0 32 32"><path d="M5 18v-3a11 11 0 0 1 22 0v3M5 17h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9Zm22 0h-4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-9Z"/></symbol>
@@ -136,7 +140,7 @@
         </div>
         <div class="practice-grid">
           <article class="practice-card tone-amber" data-card="depth">
-            <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-book"/></svg><span class="orbit"></span></div>
+            <div class="practice-art" aria-hidden="true"><svg class="practice-plate plate-reading" viewBox="0 0 340 160"><rect class="plate-shadow" x="107" y="27" width="128" height="112" rx="5" transform="rotate(-8 171 83)"/><g class="plate-page"><rect x="112" y="20" width="124" height="117" rx="5"/><path d="M140 48h63M140 61h46M140 88h63M140 97h63M140 106h52M140 115h37"/><path class="plate-margin" d="M128 32v93"/><path class="plate-mark" d="M205 20v39l9-6 9 6V20"/></g></svg></div>
             <div class="practice-body">
               <span class="practice-meta"><svg><use href="#i-clock"/></svg>3–5 min · Reading + questions</span>
               <h3>Depth Practice</h3>
@@ -145,31 +149,31 @@
             <div class="practice-actions"><button type="button" class="practice-start" data-session="depth">Start <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="depth" aria-pressed="false" aria-label="Save Depth Practice"><svg><use href="#i-bookmark"/></svg></button></div>
           </article>
           <article class="practice-card tone-sky" data-card="listening">
-            <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-headphones"/></svg><span class="orbit"></span></div>
+            <div class="practice-art" aria-hidden="true"><svg class="practice-plate plate-listening" viewBox="0 0 340 160"><path class="plate-baseline" d="M36 80h268"/><g class="plate-wave"><path d="M62 73v14m15-21v28m15-42v56m15-45v34m15-53v72m15-67v62m15-77v92m15-59v26m15-67v108m15-81v54m15-45v36m15-62v88m15-72v56m15-47v38m15-29v20m15-16v12"/></g><path class="plate-cue" d="M186 27v106"/><circle cx="186" cy="134" r="3"/></svg></div>
             <div class="practice-body">
               <span class="practice-meta"><svg><use href="#i-clock"/></svg>3–5 min · Playback + recall</span>
               <h3>Listening &amp; Recall</h3>
-              <p>Listen once, no replays, then write down what you remember.</p>
+              <p>Listen to a short original recording, then answer questions from memory.</p>
             </div>
             <div class="practice-actions"><button type="button" class="practice-start" data-session="listening">Start <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="listening" aria-pressed="false" aria-label="Save Listening and Recall"><svg><use href="#i-bookmark"/></svg></button></div>
           </article>
-          <article class="practice-card tone-lilac" data-card="challenge">
-            <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-pencil"/></svg><span class="orbit"></span></div>
+          <article class="practice-card tone-fern" data-card="visual">
+            <div class="practice-art" aria-hidden="true"><svg class="practice-plate plate-visual" viewBox="0 0 420 182"><g class="plate-grid"><path d="M76 32h268M76 91h268M76 150h268M78 30v122m66-122v122m66-122v122m66-122v122m66-122v122"/></g><circle class="plate-form plate-disc" cx="111" cy="62" r="19"/><path class="plate-form plate-triangle" d="m211 44 21 37h-42z"/><rect class="plate-form plate-square" x="255" y="100" width="42" height="42" rx="4"/><path class="plate-form plate-diamond" d="m310 38 24 24-24 24-24-24z"/><circle class="plate-form plate-ring" cx="177" cy="120" r="17"/></svg></div>
             <div class="practice-body">
-              <span class="practice-meta"><svg><use href="#i-clock"/></svg>4–8 min · Concrete outcome</span>
-              <h3>Micro-Challenge</h3>
-              <p>One small, concrete task — summarise, organise or make something — with a clear finish line.</p>
+              <span class="practice-meta">3–5 min · Visual analysis</span>
+              <h3>Visual Observation &amp; Analysis</h3>
+              <p>Study a composition, spot what changed, and reason through patterns and spatial clues.</p>
             </div>
-            <div class="practice-actions"><button type="button" class="practice-start" data-session="challenge">Start <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="challenge" aria-pressed="false" aria-label="Save Micro-Challenge"><svg><use href="#i-bookmark"/></svg></button></div>
+            <div class="practice-actions"><button type="button" class="practice-start" data-session="visual">Explore scenes <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="visual" aria-pressed="false" aria-label="Save Visual Observation and Analysis"><svg><use href="#i-bookmark"/></svg></button></div>
           </article>
-          <article class="practice-card tone-peach" data-card="protected">
-            <div class="practice-art" aria-hidden="true"><svg class="practice-glyph" viewBox="0 0 32 32"><use href="#i-timer"/></svg><span class="orbit"></span></div>
+          <article class="practice-card tone-linen" data-card="judgment">
+            <div class="practice-art" aria-hidden="true"><svg class="practice-plate plate-evidence" viewBox="0 0 420 182"><path class="plate-links" d="M148 60h55q12 0 12 12v9m0 26v17q0 10 12 10h56m-68-40h73"/><g class="plate-source"><rect x="65" y="36" width="102" height="65" rx="6"/><path d="M81 55h52M81 65h66M81 82h35"/></g><g class="plate-source plate-source-two"><rect x="268" y="45" width="86" height="55" rx="6"/><path d="M281 62h40m-40 10h56m-56 13h28"/></g><g class="plate-source plate-source-three"><rect x="256" y="109" width="98" height="42" rx="6"/><path d="M270 125h50m-50 10h62"/></g><circle cx="215" cy="94" r="10"/><path class="plate-check" d="m211 94 3 3 5-6"/></svg></div>
             <div class="practice-body">
-              <span class="practice-meta"><svg><use href="#i-clock"/></svg>2–4 min · Local work session</span>
-              <h3>Protected Work</h3>
-              <p>Name a real task, work on it under an in-app timer, then record what you got done.</p>
+              <span class="practice-meta">3–5 min · Evidence evaluation</span>
+              <h3>Reasoning &amp; Digital Judgment</h3>
+              <p>Open the sources behind a claim and decide what the evidence actually supports.</p>
             </div>
-            <div class="practice-actions"><button type="button" class="practice-start" data-session="protected">Start <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="protected" aria-pressed="false" aria-label="Save Protected Work"><svg><use href="#i-bookmark"/></svg></button></div>
+            <div class="practice-actions"><button type="button" class="practice-start" data-session="judgment">Open cases <svg><use href="#i-arrow"/></svg></button><button type="button" class="practice-save" data-save="judgment" aria-pressed="false" aria-label="Save Reasoning and Digital Judgment"><svg><use href="#i-bookmark"/></svg></button></div>
           </article>
         </div>
         <p class="saved-line" id="saved-line" hidden></p>
@@ -205,7 +209,7 @@
     </div>
   </dialog>
 
-  <!-- Focus mode: a full-screen timer, opened from a practice. -->
+  <!-- Shared focus dialog for the practice players. -->
   <dialog id="session-dialog" class="focus-mode" aria-labelledby="session-title" aria-describedby="session-description">
     <div class="focus-inner">
       <button type="button" class="focus-close" id="session-close" aria-label="Leave focus mode"><svg><use href="#i-x"/></svg></button>

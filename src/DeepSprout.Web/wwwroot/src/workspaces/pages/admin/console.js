@@ -15,7 +15,7 @@ import * as u from '../../ui.js';
 import {nameOf} from '../../shared.js';
 import {clockDay} from '../../domain.js';
 import {head,stats,stat,card,pill,tabs} from '../institution/common.js';
-import {communityRecords,decideCommunity} from '../../admin-community.js';
+import {communityRecords,decideCommunity,decideServerCommunity} from '../../admin-community.js';
 import {adminDashboard,activitiesGovernance,governanceAction,governanceChange} from './governance.js';
 import * as ds from '../../ds.js';
 import {kindLabel} from '../../activity-rules.js';
@@ -80,13 +80,17 @@ function requests(ctx) {
     <div class="ad-request-who">${orgAvatar(a.name)}<div><h3>${u.link(a.name, `admin/${PATH[a.type]}/${a.id}`, 'ad-title-link')}</h3><p>${e([KIND[a.type], a.details?.institutionType, a.details?.sector, a.details?.city].filter(Boolean).join(' · '))}</p></div></div>
     <p class="ad-request-aim">${e(a.details?.description || a.details?.goals || 'No description provided.')}</p>
     <div class="ad-request-rep">${u.avatar(nameOf(s, a.personId))}<div><strong>${e(nameOf(s, a.personId))}</strong><small>${e(a.details?.position || 'Representative')}</small></div></div>
-    <div class="ad-request-meta">${statusPill(a)}${a.type === 'organization' ? (c => `<small class="ar-mini-check">${u.icon(c.ok === c.all ? 'check' : 'alert')}${c.ok}/${c.all} checks</small>`)({ok:inst.readiness(a, s.people.find(x => x.id === a.personId)).filter(x => x[1]).length, all:6}) : ''}<small>${e(tab === 'decided' ? `Decided ${u.date(a.updated)}` : `Sent ${ago(s, a.submitted)}`)}</small></div>
+    <div class="ad-request-meta">${statusPill(a)}${!ctx.institutionLive && a.type === 'organization' ? (c => `<small class="ar-mini-check">${u.icon(c.ok === c.all ? 'check' : 'alert')}${c.ok}/${c.all} checks</small>`)({ok:inst.readiness(a, s.people.find(x => x.id === a.personId)).filter(x => x[1]).length, all:6}) : ''}<small>${e(tab === 'decided' ? `Decided ${u.date(a.updated)}` : `Sent ${ago(s, a.submitted)}`)}</small></div>
     <div class="ad-request-actions">${u.link('View details', `admin/${PATH[a.type]}/${a.id}`, `button ${tab === 'decided' ? 'quiet' : 'primary'} small`)}</div>
   </article>`;
-  return head({eyebrow:'REQUESTS', title:'Institution requests', lead:'Institutions ask to join DeepSprout. See who they are and what they want to do, then approve or reject with a reason.'})
-    + tabs([['Waiting for you', 'admin/organizations', 'waiting', waiting.length], ['Decided', 'admin/organizations?tab=decided', 'decided', decided.length]], tab)
+  return head({eyebrow:'REQUESTS', title:'Institution requests', lead:ctx.institutionLive
+    ? 'Review submitted claims, request additional information or record a rejection.'
+    : 'Institutions ask to join DeepSprout. See who they are and what they want to do, then approve or reject with a reason.'})
+    + tabs([['Waiting for you', 'admin/organizations', 'waiting', ctx.institutionLive ? null : waiting.length], ['Decided', 'admin/organizations?tab=decided', 'decided', ctx.institutionLive ? null : decided.length]], tab)
     + (list.length ? `<div class="ad-requests">${list.map(row).join('')}</div>` : card('', tab === 'decided' ? calm('No decisions yet.', 'Approved and rejected requests appear here.') : calm('No requests waiting.', 'When an institution applies, its request appears here.')))
-    + `<p class="iw-footnote">${u.icon('shield')}You verify the Institution and its Representative’s authority. Verified institutions then publish Initiatives and Outdoor Activities directly — no per-resource approval.</p>`;
+    + `<p class="iw-footnote">${u.icon('shield')}${ctx.institutionLive
+      ? 'Approval is unavailable pending an approved email ownership and Institution evidence process.'
+      : 'You verify the Institution and its Representative’s authority. Verified institutions then publish Initiatives and Outdoor Activities directly — no per-resource approval.'}</p>`;
 }
 function statusPill(a) {
   return {Submitted:pill('Pending', 'New request'), 'Pending Verification':pill('Pending', 'Answered — review again'), 'Needs More Info':pill('Info Requested', 'Waiting for their answer'), Approved:pill('Approved'), Rejected:pill('Rejected'), Suspended:pill('Suspended')}[a.status] || pill(a.status);
@@ -99,14 +103,23 @@ const notGiven = '<span class="ar-none">Not provided</span>';
 const allFacts = rows => `<dl class="ad-facts ar-facts">${rows.map(([k, v, wide]) => `<div${wide ? ' class="is-wide"' : ''}><dt>${e(k)}</dt><dd>${v ? e(v) : notGiven}</dd></div>`).join('')}</dl>`;
 const yearsSince = (s, y) => { const n = Number(clockDay(s).slice(0, 4)) - Number(y); return Number.isFinite(n) && n >= 0 && y ? `${y} · ${plural(n, 'year')}` : y; };
 
-function decisionPanel(a, rep, open) {
+function decisionPanel(a, rep, open, live = false, approvalBlocked) {
+  if (live && open) return `<div class="ad-decide">${a.status === 'Submitted'
+    ? u.button('Ask for more information', 'application-decide', {id:a.id, status:'Needs More Info'}, 'button quiet') : ''}
+    ${u.button('Reject', 'application-decide', {id:a.id, status:'Rejected'}, 'button danger')}</div>
+    <p class="cw-fine">${e(approvalBlocked)}</p>`;
+  if (live) return `<div class="cw-decided">${statusPill(a)}</div>`;
   if (open) return `<div class="ad-decide">${u.button('Approve', 'application-decide', {id:a.id, status:'Approved'}, 'button primary')}${u.button('Ask for more information', 'application-decide', {id:a.id, status:'Needs More Info'}, 'button quiet')}${u.button('Reject', 'application-decide', {id:a.id, status:'Rejected'}, 'button danger')}</div><p class="cw-fine">${u.icon('shield')}Approving opens the Institution workspace for ${e(rep?.name || 'the representative')}. They can publish initiatives right away.</p>`;
   return `<div class="cw-decided">${statusPill(a)}${a.messages?.length ? `<p class="cw-quote">“${e(a.messages.at(-1).text)}”</p>` : ''}</div>${a.status === 'Approved' ? `<div class="ad-decide is-secondary">${u.button('Suspend institution', 'application-decide', {id:a.id, status:'Suspended'}, 'button danger small')}</div>` : a.status === 'Suspended' ? `<div class="ad-decide is-secondary">${u.button('Restore institution', 'application-decide', {id:a.id, status:'Approved'}, 'button quiet small')}</div>` : ''}`;
 }
 
 function institutionRequest(ctx, a) {
   const {s} = ctx, d = a.details || {}, rep = s.people.find(x => x.id === a.personId), open = WAITING.includes(a.status);
-  const kinds = a.fileKinds || {}, files = a.files || [], ages = inst.ages(d.audienceAges), checks = inst.readiness(a, rep), ready = checks.filter(c => c[1]).length;
+  const kinds = a.fileKinds || {}, files = a.files || [], ages = inst.ages(d.audienceAges);
+  const checks = inst.readiness(a, rep).filter(([label]) => !ctx.institutionLive || [
+    'Registration number given', 'Representative email verified', 'Accuracy declaration signed'
+  ].includes(label));
+  const ready = checks.filter(c => c[1]).length;
   const others = s.applications.filter(x => x.personId === a.personId && x.id !== a.id && x.status !== 'Draft');
   const waited = ago(s, a.submitted);
   const chip = (icon, text) => text ? `<span class="ar-chip">${u.icon(icon)}${e(text)}</span>` : '';
@@ -118,25 +131,26 @@ function institutionRequest(ctx, a) {
     return `<li class="ar-doc ${list.length ? 'has-files' : ''}"><div class="ar-doc-head"><div><strong>${e(label)}</strong><small>${e(hint)}</small></div>${state}</div>${list.length ? `<ul class="ad-files">${list.map(f => documentRow(a, f)).join('')}</ul>` : ''}</li>`;
   }).join('');
   const sample = files.some(f => DEMO_DOCUMENTS[a.id]?.includes(f)), nameOnly = files.some(f => !DEMO_DOCUMENTS[a.id]?.includes(f));
-  const history = [{at:a.submitted, who:rep?.name || a.name, text:'Sent the request'}, ...(a.messages || []).map(m => ({at:m.created, who:nameOf(s, m.actorId), text:m.text}))];
+  const history = [...(ctx.institutionLive ? [] : [{at:a.submitted, who:rep?.name || a.name, text:'Sent the request'}]),
+    ...(a.messages || []).map(m => ({at:m.created, who:m.actorName || nameOf(s, m.actorId), text:m.text}))];
   const address = [d.address, d.city, d.governorate !== d.city && d.governorate, d.country].filter(Boolean).join(', ');
 
   return `<p class="breadcrumbs">${u.link('Requests', 'admin/organizations', 'text-link')} / ${e(a.name)}</p>`
     + `<header class="ad-hero ar-hero iw-reveal">${orgAvatar(a.name)}<div><p class="eyebrow">INSTITUTION REQUEST · REF ${e(String(a.id).toUpperCase())}</p><h1>${e(a.name)}</h1><p class="iw-lead">${e([d.institutionType || d.type, d.sector, [d.city, d.country].filter(Boolean).join(', ')].filter(Boolean).join(' · '))}</p>`
     + `<div class="ar-chips">${chip('calendar', d.founded && `Founded ${yearsSince(s, d.founded)}`)}${chip('nodes', d.parentBody)}${chip('people', ages.length && `Serves ${ages.join(', ')}`)}</div></div>`
-    + `<div class="ad-hero-status">${statusPill(a)}<small>Sent ${e(u.date(a.submitted))}</small>${open && waited !== 'Today' ? `<small class="ar-wait">${u.icon('clock')}Waiting since ${e(waited.toLowerCase())}</small>` : ''}</div></header>`
+    + `<div class="ad-hero-status">${statusPill(a)}${ctx.institutionLive ? `<small>Institution status · ${e(a.organizationStatus)}</small>` : ''}<small>Sent ${e(u.date(a.submitted))}</small>${open && waited !== 'Today' ? `<small class="ar-wait">${u.icon('clock')}Waiting since ${e(waited.toLowerCase())}</small>` : ''}</div></header>`
     + `<div class="ad-detail-layout"><div class="ad-detail-main">`
     + card('Who they are', allFacts([['Official name', a.name, true], ['Institution type', d.institutionType || d.type], ['Sector', d.sector], ['Affiliated to', d.parentBody], ['Founded', d.founded && yearsSince(s, d.founded)], ['Registration number', d.registrationNumber], ['Issued by', d.issuingAuthority]]), {eyebrow:'1 · IDENTITY'})
     + card('What they want to do', `<blockquote class="ad-aim">${e(d.description || 'No description provided.')}</blockquote>${d.goals ? `<p class="ad-goal"><b>The change they hope to see</b>${e(d.goals)}</p>` : ''}<div class="ar-audience"><b>Who they serve</b>${ages.length ? `<div class="ar-ages">${ages.map(x => `<span>${e(x)}</span>`).join('')}</div>` : `<p>${notGiven}</p>`}</div>${allFacts([['Reach', d.size], ['Areas served', d.areasServed]])}`, {eyebrow:'2 · PURPOSE & AUDIENCE'})
     + card('Location and contact', allFacts([['Address', address, true], ['Official email', d.officialEmail || a.email], ['Official phone', d.phone], ['Website', d.website], ['Social media', d.social]]), {eyebrow:'3 · CONTACT'})
-    + card('Supporting documents', `<ul class="ar-docs">${docs}</ul>${sample ? '<p class="iw-muted">Sample PDFs are fictional and contain no verification evidence.</p>' : ''}${nameOnly ? '<p class="iw-muted">Name-only entries have no file content stored in this browser demo.</p>' : ''}`, {eyebrow:'4 · EVIDENCE', extra:`<span class="ar-count">${plural(files.length, 'file')}</span>`})
+    + card('Supporting documents', ctx.institutionLive ? '<p>Secure document review is unavailable pending an approved evidence policy.</p>' : `<ul class="ar-docs">${docs}</ul>${sample ? '<p class="iw-muted">Sample PDFs are fictional and contain no verification evidence.</p>' : ''}${nameOnly ? '<p class="iw-muted">Name-only entries have no file content stored in this browser demo.</p>' : ''}`, {eyebrow:'4 · EVIDENCE', extra:ctx.institutionLive?'':`<span class="ar-count">${plural(files.length, 'file')}</span>`})
     + card('Representative', `<div class="ar-rep">${u.avatar(rep?.name || d.representative || a.name)}<div><strong>${e(rep?.name || d.representative || '—')}</strong><small>${e(d.position || 'Representative')} · ${e(a.name)}</small></div>${rep ? (rep.status === 'Active' ? pill('Active', 'Account active') : pill('Blocked', 'Account blocked')) : ''}</div>`
       + allFacts([['Authority to represent', inst.authorityLabel(d.authority), true], ['Direct phone', d.repPhone], ['Account email', rep?.email], ['Email verified', rep ? (rep.verified ? 'Yes' : 'Not yet') : ''], ...(d.representative && rep?.name && d.representative !== rep.name ? [['Name typed on the form', d.representative]] : []), ['Other requests', others.length ? others.map(x => `${x.name} (${x.status})`).join(', ') : 'None']])
       + (a.declaration ? `<figure class="ar-declaration"><blockquote>“${e(a.declaration.text)}”</blockquote><figcaption>${u.icon('check')}Signed by ${e(rep?.name || d.representative || 'the representative')} · ${e(u.date(a.declaration.at))}</figcaption></figure>` : `<p class="ar-declaration is-missing">${u.icon('alert')}No accuracy declaration on this request. It was sent before the declaration was required.</p>`), {eyebrow:'5 · WHO WILL MANAGE IT'})
     + card('History', `<ol class="ad-timeline">${history.map(h => `<li><time>${e(u.date(h.at))}</time><div><strong>${e(h.who)}</strong><p>${e(h.text)}</p></div></li>`).join('')}</ol>`, {eyebrow:'CONVERSATION'})
     + `</div><aside class="ad-detail-side">`
-    + card('Verification checklist', `<div class="ar-meter" style="--w:${Math.round(ready / checks.length * 100)}%"><span><b>${ready}</b> of ${checks.length} in place</span><i aria-hidden="true"></i></div><ul class="ar-checks">${checks.map(([label, ok, note]) => `<li class="${ok ? 'is-ok' : 'is-gap'}">${u.icon(ok ? 'check' : 'alert')}<div><strong>${e(label)}</strong><small>${e(note)}</small></div></li>`).join('')}</ul><p class="cw-fine">${u.icon('shield')}These only show what was sent. Open the documents and confirm the registration with the issuing authority before approving.</p>`, {eyebrow:'BEFORE YOU DECIDE'})
-    + card(open ? 'Your decision' : 'Decision', decisionPanel(a, rep, open), {cls:open ? 'cw-decision' : ''})
+    + card(ctx.institutionLive ? 'Application checks' : 'Verification checklist', `${ctx.institutionLive ? '' : `<div class="ar-meter" style="--w:${Math.round(ready / checks.length * 100)}%"><span><b>${ready}</b> of ${checks.length} in place</span><i aria-hidden="true"></i></div>`}<ul class="ar-checks">${checks.map(([label, ok, note]) => `<li class="${ok ? 'is-ok' : 'is-gap'}">${u.icon(ok ? 'check' : 'alert')}<div><strong>${e(label)}</strong><small>${e(note)}</small></div></li>`).join('')}</ul>${ctx.institutionLive ? '' : `<p class="cw-fine">${u.icon('shield')}These only show what was sent. Open the documents and confirm the registration with the issuing authority before approving.</p>`}`, {eyebrow:'BEFORE YOU DECIDE'})
+    + card(open ? 'Your decision' : 'Decision', decisionPanel(a, rep, open, ctx.institutionLive, ctx.institutionData?.approvalBlocked), {cls:open ? 'cw-decision' : ''})
     + `</aside></div>`;
 }
 
@@ -248,7 +262,8 @@ function initiatives(ctx) {
 /* ------------------------------------------------------------ community */
 
 function community(ctx) {
-  const {s, route:r} = ctx, comm = communityRecords();
+  const {s, route:r} = ctx, comm = ctx.community || communityRecords();
+  if (comm.error) return head({eyebrow:'COMMUNITY', title:'Community'}) + card('', `<p role="alert">${e(comm.error)}</p>`);
   if (r.id) return communityDetail(ctx, comm);
   const tab = r.page === 'posts' ? (r.query.get('tab') || 'posts') : (r.query.get('tab') || 'reports');
   const open = comm.reports.filter(x => x.status === 'pending'), pending = comm.posts.filter(x => x.status === 'pending'), live = comm.posts.filter(x => x.status === 'visible'), gone = comm.posts.filter(x => ['removed', 'hidden', 'rejected'].includes(x.status));
@@ -256,23 +271,57 @@ function community(ctx) {
   const postBody = (post, full = true) => `<div class="ad-post"><div class="ad-post-head">${u.avatar(post.author || 'Member')}<div><strong>${e(post.author || 'Member')}</strong><small>${e(post.category || 'Community')}${post.created ? ` · ${e(ago(s, post.created))}` : ''}</small></div></div><h3>${e(post.title || 'Untitled post')}</h3><p class="${full ? '' : 'is-clamped'}">${e(post.body || '')}</p></div>`;
   let body = '';
   if (!comm.loaded) body = card('', '<p class="iw-muted">Loading community posts…</p>');
-  else if (tab === 'reports') body = open.length ? `<div class="ad-cards">${open.map(rep => { const post = comm.posts.find(x => x.id === rep.postId) || rep.post || {}; const [kind, ...more] = String(rep.reason).split(':'); return `<article class="ad-report iw-reveal"><header><span class="ad-report-kind">${u.icon('shield')}${e(kind)}</span><small>Reported ${e(ago(s, rep.created))}${rep.reporter ? ` by ${e(rep.reporter)}` : ''}</small></header>${more.length ? `<p class="ad-report-why">“${e(more.join(':').trim())}”</p>` : ''}${postBody(post, false)}<footer>${u.button('Keep post', 'ad-community', {post:rep.postId, report:rep.id, status:'dismissed'}, 'button quiet')}${u.button('Remove post', 'ad-community', {post:rep.postId, report:rep.id, status:'removed'}, 'button danger')}${u.link('Details', `admin/moderation/${rep.id}`, 'text-link')}</footer></article>`; }).join('')}</div>` : card('', calm('No open reports.', 'When a member reports a post, it appears here with their reason.'));
+  else if (tab === 'reports') body = open.length ? `<div class="ad-cards">${open.map(rep => {
+    const post = reportedContent(rep, comm), [kind, ...more] = String(rep.reason).split(':');
+    const details = rep.details || more.join(':').trim();
+    return `<article class="ad-report iw-reveal"><header><span class="ad-report-kind">${u.icon('shield')}${e(kind)}</span><small>Reported ${e(ago(s, rep.created))}${rep.reporter ? ` by ${e(rep.reporter)}` : ''}</small></header>${details ? `<p class="ad-report-why">“${e(details)}”</p>` : ''}${postBody(post || {}, false)}<footer>${reportActions(rep, post, !!ctx.community)}${u.link('Details', `admin/moderation/${rep.id}`, 'text-link')}</footer></article>`;
+  }).join('')}</div>` : card('', calm('No open reports.', 'Member reports appear here with their reason.'));
   else if (tab === 'posts') body = pending.length ? `<div class="ad-cards">${pending.map(post => `<article class="ad-report is-pending iw-reveal"><header><span class="ad-report-kind is-new">${u.icon('clock')}Waiting for approval</span></header>${postBody(post)}<footer>${u.button('Approve', 'ad-community', {post:post.id, status:'visible'}, 'button primary')}${u.button('Reject', 'ad-community', {post:post.id, status:'rejected'}, 'button danger')}</footer></article>`).join('')}</div>` : card('', calm('No posts waiting.', 'New member posts wait here until you approve them.'));
-  else if (tab === 'live') body = `<div class="ad-cards is-grid">${live.map(post => `<article class="ad-report is-live iw-reveal">${postBody(post, false)}<footer>${u.button('Delete post', 'ad-community', {post:post.id, status:'removed'}, 'button danger small')}</footer></article>`).join('')}</div>`;
-  else body = gone.length ? `<div class="iw-card iw-reveal"><ul class="ad-rows">${gone.map(post => { const h = lastReason(post.id); return `<li><span class="ad-flag-icon is-muted">${u.icon('close')}</span><div><strong>${e(post.title)}</strong><small>${e(post.author || 'Member')} · ${e(h?.reason || '')}</small></div>${pill(post.status === 'rejected' ? 'Rejected' : 'Removed', post.status === 'rejected' ? 'Rejected' : post.status === 'hidden' ? 'Hidden' : 'Deleted')}${u.button('Restore', 'ad-community', {post:post.id, status:'visible'}, 'button quiet small')}</li>`; }).join('')}</ul></div>` : card('', calm('Nothing removed.', 'Deleted and rejected posts are kept here with the reason.'));
-  return head({eyebrow:'COMMUNITY', title:'Community', lead:'Approve new posts before members see them, and decide on posts that members report.'})
-    + tabs([['Reports', 'admin/moderation', 'reports', open.length], ['Waiting for approval', 'admin/moderation?tab=posts', 'posts', pending.length], ['Published', 'admin/moderation?tab=live', 'live', live.length], ['Deleted', 'admin/moderation?tab=removed', 'removed', gone.length]], tab)
-    + body;
+  else if (tab === 'live') body = live.length ? `<div class="ad-cards is-grid">${live.map(post => `<article class="ad-report is-live iw-reveal">${postBody(post, false)}<footer>${u.button('Delete post', 'ad-community', {post:post.id, status:'removed'}, 'button danger small')}${ctx.community ? u.link('Details', `admin/posts/${post.id}`, 'text-link') : ''}</footer></article>`).join('')}</div>` : card('', calm('No published posts.', 'Approved posts appear here.'));
+  else body = gone.length ? `<div class="iw-card iw-reveal"><ul class="ad-rows">${gone.map(post => {
+    const h = lastReason(post.id);
+    const restore = !ctx.community || post.status === 'hidden' ? u.button('Restore', 'ad-community', {post:post.id, status:'visible'}, 'button quiet small') : '';
+    const details = ctx.community ? u.link('Details', `admin/posts/${post.id}`, 'text-link') : '';
+    return `<li><span class="ad-flag-icon is-muted">${u.icon('close')}</span><div><strong>${e(post.title)}</strong><small>${e(post.author || 'Member')} ${e(h?.reason || '')}</small></div>${pill(post.status === 'hidden' ? 'Hidden' : 'Removed', post.status === 'rejected' ? 'Rejected' : post.status === 'hidden' ? 'Hidden' : 'Deleted')}${restore}${details}</li>`;
+  }).join('')}</ul></div>` : card('', calm('Nothing removed.', 'Deleted and rejected posts are kept here with the reason.'));
+  const counts = comm.counts || {reports:open.length,posts:pending.length,live:live.length,removed:gone.length};
+  return head({eyebrow:'COMMUNITY', title:'Community', lead:'Approve new posts before members see them, and review member reports.',
+    actions:ctx.community ? u.link('Decision history','admin/audit','button quiet') : ''})
+    + tabs([['Reports', 'admin/moderation', 'reports', counts.reports], ['Waiting for approval', 'admin/moderation?tab=posts', 'posts', counts.posts], ['Published', 'admin/moderation?tab=live', 'live', counts.live], ['Deleted', 'admin/moderation?tab=removed', 'removed', counts.removed]], tab)
+    + body + communityPages(comm, `admin/moderation?tab=${tab}&page=`);
+}
+
+function communityPages(comm, path) {
+  const previous = comm.page > 1 ? u.link('Previous page',path+(comm.page-1),'button quiet') : '';
+  const next = comm.hasMore ? u.link('Next page',path+(comm.page+1),'button quiet') : '';
+  return previous || next ? `<div class="actions">${previous}${next}</div>` : '';
+}
+
+function reportedContent(report, comm) {
+  const post = report?.post || comm.posts.find(item => item.id === report?.postId);
+  if (!post || !report?.commentId) return post;
+  return {...post, title:`Comment on “${post.title}”`, body:report.commentBody, author:report.commentAuthor,
+    status:{Published:'visible',Hidden:'hidden',Removed:'removed'}[report.commentStatus]};
+}
+
+function reportActions(report, post, server) {
+  if (!post || report.status !== 'pending') return '<p class="iw-muted">This report was reviewed.</p>';
+  const label = report.commentId ? 'comment' : 'post';
+  const data = {post:report.postId, report:report.id};
+  return u.button(server ? 'Dismiss report' : 'Keep post','ad-community',{...data,status:'dismissed'},'button quiet')
+    + (server && post.status === 'visible' ? u.button('Hide '+label,'ad-community',{...data,status:'hidden'},'button quiet') : '')
+    + (post.status !== 'removed' ? u.button('Remove '+label,'ad-community',{...data,status:'removed'},'button danger') : '');
 }
 function communityDetail(ctx, comm) {
-  const {s, route:r} = ctx, isReport = r.page === 'moderation', rep = isReport ? comm.reports.find(x => x.id === r.id) : null, post = comm.posts.find(x => x.id === (rep?.postId || r.id));
+  const {s, route:r} = ctx, isReport = r.page === 'moderation', rep = isReport ? comm.reports.find(x => x.id === r.id) : null;
+  const post = isReport ? reportedContent(rep, comm) : comm.posts.find(x => x.id === r.id);
   if (!post) return u.missing('post');
-  const history = comm.history.filter(h => h.postId === post.id);
-  const actions = isReport ? (rep?.status === 'pending' ? `${u.button('Keep post', 'ad-community', {post:post.id, report:rep.id, status:'dismissed'}, 'button quiet')}${u.button('Remove post', 'ad-community', {post:post.id, report:rep.id, status:'removed'}, 'button danger')}` : `<p class="iw-muted">This report was reviewed.</p>`)
-    : post.status === 'pending' ? `${u.button('Approve', 'ad-community', {post:post.id, status:'visible'}, 'button primary')}${u.button('Reject', 'ad-community', {post:post.id, status:'rejected'}, 'button danger')}` : post.status === 'visible' ? u.button('Delete post', 'ad-community', {post:post.id, status:'removed'}, 'button danger') : u.button('Restore', 'ad-community', {post:post.id, status:'visible'}, 'button quiet');
+  const history = ctx.community ? comm.history : comm.history.filter(h => h.postId === post.id);
+  const actions = isReport ? reportActions(rep,post,!!ctx.community)
+    : post.status === 'pending' ? `${u.button('Approve', 'ad-community', {post:post.id, status:'visible'}, 'button primary')}${u.button('Reject', 'ad-community', {post:post.id, status:'rejected'}, 'button danger')}` : post.status === 'visible' ? u.button('Delete post', 'ad-community', {post:post.id, status:'removed'}, 'button danger') : post.status === 'hidden' || !ctx.community ? u.button('Restore', 'ad-community', {post:post.id, status:'visible'}, 'button quiet') : '<p class="iw-muted">This post has been removed.</p>';
   return `<p class="breadcrumbs">${u.link('Community', `admin/moderation${isReport ? '' : '?tab=posts'}`, 'text-link')} / ${e(post.title || 'Post')}</p>`
     + head({eyebrow:isReport ? 'REPORTED POST' : 'COMMUNITY POST', title:post.title || 'Community post', lead:`By ${post.author || 'a member'} · ${post.category || 'Community'}`})
-    + `<div class="ad-detail-layout"><div class="ad-detail-main">${rep ? card('Why it was reported', `<blockquote class="ad-aim">${e(rep.reason)}</blockquote><p class="iw-muted">${e(rep.reporter ? `Reported by ${rep.reporter}` : 'Reported by a member')} · ${e(u.date(rep.created))}</p>`, {eyebrow:'REPORT'}) : ''}${card('The post', `<p class="ad-post-full">${e(post.body || '')}</p>`, {eyebrow:'CONTENT'})}${card('History', history.length ? `<ol class="ad-timeline">${history.map(h => `<li><time>${e(u.date(h.created))}</time><div><strong>${e(h.status)} · ${e(nameOf(s, h.actorId))}</strong><p>${e(h.reason)}</p></div></li>`).join('')}</ol>` : '<p class="iw-muted">No decisions yet.</p>')}</div>
+    + `<div class="ad-detail-layout"><div class="ad-detail-main">${rep ? card('Why it was reported', `<blockquote class="ad-aim">${e(rep.reason)}</blockquote><p>${e(rep.details || '')}</p><p class="iw-muted">${e(rep.reporter ? `Reported by ${rep.reporter}` : 'Reported by a member')} · ${e(u.date(rep.created))}</p>`, {eyebrow:'REPORT'}) : ''}${card(rep?.commentId ? 'The comment' : 'The post', `<p class="ad-post-full">${e(post.body || '')}</p>`, {eyebrow:'CONTENT'})}${card('History', history.length ? `<ol class="ad-timeline">${history.map(h => `<li><time>${e(u.date(h.created))}</time><div><strong>${e(h.action || h.status)} · ${e(h.actor || nameOf(s, h.actorId))}</strong><p>${e(h.reason)}</p></div></li>`).join('')}</ol>` : '<p class="iw-muted">No decisions yet.</p>')}</div>
       <aside class="ad-detail-side">${card('Your decision', `<div class="ad-decide">${actions}</div>`, {cls:'cw-decision'})}</aside></div>`;
 }
 
@@ -298,6 +347,16 @@ function assessments(ctx) {
 /* ------------------------------------------------------------ decision history */
 
 function history(ctx) {
+  if (ctx.community) {
+    const records = ctx.community;
+    return u.link('Back to Community','admin/moderation','text-link')
+      + head({eyebrow:'COMMUNITY',title:'Community decision history'})
+      + (records.error ? card('', `<p role="alert">${e(records.error)}</p>`)
+        : card('', records.history.length ? `<ol class="ad-timeline is-log">${records.history.map(row =>
+          `<li><time>${e(u.date(row.created))}</time><div><strong>${e(row.action)} · ${e(row.resourceKind === 'community.Post' ? 'Post' : 'Comment')}</strong><p>${e(row.reason || '')}</p><small>${e(row.actor)} · ${e(row.status)}</small></div></li>`).join('')}</ol>`
+          : calm('No decisions yet.', 'Saved Community decisions appear here.')))
+      + communityPages(records,'admin/audit?page=');
+  }
   const {s} = ctx, comm = communityRecords();
   const rows = [...s.audit.map(x => ({at:x.created, who:x.actorId, what:x.action, on:x.resource, why:x.reason, kind:'Platform'})), ...comm.history.map(x => ({at:x.created, who:x.actorId, what:`Post ${x.status}`, on:comm.posts.find(p => p.id === x.postId)?.title || 'Community post', why:x.reason, kind:'Community'}))].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   return `<p class="breadcrumbs">${u.link('Dashboard', 'admin/overview', 'text-link')} / Decision history</p>`
@@ -358,9 +417,30 @@ export function consoleAction(action, target, ctx) {
     return true;
   }
   if (action === 'ad-community') {
-    const post = communityRecords().posts.find(x => x.id === d.post), title = post?.title || 'this post';
-    const copy = {visible:[d.report ? 'Restore this post?' : `Approve “${title}”?`, 'Members will see it in the community feed.', 'Note (optional)', 'Approve', `“${title}” is published.`], rejected:[`Reject “${title}”?`, 'The member’s post will not appear in the feed.', 'Reason', 'Reject', 'Post rejected.'], removed:[`Delete “${title}”?`, 'It disappears from the feed for everyone. It stays in your history with the reason.', 'Reason for deleting', 'Delete post', 'Post deleted.'], dismissed:['Keep this post?', 'The report is closed and the post stays in the feed.', 'Why it can stay', 'Keep post', 'Report closed. The post stays.']}[d.status];
-    u.modal(copy[0], `<p class="cw-sub">${e(copy[1])}</p>${u.area('reason', copy[2], '', !['visible'].includes(d.status))}`, v => { decideCommunity({postId:d.post, reportId:d.report || null, status:d.status, reason:v.reason || 'Approved by the Admin.'}); u.toast(copy[4]); if (ctx.route.id) ctx.go(`admin/moderation${ctx.route.page === 'posts' ? '?tab=posts' : ''}`); else ctx.render(); }, copy[3]);
+    const comm = ctx.community || communityRecords();
+    const report = comm.reports.find(x => x.id === d.report);
+    const post = report?.post || comm.posts.find(x => x.id === d.post);
+    const target = report?.commentId ? 'comment' : 'post';
+    const title = post?.title || 'this post';
+    const copy = {
+      visible:[post?.status === 'hidden' ? 'Restore this post?' : `Approve “${title}”?`, 'Members will see it in the community feed.', 'Reason', post?.status === 'hidden' ? 'Restore' : 'Approve', `“${title}” is published.`],
+      rejected:[`Reject “${title}”?`, 'The decision is saved in your history.', 'Reason', 'Reject', 'Post rejected.'],
+      removed:[`Remove this ${target}?`, 'It disappears from the feed for everyone. The decision is saved in your history.', 'Reason for removing', `Remove ${target}`, 'Content removed.'],
+      hidden:[`Hide this ${target}?`, 'Members will stop seeing it in the feed.', 'Reason for hiding', `Hide ${target}`, 'Content hidden.'],
+      dismissed:['Dismiss this report?', 'The report is closed and the visibility stays the same.', 'Reason for dismissing', ctx.community ? 'Dismiss report' : 'Keep post', 'Report closed.']
+    }[d.status];
+    u.modal(copy[0], `<p class="cw-sub">${e(copy[1])}</p>${u.area('reason', copy[2], '', !!ctx.community || d.status !== 'visible')}`, async (v, form) => {
+      const save = form.querySelector('#dialog-save');
+      save.disabled = true;
+      try {
+        const reason = v.reason || 'Approved by the Admin.';
+        if (ctx.community) await decideServerCommunity({post,report,status:d.status,reason});
+        else decideCommunity({postId:d.post,reportId:d.report || null,status:d.status,reason});
+        u.toast(copy[4]);
+        if (ctx.route.id) ctx.go(`admin/moderation${ctx.route.page === 'posts' ? '?tab=posts' : ''}`);
+        else await ctx.render();
+      } finally { save.disabled = false; }
+    }, copy[3]);
     danger(['removed', 'rejected'].includes(d.status));
     return true;
   }

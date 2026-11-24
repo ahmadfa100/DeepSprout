@@ -1,4 +1,5 @@
 @model DeepSprout.Web.Account.LoginViewModel
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 <!doctype html>
 <html lang="en">
 <head>
@@ -65,7 +66,10 @@
         <button type="button" data-auth-action="Facebook"><span class="facebook-mark" aria-hidden="true">f</span>Facebook</button>
       </div>
       <p class="signup-line">New to DeepSprout? <a href="/src/pages/auth/register/register.html?returnUrl=@Uri.EscapeDataString(Model.ReturnUrl ?? "")">Create an account</a></p>
-      <div class="admin-demo-entry"><button type="button" id="admin-demo-button">Preview the admin workspace <span aria-hidden="true">→</span></button><small>Local demo · no credentials needed</small></div>
+      @if (HostEnvironment.EnvironmentName == "Development")
+      {
+        <div class="admin-demo-entry"><button type="button" id="admin-demo-button">Preview the admin workspace <span aria-hidden="true">→</span></button><small>Local demo · no credentials needed</small></div>
+      }
     </section>
   </main>
   <div data-auth-footer></div>

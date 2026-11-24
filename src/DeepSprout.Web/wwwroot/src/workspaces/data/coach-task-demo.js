@@ -35,14 +35,14 @@ export function addCoachTaskDemo(s) {
   const people = new Set((s.people || []).map(p => p.id));
   const groups = (s.groups || []).filter(g => g.parentType === 'initiative' && g.coachId === 'p-karim' && !['Archived', 'Completed', 'Closed'].includes(g.status));
   const byId = id => groups.find(g => g.id === id);
-  const catalog = title => (s.activityCatalog || []).some(a => a.title === title && a.status === 'Published');
+  const catalog = title => (s.activityCatalog || []).some(a => a.title === title);
   s.coachTaskDemoVersion = COACH_TASK_DEMO_VERSION;
   if (!groups.length || !catalog('Practical Micro-Challenge')) return true;
 
   const task = (id, g, fields) => {
     if (s.assignments.some(a => a.id === id)) return null;
     const record = {id, ownerId:'p-karim', groupId:g.id, studentId:null, initiativeId:g.initiativeId, programId:null,
-      ...assignmentDefinition(s, fields.activity), practiceType:practiceTypeOf(fields.activity), evidence:'', start:day(s, -3), required:true,
+      ...assignmentDefinition(s, fields.activity, {historicalSample:true}), practiceType:practiceTypeOf(fields.activity), evidence:'', start:day(s, -3), required:true,
       review:'Coach review', status:'Active', recipientIds:[...g.memberIds], created:at(s, 72), version:1, history:[], attachments:[], demo:true, ...fields};
     s.assignments.push(record);
     return record;

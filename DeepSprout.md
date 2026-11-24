@@ -6,11 +6,11 @@
 **Date:** 4 November 2026 (Asia/Amman)
 **Status:** Authoritative **target** specification; implementation is not claimed. §29 preserves a dated 15 October implementation snapshot.
 **Audience:** Product owner, designers, Codex/Claude Code, engineers, testers and reviewers.
-**Delivery:** Existing ASP.NET Core MVC solution serves Razor views and static demonstration assets. The target uses ASP.NET Core MVC, Identity, C#, EF Core and SQL Server for authenticated, durable product workflows. Existing browser-local interactions are not proof of those workflows.
+**Delivery:** The ASP.NET Core MVC solution serves Razor views and JavaScript. Identity and V5 SQL Server support signed-in Individual Recovery and Community workflows. Institution, staff and Student operations still run in browser workspaces. The [persistence contract](docs/architecture/database/persistence-contract.md) identifies each source.
 
-> **Current implementation:** Read the [3 November 2026 page and cycle guide](docs/current-product-guide.md) for the working checkout, and the [4 November P0 target and deprecation map](docs/architecture/p0-target-v4.1.md) before implementing changes. §29 and §30 contain dated implementation and roadmap material. The one-main-plant Garden direction is a separately scoped design task; the current four-tree scene is not changed by this documentation update.
+> **Current implementation:** The [current product guide](docs/current-product-guide.md) compares all seven cycles with their targets and records the observed evidence. §29 preserves the historical audit. §30 links to the current backend delivery order. The four-tree Personal Garden remains in use. The one-main-plant direction is a separate design task.
 
-> **Authority:** The owner's 4 November 2026 P0 decisions supersede conflicting v4.0 clauses and the proposed 3 November 87-table Atlas. **Database (8 November 2026):** the owner approved the [58-table v5 lean design](docs/architecture/database/README.md) as the target database; its v5-lean-2 revision applies Onboarding 2.0 and these v4.1 decisions. The older 129-table EF model is history only. The maintained [v4.1 target map](docs/architecture/p0-target-v4.1.md) states those decisions and marks unresolved implementation choices. Earlier D01–D48 entries remain a decision history only where superseded by v4.1. Dated audits describe observed code, not current permission to keep deprecated roles. No application or database implementation is asserted by this specification.
+> **Authority:** The owner's 4 November 2026 P0 decisions supersede conflicting v4.0 clauses and the proposed 3 November 87-table Atlas. **Database (8 November 2026):** the owner approved the [58-table v5 lean design](docs/architecture/database/README.md) as the target database; its v5-lean-2 revision applies Onboarding 2.0 and these v4.1 decisions. The older 129-table EF model is history only. The maintained [v4.1 target map](docs/architecture/p0-target-v4.1.md) states those decisions and marks unresolved implementation choices. Earlier D01–D48 entries remain a decision history only where superseded by v4.1. Dated audits describe observed code, not current permission to keep deprecated roles. Approved requirements and implementation observations are labeled separately.
 
 ### Requirement labels
 
@@ -151,7 +151,7 @@ The previous blueprint targeted approximately **ages 16–26**. This is a produc
 |---|---|
 | Individual | Home, Recovery Plan, Activities, Digital Shield, Garden, Lab, Insights, Explore, Community, profile/settings |
 | Coach | Dashboard, assigned Initiative Groups and Students, Assignments, Reviews, Reports, Initiative Group Garden, notifications/settings |
-| Invited Student | My Dashboard, My Tasks, My Group, **Group Garden only**, assigned Protected Work, My Progress, account/upgrade |
+| Invited Student | My Dashboard, My Tasks, My Group, **Group Garden only**, historical assigned work, My Progress, account/upgrade |
 | Institution | Dashboard, Institution Profile, Initiatives, Outdoor Activities/Trips/Camps, Bookings & Waiting List, Groups & Staff, Sessions, Attendance, Safety/Incidents, Completion/Reports |
 | Supervisor | Dashboard, assigned Initiative and explicitly appointed Institution Activity/Session, Applications, Students & Groups, Schedule, Attendance, Notes & Excuses, Reports |
 | Admin | Overview, accounts, Institution/Representative verification, Initiative and Institution Outdoor Activity governance, catalog, CMS/content, moderation, reports, audit, configuration |
@@ -246,7 +246,7 @@ New users arrive at their real Individual Home at **Journey Level 1 — New Begi
 
 ## 4.3d Optional assessments and activation
 
-- Plan activation no longer requires the four baselines; any already recorded are linked, none are invented (`account.js` `plan.activate`).
+- The signed-in activation command validates saved Quick Setup and the chosen routine. Lab remains optional and separate. The command does not query Lab attempts.
 - The plan preview opens directly when no baselines exist; the Quick Setup proposal pre-selects one offline commitment that the person can change before activating.
 - Lab assessments stay available and keep their full history, protocol versions and any historical window identifiers. The former weekly scheduler creates no new official windows pending a separately approved reassessment policy.
 
@@ -288,9 +288,9 @@ New users arrive at their real Individual Home at **Journey Level 1 — New Begi
 
 **Recovery Journey** is a continuous personal history; **Recovery Cycle** is a bounded planning interval; **Week** is the current plan's detailed scheduling unit; **Daily Action** is a scheduled commitment, not an entire independent plan. The page is not a universal habit tracker or an overloaded generic calendar.
 
-**Recommended/strongly favored:** first default cycle = **28 calendar days, four weeks**. The owner repeatedly explored and positively received this structure, but exact global duration/policy is not a clinically proven recovery period and should be marked as a configurable product default rather than a promise of recovery in 28 days. Completing 28 days does not reset the Garden or guarantee recovery.
+Every new Individual Recovery Cycle lasts **28 calendar days in four seven-day weeks**. Activation schedules Week 1 only. A saved Weekly Review can schedule the next week, with no retroactive assignments. Elapsed time does not establish recovery or reset the Garden.
 
-The system initially builds a high-level roadmap for all four weeks, **but details only Week 1**. At each weekly boundary, validated evidence and the light Weekly Review generate the next detailed week. This adaptive scheduling model was expressly liked. Do not fabricate 28 fixed daily exercises on Day 0.
+The system initially builds a high-level roadmap for all four weeks, **but details only Week 1**. At each weekly boundary the person reviews the recorded evidence, previews a schedule and explicitly confirms the next detailed week.
 
 ## 5.2 Suggested page tabs and exact responsibilities
 
@@ -362,7 +362,7 @@ Triggered around the week's end or upon return when a scheduled review is pendin
 - Explain next week's recommendation and which inputs support it.
 - Offer **Accept Next Week**, **Keep Current Pace** where safe, or **Adjust**. User decides important changes; never silently increase difficulty.
 - Save plan revision/version plus reason and applicable dates. Preserve prior records.
-- If review is skipped, maintain a **conservative continuation** rather than blocking the whole experience or automatically raising workload.
+- If review is skipped, make the open review available on return. Confirmation can schedule only remaining eligible days. Optional activities remain available.
 
 ## 5.6 Missed days, long absence and cycle ending — agreed behavioral policy
 
@@ -453,12 +453,16 @@ Allow `Paused`, `Cancelled` and `Archived` where product rules justify them; def
 |---|---|---|
 | **Depth Practice** | Read an approved short passage; answer questions about ideas, details and understanding. | Versioned passage, comparable difficulty tier, scored question attempt when applicable. |
 | **Listening & Recall** | Listen to a short original/licensed audio clip; answer questions on the main point, details and relations. | Track audio attempt, permitted replays, question outcome, accessibility mode. |
-| **Practical Micro-Challenge** | Perform a small concrete cognitive, organizational or creative task with a clear prompt and outcome. | Challenge-specific evidence; no arbitrary repeating for unlimited rewards. |
-| **Protected Work** | Choose a meaningful real task, begin an optional supported browser protection/work session, and log appropriately. | Do not infer that work quality was excellent just from timer elapsed; distinguish support from verification. |
+| **Visual Observation & Analysis** | Study a static scene or diagram, then answer four questions about details, changes or spatial relationships. | Correct answers determine the score. Observation is self-paced and has a text alternative. |
+| **Reasoning & Digital Judgment** | Inspect fictional claims and their sources, then answer four questions about what the evidence supports. | Correct answers determine the score. Feedback identifies relevant sources and explains the reasoning. |
 
 **Embedded steps rather than separate menu cards:** `Comprehension & Recall`, `Explain in Your Own Words` can occur within Depth/Listening. **Longer Learning Path** is an organizational sequence of exercises and was discussed as a later extension, **not a fifth required activity card**. Standalone Focus Timer and generic cognitive mini-games are excluded from the core training lineup.
 
+Historical Practical Micro-Challenge and Protected Work attempts, assignments and reward sources retain their original labels and identifiers. The V5 type constraint retains the two legacy slot names. Pinned content distinguishes current Visual Observation and Reasoning attempts. The signed-in Garden assigns only eligible evidence from the current families to those trees.
+
 ## 7.3 Gradual exercise difficulty
+
+Journey Level 1 — New Beginning is separate from Activity Difficulty. The published exercises use Activity Levels 1–3. Introducing Activity Level 0 would conflict with versioned content, eligibility and saved level mappings. Each new interactive practice has three examples at each level. It requires all four answers for completion and at least 75% for Garden and advancement eligibility. The browser progression rule requires three distinct eligible examples across three separate days, then an explicit level choice. The same example has a seven-day reward cooldown.
 
 - One-minute reading at entry, then perhaps 3, 5, 7 minutes is a **candidate example**, not a mandated daily or linear schedule.
 - Duration is not difficulty on its own: content complexity, vocabulary, number/type of questions and demonstrated comprehension must be considered.
@@ -551,7 +555,7 @@ Every activity definition is versioned and has: category, goal tags, estimated t
 
 ## 9.1 Approved visual and ownership contract
 
-The **Personal Garden** is one fixed, large, clean white/ivory scene. It contains **exactly four distinct, comparatively small trees**, mapped one-to-one to Depth Practice, Listening & Recall, Practical Micro-Challenge, and Protected Work. There is **no central fifth journey tree**. Each existing type tree can progress through versioned, source-backed stages; a completion never plants another tree. The scene does not expand into beds, zones, paths, biomes, or a collection inventory. Home's preview must depict this same model. Azm may celebrate an earned change, but manual watering grants nothing.
+The **Personal Garden** is one fixed, large, clean white/ivory scene. It contains **exactly four distinct, comparatively small trees**, mapped one-to-one to Depth Practice, Listening & Recall, Visual Observation & Analysis, and Reasoning & Digital Judgment. There is **no central fifth journey tree**. Each existing type tree can progress through versioned, source-backed stages; a completion never plants another tree. The scene does not expand into beds, zones, paths, biomes, or a collection inventory. Home's preview must depict this same model. Azm may celebrate an earned change, but manual watering grants nothing.
 
 A qualifying Offline Routine record may unlock a **small flower**; actual eligible session attendance may unlock a **rabbit**; verified eligible Institution camp completion may unlock a **birdhouse**. Decorations are bounded policy effects, not one object per check-in. Initiative Completion is recorded in history/reporting and may yield an Initiative collective milestone; it does not add a Personal Garden tree or decoration. Joining, booking, clicking, posting, a paid purchase, or an accepted absence excuse never grants an attendance reward.
 
@@ -574,7 +578,7 @@ Reward evaluation consumes a unique source event ID, source version, subject, be
 
 `My Garden` shows the fixed visual, keyboard-accessible descriptions of each tree and decoration, a compact next eligible milestone only when a real rule exists, recent earned events with date/source, and a separate link to authorized Group Garden(s). Empty state shows the four tree positions and explains how to begin without pretending rewards were earned. Missing source data reads `No recent data`; revoked or corrected evidence has a transparent history. Rendering and animation respect reduced motion. The Group Garden shows owner, initiative/program/group name, collective milestone history, source counts and authorized contributor summary without exposing personal Lab, Shield or Recovery records.
 
-**Current code, not target:** `src/DeepSprout.Web/wwwroot/src/pages/member/garden/garden.js` renders a prominent journey tree plus trees per achievement; `src/DeepSprout.Web/wwwroot/src/js/data/account.js` also grants generic growth for weekly review and attendance and computes vitality decay after quiet days. Partner `group-garden` pages use separate local data. These are implementation gaps, not alternative Garden decisions.
+**Current implementation:** the signed-in Garden and Home read `GET /api/personal-garden`. Four practice trees and bounded decorations derive from eligible V5 evidence. Inactivity is neutral. The legacy local Garden helper and Group Gardens are separate paths. The current numerical defaults preserve the previous behavior. Production thresholds and caps remain open in §26.2.
 
 ---
 
@@ -592,7 +596,7 @@ Do **not** plot unrelated percentages, assessment task scores, hours of browser 
 |---|---|---|
 | **Digital Usage** | Tracked usage on selected sites, supported-browser time trends, configured threshold comparisons | Chrome-extension observed/derived; **not** phone app time or certain Reels-only time |
 | **Recovery Plan Adherence** | Due scheduled practices, completed, missed/excluded, reviews and plan adjustments | Plan scheduler + eligible activity records; not a diagnosis of behavioral recovery |
-| **Meaningful Practice** | Valid attempts, reading/listening levels, question outcomes, Protected Work records | Activities Engine; progression may be different for each skill |
+| **Meaningful Practice** | Valid attempts, separate activity levels, and scored question outcomes | Activities Engine; progression may be different for each skill |
 | **Lab Assessments** | Baseline and eligible comparison attempts for four instruments | Versioned, non-diagnostic, comparable only with valid matched versions/protocols |
 | **Offline & Experiences** | Self-reported personal routine days, confirmed session/workshop/event/camp participation, initiative completions | Clearly separate self-report, registration, attendance and verified completion |
 
@@ -682,7 +686,7 @@ ASP.NET Core/C# rules and real data definitions remain authoritative for scoring
 
 # 12. Community: retained scope and separation from recovery
 
-**Status:** Community exists conceptually and in previous visual discussions; detailed final redesign is **explicitly postponed for a separate conversation**. Preserve the features already explored; do not pretend its exact last mockup or ranking algorithm is final.
+**Status:** posts, owner edits and withdrawal, replies, likes, bookmarks, reports and Platform Admin moderation use V5 SQL Server in the signed-in Member and Admin views. The detailed design and additional social policy remain open. Two-person quiz rooms stay browser-local pending approval.
 
 **Purpose:** meaningful, finite support and intentional sharing, **not** a new infinitely scrolling Reels feed or a source of XP from engagement.
 
@@ -799,7 +803,7 @@ These are target page requirements; current implementation categories are in §2
 | Public Home `index.html`, Landing `landing.html` | Product story, entry CTAs, feature/partner routes, legal/support links; responsive accessible motion | Public published content only; no fake live totals or placeholder links presented as working |
 | Register `register.html`; Partner `partners.html` / `#/auth/register` | Individual/Partner selection, direct Institution Representative profile/verification path, consent, validation, pending/rejected states | One human identity; no public Admin/Coach/Supervisor/Provider role grant; Platform Admin reviews Institution/Representative |
 | Login `login.html`, Invitation `join.html?token=…`, workspace switcher `#/auth/workspaces` | Credentials or demo identity, invitation preview/email match/OTP, accept/decline, expiry/recovery, allowed workspaces | Role grant only after valid scoped invitation and verification; no duplicate identity |
-| Azm/Setup `onboarding.html` | Meet Azm, exactly six one-at-a-time questions, save/resume, then HeroReels story | Browser-local personal setup; no Lab task is required |
+| Azm/Setup `onboarding.html` | Meet Azm, exactly six one-at-a-time questions, save/resume, then HeroReels story | SQL-backed personal setup; Lab is optional |
 | Lab `lab.html`, `src/pages/member/lab/assessment.html?test=…` | Optional assessments, saved partial state, practice label, version/history/coverage | Private versioned Attempt records; historical windows retained; no new weekly eligibility assumed |
 | Starting Point `src/pages/member/onboarding/starting-point.html` | Optional results when present, preliminary Week 1 preview, goal/schedule/commitment, explicit Activate | Creates one personal Plan visible in Home/Recovery without any required assessment |
 | Home `index.html` / `src/pages/member/dashboard/dashboard.html` | Next action, personal goal, plan/week, four-tree Garden preview, offline ideas, relevant Explore opportunities, Initiative status, Community and how-it-works, final CTA | Links to actual owned records; no invented testimonial, metrics or partner-only listing |
@@ -857,9 +861,9 @@ The operational journeys below complement the page tables. A read always require
 
 ## 22.1 Current and target delivery boundary
 
-**Current demo:** ASP.NET Core MVC serves Razor views and static HTML/CSS/JavaScript assets with browser-side records. It must still demonstrate coherent cross-workspace IDs, publication, admission, bookings, invitations, attendance, reports and rewards from a resettable fixture. Label simulated login/email, payment, QR verification, staff authorization, capacity races and notices truthfully. Rendering a page or passing a local store unit test is not proof that the regular Individual receives the change. Payment is explicitly simulated; there is no processor, charge, refund or banking integration.
+**Current delivery:** the MVC application uses SQL for Individual identity, Quick Setup, Recovery, the four practices and Offline Routine. Insights, Personal Garden and Home read saved evidence. Member Community and Admin moderation share their SQL backend. Partner operational data stays browser-local. It must still demonstrate coherent cross-workspace IDs, publication, admission, bookings, invitations, attendance, reports and rewards from a resettable fixture. Label simulated login/email, payment, QR verification, staff authorization, capacity races and notices truthfully. Rendering a page or passing a local store unit test is not proof that the regular Individual receives the change. Payment is explicitly simulated; there is no processor, charge, refund or banking integration.
 
-**Target architecture:** ASP.NET Core MVC, ASP.NET Core Identity, C#, EF Core and SQL Server. Identity handles standard credentials, verification, recovery and lockout. The server owns resource authorization, validation, state transitions, idempotency, transactional seat holds, offer-expiry jobs, versioned policies/forms/catalog, durable audit, notifications, privacy/retention and reporting projections. EF Core maps and migrates necessary persistent entities; SQL Server enforces essential relationships, constraints, indexes and transactions. Custom `iam.PasswordCredential`, `iam.OtpChallenge` and `iam.GlobalGrant` proposals require review against actual requirements before implementation. The optional Chrome extension has a local demonstration with documented limits. The existing `src/DeepSprout.Web` MVC host does not yet prove server-backed product commands or Identity integration.
+**Target architecture:** ASP.NET Core MVC, ASP.NET Core Identity, C#, EF Core and SQL Server. Identity handles standard credentials, verification, recovery and lockout. The server owns resource authorization, validation, state transitions, idempotency, transactional seat holds, offer-expiry jobs, versioned policies/forms/catalog, durable audit, notifications, privacy/retention and reporting projections. EF Core maps and migrates necessary persistent entities; SQL Server enforces essential relationships, constraints, indexes and transactions. Custom `iam.PasswordCredential`, `iam.OtpChallenge` and `iam.GlobalGrant` proposals require review against actual requirements before implementation. The optional Chrome extension has a local demonstration with documented limits. The [current guide](docs/current-product-guide.md#end-to-end-cycles-and-evidence) identifies exercised server commands and UI paths.
 
 ## 22.2 Domain ownership and constraints
 
@@ -882,7 +886,7 @@ Relational uniqueness, foreign keys, status constraints and transaction boundari
 
 ## 22.3 MVC request and workflow contract to derive
 
-Define MVC routes, controllers/actions, view models or form contracts, validation and response behavior for Identity and scoped invitation acceptance; Institution/Representative application and Admin decision; Initiative/Institution Outdoor Activity publication and revision; student application/approval/discipline; Group allocation; assignment/submission/review; session/activity registration/waitlist/offer; QR/typed/manual/online attendance; excuse recommendation/final decision; completion; Garden projection; source-based reporting; notice/audit. Every mutation requires actor/resource scope, anti-forgery protection, expected version or idempotency key where races occur, allowed transition, explicit validation errors and original record ID in the result. MVC route and view names are not yet fixed. A browser-only guard is a demo convenience, never proof of server permission.
+Define MVC routes, controllers/actions, view models or form contracts, validation and response behavior for Identity and scoped invitation acceptance; Institution/Representative application and Admin decision; Initiative/Institution Outdoor Activity publication and revision; student application/approval/discipline; Group allocation; assignment/submission/review; session/activity registration/waitlist/offer; QR/typed/manual/online attendance; excuse recommendation/final decision; completion; Garden projection; source-based reporting; notice/audit. Every mutation requires actor/resource scope, anti-forgery protection, expected version or idempotency key where races occur, allowed transition, explicit validation errors and original record ID in the result. See the [product guide](docs/current-product-guide.md) and [Community API](docs/implementation/community-server-api.md) for current routes. A browser-only guard is a demo convenience, never proof of server permission.
 
 ---
 
@@ -1013,7 +1017,7 @@ This ledger records **D01–D48** from 15 October. The 4 November v4.1 decisions
 | D05 | **Superseded by Onboarding 2.0:** historical weekly Lab eligibility. No new official window is scheduled. |
 | D06 | **Approved:** no-data/inactivity neutral, no punitive Garden deterioration. |
 | D07 | **Approved:** one fixed ivory Personal Garden, exactly four practice-type trees, no central fifth. |
-| D08 | **Approved:** Depth, Listening & Recall, Practical Micro-Challenge, Protected Work each owns one tree; thresholds/species open. |
+| D08 | **Approved:** The four current practices occupy the existing four tree slots. Legacy sources retain their original attribution. |
 | D09 | **Approved:** eligible routine flower, session-attendance rabbit, camp-completion birdhouse; bounded instances. |
 | D10 | **v4.1:** Initiative completion is a history/reporting fact, with no extra Personal Garden object; independent Coach Program completion is superseded. |
 | D11 | **Approved direction:** unique automatic source-backed reward; Coach has no grow button; no farming. |
@@ -1065,7 +1069,7 @@ One central journey tree, one tree per earned event, per-internal-Coach Institut
 
 1. Exact Lab weekly window length, instrument variants, scoring/comparability and missed-window handling; preserve the observed Digital Habits + rotating task direction for now, but its every-third-cycle four-test behavior is not owner-approved.
 2. Exact Garden tree species, type-growth thresholds, decorative repeat ceilings and collective milestone thresholds/visual arrangement; no punitive no-data rule.
-3. Exact personal Recovery cycle default/extension (28-day direction is strong), practice daily load, activity levels and medically responsible measurement protocol.
+3. Recovery continuation rules, practice daily load, and medically responsible measurement protocol.
 4. Typed Institution/Representative verification fields and evidence, Representative replacement, age/guardian consent, retention, appeal and Institution Activity incident policies for production.
 5. Waiting-list order/priority exceptions, cancellation cutoff and external delivery method; the 24-hour expiry is an **interim configurable** default.
 6. Whether an accepted excuse waives a mandatory session, triggers a makeup or affects final completion; publish per Initiative before enrollment.
@@ -1194,9 +1198,7 @@ A valid DeepSprout implementation must allow a user to reduce their short-form s
 
 # 29. Current implementation versus agreed target (15 October 2026)
 
-> **Historical snapshot:** The observations and target-gap labels in this section were recorded for the 15 October pass. They predate the 4 November v4.1 Institution-only scope and some subsequent MVC/database work. Use the [current guide](docs/current-product-guide.md) for the 3 November source inventory and the [P0 target map](docs/architecture/p0-target-v4.1.md) for current requirements. Do not treat independent Coach/Provider rows below as active targets.
-
-> **Historical snapshot:** The observations and gaps in this section describe the 15 October working tree. Later client and database work changed several of them. Use the [current guide](docs/current-product-guide.md) for the 3 November inventory; do not read the table below as today's implementation status.
+> **Historical snapshot:** These observations describe the 15 October working tree and its original acceptance boundary. They predate the v4.1 Institution-only scope and live MVC/V5 workflows. See the [current product guide](docs/current-product-guide.md#end-to-end-cycles-and-evidence) for new evidence and the [P0 map](docs/architecture/p0-target-v4.1.md) for current requirements.
 
 **Evidence levels:** `IMPLEMENTED AND VERIFIED` means a relevant command/browser result was actually exercised in a cited audit; `IMPLEMENTED BUT NOT FULLY VERIFIED` means current source contains the path but this consolidation did not run every UI state; `WORKS INSIDE PARTNER ECOSYSTEM ONLY` means current `deepsprout-ecosystem-demo-v1` data is connected among partner routes; `SIMULATED` means local interaction without real external/auth/financial service; `BROKEN CROSS-WORKSPACE` means the agreed regular Individual destination does not share the state; `NOT IMPLEMENTED` means no supporting path found; `TARGET REQUIREMENT` is the contract in §§1–28. Prior tests are not promoted to current full-system verification.
 
@@ -1226,25 +1228,14 @@ The local Admin/member IA audit at [docs/client/architecture/admin-member-ia-aud
 
 ## 29.2 Current data sources and migration implications
 
+This subsection records the October implementation.
+
 The regular Individual and partner Participant are different products in current browser storage. `listings.json` is a seeded regular Explore source, not the live publication output of the Institution/Provider builders. Admin has two more sources. The first implementation slice should define stable person/resource/application/booking IDs, authoritative owner records, published projections and migration/reset behavior, then connect one new Initiative publication and application end to end before broad feature rewrites. Existing working partner commands and useful member pages should be reused. Browser-local guards are demonstrative, not security; production requires authenticated server checks and transactions.
 
 ---
 
 # 30. Implementation dependency roadmap and handoff
 
-> **v4.1 handoff:** Reassess the existing browser demo, MVC source, EF Core migrations and actual data against the [P0 target/deprecation map](docs/architecture/p0-target-v4.1.md) before changing code. This document update does not claim implementation.
+The [backend implementation plan](docs/implementation/backend-start-plan.md) is the current source for delivery order, existing components to reuse, prerequisites, UI integration and acceptance checks. Individual and Community SQL slices provide the baseline. Next are account and Platform Admin lifecycle, Institution/Representative verification, Initiative publication and regular Explore admission, then scoped staff, Student, sessions, attendance and Institution Outdoor Activities. Admin consolidation and durable shared operations build on those records.
 
-This is **future work**, not authorization to modify application files in this documentation task. Each slice requires a regular-Individual-to-Institution walkthrough, negative states and recorded evidence. Preserve unaffected personal-product requirements.
-
-1. Inventory actual MVC routes, EF Core model/migrations, SQL schema, browser stores and historic records. Map `provider/*`, `mentor/programs/*`, old grants, DTOs and fixtures to retained Institution resources or audited archives. Review retention before deletion; produce a replacement ERD/dictionary and count only after design review.
-2. Integrate one human Person/ASP.NET Core Identity model. Use Identity credential, recovery, confirmation and lockout support; justify any custom OTP. Implement server resource authorization, account suspension and revocation checks on existing sessions.
-3. Make Partner registration Institution Representative-only. Create typed Institution profile and verification; publish Initiative and Institution Outdoor Activity with the same public organizer in regular Explore. Deprecate independent Coach/Provider privileged routes.
-4. Implement email-bound, single-use scoped Coach/Supervisor invitations, no `Requested` state or second Admin approval. Enforce three active Initiative Supervisors and 135 accepted students under concurrency; admission remains authoritative for shared links.
-5. Re-scope Initiative groups/tasks/reviews/reports and one Group Garden. Preserve authorship and same-identity Student continuity. Re-home outdoor booking, waiting list, safety, attendance, completion and eligible birdhouse under Institution ownership with one source identity.
-6. Reconcile the sole Admin workspace and verify positive and negative paths across Institution and Individual views. Keep payments simulated until commercial decisions; run the v4.1 acceptance cases in the P0 map. Handle the one-main-plant Garden in its separately scoped design task.
-
-Before each technical slice, compare its target acceptance with current code and decide remaining open policy parameters explicitly. Do not backdate a local simulation as a verified production guarantee. Maintain source, UI and test evidence, including affected roles and regular Individual impact.
-
----
-
-**End of DeepSprout authoritative master specification, v4.1 — 4 November 2026.**
+Preserve the approved scope and historical attribution from §§13–26 throughout. Keep SQL integration on disposable V5 databases. The plan records the project's Orange Coding Academy C# and MVC standard and the decisions that still require owner review.

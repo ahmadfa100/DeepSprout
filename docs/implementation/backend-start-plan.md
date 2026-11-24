@@ -1,79 +1,35 @@
 # Backend implementation plan
 
-**Status:** implementation plan, 21 November 2026. This document describes the current checkout and a recommended order of work. It does not authorize applying migrations to an existing named database or changing the approved 58-table design.
+**Status:** current delivery order for the working checkout. Approved scope comes from the [P0 decisions](../architecture/p0-target-v4.1.md), the [58-table design](../architecture/database/README.md), and [DeepSprout.md](../../DeepSprout.md). The [current product guide](../current-product-guide.md) records what was exercised and where verification stops.
 
-## Where we are
+## Reuse the established backend
 
-- DeepSprout is one ASP.NET Core MVC application. Razor serves the pages; the main Individual and partner workflows still run in browser JavaScript and `localStorage`. Browser records are device-local and are not SQL Server records.
-- The owner-approved target is the **58 application-table V5 lean design** (`v5-lean-2`), with `DeepSproutV5DbContext`, generated V5 entities/configuration, and migrations. The older `DeepSproutDbContext`, M1 entities, migrations, and database validation harness are historical only.
-- The current server code goes beyond the dated guides: `AccountController` registers an Identity user and `iam.Person`/`personal.IndividualProfile`, signs in, signs out, and exposes an authenticated session. The host requires a V5 connection string and uses a signed JWT in an HTTP-only cookie. Registration/login are server-backed; the browser's own people/session and personal journal have **not** been connected to that identity.
-- A `/api/community` controller has been added to the working tree and a Community API document describes it. The Member and Admin Community pages still use their browser stores. Treat this API as an unintegrated slice until it passes current-tree tests and the pages use it.
-- The working tree contains uncommitted changes. Reconcile them before starting a backend branch or judging any dated test report. Some README, product-guide, and persistence-contract statements predate the account and Community code.
+- The MVC host uses `DeepSproutV5DbContext`, ASP.NET Core Identity credentials, and a signed JWT in the authentication cookie. `ApplicationUser.PersonId` identifies the actor. The global MVC antiforgery filter protects writes. The Community moderation API also reads the current database Platform Admin role.
+- Signed-in Individuals use SQL for six-question Quick Setup, Recovery preview and activation, weekly reviews and conservative continuation, final cycle review and continuation, four scored practice engines, difficulty decisions, and Offline Routine. Insights and the four-tree Personal Garden/Home preview project saved evidence. Reuse their ownership, transaction, content-version, time-zone and audit patterns.
+- Member Community and the signed-in Platform Admin moderation console already use the same API. Reuse the moderation, history and validation patterns. Quiz rooms are a separate browser demo.
+- Lab, Shield, partner workspaces, regular Explore participation and legacy Admin operations still have browser-local paths. SQL mappings and the unexposed `AttendanceQrService` are foundations. Workspaces keep their existing views while each migrated feature switches to its authoritative server data.
 
-## Recommended starting point
+## Remaining delivery sequence
 
-Make **one real Individual's six-question Quick Setup** the first end-to-end server-backed workflow. It is central to onboarding, fits the approved `personal.IndividualProfile` columns, has no multi-person capacity race, and proves the most important boundary: the signed-in person can save and reload their own record from SQL Server on another browser session.
+| Order | Reuse and prerequisite | Missing backend and frontend integration | Verification required |
+|---|---|---|---|
+| 1. Account lifecycle and Platform Admin authority | Identity and the shared SQL Platform Admin lookup protect the live entry, Community moderation and audited account access commands. Reuse this authority for later scopes. | Owner decisions remain for Admin provisioning, real email delivery and confirmation policy before exposing confirmation/reset. | Keep disposable tests for lockout, safe redirects, expiry, revocation, suspension, restored access and ordinary-user denial. Add delivery and token tests once email is approved. |
+| 2. Institution and Representative verification | Reuse SQL Partner submission/status, Admin requests for more information and rejection, and scoped Institution profile reads. | Approve the email ownership process, required legal and Representative evidence, secure file handling and any future Representative replacement policy. Then connect approval and new membership grants. | Keep tests for duplicate submission/decision, cross-Institution denial, same-person history and live status. Add real evidence and approval tests after the policy is approved. |
+| 3. Initiative, regular Explore and admission | Reuse versioned builder and lifecycle, local projection and application screens with `Initiative`, `InitiativeRevision` and `InitiativeApplication`. Requires a verified owner. | Persist drafts and publication, publish directly for an authorized verified Institution, filter public listings in regular Explore, and connect apply/withdraw/admit/waitlist and status. Add audited suspension/restore and enforce the 135 accepted-student cap. | Draft invisibility, no routine Admin approval, cross-Institution isolation, regular Explore reload on a separate browser, one application/seat under races, 135th/136th boundaries, cancellation and retained history. |
+| 4. Scoped staff, Student continuity and learning | Reuse browser invitations, assignment/submission/review engine and scoped pages. Requires Institution authority and Initiative admission. Use existing appointments, groups and task entities. | Secure email-bound links, accept/revoke, 3 active Supervisors per Initiative, assign Coach and accepted students to groups, versioned tasks/reviews, reports and Initiative Group Garden. Wire Student, Coach, Supervisor and Institution pages; Individual upgrade must link to the same Identity/Person. Retire independent Program write paths after historical mapping. | Wrong email, stale sessions and revoked links; concurrent third/fourth grant; cross-group denial; submission/review revisions; continuity after login/upgrade; reports and Group Garden exclude private wellbeing data and duplicate effects. |
+| 5. Sessions, attendance, Outdoor Activities and completion | Reuse existing Institution event builder, booking and attendance UI, `session.*` and `provider.Experience*` mappings, `AttendanceQrService` and Garden evidence readers. Requires applicable staff scope and published terms. | Connect session registrations and Institution event revisions, capacity/seat holds and offer expiry, participant passes and Supervisor check-in, excuse recommendation/final decision, online/manual evidence and completion. Decide standalone session staffing and attendance import storage before those sub-slices. Connect the same booking and evidence to regular Explore, Institution, Supervisor, reports and Personal Garden. | Capacity and offer races, replay and invalid credential, suspended/revoked authorization, mode and window checks, acceptance vs presence vs completion, audited corrections, no duplicate rewards, two-browser consistency. |
+| 6. Remaining Platform Admin consolidation and shared operations | Build on the verified role and resource workflows. Inventory partner console and `admin.html?legacy=1` capabilities before retiring a route. Reuse `ContentRelease`, `AuditEvent`, `Notification` and `OutboxMessage` where they fit. | Migrate governance, CMS/published regions, approved catalog controls, policy settings, reports/exports and durable notices. Preserve existing member-facing content hooks with allowlisted, versioned targets. Match legacy capabilities with owned data and privacy checks. Payment remains simulated pending commercial approval. | Authorized publication/rollback, correct member rendering, no privilege via local flags, no private Lab/Shield/Recovery in Admin reports, scoped exports, notification retry/deduplication and durable audit. |
+| 7. Remaining Individual evidence and rollout | Use current rules and the existing safe SQL/client seams. Confirm the evidence, retention and consent policies before Lab/Shield integration or browser-data import. | Choose Lab content/version and persistence scope, authenticated Shield pairing/sync and device handling, remaining live profile/preferences and direct Recovery adjustment policy. Treat legacy data import and named-database adoption as separately approved work. | Valid and invalid assessment history, optional access independent of plan, real extension coverage and identity tests, clear no-data/error states, failed-save behavior, opt-in import with identity mapping, dry run and rollback. |
 
-First make the account/session boundary dependable; then add one narrow setup read/write path. Do not copy the whole browser journal to the server or introduce a general sync engine. A server-backed page must read its displayed value from the server, and a failed save must remain visibly unsaved. Keep the existing demo store only for explicitly demo-only flows during the transition.
+## Implementation standard
 
-## Delivery sequence
+Backend code should be at a beginner-to-intermediate Orange Coding Academy ASP.NET Core MVC student level: straightforward C#, clear Controllers, small DTOs, EF Core, LINQ, understandable methods, and minimal necessary abstractions. The code must remain easy to explain, debug, and defend during graduation evaluation without compromising security or correctness.
 
-### 0. Establish a safe baseline
+Use the existing MVC controllers and `DeepSproutV5DbContext`. Add a small service only when a rule is shared or a multi-step operation needs it. Avoid CQRS, MediatR, generic repositories, event buses, and parallel state stores for migrated workflows. Validate resource scope and transitions server-side. Use transactions, constraints and retry protection where the operation needs them. Connect the existing UI to successful responses and show failed saves clearly.
 
-1. Review the uncommitted account, Community, and client changes; record which code is intended to remain. Update the current documentation map and persistence contract to reflect actual behavior, without treating an old report as a requirement.
-2. Build the solution and run the existing MVC smoke test. Create a **new disposable V5 database** for server integration tests; apply only `DeepSproutV5DbContext` migrations there. Do not migrate `DeepSprout_V5_Demo` or `DeepSprout_Validation`.
-3. Verify registration, sign-in, sign-out, expired/revoked session behavior, antiforgery, and a second user's inability to read the first user's data. Add focused HTTP/database tests for gaps. Confirm development secrets and Data Protection keys are outside source control.
-4. Make one identity map explicit: `ApplicationUser.PersonId` is the server actor; browser IDs such as `p-ahmad` are never accepted as authority. Expose only the session fields the client needs. Decide whether the existing JWT cookie has a real requirement; for a same-origin MVC application, the standard Identity application cookie is the simpler long-term choice. Do not run two authentication schemes for the same pages.
+## Delivery and safety decisions
 
-**Done when:** a new user can register, sign in again, and access only their own protected server data in a fresh disposable database. Startup does not silently migrate a database.
-
-### 1. Ship the Quick Setup vertical slice
-
-1. Add one authenticated read action and one antiforgery-protected save action for the six answers. Use a small request/response model and direct EF Core access. Resolve `PersonId` from the authenticated user, never from request JSON.
-2. Validate the six allowed answer sets and write `SetupAnswersJson`, `SetupAnswersVersion = 2`, `GoalCode`, and the appropriate onboarding stage on `IndividualProfile`. If replacing existing answers, write the previous value to `ops.AuditEvent` in the same transaction, as the persistence contract requires.
-3. Connect the existing Quick Setup UI to those actions. On load, use the server result; on save, wait for a successful response before advancing. Keep the original Azm, HeroReels, and visual flow intact. Handle validation, network failure, refresh, and retry without duplicate or false progress.
-4. Test anonymous access, cross-person isolation, bad answer codes, repeat save, audit of replacement, and reload in a new session. Check the current onboarding browser test for any demo-mode assumptions before updating it.
-
-**Done when:** one signed-in user can save and reload the six answers from V5 SQL Server, another user cannot see or change them, and the page no longer presents a browser-only answer as server-saved.
-
-### 2. Complete the first personal journey
-
-Move one action at a time: preliminary Week 1 preview → explicit plan activation → own plan/Home read model → routine and scheduled actions → weekly review. Use the approved `recovery.*` and `activity.*` tables. Activation writes its linked rows in one transaction, is safe to retry, and never requires Lab results. Keep source labels honest; derive Insights and Garden from persisted source facts later, with no new reward table or fabricated measurement.
-
-### 3. Connect an existing small shared workflow
-
-After the personal slice is stable, connect the existing Community pages to the Community API, including Admin moderation. Remove their production dependence on local sample people and local post stores for that feature. Decide explicitly whether any real browser records should be imported; do not silently merge fixture records. Keep two-person quiz rooms browser-local until their separate schema/transport proposal is approved.
-
-### 4. Add Institution operations in dependency order
-
-Implement Institution Representative registration and verification, then Institution profile, Initiative publication, Individual application/admission, scoped staff invitations, groups, sessions/attendance, and Institution-owned Outdoor Activity booking/completion. For each workflow, expose the smallest useful read plus command pair and connect the relevant page. Check active resource scope on every request. Protect the 135 accepted-student and three active-Supervisor limits inside transactions under concurrent requests. Keep the retired Coach Program and partnership tables read-only; do not reintroduce Outdoor Provider or Supervisor self-request.
-
-### 5. Import and deployment readiness
-
-Only after the server workflows are proven, design an opt-in browser-data import keyed by verified email and `iam.Person.PublicId`, with a dry run, immutable backup, conflict report, and idempotent replay. Import no demo fixture as a real person. Adoption of `DeepSprout_V5_Demo` is a separate owner-approved operation after a verified backup and the documented schema checks. Add production email delivery, operational jobs, monitoring, and retention policy when their workflows require them.
-
-## Keep the code simple
-
-- Stay in the existing MVC solution. Use a thin controller, one small service when a workflow has multiple rules/writes, and `DeepSproutV5DbContext` directly. Avoid a generic repository, unit-of-work wrapper, CQRS framework, event bus, or second API project.
-- Keep one authoritative store per migrated feature. Prefer a clear `GET` and command endpoint over a broad generic state-sync endpoint. Return small DTOs rather than EF entities or the browser's whole graph.
-- Put authentication and resource authorization on the server. Use Identity for credentials, reset, verification, and lockout; do not add another password/OTP implementation. For multi-row state changes, use one transaction and the existing database constraints. Add an idempotency/concurrency mechanism only where retries or races make it necessary.
-- Write focused integration tests for actual boundaries: another person's data, invalid transitions, retry/concurrency, and database constraints. Avoid tests that only restate a method's implementation.
-- Change the V5 schema only for an approved need and only through `v5-lean-design/generator/model.mjs`, its generators, a V5 migration, and negative tests on a fresh disposable database. Never hand-edit generated V5 files or extend the historical M1 context.
-
-## Decisions to settle at their point of use
-
-- Before partner onboarding: exact Representative/Institution verification evidence and replacement policy.
-- Before standalone Session staffing: the deferred Supervisor appointment model.
-- Before attendance imports: import-batch storage and the meaning/storage of “Needs Review.”
-- Before cross-device quiz: the pending quiz schema and realtime transport proposal.
-- Before production browser-data import or named-database adoption: retention, conflict handling, owner go-ahead, and verified backup.
-
-These decisions do not block the first Quick Setup slice.
-
-## Source documents and code
-
-- Owner target and 8 November addendum: [`p0-target-v4.1.md`](../architecture/p0-target-v4.1.md)
-- Approved database and workflow mapping: [`database/README.md`](../architecture/database/README.md), [`persistence-contract.md`](../architecture/database/persistence-contract.md)
-- V5 migration/adoption procedure: [`efcore-v5-adoption.md`](../architecture/database/efcore-v5-adoption.md)
-- Current server entry points: `src/DeepSprout.Web/Program.cs`, `Controllers/AccountController.cs`, `Controllers/CommunityController.cs`
-- Current browser state: `wwwroot/src/js/data/account.js`, `wwwroot/src/js/utils/storage.js`, `wwwroot/src/workspaces/store.js`
+- Run a build, the relevant browser or model checks, and a focused HTTP/SQL test for each slice. Use only a fresh disposable V5 database for integration. Startup does not apply migrations. Keep the historical M1 context and its validation harness separate.
+- Use the V5 model generator for schema changes only after owner approval. The 58 **application** tables and Identity framework tables have separate counts. See [EF Core adoption](../architecture/database/efcore-v5-adoption.md).
+- Settle exact verification evidence and replacement, standalone Supervisor scope, attendance import/review storage, Garden growth thresholds and decoration caps, and cross-device quiz schema/transport when those changes are scoped. Preserve current defaults meanwhile.
+- Require explicit approval and a verified backup before named-database adoption. Real browser imports, if approved, need a stable verified human identity map, a dry run, conflict handling, durable source IDs and retry safety. Demo fixtures stay out of real accounts.

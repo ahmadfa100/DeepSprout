@@ -25,6 +25,12 @@
     || document.querySelector('script[src*="js/data/account.js"]')?.src
     || location.href;
   const access = window.DeepSproutPersonal;
+  const PRACTICE_REPLACEMENTS = { practical: 'visual-observation', 'protected-work': 'digital-judgment' };
+  const currentPractice = type => Object.hasOwn(PRACTICE_REPLACEMENTS, type) ? PRACTICE_REPLACEMENTS[type] : type;
+  const matchesPractice = (action, attempt) => attempt.activityType === action.activityType || attempt.activityType === currentPractice(action.activityType);
+  const interactivePractice = definition => ['observation-questions', 'evidence-questions'].includes(definition.responseMethod);
+  // Three of four questions qualify for growth and progression in either interactive family.
+  const INTERACTIVE_PASS_SCORE = .75;
   const STORE_KEY = 'deepsprout-account-choice';
   const ACCOUNTS = {
     demo: 'demo-account.json',
@@ -230,7 +236,7 @@
         const run=(data.practiceRuns||[]).find(r=>r.id===event.attempt.id);
         if(run){Object.assign(run,{status:event.attempt.status,endedAt:event.at,transitions:[...run.transitions,{status:'Submitted',at:event.at},{status:event.attempt.status,at:event.at}]});}
         if(!data.activityAttempts.some(a=>a.id===event.attempt.id))data.activityAttempts.push(JSON.parse(JSON.stringify(event.attempt)));
-        const scheduled=data.scheduledActions.find(a=>a.id===event.attempt.scheduledActionId);if(scheduled&&event.attempt.valid&&(scheduled.policyVersion!==1||event.attempt.personId===scheduled.personId&&event.attempt.activityType===scheduled.activityType&&event.attempt.on>=scheduled.startsOn&&event.attempt.on<=scheduled.dueOn)){scheduled.completedAttemptId=event.attempt.id;scheduled.completedAt=event.attempt.completedAt;}break;
+        const scheduled=data.scheduledActions.find(a=>a.id===event.attempt.scheduledActionId);if(scheduled&&event.attempt.valid&&(scheduled.policyVersion!==1||event.attempt.personId===scheduled.personId&&matchesPractice(scheduled,event.attempt)&&event.attempt.on>=scheduled.startsOn&&event.attempt.on<=scheduled.dueOn)){scheduled.completedAttemptId=event.attempt.id;scheduled.completedAt=event.attempt.completedAt;}break;
       }
       case 'practice.level':
         data.levelEvents.push(JSON.parse(JSON.stringify(event.decision)));break;
@@ -280,7 +286,13 @@
         if (data.plan) break;
         data.plan = { id:event.planId,personId:event.personId,policyVersion:event.policyVersion,baselineIds:event.baselineIds,activatedAt:event.at,cycleNumber: 1, startDate: event.on, lengthDays: event.lengthDays || 28, activatedOn: event.on,
           direction: (event.direction || []).map((entry, index) => ({ week: index + 1, title: entry.title, note: entry.note })) };
-        if(event.policyVersion===1&&event.planId)for(const type of data.catalog.activityTypes)if(!data.levelEvents.some(e=>e.activityType===type.id))data.levelEvents.push({id:`initial-${event.planId}-${type.id}`,activityType:type.id,level:1,on:event.on,policyVersion:1,sourcePlanId:event.planId,detail:'Introductory demo starting level; no calibrated cognitive inference.'});
+        if (event.policyVersion===1 && event.planId) {
+          // Replaying a pre-replacement activation keeps its original level events.
+          const types = event.practiceTypes || data.catalog.activityTypes.map(type => type.id);
+          for (const type of types) if (!data.levelEvents.some(e => e.activityType === type)) {
+            data.levelEvents.push({id:`initial-${event.planId}-${type}`,activityType:type,level:1,on:event.on,policyVersion:1,sourcePlanId:event.planId,detail:'Introductory starting level.'});
+          }
+        }
         if (event.commitment) data.routine.push({id:`r-plan-${event.on}`, title:event.commitment.title, hint:event.commitment.hint || '', createdOn:event.on, removedOn:null, checkIns:[], durationMinutes:event.commitment.durationMinutes||null, schedule:[{from:event.on,days:[0,1,2,3,4,5,6],recurrence:'weekly',paused:false,durationMinutes:event.commitment.durationMinutes||null}]});
         if (event.goal) data.user.goal = { id: event.goal, label: event.goalLabel || '', setOn: event.on };
         if(!event.recoveryTransaction)(event.schedule || []).forEach((entry, index) => data.scheduledActions.push({ id: `s-${event.on}-${index}`, date: entry.date, kind: 'practice', activityType: entry.activityType, level: 1, minutes: entry.minutes || 5 }));
@@ -305,19 +317,123 @@
     }
   };
 
-  const createAccount = (seed, choice, catalogue = { listings: [] }, subject, practices) => {
+  function projectRoutines(data, routines) {
+    data.routine = routines.map(item => ({...item,
+      titleVersions:item.schedule.map(({from,title}) => ({from,title})),
+      durationMinutes:item.schedule.at(-1)?.durationMinutes ?? null
+    }));
+  }
+
+  function projectServerAttempts(data, server, subject) {
+    const attempts = (server.activities?.history || []).map(({result,...row}) => ({...row,...result,
+      personId:subject,server:true,policyVersion:1,valid:!!result,
+      outcome:result ? `${result.correctCount} of ${result.questionCount} correct` : row.legacy ? row.outcome : null}));
+    data.activityAttempts = attempts.filter(row => row.status === 'Completed');
+    data.scheduledDrafts = attempts.filter(row => row.status !== 'Completed');
+  }
+
+  function projectCycleHistory(server) {
+    return (server.history || []).filter(cycle => cycle.startsOn && cycle.endsOn).map(cycle => ({
+      id:cycle.cycleId,cycleNumber:cycle.cycleNumber,startDate:cycle.startsOn,
+      lengthDays:daysBetween(parse(cycle.startsOn),parse(cycle.endsOn)) + 1,
+      status:cycle.status,mode:cycle.kind==='Maintenance'?'Maintenance':'Recovery',
+      goalLabel:window.DeepSprout?.GOALS[cycle.goal],
+      cycleReview:cycle.cycleReview,
+      weeks:Object.fromEntries((cycle.cycleReview?.evidence.weeks || []).filter(week=>week.detailed).map(week=>[
+        week.week,{number:week.week,start:keyOf(addDays(parse(week.dueOn),-6)),end:week.dueOn,source:'Saved Recovery Plan'}
+      ]))
+    }));
+  }
+
+  function projectRecovery(data, server, subject) {
+    const id = server.cycleId, start = server.startsOn;
+    const lengthDays = daysBetween(parse(start), parse(server.endsOn)) + 1;
+    const numberOfWeek = date => Math.floor(daysBetween(parse(start), parse(date)) / 7) + 1;
+    const primary = server.routines.find(routine => routine.status !== 'Archived');
+    const goal = server.goal;
+    const goalLabel = window.DeepSprout?.GOALS[goal] || ({'reduce-scrolling':'Spend less time scrolling','intentional-phone':'Use my phone intentionally',
+      'offline-time':'Make room for offline life','focus-objective':'Focus on meaningful work'})[goal] || 'Your personal goal';
+    const toPreferences = prefs => ({goal:prefs?.goal || goal,goalLabel,days:prefs?.practiceDays.length || 0,minutes:prefs?.minutes || 5,
+      weekdays:prefs?.practiceDays.map(offset => addDays(parse(start), offset).getDay()) || [],mix:prefs?.activityTypes || [],
+      commitment:primary?.title || prefs?.routine?.title || '',routineId:primary?.id || null});
+    const changes = server.planChanges || [];
+    const preferences = toPreferences(changes[0]?.preferences || server.plan?.preferences);
+    const preferenceVersions = changes.map(change => ({effectiveOn:change.effectiveOn,value:toPreferences(change.preferences)}));
+    const actionKind = {Practice:'practice',Routine:'routine',WeeklyReview:'review',Protection:'protection'};
+    const actions = server.actions.map(row => ({id:row.id,cycleId:id,personId:subject,week:numberOfWeek(row.date),
+      date:row.date,startsOn:row.date,dueOn:row.date,status:row.status,kind:actionKind[row.kind],minutes:row.minutes ?? preferences.minutes,
+      level:row.level,activityType:row.activityType,activityCode:row.activityCode,routineId:row.routineId,
+      revisionId:row.revisionId,title:row.title,draftStatus:row.draft?.status,scoreSupported:row.scoreSupported,
+      completedAttemptId:row.completedAttemptId,required:!row.optional,policyVersion:1,server:true}));
+    const savedReviews = (server.reviews || []).map(review => ({...review,cycleId:id,personId:subject,
+      evidence:review.evidence && {...review.evidence,attemptIds:review.evidence.practices.flatMap(row=>row.result?[row.result.id]:[])}}));
+    data.weeklyReviews.push(...savedReviews);
+    for (const day of server.plan?.weekOne || []) {
+      const date = keyOf(addDays(parse(start), day.offset));
+      if (!day.activityType && !day.review && !actions.some(action => action.date === date && action.kind === 'practice'))
+        actions.push({id:`${id}:rest:${date}`,cycleId:id,week:1,date,kind:'rest'});
+    }
+    for (const change of changes.filter(change => change.kind !== 'Initial')) {
+      const week = numberOfWeek(change.effectiveOn);
+      const end = keyOf(addDays(parse(start), week * 7 - 1));
+      for (let date = change.effectiveOn; date <= end; date = keyOf(addDays(parse(date), 1))) {
+        if (!actions.some(action => action.date === date && ['practice','review','rest'].includes(action.kind)))
+          actions.push({id:`${id}:rest:${date}`,cycleId:id,week,date,kind:'rest'});
+      }
+    }
+    const weeks = {};
+    for (const week of new Set(actions.map(action => action.week))) {
+      weeks[week] = {number:week, start:keyOf(addDays(parse(start), (week - 1) * 7)),
+        end:keyOf(addDays(parse(start), week * 7 - 1)),actionIds:actions.filter(action => action.week === week).map(action => action.id),
+        source:'Saved Recovery Plan'};
+    }
+    const cycle = {id,cycleNumber:server.cycleNumber,startDate:start,lengthDays,
+      status:server.status==='Ended'?'Cycle Review Due':server.status,
+      mode:server.kind==='Maintenance'?'Maintenance':'Recovery',cycleReview:server.cycleReview,
+      preferences,preferenceVersions,weeks,goalLabel,direction:server.plan?.weeks || []};
+    data.plan = {id,activatedOn:start,activatedAt:server.activatedAtUtc,startDate:start,lengthDays,baselineIds:[]};
+    data.scheduledActions.push(...actions);
+    data.recovery = {version:1,serverBacked:true,journeyId:`journey:${subject}`,activeCycleId:id,
+      cycles:[...projectCycleHistory(server),cycle],revisions:[...(data.recovery?.revisions || []),
+        ...changes.slice(1).map((change,index) => ({
+          id:change.id,action:change.kind === 'Return' ? 'Conservative continuation' : 'Weekly Review',
+          decision:change.kind === 'Return' ? null : savedReviews.find(review => review.revisionId === change.id)?.decision,
+          effectiveOn:change.effectiveOn,at:change.recordedAt,actorId:subject,version:change.version,reason:change.reason,
+          previousPreferences:preferenceVersions[index].value,nextPreferences:preferenceVersions[index+1].value,
+          actionIds:actions.filter(action => action.revisionId === change.id).map(action => action.id)
+        }))],
+      lastSeenDay:null, returnNotice:null, policy:{cycleDays:lengthDays}};
+    for (const type of data.catalog.activityTypes) {
+      const activityType = currentPractice(type.id);
+      if (!data.levelEvents.some(event => event.activityType === activityType))
+        data.levelEvents.push({activityType,level:1,on:start,detail:'Introductory starting level.'});
+    }
+  }
+
+  const createAccount = (seed, choice, catalogue, subject, practices, server, setup, routines) => {
+    const authenticated = Boolean(setup);
     const data = JSON.parse(JSON.stringify(seed));
     data.planAdjustments ||= [];
     data.assessmentRuns ||= [];
     // Seeded legacy measurements stay historical; missing protocols are never invented.
     data.assessmentAttempts=data.assessmentAttempts.map(a=>({...a,legacy:!a.status,status:a.status||(a.valid===true?'Completed':'Invalid')}));
     const changes = readChanges(choice);
-    changes.forEach(event => applyChange(data, event));
+    const serverOwned = type => /^(practice\.|activity\.|routine\.|recovery\.|plan\.|attempt\.add$|review\.add$)/.test(type);
+    changes.filter(event => !authenticated || !serverOwned(event.type)).forEach(event => applyChange(data, event));
+    const browserHistory = {activityAttempts:[],scheduledActions:[]};
+    if (authenticated) for (const entry of changes) {
+      if (['attempt.add','practice.start','practice.progress','practice.submit'].includes(entry.type))
+        applyChange(browserHistory, {...entry,recoveryTransaction:undefined});
+    }
+    const serverPlan = Boolean(server?.activatedAtUtc && server.startsOn && server.endsOn);
+    if (authenticated) projectRoutines(data, routines);
+    if (server?.activities) projectServerAttempts(data, server, subject);
+    if (serverPlan) projectRecovery(data, server, subject);
     const canonical = access.person();
     if (canonical) { data.user.name = canonical.name; data.user.email = canonical.email; }
-    const personalInstant = () => data.personalClock?.at ? new Date(data.personalClock.at) : data.account.asOf ? new Date(`${data.account.asOf}T12:00:00+03:00`) : new Date();
-    const personalTimezone=()=>data.personalClock?.timezone||'Asia/Amman';
-    const personalDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:personalTimezone(),year:'numeric',month:'2-digit',day:'2-digit'}).format(personalInstant());
+    const personalInstant = () => !authenticated && data.personalClock?.at ? new Date(data.personalClock.at) : !authenticated && data.account.asOf ? new Date(`${data.account.asOf}T12:00:00+03:00`) : new Date();
+    const personalTimezone=()=>server?.timeZone||(!authenticated && data.personalClock?.timezone)||'Asia/Amman';
+    const personalDay=()=>server?.today || new Intl.DateTimeFormat('en-CA',{timeZone:personalTimezone(),year:'numeric',month:'2-digit',day:'2-digit'}).format(personalInstant());
     let today = parse(personalDay());
     let todayKey = keyOf(today);
     // Listings carry dates relative to the account's today, so every story stays coherent.
@@ -331,7 +447,8 @@
     // An account with no recorded registration date was created today.
     const registeredKey = data.user.registeredOn || todayKey;
     const byId = (list, id) => list.find(item => item.id === id) || null;
-    const activityType = id => byId(data.catalog.activityTypes, id);
+    const activityType = id => byId(practices.families, id) || byId(data.catalog.activityTypes, id);
+    const activeTypes = data.catalog.activityTypes.map(type => activityType(currentPractice(type.id)));
     const definition = id => byId(data.catalog.assessmentDefinitions, id);
 
     // Recovery state is journal-owned. Snapshots preserve every cycle/week/revision;
@@ -340,13 +457,20 @@
     const clone=value=>JSON.parse(JSON.stringify(value));
     const uid=prefix=>`${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,9)}`;
     const GOALS={'reduce-scrolling':'Spend less time scrolling','intentional-phone':'Use my phone intentionally','offline-time':'Make room for offline life','focus-objective':'Focus on meaningful work'};
-    const TYPES=['depth','listening','practical','protected-work'];
-    const defaultMix=goal=>goal==='offline-time'?['practical','protected-work']:goal==='focus-objective'?['depth','protected-work','listening']:['practical','protected-work','listening'];
+    const TYPES=activeTypes.map(type=>type.id);
+    const defaultMix=goal=>goal==='offline-time'?['visual-observation','digital-judgment']:goal==='focus-objective'?['depth','digital-judgment','listening']:['visual-observation','digital-judgment','listening'];
+    const originalMix = actions => [...new Set(actions.filter(a=>a.kind!=='rest'&&a.kind!=='review').map(a=>currentPractice(a.activityType)).filter(type=>TYPES.includes(type)))];
     const recoveryPolicy=()=>({...RECOVERY_DEFAULTS,...data.recovery?.policy});
-    const initialPrefs=event=>({days:Math.min(5,Math.max(1,Number(event?.firstRunPlan?.availableDays||data.onboardingPreview?.days||data.user.setup?.availableDays)||3)),minutes:Number(event?.firstRunPlan?.minutes||data.onboardingPreview?.minutes)||5,weekdays:[0,1,2,3,4,5,6],mix:(event?.schedule||data.scheduledActions).some(a=>a.kind!=='rest'&&a.kind!=='review'&&TYPES.includes(a.activityType))?[...new Set((event?.schedule||data.scheduledActions).filter(a=>a.kind!=='rest'&&a.kind!=='review'&&TYPES.includes(a.activityType)).map(a=>a.activityType))]:defaultMix(event?.goal||data.user.goal?.id),goal:event?.goal||data.user.goal?.id,goalLabel:event?.goalLabel||data.user.goal?.label||'Your personal goal',commitment:event?.commitment?.title||data.routine.find(r=>!r.removedOn)?.title||'',routineId:event?`r-plan-${event.on}`:data.routine.find(r=>!r.removedOn)?.id||null});
+    const initialPrefs=event=>{
+      const mix=originalMix(event?.schedule||data.scheduledActions),goal=event?.goal||data.user.goal?.id;
+      return {days:Math.min(5,Math.max(1,Number(event?.firstRunPlan?.availableDays||data.onboardingPreview?.days||data.user.setup?.availableDays)||3)),minutes:Number(event?.firstRunPlan?.minutes||data.onboardingPreview?.minutes)||5,weekdays:[0,1,2,3,4,5,6],mix:mix.length?mix:defaultMix(goal),goal,goalLabel:event?.goalLabel||data.user.goal?.label||'Your personal goal',commitment:event?.commitment?.title||data.routine.find(r=>!r.removedOn)?.title||'',routineId:event?`r-plan-${event.on}`:data.routine.find(r=>!r.removedOn)?.id||null};
+    };
     const cycleEnd=c=>keyOf(addDays(parse(c.startDate),c.lengthDays-1));
     const cycleWeek=(c,day=personalDay())=>Math.min(Math.ceil(c.lengthDays/7),Math.max(1,Math.floor(daysBetween(parse(c.startDate),parse(day))/7)+1));
-    const cyclePrefs=(c,day=personalDay())=>(c.preferenceVersions||[]).filter(v=>v.effectiveOn<=day).at(-1)?.value||c.preferences;
+    const cyclePrefs=(c,day=personalDay())=>{
+      const prefs=(c.preferenceVersions||[]).filter(v=>v.effectiveOn<=day).at(-1)?.value||c.preferences;
+      return {...prefs,mix:[...new Set(prefs.mix.map(currentPractice))]};
+    };
     const recoveryState=()=>{
       if(data.recovery)return clone(data.recovery);
       if(!data.plan)return null;
@@ -358,8 +482,14 @@
     const cycleActions=c=>data.scheduledActions.filter(a=>a.cycleId===c.id||c.legacy&&!a.cycleId&&a.date>=c.startDate&&a.date<=cycleEnd(c));
     const liveAction=a=>!['Rescheduled','Cancelled'].includes(a.status);
     const actionStarted=id=>(data.practiceRuns||[]).some(r=>r.scheduledActionId===id)||data.activityAttempts.some(a=>a.scheduledActionId===id);
-    const reviewedWeek=(c,n)=>data.weeklyReviews.find(r=>r.cycleId===c.id&&r.week===n||c.legacy&&!r.cycleId&&r.week===n);
-    const recoveryStatus=c=>!c?null:['Paused','Cancelled','Archived','Reviewed'].includes(c.status)?c.status:personalDay()>cycleEnd(c)?'Cycle Review Due':c.mode==='Maintenance'?'Maintenance':'Active';
+    const reviewedWeek=(c,n)=>data.weeklyReviews.find(r=>r.decision!=='auto'&&r.week===n&&(r.cycleId===c.id||c.legacy&&!r.cycleId));
+    const nextServerReview=()=>{
+      const weeks=server?.reviewWeeks || [];
+      return weeks.filter(item=>['Due','Overdue'].includes(item.status)).at(-1) ||
+        weeks.filter(item=>item.status==='Continued').at(-1) || weeks.find(item=>item.status==='Upcoming');
+    };
+    const scheduledReviews=c=>cycleActions(c).filter(action=>action.kind==='review'&&liveAction(action));
+    const recoveryStatus=c=>!c?null:['Paused','Cancelled','Archived','Reviewed','Cycle Review Due'].includes(c.status)?c.status:personalDay()>cycleEnd(c)?'Cycle Review Due':c.mode==='Maintenance'?'Maintenance':'Active';
     const validatedPrefs=(input,base)=>{
       const {lowerType: _lowerType, ...preferenceInput}=clone(input||{});
       const p={...clone(base),...preferenceInput};
@@ -367,7 +497,7 @@
       if(!Number.isInteger(Number(p.days))||Number(p.days)<1||Number(p.days)>recoveryPolicy().maxPracticeDays)throw new Error('Choose one to five practice days, leaving room for rest.');p.days=Number(p.days);
       if(![5,10,15].includes(Number(p.minutes)))throw new Error('Choose a 5, 10 or 15 minute time preference.');p.minutes=Number(p.minutes);
       if(!Array.isArray(p.weekdays)||!p.weekdays.length||p.weekdays.some(d=>!Number.isInteger(d)||d<0||d>6))throw new Error('Choose at least one available weekday.');p.weekdays=[...new Set(p.weekdays)];
-      if(!Array.isArray(p.mix)||!p.mix.length||p.mix.some(t=>!TYPES.includes(t)))throw new Error('Choose approved personal practice types.');p.mix=[...new Set(p.mix)];
+      if(!Array.isArray(p.mix)||!p.mix.length||p.mix.some(t=>!TYPES.includes(currentPractice(t))))throw new Error('Choose approved personal practice types.');p.mix=[...new Set(p.mix.map(currentPractice))];
       if(!GOALS[p.goal]&&p.goal!==base.goal)throw new Error('Choose a supported personal goal.');
       if(p.goal!==base.goal){p.goalLabel=GOALS[p.goal];if(!Object.prototype.hasOwnProperty.call(input||{},'mix'))p.mix=defaultMix(p.goal);}
       if(typeof p.commitment!=='string'||!p.commitment.trim()||p.commitment.length>200)throw new Error('Keep one short personal offline commitment.');p.commitment=p.commitment.trim();return p;
@@ -380,8 +510,8 @@
       const actions=[];let index=0;
       for(const date of dates){
         if(date<effectiveOn)continue;
-        const original=provided?.find(a=>a.date===date&&a.kind!=='rest'&&a.kind!=='review'&&TYPES.includes(a.activityType));
-        const type=original?.activityType||prefs.mix[index%prefs.mix.length];
+        const original=provided?.find(a=>a.date===date&&a.kind!=='rest'&&a.kind!=='review'&&TYPES.includes(currentPractice(a.activityType)));
+        const type=currentPractice(original?.activityType)||prefs.mix[index%prefs.mix.length];
         const practice=provided?!!original:chosen.has(date);
         const level=training().find(t=>t.id===type)?.level||1;
         const base={personId:subject,journeyId:`journey:${subject}`,planId:data.plan?.id||c.planId||c.id,cycleId:c.id,week:n,date,startsOn:date,dueOn:date,required:true,revisionId,policyVersion:1,status:'Scheduled',minutes:prefs.minutes,timeBudgetMinutes:prefs.minutes,estimatedMinutes:null};
@@ -393,11 +523,22 @@
       return {week:{id:`week:${c.id}:${n}`,personId:subject,journeyId:`journey:${subject}`,cycleId:c.id,planId:c.planId||data.plan?.id,number:n,start,end,priorVersions:[],actionIds:actions.map(a=>a.id),revisionId,policyVersion:1,source:provided?'Original activation preview':'Versioned future schedule',effectiveOn},actions};
     };
     const evidenceFor=(c,n)=>{
-      const actions=cycleActions(c).filter(a=>a.week===n||c.legacy&&a.date>=keyOf(addDays(parse(c.startDate),(n-1)*7))&&a.date<=keyOf(addDays(parse(c.startDate),n*7-1))).filter(liveAction),practicesDue=actions.filter(a=>a.kind==='practice'&&a.date<=personalDay());
+      const saved=c.id===server?.cycleId && server.reviewWeeks?.find(week=>week.week===n)?.evidence;
+      if (saved) return {...saved,week:n,attemptIds:saved.practices.flatMap(row=>row.result?[row.result.id]:[]),
+        routine:{done:saved.routine.doneDays,scheduled:saved.routine.scheduledDays}};
+      const actions=cycleActions(c).filter(a=>a.week===n||c.legacy&&a.date>=keyOf(addDays(parse(c.startDate),(n-1)*7))&&a.date<=keyOf(addDays(parse(c.startDate),n*7-1))).filter(liveAction),practicesDue=actions.filter(a=>a.kind==='practice'&&a.status!=='Excluded'&&a.date<=personalDay());
       const complete=practicesDue.map(a=>({a,attempt:validAttemptFor(a.id)})),from=parse(keyOf(addDays(parse(c.startDate),(n-1)*7))),to=addDays(from,6);
-      return {personId:subject,cycleId:c.id,week:n,scheduled:actions.filter(a=>a.kind==='practice').length,due:practicesDue.length,completed:complete.filter(x=>x.attempt).length,missed:complete.filter(x=>!x.attempt&&x.a.date<personalDay()).length,invalid:data.activityAttempts.filter(a=>!a.valid&&a.on<=personalDay()&&practicesDue.some(d=>d.id===a.scheduledActionId)).map(a=>a.id),attempts:complete.flatMap(x=>x.attempt?[{id:x.attempt.id,scheduledActionId:x.a.id,activityType:x.attempt.activityType,level:x.attempt.level,on:x.attempt.on,score:x.attempt.score??null,evidenceTier:x.attempt.evidenceTier||'Legacy recorded evidence',contentVersion:x.attempt.contentVersion||null}]:[]),attemptIds:complete.flatMap(x=>x.attempt?[x.attempt.id]:[]),actionIds:practicesDue.map(a=>a.id),routine:{done:from>parse(personalDay())?0:routineDays(from,to>parse(personalDay())?parse(personalDay()):to).length,scheduled:routineScheduledDays(from,to).length,evidenceTier:'Self-reported'},lab:{state:checkInWindow().state,note:'Optional Lab; Weekly Review does not require an assessment'},shield:shieldEvidence(from,to),levels:training().map(t=>({type:t.id,level:t.level})),coverage:'Only original scheduled actions and linked eligible attempts count; other days have no reliable scheduled evidence.'};
+      const completed=complete.filter(x=>x.attempt||x.a.server&&x.a.status==='Completed').length;
+      const missed=complete.filter(x=>!x.attempt&&x.a.date<personalDay()&&
+        (!x.a.server||x.a.status==='Missed'||x.a.activityType==='depth'&&x.a.status==='Due'&&!x.a.draftStatus)).length;
+      return {personId:subject,cycleId:c.id,week:n,scheduled:actions.filter(a=>a.kind==='practice').length,due:practicesDue.length,completed,missed,invalid:data.activityAttempts.filter(a=>!a.valid&&a.on<=personalDay()&&practicesDue.some(d=>d.id===a.scheduledActionId)).map(a=>a.id),attempts:complete.flatMap(x=>x.attempt?[{id:x.attempt.id,scheduledActionId:x.a.id,activityType:x.attempt.activityType,level:x.attempt.level,on:x.attempt.on,score:x.attempt.score??null,evidenceTier:x.attempt.evidenceTier||'Legacy recorded evidence',contentVersion:x.attempt.contentVersion||null}]:[]),attemptIds:complete.flatMap(x=>x.attempt?[x.attempt.id]:[]),actionIds:practicesDue.map(a=>a.id),routine:{done:from>parse(personalDay())?0:routineDays(from,to>parse(personalDay())?parse(personalDay()):to).length,scheduled:routineScheduledDays(from,to).length,evidenceTier:'Self-reported'},lab:{state:checkInWindow().state,note:'Optional Lab; Weekly Review does not require an assessment'},shield:shieldEvidence(from,to),levels:training().map(t=>({type:t.id,level:t.level})),coverage:'Only original scheduled actions and linked eligible attempts count; other days have no reliable scheduled evidence.'};
     };
     const weeklyProposal=(number,answers={},adjustments=null)=>{
+      if(serverPlan){
+        const window=server.reviewWeeks.find(item=>item.week===Number(number));
+        if(!window)throw new Error('Choose a week in this cycle.');
+        return clone(window);
+      }
       const state=recoveryState(),c=activeCycle(state);if(!c)throw new Error('Activate a personal plan first.');
       const n=Number(number),end=keyOf(addDays(parse(c.startDate),n*7-1));if(!Number.isInteger(n)||n<1||n>Math.ceil(c.lengthDays/7))throw new Error('Choose a week in this cycle.');
       const evidence=evidenceFor(c,n),base=cyclePrefs(c,end),proposed=clone(base),why=[`${evidence.completed} of ${evidence.due} due practices completed; ${evidence.missed} missed. ${evidence.routine.done} routine days self-reported.`,evidence.shield.note];
@@ -406,17 +547,22 @@
       if(answers.fit==='poor-fit'){proposed.mix=TYPES.filter(t=>!base.mix.includes(t));if(!proposed.mix.length)proposed.mix=[...base.mix].reverse();why.push('Alternative approved practice types reflect your reported fit.');}
       if(evidence.missed>=2)why.push('Several scheduled practices have no valid completion. Keep pace or preview a smaller future load; no missed backlog is added.');
       const prefs=adjustments?validatedPrefs(adjustments,proposed):proposed;
-      return {id:`proposal:${c.id}:${n}:${state.revisions.length}`,personId:subject,journeyId:state.journeyId,cycleId:c.id,week:n,nextWeek:n<Math.ceil(c.lengthDays/7)?n+1:null,ruleVersion:1,sourceRevision:state.revisions.length,answers:clone(answers),evidence,preferences:prefs,previousPreferences:base,why,opensOn:keyOf(addDays(parse(end),-1)),dueOn:end,preview: n<Math.ceil(c.lengthDays/7)?makeWeek(c,n+1,prefs,'preview',keyOf(addDays(parse(end),1))).actions:[]};
+      const next=Math.max(n+1,cycleWeek(c)),nextWeek=personalDay()<=cycleEnd(c)&&next<=Math.ceil(c.lengthDays/7)?next:null;
+      const effectiveOn=[personalDay(),keyOf(addDays(parse(c.startDate),(next-1)*7))].sort().at(-1);
+      return {id:`proposal:${c.id}:${n}:${state.revisions.length}`,personId:subject,journeyId:state.journeyId,cycleId:c.id,week:n,nextWeek,ruleVersion:1,sourceRevision:state.revisions.length,answers:clone(answers),evidence,preferences:prefs,previousPreferences:base,why,opensOn:keyOf(addDays(parse(end),-1)),dueOn:end,effectiveOn,preview:nextWeek?makeWeek(c,nextWeek,prefs,'preview',effectiveOn).actions:[]};
     };
     const recoverySnapshot=()=>{
       const state=recoveryState();if(!state)return null;const c=activeCycle(state);
-      return {...state,actions:clone(data.scheduledActions),reviews:clone(data.weeklyReviews),current:c,status:recoveryStatus(c),preferences:cyclePrefs(c),currentWeek:cycleWeek(c),cycleEvidence:Array.from({length:Math.ceil(c.lengthDays/7)},(_,i)=>evidenceFor(c,i+1)),evidence:evidenceFor(c,cycleWeek(c)),nextReview:Array.from({length:Math.ceil(c.lengthDays/7)},(_,i)=>i+1).find(n=>!reviewedWeek(c,n))||null};
+      const reviewWeeks=c.legacy ? Array.from({length:Math.ceil(c.lengthDays/7)},(_,i)=>i+1)
+        : scheduledReviews(c).filter(action=>action.status!=='Completed').map(action=>action.week).sort((a,b)=>a-b);
+      const window=serverPlan ? nextServerReview() : null;
+      return {...state,actions:clone(data.scheduledActions),reviews:clone(data.weeklyReviews),current:c,status:recoveryStatus(c),preferences:cyclePrefs(c),currentWeek:cycleWeek(c),cycleEvidence:Array.from({length:Math.ceil(c.lengthDays/7)},(_,i)=>evidenceFor(c,i+1)),evidence:evidenceFor(c,cycleWeek(c)),nextReview:serverPlan?window?.week||null:reviewWeeks.find(n=>!reviewedWeek(c,n))||null,reviewWindow:window};
     };
     const continuationPreview=choice=>{
       const state=recoveryState(),c=activeCycle(state);if(!c?.cycleReview||!['Reviewed','Archived'].includes(c.status))throw new Error('Review this ended cycle first.');
       if(!['next','maintenance'].includes(choice))throw new Error('Choose Next Cycle or Maintenance.');
       const preferences=validatedPrefs({},c.continuationPreferences||cyclePrefs(c));if(choice==='maintenance')preferences.days=Math.min(preferences.days,state.policy.maintenanceDays);
-      const next={id:'continuation-preview',personId:subject,planId:c.planId||data.plan?.id,startDate:personalDay(),lengthDays:state.policy.cycleDays,preferences};
+      const next={id:'continuation-preview',personId:subject,planId:c.planId||data.plan?.id,startDate:personalDay(),lengthDays:RECOVERY_DEFAULTS.cycleDays,preferences};
       return {choice,preferences,sourceRevision:state.revisions.length,actions:makeWeek(next,1,preferences,'preview',personalDay()).actions,reason:'Continue from your current goal, approved preferences and independent levels. No baseline or earned source resets.'};
     };
 
@@ -433,34 +579,34 @@
       const assert= (condition,message)=>{if(!condition)throw new Error(message);};
       const revision={id:uid('revision'),actorId:subject,personId:subject,at:full.at,on:full.on,effectiveOn:full.on,policyVersion:1,reason:full.reason||type,action:type,decision:full.choice||null,previousVersion:state?.revisions.length||0};
       if(type==='plan.activate'){
-        const id=uid('cycle'),prefs=initialPrefs(full);c={id,personId:subject,journeyId:`journey:${subject}`,createdAt:full.at,actorId:subject,initialRevisionId:revision.id,planId:full.planId,startDate:full.on,lengthDays:recoveryPolicy().cycleDays,cycleNumber:1,status:'Active',mode:'Recovery',direction:clone(full.direction||[]),goal:full.goal,goalLabel:full.goalLabel||GOALS[full.goal],preferences:prefs,preferenceVersions:[{effectiveOn:full.on,value:prefs,revisionId:revision.id}],weeks:{},baselineIds:full.baselineIds};
+        const id=uid('cycle'),prefs=initialPrefs(full);c={id,personId:subject,journeyId:`journey:${subject}`,createdAt:full.at,actorId:subject,initialRevisionId:revision.id,planId:full.planId,startDate:full.on,lengthDays:RECOVERY_DEFAULTS.cycleDays,cycleNumber:1,status:'Active',mode:'Recovery',direction:clone(full.direction||[]),goal:full.goal,goalLabel:full.goalLabel||GOALS[full.goal],preferences:prefs,preferenceVersions:[{effectiveOn:full.on,value:prefs,revisionId:revision.id}],weeks:{},baselineIds:full.baselineIds};
         state={version:1,journeyId:`journey:${subject}`,personId:subject,activeCycleId:id,cycles:[c],revisions:[],policy:recoveryPolicy(),lastSeenDay:full.on,returnNotice:null};
         const detail=makeWeek(c,1,prefs,revision.id,full.on,full.schedule?.length?full.schedule:null);c.weeks[1]=detail.week;actions=detail.actions;
       } else {
         assert(c,'Activate your original plan before changing Recovery.');if(!['recovery.visit','recovery.policy'].includes(type))assert(full.on>=c.startDate,'The personal clock is before this cycle. Restore its current date before changing it.');
         if(full.expectedRevision!==undefined)assert(full.expectedRevision===state.revisions.length,'This preview is stale. Preview the current schedule again.');
         if(type==='recovery.policy'){
-          assert(devMode(),'Recovery policy controls are local demo settings.');const p={...recoveryPolicy(),...full.policy,version:1};assert(Number.isInteger(p.cycleDays)&&p.cycleDays>=14&&p.cycleDays<=28&&p.cycleDays%7===0,'Choose a cycle of two to four complete weeks.');assert(Number.isInteger(p.absenceDays)&&p.absenceDays>=7&&p.absenceDays<=30,'Choose an absence threshold of 7–30 days.');assert(Number.isInteger(p.maintenanceDays)&&p.maintenanceDays>=1&&p.maintenanceDays<=2,'Maintenance has one or two practices per week.');p.maxPracticeDays=5;state.policy=p;
+          assert(devMode(),'Recovery policy controls are local demo settings.');const p={...recoveryPolicy(),...full.policy,version:1};assert(p.cycleDays===RECOVERY_DEFAULTS.cycleDays,'New cycles use 28 days across four complete weeks.');assert(Number.isInteger(p.absenceDays)&&p.absenceDays>=7&&p.absenceDays<=30,'Choose an absence threshold of 7–30 days.');assert(Number.isInteger(p.maintenanceDays)&&p.maintenanceDays>=1&&p.maintenanceDays<=2,'Maintenance has one or two practices per week.');p.maxPracticeDays=5;state.policy=p;
         } else if(type==='recovery.visit'){
-          if(state.lastSeenDay===full.on&&(c.weeks[cycleWeek(c)]||!['Active','Maintenance'].includes(recoveryStatus(c))))return null;
+          if(state.lastSeenDay===full.on)return null;
           if(state.lastSeenDay&&daysBetween(parse(state.lastSeenDay),parse(full.on))>=state.policy.absenceDays&&!state.returnNotice?.pending){const sources=cycleActions(c).filter(a=>a.kind==='practice'&&liveAction(a)&&a.date>state.lastSeenDay&&a.date<full.on);state.returnNotice={id:uid('return'),from:state.lastSeenDay,to:full.on,pending:true,completed:sources.filter(a=>validAttemptFor(a.id)).length,missed:sources.filter(a=>!validAttemptFor(a.id)).length,note:'Unscheduled or unobserved days remain unknown. No missed backlog is assigned.'};}
           state.lastSeenDay=full.on;
-          const n=cycleWeek(c);
-          if(['Active','Maintenance'].includes(recoveryStatus(c))&&!c.weeks[n]){const detail=makeWeek(c,n,cyclePrefs(c),revision.id,full.on);c.weeks[n]={...detail.week,source:'Conservative continuation after skipped review'};actions=detail.actions;revision.reason='Interim fallback: current week only, same or lower cadence, no fabricated past work or completed review.';}
         } else if(type==='recovery.return'){
           assert(state.returnNotice?.pending,'There is no pending return decision.');assert(['Resume','Adjust'].includes(full.choice),'Choose Resume or Adjust.');state.returnNotice={...state.returnNotice,pending:false,choice:full.choice,actorId:subject,at:full.at};
         } else if(type==='recovery.week.decide'||type==='review.add'){
           assert(['Active','Maintenance','Cycle Review Due'].includes(recoveryStatus(c)),'This cycle is not open for review.');
           const n=Number(full.week||full.review?.week),answers=full.answers||full.review?.answers||{},proposal=weeklyProposal(n,answers);
           assert(full.on>=proposal.opensOn,'This weekly review has not opened yet.');assert(!reviewedWeek(c,n),'This original week is already reviewed.');
+          assert(c.legacy||scheduledReviews(c).some(action=>action.week===n),'This week does not have a scheduled review.');
           assert(['too-light','about-right','a-stretch','too-much'].includes(answers.manageable)&&['good-fit','mixed','poor-fit'].includes(answers.fit),'Answer both short review questions.');
           const choice=full.choice|| (full.review?.outcome==='keep-pace'?'keep':full.review?.outcome==='adjust'?'adjust':'accept');assert(['accept','keep','adjust'].includes(choice),'Choose Accept, Keep Current Pace or Adjust.');
           const prefs=choice==='keep'?proposal.previousPreferences:choice==='adjust'?validatedPrefs(full.adjustments||{},proposal.preferences):proposal.preferences;
           revision.previousPreferences=clone(proposal.previousPreferences);revision.nextPreferences=clone(prefs);revision.decision=choice;revision.evidence=proposal.evidence;revision.effectiveOn=keyOf(addDays(parse(full.on),1));revision.reason=proposal.why.join(' ');
           review={id:uid('weekly-review'),personId:subject,journeyId:state.journeyId,cycleId:c.id,week:n,answers,decision:choice,chosenPreferences:clone(prefs),outcome:full.review?.outcome||choice,completedOn:full.on,at:full.at,revisionId:revision.id,policyVersion:1,evidence:proposal.evidence,proposal,adjustment:{on:full.on,label:choice==='keep'?'Current pace kept':prefs.days<proposal.previousPreferences.days?'Lighter week ahead':'Next week planned',detail:revision.reason}};
           if(!proposal.nextWeek)c.continuationPreferences=clone(prefs);
-          if(proposal.nextWeek&&full.on<keyOf(addDays(parse(c.startDate),proposal.nextWeek*7-1))&&full.on<=cycleEnd(c)){
-            const effective=keyOf(addDays(parse(proposal.dueOn),1))>revision.effectiveOn?keyOf(addDays(parse(proposal.dueOn),1)):revision.effectiveOn;
+          if(proposal.nextWeek){
+            const effective=proposal.effectiveOn;
+            revision.effectiveOn=effective;
             const replace=cycleActions(c).filter(a=>(a.week||cycleWeek(c,a.date))===proposal.nextWeek&&liveAction(a)&&a.date>=effective&&!actionStarted(a.id));updates=replace.map(a=>({id:a.id,status:'Rescheduled',replacementRevisionId:revision.id,reason:'Reviewed future schedule'}));
             const detail=makeWeek(c,proposal.nextWeek,prefs,revision.id,effective);actions=detail.actions.filter(a=>!cycleActions(c).some(old=>(old.week||cycleWeek(c,old.date))===a.week&&old.date===a.date&&old.kind===a.kind&&liveAction(old)&&!replace.some(x=>x.id===old.id)));c.weeks[proposal.nextWeek]={...detail.week,priorVersions:c.weeks[proposal.nextWeek]?[...(c.weeks[proposal.nextWeek].priorVersions||[]),{...c.weeks[proposal.nextWeek],priorVersions:undefined}]:[],actionIds:[...(c.weeks[proposal.nextWeek]?.actionIds||[]),...actions.map(a=>a.id)]};c.preferenceVersions.push({effectiveOn:effective,value:prefs,revisionId:revision.id});
           }
@@ -475,7 +621,7 @@
           if(preview.lowerType){const current=training().find(t=>t.id===preview.lowerType);assert(current?.level>1,'This practice is already at its introductory level.');levelDecision={id:uid('level'),activityType:current.id,from:current.level,level:current.level-1,choice:'down',excludedAttemptIds:data.activityAttempts.map(a=>a.id),personId:subject,on:full.on,at:full.at,policyVersion:1,detail:'Explicit lower difficulty request from Recovery; earlier attempts preserved.'};for(const a of actions)if(a.activityType===current.id)a.level=current.level-1;}
         } else if(type==='recovery.reschedule'){
           const a=cycleActions(c).find(a=>a.id===full.actionId);assert(a&&a.kind==='practice'&&liveAction(a),'Choose your own current personal scheduled practice; Coach assignments and bookings cannot be edited here.');assert(a.date>full.on&&!actionStarted(a.id),'Only future unstarted obligations can be rescheduled.');assert(full.reason?.trim(),'Give a rescheduling reason.');assert(/^\d{4}-\d{2}-\d{2}$/.test(full.date||'')&&Number.isFinite(parse(full.date).getTime())&&keyOf(parse(full.date))===full.date&&full.date>full.on&&full.date>=c.startDate&&full.date<=cycleEnd(c),'Choose a future date in this cycle.');assert(!cycleActions(c).some(x=>x.kind==='practice'&&liveAction(x)&&x.date===full.date),'There is already a practice on this date.');
-          const type=full.activityType||a.activityType;assert(TYPES.includes(type),'Choose an approved practice alternative.');updates=[{id:a.id,status:'Rescheduled',replacementRevisionId:revision.id,reason:full.reason}];const id=uid('scheduled');actions=[{...clone(a),id,originalActionId:a.id,activityType:type,level:training().find(t=>t.id===type)?.level||a.level,date:full.date,startsOn:full.date,dueOn:full.date,week:cycleWeek(c,full.date),revisionId:revision.id,status:'Scheduled'}];revision.effectiveOn=full.date;
+          const type=currentPractice(full.activityType||a.activityType);assert(TYPES.includes(type),'Choose an approved practice alternative.');updates=[{id:a.id,status:'Rescheduled',replacementRevisionId:revision.id,reason:full.reason}];const id=uid('scheduled');actions=[{...clone(a),id,originalActionId:a.id,activityType:type,level:training().find(t=>t.id===type)?.level||a.level,date:full.date,startsOn:full.date,dueOn:full.date,week:cycleWeek(c,full.date),revisionId:revision.id,status:'Scheduled'}];revision.effectiveOn=full.date;
         } else if(type==='recovery.lifecycle'){
           assert(['pause','resume','cancel','archive'].includes(full.choice),'Choose a cycle action.');
           if(full.choice==='pause'){assert(['Active','Maintenance'].includes(recoveryStatus(c)),'Only an active cycle can be paused.');c.status='Paused';}
@@ -487,7 +633,7 @@
         } else if(type==='recovery.continue'){
           assert(['Reviewed','Archived'].includes(c.status)&&c.cycleReview,'Review the ended cycle before choosing its continuation.');assert(!c.continuationId,'This cycle already has a continuation.');assert(['next','maintenance'].includes(full.choice),'Choose Next Cycle or Maintenance.');
           const prefs=validatedPrefs(full.adjustments||{},c.continuationPreferences||cyclePrefs(c));if(full.choice==='maintenance')prefs.days=Math.min(prefs.days,state.policy.maintenanceDays);const id=uid('cycle');c.continuationId=id;c.endedAt=full.at;
-          const next={id,personId:subject,journeyId:state.journeyId,createdAt:full.at,actorId:subject,initialRevisionId:revision.id,planId:c.planId||data.plan?.id,startDate:full.on,lengthDays:state.policy.cycleDays,cycleNumber:c.cycleNumber+1,status:'Active',mode:full.choice==='maintenance'?'Maintenance':'Recovery',goal:prefs.goal,goalLabel:prefs.goalLabel,preferences:prefs,preferenceVersions:[{effectiveOn:full.on,value:prefs,revisionId:revision.id}],weeks:{},previousCycleId:c.id,baselineIds:data.plan.baselineIds||[]};
+          const next={id,personId:subject,journeyId:state.journeyId,createdAt:full.at,actorId:subject,initialRevisionId:revision.id,planId:c.planId||data.plan?.id,startDate:full.on,lengthDays:RECOVERY_DEFAULTS.cycleDays,cycleNumber:c.cycleNumber+1,status:'Active',mode:full.choice==='maintenance'?'Maintenance':'Recovery',goal:prefs.goal,goalLabel:prefs.goalLabel,preferences:prefs,preferenceVersions:[{effectiveOn:full.on,value:prefs,revisionId:revision.id}],weeks:{},previousCycleId:c.id,baselineIds:data.plan.baselineIds||[]};
           const detail=makeWeek(next,1,prefs,revision.id,full.on);next.weeks[1]=detail.week;actions=detail.actions;state.cycles.push(next);state.activeCycleId=id;c=next;
         } else throw new Error('Unsupported Recovery command.');
       }
@@ -539,7 +685,9 @@
 
     const validAttemptFor = actionId => {
       const action=data.scheduledActions.find(a=>a.id===actionId);if(!action||!liveAction(action))return null;
-      return data.activityAttempts.find(a=>a.scheduledActionId===actionId&&a.valid&&a.on<=personalDay()&&(action.policyVersion!==1||a.personId===subject&&a.policyVersion===1&&a.status==='Completed'&&a.activityType===action.activityType&&a.on>=action.startsOn&&a.on<=action.dueOn&&a.definitionSnapshot&&!data.practiceCorrections?.some(c=>c.attemptId===a.id)))||null;
+      if(action.server)
+        return data.activityAttempts.find(a=>a.server && a.id===action.completedAttemptId && a.scheduledActionId===actionId)||null;
+      return data.activityAttempts.find(a=>a.scheduledActionId===actionId&&a.valid&&a.on<=personalDay()&&(action.policyVersion!==1||a.personId===subject&&a.policyVersion===1&&a.status==='Completed'&&matchesPractice(action,a)&&a.on>=action.startsOn&&a.on<=action.dueOn&&a.definitionSnapshot&&!data.practiceCorrections?.some(c=>c.attemptId===a.id)))||null;
     };
     /**
      * One entry per day of a plan week, each in exactly one state:
@@ -563,7 +711,20 @@
           const review = cycle?reviewedWeek(cycle,action.week):data.weeklyReviews.find(entry=>entry.week===action.week);
           state = review ? 'completed' : key < todayKey ? 'missed' : 'not-due';
         }
-        if(data.recovery){if(action?.status==='Rescheduled')state='rescheduled';else if(action?.status==='Cancelled')state='cancelled';else if(!action)state='unknown';else if(['Paused','Cancelled','Archived'].includes(recoveryStatus(cycle))&&key>=todayKey&&!attempt)state=recoveryStatus(cycle)==='Paused'?'paused':'cancelled';else if(action.kind==='practice'&&!attempt){const run=(data.practiceRuns||[]).find(r=>r.scheduledActionId===action.id);state=key<todayKey?(run?'partial':'missed'):run?'in-progress':key===todayKey?'due':'upcoming';}}
+        if(data.recovery){if(action?.status==='Rescheduled')state='rescheduled';else if(action?.status==='Cancelled')state='cancelled';else if(!action)state='unknown';else if(['Paused','Cancelled','Archived'].includes(recoveryStatus(cycle))&&key>=todayKey&&!attempt)state=recoveryStatus(cycle)==='Paused'?'paused':'cancelled';else if(action.kind==='practice'&&!attempt){
+          const runs=(data.practiceRuns||[]).filter(r=>r.scheduledActionId===action.id);
+          const started=runs.some(r=>r.activityType===currentPractice(action.activityType)&&['Started','Paused'].includes(r.status));
+          state=key<todayKey?(runs.length?'partial':'missed'):started?'in-progress':key===todayKey?'due':'upcoming';
+        }}
+        if (action?.server && ['Completed','Missed','Excluded'].includes(action.status))
+          state = ({Completed:'completed',Missed:'missed',Excluded:'cancelled'})[action.status];
+        else if (action?.server && action.status === 'Due' && action.kind === 'practice' && !attempt) {
+          if (action.draftStatus) state=key<todayKey?'missed':'in-progress';
+        }
+        if(action?.server&&action.kind==='practice'&&liveAction(action)&&action.status!=='Excluded'&&
+          (!action.scoreSupported||action.status==='Completed'&&!attempt))state='unknown';
+        const type = attempt?.activityType || (key >= todayKey && action && liveAction(action) ? currentPractice(action.activityType) : action?.activityType);
+        const level = attempt?.level || (type !== action?.activityType ? training().find(t=>t.id===type)?.level : action?.level);
         return {
           actions:all,
           status:({'not-due':key===todayKey?'Due':'Upcoming',none:'No Scheduled Activity',unknown:'Unknown / No Reliable Data','in-progress':'In Progress',partial:'Partial',rest:'Rest',completed:'Completed',missed:'Missed',cancelled:'Cancelled',rescheduled:'Rescheduled',paused:'Paused',due:'Due',upcoming:'Upcoming'})[state],
@@ -571,7 +732,7 @@
           key,
           isToday: key === todayKey,
           state,
-          action: action ? { ...action, started:actionStarted(action.id), type: action.activityType ? activityType(action.activityType) : null } : null,
+          action: action ? { ...action, activityType:type, level, started:actionStarted(action.id), type: type ? activityType(type) : null } : null,
           attempt
         };
       });
@@ -582,7 +743,7 @@
      * reviews are not counted; a practice is "due" once its day has begun.
      */
     const adherence = week => {
-      const days = schedule(week).filter(day => day.action?.kind === 'practice'&&liveAction(day.action));
+      const days = schedule(week).filter(day => day.action?.kind === 'practice'&&day.action.status!=='Excluded'&&liveAction(day.action));
       const due = days.filter(day => day.key <= todayKey);
       const completed = due.filter(day => day.state === 'completed').length;
       const missed = due.filter(day => ['missed','partial'].includes(day.state)).length;
@@ -598,6 +759,11 @@
 
     const reviews = () => {
       const current=plan(),cycle=activeCycle(),history=cycle?data.weeklyReviews.filter(r=>r.cycleId===cycle.id||cycle.legacy&&!r.cycleId):data.weeklyReviews;
+      if (serverPlan) {
+        const due=nextServerReview()?.dueOn;
+        return {completed:history.filter(item=>item.decision!=='auto').length,expected:current?.week||0,
+          nextDue:due?parse(due):null,history,lastAdjustment:null};
+      }
       const pending=current?data.scheduledActions.filter(a=>a.kind==='review'&&liveAction(a)&&(!a.cycleId||a.cycleId===cycle?.id)&&!history.some(r=>r.week===a.week)).sort((a,b)=>a.date.localeCompare(b.date)):[];
       const nextAction=pending.filter(a=>a.date<personalDay()).at(-1)||pending[0]||null;
       const adjustments=[...history.filter(r=>r.adjustment).map(r=>r.adjustment),...data.planAdjustments].sort((a,b)=>a.on.localeCompare(b.on));
@@ -781,23 +947,42 @@
     const practiceRuns = () => data.practiceRuns || [];
     const corrected = id => (data.practiceCorrections||[]).some(c=>c.attemptId===id);
     const rewardAttempts = () => [...new Map(data.activityAttempts.filter(a=>a.valid&&a.rewardEligible===true&&a.policyVersion===1&&!corrected(a.id)).map(a=>[a.id,a])).values()];
-    const training = () => data.catalog.activityTypes.map(type=>{
+    const training = () => activeTypes.map(type=>{
+      if (authenticated) {
+        const saved = server?.activities?.levels[type.id];
+        return {...type,level:saved?.level ?? null,maxLevel:practices.policy.maxLevel,
+          required:practices.policy.distinctToAdvance,requiredDays:practices.policy.minDaysToAdvance,
+          validAtLevel:saved?.validAtLevel ?? 0,days:saved?.days ?? 0,eligible:!!saved?.eligible,
+          atMax:saved?.level === practices.policy.maxLevel,
+          lastAttempt:data.activityAttempts.find(a=>a.activityType===type.id) || null};
+      }
       const events=data.levelEvents.filter(e=>e.activityType===type.id);
-      const lastDecision=events.filter(e=>e.choice!=='stay').at(-1),level=lastDecision?.level||null,p=practicePolicy();
+      const lastDecision=events.filter(e=>e.choice!=='stay').at(-1),level=lastDecision?.level||(type.replaces&&data.plan?1:null),p=practicePolicy();
       const attempts=rewardAttempts().filter(a=>a.activityType===type.id&&a.level===level&&a.on<=personalDay()&&(!lastDecision?.at||a.completedAt>=lastDecision.at)&&a.progressionEligible&&!(lastDecision?.excludedAttemptIds||[]).includes(a.id));
       const distinct=new Set(attempts.map(a=>a.activityId)).size,days=new Set(attempts.map(a=>a.on)).size;
-      return {...type,level,maxLevel:p.maxLevel,required:p.distinctToAdvance,validAtLevel:distinct,days,atMax:level>=p.maxLevel,eligible:!!level&&level<p.maxLevel&&distinct>=p.distinctToAdvance&&days>=p.minDaysToAdvance,levelReason:lastDecision?.detail||'',lastAttempt:data.activityAttempts.filter(a=>a.activityType===type.id).at(-1)||null,provenance:{id:'source-labelled',label:'Practice evidence'}};
+      return {...type,level,maxLevel:p.maxLevel,required:p.distinctToAdvance,requiredDays:p.minDaysToAdvance,validAtLevel:distinct,days,atMax:level>=p.maxLevel,eligible:!!level&&level<p.maxLevel&&distinct>=p.distinctToAdvance&&days>=p.minDaysToAdvance,levelReason:lastDecision?.detail||(level&&type.replaces?'Introductory starting level':''),lastAttempt:data.activityAttempts.filter(a=>a.activityType===type.id).at(-1)||null,provenance:{id:'source-labelled',label:'Practice evidence'}};
     });
-    const practiceCore = type => data.scheduledActions.find(a=>liveAction(a)&&a.date===personalDay()&&a.kind==='practice'&&a.activityType===type&&(!data.recovery||a.cycleId===data.recovery.activeCycleId||activeCycle()?.legacy&&!a.cycleId)&&(!data.recovery||['Active','Maintenance'].includes(recoveryStatus(activeCycle())))&&!validAttemptFor(a.id));
+    const practiceCore = type => data.scheduledActions.find(a=>liveAction(a)&&a.date===personalDay()&&a.kind==='practice'&&(a.server?a.activityType:currentPractice(a.activityType))===type&&(!data.recovery||a.cycleId===data.recovery.activeCycleId||activeCycle()?.legacy&&!a.cycleId)&&(!data.recovery||['Active','Maintenance'].includes(recoveryStatus(activeCycle())))&&!['Completed','Missed','Excluded'].includes(a.status)&&!validAttemptFor(a.id));
     const recentContent = id => rewardAttempts().some(a=>a.activityId===id&&a.on<=personalDay()&&daysBetween(parse(a.on),parse(personalDay()))<practicePolicy().rewardCooldownDays);
     const practiceAccess = id => {
-      const d=practices.definitions.find(d=>d.id===id),level=d&&training().find(t=>t.id===d.practiceType)?.level,core=d&&practiceCore(d.practiceType);
+      if (authenticated) return server?.activities?.catalog.find(item => item.id === id)?.access ||
+        {allowed:false,reason:'Activate your plan to see the approved examples.',core:null};
+      const d=practices.definitions.find(d=>d.id===id),level=d&&training().find(t=>t.id===d.practiceType)?.level,scheduled=d&&practiceCore(d.practiceType);
+      const core=scheduled&&(!scheduled.activityCode||scheduled.activityCode===id)?scheduled:null;
       const optional=practiceRuns().filter(r=>r.on===personalDay()&&!r.scheduledActionId).length;
-      let reason=!d||d.status!=='Published'||d.kind!=='practice'?'Choose a published approved practice.':!level?'Activate your personal plan to initialize these practice levels.':d.level!==level?'Choose content at your current level.':!core&&optional>=practicePolicy().optionalDaily?'Optional practice limit reached today. Scheduled Recovery work remains available.':!core&&recentContent(id)?'Choose different content; this example is inside its reward cooldown.':'';
+      let reason=!d||d.status!=='Published'||d.kind!=='practice'?'Choose a published approved practice.':!level?'Activate your personal plan to initialize these practice levels.':d.level!==level&&!core?.activityCode?'Choose content at your current level.':!core&&optional>=practicePolicy().optionalDaily?'Optional practice limit reached today. Scheduled Recovery work remains available.':!core&&recentContent(id)?'Choose different content; this example is inside its reward cooldown.':'';
       return {allowed:!reason,reason,core:core?.id||null,rewardEligible:!!d&&!recentContent(id)};
     };
-    const practiceDefinitions = type => practices.definitions.filter(d=>!type||d.practiceType===type).map(d=>({...JSON.parse(JSON.stringify(d)),access:practiceAccess(d.id)}));
-    const practiceHistory = () => JSON.parse(JSON.stringify([...data.activityAttempts,...practiceRuns().filter(r=>!data.activityAttempts.some(a=>a.id===r.id))].map(r=>({...r,eligibilityCorrection:(data.practiceCorrections||[]).find(c=>c.attemptId===r.id)||null})))).sort((a,b)=>(b.startedAt||b.on).localeCompare(a.startedAt||a.on));
+    const practiceDefinitions = type => (authenticated ? server?.activities?.catalog || [] : practices.definitions)
+      .filter(d=>!type||d.practiceType===type).map(d=>({...JSON.parse(JSON.stringify(d)),access:practiceAccess(d.id)}));
+    const practiceHistory = () => {
+      const local = browserHistory.activityAttempts.map(row => ({...row,legacy:true,
+        evidenceTier:`Browser history · ${row.evidenceTier || 'original record'}`}));
+      const rows = [...data.activityAttempts,...(data.scheduledDrafts||[]),...local,
+        ...practiceRuns().filter(run=>!data.activityAttempts.some(attempt=>attempt.id===run.id))];
+      return clone(rows.map(row=>({...row,eligibilityCorrection:(data.practiceCorrections||[])
+        .find(entry=>entry.attemptId===row.id)||null}))).sort((a,b)=>(b.startedAt||b.on).localeCompare(a.startedAt||a.on));
+    };
     /* ---- check-ins (assessments) */
 
     const officialAttempts = (id,includeFuture=false) => data.assessmentAttempts
@@ -876,6 +1061,12 @@
       const due = checkInWindow();
       const review = reviews();
       const shieldUsage = browserUsage(7);
+      if (serverPlan && ['Ended','Reviewed'].includes(server.status)) {
+        const ended = server.status==='Ended';
+        return [{id:'cycle-review',title:ended?`Cycle ${server.cycleNumber} has ended`:'Your cycle review is saved',
+          reason:ended?'Review the practices, routine check-ins, and evidence recorded during your cycle.':'Open your Roadmap to choose what to do next.',
+          action:ended?'Review my cycle':'Open my Roadmap',href:href('src/pages/member/recovery-plan/recovery-plan.html#recovery-control')}];
+      }
 
       if (!data.user.goal) {
         steps.push({
@@ -888,8 +1079,8 @@
       } else if (!current) {
         steps.push({
           id: 'week-one',
-          title: 'Your Week 1 proposal is ready',
-          reason: 'Built from your six answers. Nothing starts until you review it and choose to activate it.',
+          title: server?.cycleNumber>1?'Your next cycle preview is ready':'Your Week 1 proposal is ready',
+          reason: server?.cycleNumber>1?'Review the proposed schedule before starting your next cycle.':'Built from your six answers. Nothing starts until you review it and choose to activate it.',
           action: 'Review my Week 1 plan',
           href: href('src/pages/member/onboarding/starting-point.html')
         });
@@ -1014,7 +1205,8 @@
     const growthSteps = () => {
       const policy = data.catalog.gardenPolicy;
       const steps = [];
-      data.activityAttempts.filter(attempt => attempt.valid && activityType(attempt.activityType)).forEach(attempt => steps.push({
+      data.activityAttempts.filter(attempt => attempt.valid && activityType(attempt.activityType) &&
+        (!interactivePractice(attempt.definitionSnapshot || {}) || attempt.rewardEligible && !corrected(attempt.id))).forEach(attempt => steps.push({
         on: attempt.on, kind: 'practice', title: activityType(attempt.activityType).title, detail: attempt.outcome,
         source: attempt.evidenceTier || 'Legacy recorded practice', activityId:attempt.activityId||null,contentVersion:attempt.contentVersion||null,policyVersion:attempt.policyVersion||'legacy', why: 'A valid practice adds one growth step.'
       }));
@@ -1088,14 +1280,19 @@
      * attendance, camp completion) are added by the Garden page from the
      * shared records. Nothing here decays with inactivity.
      */
+    let savedGardenRequest;
+    const readPersonalGarden = () => savedGardenRequest ??= fetch('/api/personal-garden',{cache:'no-store'}).then(response => {
+      if(!response.ok)throw new Error('Your saved Garden could not be loaded.');
+      return response.json();
+    });
     const practiceGarden = () => {
       const attempts = [...new Map(data.activityAttempts.filter(a=>a.valid&&a.on<=personalDay()&&!corrected(a.id)&&(a.policyVersion===1?a.rewardEligible===true:!a.validationVersion)).map(a=>[a.id,a])).values()];
       const routineDays = [...new Set(data.routine.flatMap(item => item.checkIns.filter(entry => entry.status === 'done' && entry.date <= todayKey).map(entry => entry.date)))].sort();
       return {
-        types: data.catalog.activityTypes.map(type => ({
-          id: type.id, title: type.title,
-          sources: attempts.filter(attempt => attempt.activityType === type.id).map(attempt => ({
-            key: `attempt:${attempt.id || `${attempt.on}-${attempt.activityType}`}`, on: attempt.on, title: attempt.title || type.title, detail: attempt.outcome || 'Valid practice', source: attempt.evidenceTier || 'Legacy recorded practice', activityId:attempt.activityId||null,contentVersion:attempt.contentVersion||null,policyVersion:attempt.policyVersion||'legacy'
+        types: activeTypes.map(type => ({
+          id: type.replaces || type.id, title: type.title,
+          sources: attempts.filter(attempt => (authenticated ? attempt.activityType : currentPractice(attempt.activityType)) === type.id).map(attempt => ({
+            key: `attempt:${attempt.id || `${attempt.on}-${attempt.activityType}`}`, on: attempt.on, title: attempt.title || activityType(attempt.activityType).title, detail: attempt.outcome || 'Valid practice', source: attempt.evidenceTier || 'Legacy recorded practice', activityType:attempt.activityType,activityId:attempt.activityId||null,contentVersion:attempt.contentVersion||null,policyVersion:attempt.policyVersion||'legacy'
           }))
         })),
         routineDays,
@@ -1111,7 +1308,9 @@
       const typeTitle = id => activityType(id)?.title || 'Practice';
       if (data.plan) events.push({ on: data.plan.activatedOn, kind: 'plan', title: 'Plan started', note: data.user.goal?.label || '' });
       data.weeklyReviews.forEach(review => {
-        events.push({ on: review.completedOn, kind: 'review', title: `Week ${review.week} reviewed`, note: 'Your answers' });
+        events.push({ on: review.completedOn, kind: 'review',
+          title:review.decision==='auto'?`Schedule continued after Week ${review.week}`:`Week ${review.week} reviewed`,
+          note:review.decision==='auto'?'Review answers still open':'Your answers' });
         if (review.adjustment) events.push({ on: review.adjustment.on, kind: 'adjust', title: `Plan adjusted — ${review.adjustment.label.toLowerCase()}`, note: review.adjustment.detail });
       });
       data.planAdjustments.forEach(entry => events.push({ on: entry.on, kind: 'adjust', title: `Plan adjusted — ${entry.label.toLowerCase()}`, note: entry.detail || '' }));
@@ -1140,6 +1339,8 @@
      */
     const mutate = event => {
       access.assert(subject);
+      if (authenticated && event.type === 'recovery.visit') return {type:event.type,unchanged:true};
+      if (authenticated && serverOwned(event.type)) throw new Error('Use the saved plan, practice, or routine controls.');
       if (event.type === 'profile.update' && access.person()) throw new Error('Update your canonical identity through Profile.');
       today=parse(personalDay());todayKey=keyOf(today);
       if(event.recoveryTransaction)throw new Error('Recovery snapshots are computed by the journal command.');
@@ -1256,48 +1457,57 @@
       if(full.type==='practice.start'){
         const d=practices.definitions.find(d=>d.id===full.activityId),gate=practiceAccess(full.activityId);
         if(!gate.allowed)throw new Error(gate.reason);
+        if(d.practiceType==='depth' && String(gate.core).startsWith('sql-action-'))
+          throw new Error('Open the scheduled Depth Practice player to save your work.');
         if(practiceRuns().some(r=>['Started','Paused'].includes(r.status)))throw new Error('Resume or interrupt your existing practice first.');
         if(!d.accessibilityModes.includes(full.mode||'standard'))throw new Error('Choose a supported accessibility mode.');
-        if(d.practiceType==='protected-work'&&(!full.intention?.trim()||full.intention.trim().length<8))throw new Error('Name a real intention of at least eight characters.');
         full.run={id:`practice-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,10)}`,personId:subject,activityId:d.id,activityType:d.practiceType,version:d.version,contentVersion:d.contentVersion,audioVersion:d.audioVersion||null,level:d.level,definitionSnapshot:JSON.parse(JSON.stringify(d)),policy:practicePolicy(),policyVersion:1,validationVersion:d.validationVersion,mode:full.mode||'standard',startedAt:full.at,on:todayKey,status:'Started',responses:{},intention:(full.intention||'').trim(),observedSeconds:0,audioSeconds:0,audioComplete:false,audioStarted:false,activeSince:null,scheduledActionId:gate.core,rewardCandidate:gate.rewardEligible,transitions:[{status:'Started',at:full.at}]};
       }
       if(['practice.progress','practice.submit'].includes(full.type)){
         const run=practiceRuns().find(r=>r.id===full.id);
         if(!run||run.personId!==subject||!['Started','Paused'].includes(run.status))throw new Error('This original attempt is ended or already recorded. Start a separate retry.');
         const d=run.definitionSnapshot;
+        const interactive=interactivePractice(d);
+        if(currentPractice(d.practiceType)!==d.practiceType&&!(full.type==='practice.progress'&&full.action==='interrupt'))throw new Error('This practice was retired. End the draft to open a current exercise.');
         if(full.type==='practice.progress'){
           const patch={},action=full.action;
-          if(action==='recover'){patch.status='Paused';patch.activeSince=null;patch.transitions=[...run.transitions,{status:'Paused',at:full.at,reason:'New page: unobserved offline time excluded.'}];}
-          else if(action==='save'){patch.responses=JSON.parse(JSON.stringify(full.responses||{}));}
+          if(action==='observe'&&d.responseMethod==='observation-questions'&&run.status==='Started'){
+            patch.responses={...run.responses,observed:true};
+          } else if(action==='answer'&&interactive&&run.status==='Started'){
+            if(d.responseMethod==='observation-questions'&&!run.responses.observed)throw new Error('Study the scene before answering.');
+            const answers=run.responses.answers||[],question=d.questions[answers.length];
+            if(full.question!==answers.length||!question||!Number.isInteger(full.answer)||full.answer<0||full.answer>=question.options.length)throw new Error('Choose an answer to the current question.');
+            patch.responses={...run.responses,answers:[...answers,full.answer]};
+          } else if(action==='recover'){patch.status='Paused';patch.activeSince=null;patch.transitions=[...run.transitions,{status:'Paused',at:full.at,reason:'New page: unobserved offline time excluded.'}];}
+          else if(action==='save'&&!interactive){patch.responses=JSON.parse(JSON.stringify(full.responses||{}));}
           else if(action==='pause'||action==='interrupt'){
             patch.status=action==='interrupt'?'Interrupted':'Paused';patch.activeSince=null;
             patch.observedSeconds=run.observedSeconds+(run.activeSince?Math.max(0,Math.min(30,(Date.now()-run.activeSince)/1000)):0);
             patch.transitions=[...run.transitions,{status:patch.status,at:full.at,reason:full.reason||'User left the player'}];
-          } else if(action==='resume'){patch.status='Started';patch.activeSince=d.practiceType==='protected-work'?Date.now():null;patch.transitions=[...run.transitions,{status:'Started',at:full.at}];}
-          else if(action==='tick'&&d.practiceType==='protected-work'&&run.activeSince){patch.observedSeconds=run.observedSeconds+Math.max(0,Math.min(10,(Date.now()-run.activeSince)/1000));patch.activeSince=Date.now();}
+          } else if(action==='resume'){patch.status='Started';patch.transitions=[...run.transitions,{status:'Started',at:full.at}];}
           else if(action==='audio-start'&&d.practiceType==='listening'&&!run.audioStarted){patch.audioStarted=true;}
           else if(action==='audio-progress'&&run.audioStarted){const delta=Number(full.seconds)-run.audioSeconds;if(!Number.isFinite(delta)||delta<0||delta>3)throw new Error('Seeking or replay is not allowed. Restart a separate audio attempt.');patch.audioSeconds=Number(full.seconds);}
           else if(action==='audio-end'&&run.audioStarted&&Number.isFinite(full.duration)&&full.duration>10&&Math.abs(full.duration-d.audioDurationSeconds)<1&&run.audioSeconds>=d.audioDurationSeconds-1){patch.audioComplete=true;}
           else throw new Error('This player transition is unavailable.');
           full.patch=patch;
         } else {
-          const r=full.responses||run.responses;let reason='',score=null,evidenceTier='Self-reported',outcome='';
+          const r=interactive?run.responses:full.responses||run.responses;
           if(Date.parse(full.at)<Date.parse(run.startedAt))throw new Error('The personal clock moved backwards. Restart this practice.');
-          if(d.responseMethod==='choice-questions'){
-            if(!Array.isArray(r.answers)||r.answers.length!==d.questions.length||r.answers.some((v,i)=>!Number.isInteger(v)||v<0||v>=d.questions[i].options.length))throw new Error('Answer every question before submitting.');
-            score=r.answers.reduce((n,v,i)=>n+(v===d.questions[i].answer?1:0),0)/d.questions.length;
-            if(d.practiceType==='listening'&&run.mode==='standard'&&!run.audioComplete)throw new Error('Complete the original audio playback before submitting recall answers.');
-            evidenceTier=d.practiceType==='listening'?(run.mode==='transcript'?'System-scored transcript recall (changed conditions)':'System-scored recall; in-app playback observed'):'System-scored comprehension';
-            outcome=`${Math.round(score*100)}% correct · ${r.answers.filter((v,i)=>v===d.questions[i].answer).length}/${d.questions.length}`;
-          } else {
-            if(typeof r.outcome!=='string'||r.outcome.trim().length<20||r.outcome.length>5000)throw new Error('Describe the actual outcome in 20–5000 characters.');
-            if(r.confirmed!==true)throw new Error('Confirm that the outcome is your self-report.');
-            if(d.practiceType==='practical'&&(typeof r.artifact!=='string'||r.artifact.trim().length<30||r.artifact.length>5000))throw new Error('Provide the requested steps, categories or instructions in 30–5000 characters.');
-            if(d.practiceType==='protected-work'&&run.observedSeconds<d.sessionSeconds)reason='The required active in-app session duration was not observed. Retry with a separate attempt.';
-            evidenceTier=d.practiceType==='protected-work'?'Observed in-app timer + self-reported outcome':'Self-reported challenge evidence';outcome=reason?'Session ended early':d.practiceType==='practical'?'Challenge reported complete':'Work session recorded';
-          }
-          const valid=!reason,rewardEligible=valid&&run.rewardCandidate&&!recentContent(d.id);
-          full.attempt={...JSON.parse(JSON.stringify(run)),status:valid?'Completed':'Invalid',transitions:[...run.transitions,{status:'Submitted',at:full.at},{status:valid?'Completed':'Invalid',at:full.at}],completedAt:full.at,on:todayKey,responses:JSON.parse(JSON.stringify(r)),score,evidenceTier,outcome,valid,invalidReason:reason,rewardEligible,progressionEligible:rewardEligible&&(score===null||score>=run.policy.scoreToAdvance),minutes:Math.round(run.observedSeconds/60)||d.estimatedMinutes,title:d.title,sourceId:run.id,rewardPolicyVersion:d.rewardPolicyVersion};
+          if(!Array.isArray(r.answers)||r.answers.length!==d.questions.length||r.answers.some((v,i)=>!Number.isInteger(v)||v<0||v>=d.questions[i].options.length))throw new Error('Answer every question before submitting.');
+          if(d.practiceType==='listening'&&run.mode==='standard'&&!run.audioComplete)throw new Error('Complete the original audio playback before submitting recall answers.');
+          const correctCount=r.answers.filter((value,index)=>value===d.questions[index].answer).length;
+          const score=correctCount/d.questions.length;
+          const evidenceTier={
+            depth:'System-scored comprehension',
+            listening:run.mode==='transcript'?'System-scored transcript recall (changed conditions)':'System-scored recall; in-app playback observed',
+            'visual-observation':'System-scored visual observation and reasoning',
+            'digital-judgment':'System-scored evidence evaluation'
+          }[d.practiceType];
+          const outcome=`${Math.round(score*100)}% correct · ${correctCount}/${d.questions.length}`;
+          const requiredScore=interactive?INTERACTIVE_PASS_SCORE:run.policy.scoreToAdvance;
+          const passed=score>=requiredScore;
+          const rewardEligible=run.rewardCandidate&&!recentContent(d.id)&&(!interactive||passed);
+          full.attempt={...clone(run),status:'Completed',transitions:[...run.transitions,{status:'Submitted',at:full.at},{status:'Completed',at:full.at}],completedAt:full.at,on:todayKey,responses:clone(r),score,correctCount,requiredScore,evidenceTier,outcome,valid:true,invalidReason:'',rewardEligible,progressionEligible:rewardEligible&&passed,minutes:d.estimatedMinutes,title:d.title,sourceId:run.id,rewardPolicyVersion:d.rewardPolicyVersion};
         }
       }
       if(full.type==='practice.level'){
@@ -1312,9 +1522,11 @@
       if(full.type==='practice.correct'){
         const attempt=data.activityAttempts.find(a=>a.id===full.attemptId);
         if(!attempt||!full.reason?.trim())throw new Error('Select an original attempt and provide a correction reason.');
+        if(attempt.server)throw new Error('The server holds the original scored attempt.');
         if(corrected(attempt.id))throw new Error('This source already has a recorded correction.');
         full.correction={id:`correction-${Date.now()}`,attemptId:attempt.id,actor:subject,reason:full.reason.trim(),at:full.at,policyVersion:1,effect:'Withdraw eligibility; preserve original evidence'};
       }
+      if (full.type==='plan.activate') full.practiceTypes = TYPES;
       if(full.type==='plan.activate'||full.type.startsWith('recovery.')||full.type==='review.add'||full.type==='plan.adjust'){full.on=todayKey;full.recoveryTransaction=buildRecoveryTransaction(full);if(full.type==='recovery.visit'&&!full.recoveryTransaction)return {type:full.type,unchanged:true};}
       applyChange(JSON.parse(JSON.stringify(data)), full);
       const latest = readChanges(choice);
@@ -1413,7 +1625,58 @@
       configurePractices:policy=>mutate({type:'practice.policy',policy}),
       correctPractice:(attemptId,reason)=>mutate({type:'practice.correct',attemptId,reason}),
       tour:()=>data.productTour?{...data.productTour}:null,
-      preview:()=>data.onboardingPreview?JSON.parse(JSON.stringify(data.onboardingPreview)):null,
+      preview:()=>{
+        if (server?.canEdit && !data.plan) {
+          const {preferences,suggestedRoutine,weekOne,cycleDays}=server.plan;
+          return {goal:preferences.goal,days:preferences.practiceDays.length,minutes:preferences.minutes,
+            commitment:preferences.routine || suggestedRoutine,weekOne,cycleDays,startsOn:server.startsOn};
+        }
+        return data.onboardingPreview?JSON.parse(JSON.stringify(data.onboardingPreview)):null;
+      },
+      serverRecovery:()=>server && clone(server),
+      serverPlan:()=>serverPlan,
+      cycleHistory:()=>server ? projectCycleHistory(server) : [],
+      saveServerCycleReview:reflection=>planRequest(setup,'/api/recovery-plan/cycle-review','POST',
+        {cycleId:server.cycleId,reflection},'Your cycle review could not be saved. Try again.'),
+      startServerContinuation:choice=>planRequest(setup,'/api/recovery-plan/continue','POST',
+        {cycleId:server.cycleId,choice},'Your next cycle preview could not be saved. Try again.'),
+      startServerPractice:(listing, mode, requestId) => {
+        const actionId = /^sql-action-(\d+)$/.exec(listing.access.core)?.[1];
+        return planRequest(setup, '/api/activities/attempts', 'POST',
+          actionId ? {requestId,mode,actionId:Number(actionId)} : {requestId,mode,code:listing.id},
+          'Your practice could not be started. Try again.');
+      },
+      serverPractice:(id, command, body, keepalive = false) => {
+        const route = '/api/activities/attempts/' + encodeURIComponent(id);
+        return planRequest(setup, route + (command === 'read' ? '' : '/' + command),
+          command === 'read' ? 'GET' : command === 'answers' ? 'PUT' : 'POST',
+          body, 'Your practice could not be saved. Try again.', keepalive);
+      },
+      chooseServerLevel:(type,choice,level) => planRequest(setup, '/api/activities/levels', 'POST',
+        {type,choice,level}, 'Your difficulty choice could not be saved. Try again.'),
+      async routineCommand(event) {
+        if (!authenticated) return mutate(event);
+        const id = /^sql-routine-(\d+)$/.exec(event.id)?.[1];
+        const base = '/api/offline-routines';
+        const write = event.type === 'routine.add' || event.type === 'routine.update';
+        const body = write ? {title:event.title,days:event.days,recurrence:event.recurrence,
+          paused:!!event.paused,durationMinutes:event.durationMinutes ?? null,hint:event.hint ?? null} :
+          event.type === 'routine.log' ? {status:event.status} : undefined;
+        const suffix = event.type === 'routine.log' ? '/check-in' : '';
+        const method = !id ? 'POST' : event.type === 'routine.remove' ? 'DELETE' : 'PUT';
+        const saved = await planRequest(setup, id ? base + '/' + id + suffix : base, method, body,
+          'Your routine could not be saved. Try again.');
+        projectRoutines(data, await readRoutines());
+        window.dispatchEvent(new CustomEvent('deepsprout:account', {detail:event}));
+        return saved;
+      },
+      serverWeeklyReview:(input, confirm=false) => {
+        if (!serverPlan) throw new Error('Activate your personal plan first.');
+        const route = '/api/recovery-plan/weekly-review' + (confirm ? '' : '/preview');
+        return planRequest(server, route, 'POST', {cycleId:server.cycleId,...input},
+          'Your Weekly Review could not be saved. Try again.');
+      },
+      serverAuthenticated:()=>authenticated,
       baselineResults,
       baselineComplete,
       assessmentDraft: id=>structuredCloneSafe(assessmentDraft(id)),
@@ -1426,6 +1689,7 @@
       assessmentHistory:id=>JSON.parse(JSON.stringify([...data.assessmentAttempts.filter(a=>a.definitionId===id),...data.assessmentRuns.filter(r=>r.definitionId===id&&!data.assessmentAttempts.some(a=>a.id===r.id))])),
       garden,
       practiceGarden,
+      readPersonalGarden,
       listings,
       listingById,
       registrationOutcome,
@@ -1468,6 +1732,124 @@
     return 'demo';
   };
 
+  // Share the identity lookup so account data and page controls bind to the same person.
+  let identityRequest;
+  const resolveIdentity = () => identityRequest ??= (async () => {
+    if (!/^https?:$/.test(location.protocol)) return null;
+    const response = await fetch('/api/onboarding', { cache: 'no-store' });
+    if (response.status === 401 || response.status === 404) return null;
+    if (!response.ok) throw new Error('Your setup could not be loaded. Reload to try again.');
+    const state = await response.json();
+    access.bindServer(state);
+    return state;
+  })();
+
+  let setupRequest;
+  const quickSetup = () => setupRequest ??= resolveIdentity().then(state => {
+    if (!state) return null;
+    const from = document.referrer ? new URL(document.referrer) : null;
+    if (state.stage === 'Story' && document.body?.dataset.page === 'home' &&
+        from?.origin === location.origin && from.pathname === '/hero-reels-lab.html' &&
+        from.searchParams.get('flow') === 'onboarding') {
+      return writeQuickSetup(state, 'home');
+    }
+    return state;
+  });
+
+  async function writeQuickSetup(state, action, answer) {
+    const response = await fetch(`/api/onboarding/${action}`, {
+      method: answer ? 'PUT' : 'POST',
+      headers: { 'RequestVerificationToken': state.requestToken, ...(answer ? {'Content-Type': 'application/json'} : {}) },
+      body: answer ? JSON.stringify(answer) : undefined
+    });
+    if (!response.ok) throw new Error('Your setup could not be saved. Try again.');
+    return { ...await response.json(), requestToken: state.requestToken };
+  }
+
+  async function readRecovery() {
+    const response = await fetch('/api/recovery-plan', {cache:'no-store'});
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error('Your Recovery Plan could not be loaded. Reload to try again.');
+    return response.json();
+  }
+
+  async function readRoutines() {
+    const response = await fetch('/api/offline-routines', {cache:'no-store'});
+    if (!response.ok) throw new Error('Your Offline Routine could not be loaded. Reload to try again.');
+    return response.json();
+  }
+
+  async function planRequest(state, path, method, body, message, keepalive = false) {
+    const response = await fetch(path, {method, cache:'no-store', keepalive,
+      headers:{'RequestVerificationToken':state.requestToken,...(body && {'Content-Type':'application/json'})},
+      body:body ? JSON.stringify(body) : undefined});
+    if (method === 'GET' && response.status === 404) return null;
+    if (!response.ok) {
+      const detail = response.headers.get('Content-Type')?.startsWith('text/plain') ? await response.text() : '';
+      throw new Error(detail || message);
+    }
+    return response.json();
+  }
+
+  async function writeRecovery(state, preferences) {
+    const response = await fetch('/api/recovery-plan/' + (preferences ? 'preview' : 'activate'), {
+      method: preferences ? 'PUT' : 'POST',
+      headers: {'Content-Type':'application/json','RequestVerificationToken':state.requestToken},
+      body:JSON.stringify({cycleId:state.cycleId,version:state.plan.version,...(preferences && {preferences})})
+    });
+    if (!response.ok) {
+      const message = response.headers.get('Content-Type')?.startsWith('text/plain') ? await response.text() : '';
+      throw new Error(message || 'Your Recovery Plan could not be saved. Try again.');
+    }
+    return {...await response.json(),requestToken:state.requestToken};
+  }
+
+  const setupInterests = {
+    'walking-sports': ['walking', 'sport'], 'reading-learning': ['reading'],
+    'drawing-creativity': ['drawing'], 'friends-family': ['people'], hobbies: ['hobbies'], other: ['other']
+  };
+  const setupCommitments = {
+    'walking-sports': m => [`A ${m}-minute walk or some movement`, 'Outside if you can, around the room if not.'],
+    'reading-learning': m => [`${m} minutes of reading, on paper`, 'A book, a magazine, or notes you want to learn.'],
+    'drawing-creativity': m => [`${m} minutes of drawing or making`, 'No skill required. One small thing is enough.'],
+    'friends-family': m => [`${m} minutes with someone, phone away`, 'In person or on a call — not a message.'],
+    hobbies: m => [`${m} minutes on a hobby you enjoy`, 'Something you already like doing.'],
+    other: m => [`${m} minutes of something offline`, 'Anything away from a screen.']
+  };
+
+  // Project the confirmed setup into the existing local Home and Week 1 readers.
+  function mirrorQuickSetup(account, state) {
+    const answers = state?.answers;
+    if (!state?.setupComplete || state.answersVersion !== 2 || !answers?.dailyMinutes ||
+        !answers.change || !answers.apps?.length || !answers.dailyScroll || !answers.moments || !answers.makeTimeFor?.length) return;
+    const previous = account.profile().setup || {};
+    const changed = JSON.stringify(previous.answers) !== JSON.stringify(answers);
+    const goal = answers.change;
+    const minutes = Number(answers.dailyMinutes);
+    const interests = [...new Set(answers.makeTimeFor.flatMap(key => setupInterests[key] || [key]))];
+    const setup = {
+      ...previous, version: 2, answeredOn: account.todayKey, answers, distracting: answers.apps,
+      baselineMinutes: answers.dailyScroll, baselineSource: 'self-reported estimate', peakTime: answers.moments,
+      makeTimeFor: answers.makeTimeFor, offlineInterests: interests, dailyMinutes: minutes
+    };
+    const ds = window.DeepSprout;
+    if (changed) account.mutate({ type: 'setup.save', goal: { id: goal, label: ds?.GOALS[goal] || goal, setOn: account.todayKey }, setup });
+    if (!account.serverRecovery() && !account.plan() && (changed || !account.preview())) {
+      const [title, hint] = (setupCommitments[answers.makeTimeFor[0]] || setupCommitments.other)(minutes);
+      const draft = account.preview() || {};
+      const commitment = { title, hint, durationMinutes: minutes };
+      account.mutate({ type: 'onboarding.preview', preview: { ...draft, goal, days: Number(draft.days) || 3, minutes: Math.min(15, minutes), commitment, source: 'Quick Setup v2 · preliminary proposal' } });
+    }
+    const local = ds?.get();
+    if (local && (changed || !local.onboarding.setupDone || local.onboarding.journeyLevel < state.journeyLevel)) {
+      ds.update(current => {
+        Object.assign(current.profile, { goal, distracting: setup.distracting, peakTime: setup.peakTime, baselineMinutes: setup.baselineMinutes, offlineInterests: interests });
+        Object.assign(current.onboarding, { bimoSeen: true, introSeen: true, setupDone: true, journeyLevel: Math.max(state.journeyLevel, current.onboarding.journeyLevel) });
+        current.onboarding.quickSetup = { version: 2, answers };
+      });
+    }
+  }
+
   let pending = null,latestModel=null;
   let pendingSubject = access.subject();
 
@@ -1475,31 +1857,36 @@
   const load = (refresh = false) => {
     if (refresh) pending = null;
     if (pending) return pending;
-    const subject = access.subject();
-    pendingSubject = subject;
-    let choice;
-    try { choice = readChoice(); } catch (error) { return Promise.reject(error); }
-    const url = new URL(`../../data/${seedFile(choice)}`, SCRIPT_URL);
-    const listingsUrl = new URL('../../data/listings.json', SCRIPT_URL);
-    const json = target => Promise.resolve()
-      .then(() => fetch(target, { cache: 'no-cache' }))
-      .then(response => {
-        if (!response.ok) throw new Error(`Account data could not be loaded (${response.status}).`);
-        return response.json();
-      });
-    pending = Promise.all([json(url), json(listingsUrl).catch(() => ({ listings: [] })),json(new URL('../../data/practices.json',SCRIPT_URL))])
-      .then(([data, catalogue, practices]) => {
-        // A person journal starts from the empty seed but carries the person's own name.
-        const person = String(choice).startsWith('person:') ? signedInPerson() : null;
-        if (person && !data.user.name) { data.user.name = person.name; data.user.email = person.email; data.account.label = `${person.name} · personal journal`; }
-        access.assert(subject);
-        const model = createAccount(data, choice, catalogue, subject, practices);
-        latestModel=new Proxy(model, {get(target, prop) {
-          const value = target[prop];
-          if (typeof value !== 'function') { access.assert(subject); return value; }
-          return (...args) => { access.assert(subject); return value(...args); };
-        }});return latestModel;
-      });
+    pending = quickSetup().then(state => {
+      const subject = access.subject();
+      pendingSubject = subject;
+      const choice = readChoice();
+      const url = new URL(`../../data/${seedFile(choice)}`, SCRIPT_URL);
+      const listingsUrl = new URL('../../data/listings.json', SCRIPT_URL);
+      const json = target => Promise.resolve()
+        .then(() => fetch(target, { cache: 'no-cache' }))
+        .then(response => {
+          if (!response.ok) throw new Error(`Account data could not be loaded (${response.status}).`);
+          return response.json();
+        });
+      return Promise.all([json(url), json(listingsUrl).catch(() => ({ listings: [] })),
+        json(new URL('../../data/practices.json', SCRIPT_URL)), state ? readRecovery() : null,
+        state ? readRoutines() : null])
+        .then(([data, catalogue, practices, recovery, routines]) => {
+          // A person journal starts from the empty seed but carries the person's own name.
+          const person = String(choice).startsWith('person:') ? signedInPerson() : null;
+          if (person && !data.user.name) { data.user.name = person.name; data.user.email = person.email; data.account.label = `${person.name} · personal journal`; }
+          access.assert(subject);
+          const model = createAccount(data, choice, catalogue, subject, practices, recovery, state, routines);
+          mirrorQuickSetup(model, state);
+          latestModel = new Proxy(model, {get(target, prop) {
+            const value = target[prop];
+            if (typeof value !== 'function') { access.assert(subject); return value; }
+            return (...args) => { access.assert(subject); return value(...args); };
+          }});
+          return latestModel;
+        });
+    });
     return pending;
   };
 
@@ -1544,6 +1931,7 @@
     choice: readChoice,
     /** The canonical person this journal belongs to, if someone is signed in. */
     person: signedInPerson,
+    resolveIdentity, quickSetup, writeQuickSetup, mirrorQuickSetup, writeRecovery,
     /** Forget every change made on top of the seeded record, for this account. */
     resetChanges: () => { access.assert(pendingSubject); localStorage.removeItem(changesKey(readChoice())); },
     devMode

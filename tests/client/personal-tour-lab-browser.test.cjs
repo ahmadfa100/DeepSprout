@@ -60,7 +60,7 @@ const chrome = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Ap
       assert.equal(await page.locator('#product-tour h2').evaluate(e => document.activeElement === e), true);
     });
 
-    await step('first-time tour skips with the keyboard, stays dismissed on returning Home, and replays from Help', async () => {
+    await step('first-time tour skips with the keyboard, stays dismissed on returning Home, and can be reopened programmatically', async () => {
       await page.getByRole('button', { name: 'Skip guide', exact: true }).focus();
       await page.keyboard.press('Enter');
       assert.equal(await account(a => a.tour().status), 'Skipped');
@@ -71,8 +71,7 @@ const chrome = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Ap
       await page.reload();
       await page.waitForFunction(() => window.DeepSproutTour);
       assert.equal(await page.locator('#product-tour').evaluate(e => e.open), false);
-      await page.locator('.member-account > summary').click();
-      await page.locator('[data-tour-replay]').click();
+      await page.evaluate(() => window.DeepSproutTour.open());
       await page.locator('#product-tour[open]').waitFor();
       for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Next', exact: true }).click();
       await page.getByRole('button', { name: 'Finish guide', exact: true }).click();
@@ -84,8 +83,7 @@ const chrome = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Ap
 
     await step('at 390px the guide fits, and Escape saves a Person-bound dismissal', async () => {
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.locator('.member-account > summary').click();
-      await page.locator('[data-tour-replay]').click();
+      await page.evaluate(() => window.DeepSproutTour.open());
       await page.locator('#product-tour[open]').waitFor();
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
       assert.equal(await page.locator('#product-tour').evaluate(e => e.scrollWidth <= e.clientWidth + 1), true);

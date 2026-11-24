@@ -178,30 +178,30 @@ async function main() {
   await step('D1', 'Coach assigns a task; it appears in regular Activities → Assigned', async () => {
     await as('p-karim'); await ws('mentor/assignments');
     await click('[data-action=assignment-create]');
-    await page.selectOption('#dialog-body [name=groupId]', groupId); await page.fill('#dialog-body [name=title]', 'Twenty focused minutes');
-    await page.selectOption('#dialog-body [name=activity]', 'Protected Work'); await page.fill('#dialog-body [name=instructions]', 'Protect twenty minutes for one study task and describe it.'); await page.fill('#dialog-body [name=due]', '2026-11-10');
+    await page.selectOption('#dialog-body [name=groupId]', groupId); await page.fill('#dialog-body [name=title]', 'Check a digital claim');
+    await page.selectOption('#dialog-body [name=activity]', 'Reasoning & Digital Judgment'); await page.fill('#dialog-body [name=instructions]', 'Compare sources and explain which conclusion they justify.'); await page.fill('#dialog-body [name=due]', '2026-11-10');
     await dialogSave();
-    taskId = (await read()).assignments.find(a => a.title === 'Twenty focused minutes').id;
+    taskId = (await read()).assignments.find(a => a.title === 'Check a digital claim').id;
     await as('p-ahmad'); await member('training/training.html', '#assigned');
-    assert.match(await text('#assigned'), /Twenty focused minutes/);
+    assert.match(await text('#assigned'), /Check a digital claim/);
     assert.match(await text('#assigned'), new RegExp(TITLE));
   });
-  await step('D2', 'Submit → Needs Revision → resubmit → Approve; history preserved; one Protected Work tree effect', async () => {
-    await click(`[data-toggle="${taskId}"]`); await page.fill(`[data-submit="${taskId}"] textarea`, 'Studied 20 minutes with my phone in another room.'); await click(`[data-submit="${taskId}"] button`);
+  await step('D2', 'Submit → Needs Revision → resubmit → Approve; history preserved; one Reasoning & Digital Judgment tree effect', async () => {
+    await click(`[data-toggle="${taskId}"]`); await page.fill(`[data-submit="${taskId}"] textarea`, 'I compared the two source cards.'); await click(`[data-submit="${taskId}"] button`);
     subId = (await read()).submissions.find(x => x.assignmentId === taskId).id;
     await as('p-karim'); await ws(`mentor/reviews/${subId}`); await click('[data-action=review-decide][data-decision="Needs Revision"]');
-    await page.fill('#dialog-body [name=feedback]', 'What interrupted you, if anything?'); await page.fill('#dialog-body [name=internalNote]', 'Check in on workload.'); await dialogSave();
+    await page.fill('#dialog-body [name=feedback]', 'Which source best supported that conclusion?'); await page.fill('#dialog-body [name=internalNote]', 'Check in on workload.'); await dialogSave();
     await as('p-ahmad'); await member('training/training.html', '#assigned');
-    assert.match(await text('#assigned'), /What interrupted you/);
+    assert.match(await text('#assigned'), /Which source best supported that conclusion/);
     assert.doesNotMatch(await text('#assigned'), /Check in on workload/, 'Supervisor-only note never shown to the student');
     await click(`[data-toggle="${taskId}"]`).catch(() => {});
     if (!(await page.locator(`[data-submit="${taskId}"]`).count())) await click(`[data-toggle="${taskId}"]`);
-    await page.fill(`[data-submit="${taskId}"] textarea`, 'Twenty minutes; one notification pulled me away and I came back.'); await click(`[data-submit="${taskId}"] button`);
+    await page.fill(`[data-submit="${taskId}"] textarea`, 'The dated library notice supports the conclusion about this week.'); await click(`[data-submit="${taskId}"] button`);
     await as('p-karim'); await ws(`mentor/reviews/${subId}`); await click('[data-action=review-decide][data-decision=Approved]'); await dialogSave();
     const s = await read(); const sub = s.submissions.find(x => x.id === subId);
     assert.equal(sub.status, 'Approved'); assert.equal(sub.history.length, 3);
     await as('p-ahmad'); await member('garden/garden.html'); await page.waitForTimeout(800);
-    assert.match(await text('#garden-next'), /Protected Work Sprout \(2\)/, 'one journal practice + one Coach-approved task');
+    assert.match(await text('#garden-next'), /Reasoning & Digital Judgment Sprout \(2\)/, 'one journal practice + one Coach-approved task');
   });
   await step('D3', 'Supervisor Insights and Representative Reports reflect the approved task', async () => {
     await as('p-hala'); await ws(`supervisor/reports?initiative=${initiativeId}`); assert.match(await text('main h1'), /Coach reports/);

@@ -37,6 +37,12 @@ The 4 November owner decisions supersede conflicting v4.0 product text, the 3 No
 
 For an Outdoor Activity, design typed title, kind, description, dates/time zone, venue, eligibility/consent, capacity, registration window, organizer, safety/contact, any approved price disclosure, supervisor/attendance and completion policy. A linked activity must have one booking identity and one completion source.
 
+## Individual Recovery and Activities
+
+- New Individual cycles last 28 calendar days across four seven-day weeks. Explicit activation details Week 1. Weekly Review opens the next week progressively. Lab remains optional.
+- The current practices are Depth Practice, Listening & Recall, Visual Observation & Analysis, and Reasoning & Digital Judgment. Legacy assignment and reward records retain their original attribution.
+- Journey Level 1 — New Beginning and Activity Difficulty are separate. The versioned catalog currently has Activity Levels 1–3. Level 0 conflicts with the current mappings and remains unresolved.
+
 ## Data-model review and deprecation inventory
 
 > **8 November 2026 addendum: approved database.** The product owner approved the 58-table v5 lean design as the target database. Its revision v5-lean-2 applies the dispositions below inside those 58 tables (Institution-only organizations and Institution-owned outdoor activities, invitation-only staff appointments without `Requested`, retired independent Programs and partnerships kept as read-only history). Table names in the inventory below refer to the older proposals; see the [database index](database/README.md) and [persistence contract](database/persistence-contract.md) for the current mapping and the items still open.
@@ -70,3 +76,11 @@ Review typed profile, verification, activity and policy fields before choosing c
 7. Wrong-email, expired/reused/revoked token, cross-Institution access, stale session, duplicate booking/reward and private Lab/Shield/Recovery disclosure are rejected.
 
 **Implementation boundary:** These checks are requirements for future code and schema work. This documentation update does not assert that they pass today.
+
+## Current implementation boundary
+
+The [current product guide](../current-product-guide.md#end-to-end-cycles-and-evidence) and [persistence contract](database/persistence-contract.md) identify the observed SQL and browser paths. The requirements above remain authoritative.
+
+- Identity and V5 support the signed-in Individual and Community slices. The current Platform Admin also reviews Institution claims, requests information and records rejection in SQL. New approval and membership grants await the required email and documentary evidence process. Initiative publication, transactional admission and staff grants still need live commands. Keep the 135-seat and three-Supervisor limits per Initiative.
+- The Institution demo owns Outdoor Activities. Provider routes show retirement. Independent Coach Program commands remain in the legacy browser demo and conflict with the target. Preserve historical rows and attribution.
+- One Platform Admin must preserve applicable capabilities from both existing Admin surfaces. Map their controls and retain attributable history. The Institution queue, resource governance, CMS, catalog and partner reporting remain local or hidden outside the live Community console.

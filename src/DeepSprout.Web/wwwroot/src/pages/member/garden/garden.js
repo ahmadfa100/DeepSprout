@@ -1,9 +1,8 @@
 /**
  * My Garden — the Personal Garden (master §9.1): one fixed ivory scene with
  * exactly four small practice-type trees (Depth, Listening & Recall,
- * Practical Micro-Challenge, Protected Work) and no central fifth tree.
- * Trees grow from valid practice attempts in the private journal and from
- * Coach-approved tasks in the shared records — each source once. A flower
+ * Visual Observation & Analysis, Reasoning & Digital Judgment).
+ * Signed-in trees reflect valid attempts and approved assignments. A flower
  * (Offline Routine), rabbit (Supervisor-confirmed attendance) and birdhouse
  * (verified camp completion) are bounded decorations. Missing data is
  * neutral: nothing dims or wilts. The low-poly isometric engine below is
@@ -560,29 +559,33 @@
   };
   const kindIcon = kind => (KIND_ICONS[kind] ? `<svg viewBox="0 0 32 32">${KIND_ICONS[kind]}</svg>` : `<svg viewBox="0 0 24 24">${ICONS[kind] || ICONS.tree}</svg>`);
 
-  Account.load().then(account => {
+  Account.load().then(async account => {
     const repo = window.DeepSproutRepo;
     const me = repo?.me();
-    const shared = me && repo && repo.selectors.hasPersonalGarden(repo.read(), me.id) ? repo.selectors.personalGardenEffects(repo.read(), me.id) : [];  // Invited Students: Group Garden only until upgrade (D12).
-    const journal = account.practiceGarden();
+    const saved = account.serverAuthenticated() ? await account.readPersonalGarden() : null;
+    const shared = !saved && me && repo && repo.selectors.hasPersonalGarden(repo.read(), me.id) ? repo.selectors.personalGardenEffects(repo.read(), me.id) : [];
+    const journal = saved || account.practiceGarden();
     ({ treeSteps: TREE_STEPS, stageNames: STAGE_NAMES, flowerAt: FLOWER_AT, maxRabbits: MAX_RABBITS } = journal.policy);
-    const sourcesFor = type => [...journal.types.find(t => t.id === type)?.sources || [], ...shared.filter(e => e.effect === 'tree' && e.type === type).map(e => ({ key: e.key, on: e.on, title: e.title, detail: e.detail, source: 'Coach-approved task' }))];
-    const typeTitle = { depth: 'Depth Practice', listening: 'Listening & Recall', practical: 'Practical Micro-Challenge', 'protected-work': 'Protected Work' };
+    const savedTypes = {practical:'visual-observation','protected-work':'digital-judgment'};
+    const recordFor = type => journal.types.find(item => item.id === (saved ? savedTypes[type] || type : type));
+    const sourcesFor = type => [...recordFor(type)?.sources || [], ...shared.filter(e => e.effect === 'tree' && e.type === type).map(e => ({ key: e.key, on: e.on, title: e.title, detail: e.detail, source: 'Coach-approved task' }))];
     state = { stage: 0, fraction: 0, vitality: 1 };
     const practice = Object.keys(TREE_SPOTS).map((type, index) => {
-      const sources = sourcesFor(type), n = sources.length, stage = stageOf(n), next = TREE_STEPS[stage];
+      const title = recordFor(type).title;
+      const sources = sourcesFor(type), n = sources.length, stage = saved ? recordFor(type).stage : stageOf(n), next = TREE_STEPS[stage];
       const fraction = next ? (n - (TREE_STEPS[stage - 1] || 0)) / (next - (TREE_STEPS[stage - 1] || 0)) : 0;
       const nextLine = next ? `${next - n} more qualifying ${next - n === 1 ? 'record' : 'records'} to ${STAGE_NAMES[stage + 1].toLowerCase()}` : 'Fully grown — it simply stays';
-      return { type, title: typeTitle[type], sources, stage, ...at(TREE_SPOTS[type]), model: practiceTree(type, stage, fraction), delay: 0.7 + index * 0.18,
-        label: `${typeTitle[type]} tree: ${STAGE_NAMES[stage]}, from ${n} qualifying ${n === 1 ? 'record' : 'records'}. ${nextLine}.`,
-        tip: `<p class="garden-tip-eyebrow">${esc(typeTitle[type])}</p><p class="garden-tip-title">${esc(STAGE_NAMES[stage])}</p><p>${n ? `${n} qualifying ${n === 1 ? 'record' : 'records'} · ${esc(SPECIES[type].label)}` : 'No practice recorded yet. Nothing has been earned here.'}</p><p class="garden-tip-meta">${esc(nextLine)}</p>` };
+      return { type, title, sources, stage, ...at(TREE_SPOTS[type]), model: practiceTree(type, stage, fraction), delay: 0.7 + index * 0.18,
+        label: `${title} tree: ${STAGE_NAMES[stage]}, from ${n} qualifying ${n === 1 ? 'record' : 'records'}. ${nextLine}.`,
+        tip: `<p class="garden-tip-eyebrow">${esc(title)}</p><p class="garden-tip-title">${esc(STAGE_NAMES[stage])}</p><p>${n ? `${n} qualifying ${n === 1 ? 'record' : 'records'} · ${esc(SPECIES[type].label)}` : 'No practice recorded yet. Nothing has been earned here.'}</p><p class="garden-tip-meta">${esc(nextLine)}</p>` };
     });
-    const flowers = FLOWER_AT.filter(need => journal.routineDays.length >= need).map((need, index) => ({ kind: 'flower', ...at(DECOR_SPOTS.flower[index]), model: scaled(flower(index + 3), 1.9), delay: 1.6 + index * 0.12,
+    const flowerMilestones = saved ? FLOWER_AT.slice(0, saved.flowers.length) : FLOWER_AT.filter(need => journal.routineDays.length >= need);
+    const flowers = flowerMilestones.map((need, index) => ({ kind: 'flower', ...at(DECOR_SPOTS.flower[index]), model: scaled(flower(index + 3), 1.9), delay: 1.6 + index * 0.12,
       label: `Flower: unlocked by ${need} self-reported Offline Routine days.`, tip: `<p class="garden-tip-eyebrow">Offline Routine</p><p class="garden-tip-title">Flower</p><p>Unlocked at ${need} routine days (self-reported).</p>` }));
-    const attended = shared.filter(e => e.effect === 'rabbit');
+    const attended = saved?.rabbits || shared.filter(e => e.effect === 'rabbit');
     const rabbits = attended.slice(0, MAX_RABBITS).map((e, index) => ({ kind: 'rabbit', ...at(DECOR_SPOTS.rabbit[index]), model: scaled(rabbit(index + 5), 1.7), delay: 1.8 + index * 0.12,
       label: `Rabbit: ${e.title}, ${e.detail}.`, tip: `<p class="garden-tip-eyebrow">Session attendance</p><p class="garden-tip-title">${esc(e.title)}</p><p>${esc(e.detail)}</p><p class="garden-tip-meta">${esc(fmt.date(e.on, { year: true }))}</p>` }));
-    const camps = shared.filter(e => e.effect === 'birdhouse');
+    const camps = saved?.birdhouses || shared.filter(e => e.effect === 'birdhouse');
     const houses = camps.slice(0, 1).map(e => ({ kind: 'birdhouse', ...at(DECOR_SPOTS.birdhouse[0]), model: scaled(birdhouse(9), 1.4), delay: 2,
       label: `Birdhouse: ${e.title}, ${e.detail}.`, tip: `<p class="garden-tip-eyebrow">Camp completion</p><p class="garden-tip-title">${esc(e.title)}</p><p>${esc(e.detail)}</p>` }));
     trees = [...practice, ...flowers, ...rabbits, ...houses];
@@ -604,8 +607,10 @@
     next.innerHTML = `<ul class="garden-kinds-list">${practice.map(t => `<li class="garden-kind" data-kind="${esc(t.type)}"><span class="garden-kind-icon" aria-hidden="true">${kindIcon(t.type)}</span><span class="garden-kind-text"><b>${esc(t.title)}</b> <span>${esc(STAGE_NAMES[t.stage])} (${t.sources.length})</span></span></li>`).join('')}</ul>`;
 
     const card = $('garden-achievement');
-    const catalogTitle = type => journal.types.find(t => t.id === type)?.title;
-    const recent = [...practice.flatMap(t => t.sources.map(x => ({ ...x, kind: t.type, what: t.title, named: x.title !== catalogTitle(t.type) && x.title !== t.title }))), ...attended.map(e => ({ ...e, kind: 'rabbit', what: 'Rabbit', named: true, source: 'Supervisor-confirmed attendance' })), ...camps.map(e => ({ ...e, kind: 'birdhouse', what: 'Birdhouse', named: true, source: 'Provider-verified completion' }))]
+    const recent = [...practice.flatMap(t => t.sources.map(x => ({ ...x, kind: t.type, what: t.title, named: x.title !== t.title }))),
+      ...(saved?.flowers || []).map(e => ({ ...e, kind: 'flower', what: 'Flower', named: true })),
+      ...attended.map(e => ({ ...e, kind: 'rabbit', what: 'Rabbit', named: true, source: e.source || 'Supervisor-confirmed attendance' })),
+      ...camps.map(e => ({ ...e, kind: 'birdhouse', what: 'Birdhouse', named: true, source: e.source || 'Provider-verified completion' }))]
       .sort((a, b) => String(b.on).localeCompare(String(a.on))).slice(0, 5);
     // The meta line keeps the record's own outcome and source; a generic catalog title is not repeated.
     const metaOf = x => [x.named ? x.title : '', x.detail, x.source].filter((part, index, all) => part && all.indexOf(part) === index).map(esc).join(' · ');
@@ -627,10 +632,10 @@
           <summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>How flowers, rabbits and birdhouses appear</summary>
           <ul>
             <li><b>Flower</b> — your Offline Routine, self-reported. ${routineCount} day${routineCount === 1 ? '' : 's'} recorded; flowers at ${FLOWER_AT.join(', ')} days.</li>
-            <li><b>Rabbit</b> — Supervisor-confirmed session attendance, up to ${MAX_RABBITS}.</li>
+            <li><b>Rabbit</b> — verified session attendance, up to ${MAX_RABBITS}.</li>
             <li><b>Birdhouse</b> — a verified camp completion.</li>
           </ul>
-          <p>Joining, registering, an accepted excuse or completing an initiative add nothing here. Thresholds are demo defaults.</p>
+          <p>Joining, registering, an accepted excuse or completing an initiative add nothing here.</p>
         </details>
       </footer>`;
     card.querySelectorAll('[data-group-garden]').forEach(link => link.addEventListener('click', event => {

@@ -81,7 +81,7 @@
       const legacy = JSON.parse(raw || 'null');
       const person = access.person();
       // An exact canonical owner or verified email is evidence; a browser session alone is not.
-      const known = legacy && person && (legacy.personId === person.id ||
+      const known = legacy && person && !person.id.startsWith('server-') && (legacy.personId === person.id ||
         (person.verified && legacy.profile?.email?.toLowerCase() === person.email.toLowerCase()));
       if (known) {
         const backup = `${LEGACY_KEY}:backup:before-person-binding`;

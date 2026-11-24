@@ -15,7 +15,7 @@ import {assignedTasks,personalGardenEffects,hasPersonalGarden} from '../../src/D
 const as=personId=>dispatch('demo.signin',{personId});
 const reset=personId=>{dispatch('demo.reset');dispatch('demo.clock',{at:'2026-10-15T09:00:00+03:00'});if(personId)as(personId);};
 const me=()=>read().session.personId;
-const PROGRAM={title:'Small Steps Lab',description:'Two weeks of small deliberate starts.',purpose:'Practise starting meaningful work.',focus:'Balanced technology use',duration:14,start:'2026-10-15',end:'2026-10-30',stages:[{id:'st-a',title:'Notice',objective:'Name one distraction.',date:'2026-10-18'},{id:'st-b',title:'Begin',objective:'Try ten focused minutes.',date:'2026-10-24'}],activities:['Practical Micro-Challenge'],required:true,completion:{rule:'all-required',percent:100}};
+const PROGRAM={title:'Small Steps Lab',description:'Two weeks of small deliberate starts.',purpose:'Practise starting meaningful work.',focus:'Balanced technology use',duration:14,start:'2026-10-15',end:'2026-10-30',stages:[{id:'st-a',title:'Notice',objective:'Name one distraction.',date:'2026-10-18'},{id:'st-b',title:'Begin',objective:'Try ten focused minutes.',date:'2026-10-24'}],activities:['Visual Observation & Analysis'],required:true,completion:{rule:'all-required',percent:100}};
 /** A NEW person completes Partner → Coach application and is approved by the Platform Admin. */
 function approvedCoach(email='coach.new@demo.example',name='Lina Farah'){
   dispatch('auth.logout');
@@ -54,8 +54,8 @@ test('Institution-invited Coach teaches the Initiative group but cannot operate 
   assert.throws(()=>dispatch('mentor.program.save',PROGRAM),/Independent Coach approval/);
   assert.throws(()=>dispatch('mentor.group.save',{programId:'pr-start',name:'x',purpose:'y'}),/Independent Coach approval/);
   assert.throws(()=>dispatch('mentor.invite.create',{groupId:'g-fresh',email:'a@b.example'}),/Independent Coach approval/);
-  assert.throws(()=>dispatch('mentor.assignment.create',{groupId:'g-fresh',title:'t',activity:'Protected Work',instructions:'i',due:'2026-10-28'}),/Independent Coach approval/);
-  const id=dispatch('mentor.assignment.create',{groupId:'g-today-a',title:'Initiative task',activity:'Protected Work',instructions:'Protect twenty minutes.',due:'2026-11-01'});
+  assert.throws(()=>dispatch('mentor.assignment.create',{groupId:'g-fresh',title:'t',activity:'Reasoning & Digital Judgment',instructions:'i',due:'2026-10-28'}),/Independent Coach approval/);
+  const id=dispatch('mentor.assignment.create',{groupId:'g-today-a',title:'Initiative task',activity:'Reasoning & Digital Judgment',instructions:'Protect twenty minutes.',due:'2026-11-01'});
   assert.equal(read().assignments.find(a=>a.id===id).initiativeId,'i-today','Initiative teaching unaffected');
 });
 
@@ -125,7 +125,7 @@ test('Shared engine: submit → revision → resubmit → approve; one reward; b
   const programId=dispatch('mentor.program.save',{...PROGRAM,newGroups:[{name:'Circle',purpose:'Begin'}]});dispatch('mentor.program.publish',{id:programId});
   const gid=read().groups.find(g=>g.programId===programId).id;
   const token=dispatch('mentor.invite.create',{groupId:gid,email:'sara@demo.example'});const student=joinNew(token,'sara@demo.example','Sara');
-  as(coach);const aid=dispatch('mentor.assignment.create',{groupId:gid,title:'One small start',activity:'Practical Micro-Challenge',instructions:'Try one small step.',due:'2026-10-25'});
+  as(coach);const aid=dispatch('mentor.assignment.create',{groupId:gid,title:'One small start',activity:'Visual Observation & Analysis',instructions:'Try one small step.',due:'2026-10-25'});
   assert.ok(read().notifications.some(n=>n.recipientId===student&&n.link.includes(`#/student/tasks/${aid}`)),'limited Student notice links to My Tasks');
   as(student);dispatch('student.task.start',{id:aid});assert.equal(taskState(read(),read().assignments.find(a=>a.id===aid),student).status,'In Progress');
   dispatch('student.submit',{assignmentId:aid,text:'I wrote one line.'});
@@ -134,7 +134,7 @@ test('Shared engine: submit → revision → resubmit → approve; one reward; b
   const other=approvedCoach('other.coach@demo.example','Other Coach').pid;
   assert.throws(()=>dispatch('mentor.review',{id:sub.id,decision:'Approved'}),/outside your groups/);
   assert.throws(()=>dispatch('mentor.invite.create',{groupId:gid,email:'z@demo.example'}),/different Mentor/);
-  assert.throws(()=>dispatch('mentor.assignment.create',{groupId:gid,title:'x',activity:'Protected Work',instructions:'y',due:'2026-10-28'}),/different Mentor/);
+  assert.throws(()=>dispatch('mentor.assignment.create',{groupId:gid,title:'x',activity:'Reasoning & Digital Judgment',instructions:'y',due:'2026-10-28'}),/different Mentor/);
   as(coach);dispatch('mentor.review',{id:sub.id,decision:'Needs Revision',feedback:'Tell me what helped.',internalNote:'Private note'});
   as(student);dispatch('student.submit',{assignmentId:aid,text:'Phone away; one line became a page.'});
   as(coach);dispatch('mentor.review',{id:sub.id,decision:'Approved'});
@@ -147,7 +147,7 @@ test('Shared engine: submit → revision → resubmit → approve; one reward; b
   for(let i=0;i<6;i++){as(coach);const extra=dispatch('mentor.assignment.create',{groupId:gid,title:`Extra ${i}`,activity:'Depth Practice',instructions:'x',due:'2026-10-26'});as(student);dispatch('student.submit',{assignmentId:extra,text:'done'});as(coach);dispatch('mentor.review',{id:read().submissions.find(x=>x.assignmentId===extra).id,decision:'Approved'});}
   const g2=programGroupGarden(read(),gid);assert.equal(g2.count,7);assert.equal(g2.total,g1.total,'same milestone set');assert.equal(g2.reached,g1.reached,'direct extra tasks add no milestone');
   // Reschedule keeps history; cancel keeps submissions
-  const later=dispatch('mentor.assignment.create',{groupId:gid,title:'Later',activity:'Protected Work',instructions:'x',due:'2026-10-27'});
+  const later=dispatch('mentor.assignment.create',{groupId:gid,title:'Later',activity:'Reasoning & Digital Judgment',instructions:'x',due:'2026-10-27'});
   dispatch('mentor.assignment.reschedule',{id:later,due:'2026-10-29',reason:'Exam week'});
   s=read();const la=s.assignments.find(a=>a.id===later);assert.equal(la.version,2);assert.equal(la.history[0].due,'2026-10-27');
   assert.throws(()=>dispatch('mentor.assignment.reschedule',{id:later,due:'2026-10-01',reason:'x'}),/from today onward/);
@@ -209,7 +209,7 @@ test('Lifecycle guards: pause blocks new work and joins; cancel needs a reason a
   assert.throws(()=>dispatch('mentor.program.pause',{id:programId}),/Pause reason is required/);
   dispatch('mentor.program.pause',{id:programId,reason:'Holiday'});
   assert.equal(inviteState(read(),token),'Closed');
-  assert.throws(()=>dispatch('mentor.assignment.create',{groupId:gid,title:'x',activity:'Protected Work',instructions:'y',due:'2026-10-28'}),/only while the Program is published/);
+  assert.throws(()=>dispatch('mentor.assignment.create',{groupId:gid,title:'x',activity:'Reasoning & Digital Judgment',instructions:'y',due:'2026-10-28'}),/only while the Program is published/);
   assert.throws(()=>dispatch('mentor.invite.create',{groupId:gid,email:'p2@demo.example'}),/Publish the Program/);
   dispatch('mentor.program.resume',{id:programId});assert.equal(inviteState(read(),token),'Valid');
   assert.throws(()=>dispatch('mentor.program.archive',{id:programId}),/Complete or cancel/);
@@ -259,11 +259,11 @@ test('One person, two Coach contexts: independent Programs and an Institution gr
   as('p-maya');dispatch('initiative.group.coach',{groupId:'g-today-b',coachId:lina});
   as(lina);assert.ok(workspaces().includes('mentor'));
   const people=read().people.filter(p=>p.email==='coach.new@demo.example');assert.equal(people.length,1,'one Person ID for both contexts');
-  const task=dispatch('mentor.assignment.create',{groupId:'g-today-b',title:'Initiative task',activity:'Protected Work',instructions:'x',due:'2026-11-01'});
+  const task=dispatch('mentor.assignment.create',{groupId:'g-today-b',title:'Initiative task',activity:'Reasoning & Digital Judgment',instructions:'x',due:'2026-11-01'});
   assert.equal(read().assignments.find(a=>a.id===task).initiativeId,'i-today','teaches the Initiative group through the grant');
   assert.throws(()=>dispatch('mentor.invite.create',{groupId:'g-today-b',email:'x@demo.example'}),/different Mentor|Attach this group/,'no private invitations into an Institution group');
   assert.throws(()=>dispatch('mentor.group.save',{id:'g-today-b',programId,name:'Steal',purpose:'x'}),/different Mentor|managed by the Institution/,'cannot re-parent an Institution group');
-  assert.throws(()=>dispatch('mentor.assignment.create',{groupId:'g-today-a',title:'x',activity:'Protected Work',instructions:'y',due:'2026-11-01'}),/currently assigned/,'only allocated Initiative groups');
+  assert.throws(()=>dispatch('mentor.assignment.create',{groupId:'g-today-a',title:'x',activity:'Reasoning & Digital Judgment',instructions:'y',due:'2026-11-01'}),/currently assigned/,'only allocated Initiative groups');
   const s=read();assert.equal(s.groups.find(g=>g.id==='g-today-b').parentType,'initiative');assert.equal(s.programs.find(p=>p.id===programId).ownerId,lina);
   assert.ok(s.groups.filter(g=>g.programId===programId).every(g=>g.parentType==='program'),'independent groups unaffected');
 });

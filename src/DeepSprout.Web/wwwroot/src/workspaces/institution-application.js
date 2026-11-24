@@ -88,12 +88,12 @@ function input([key, label, kind, required, hint], value, person) {
   return `<div class="${key === 'entityName' ? 'app-wide' : ''}">${u.field(key, label, v, kind === 'year' ? 'number' : kind, required, extra)}${help}</div>`;
 }
 
-export function formMarkup(existing, person) {
+export function formMarkup(existing, person, live = false) {
   const d = existing?.details || {}, kinds = existing?.fileKinds || {};
   const kept = slot => (existing?.files || []).filter(f => (kinds[f] || 'other') === slot);
   const sections = SECTIONS.map(([id, title, lead, fields], n) => `<section class="app-section" aria-labelledby="app-${id}"><header><span class="app-step">${n + 1}</span><div><h2 id="app-${id}">${e(title)}</h2><p>${e(lead)}</p></div></header><div class="form-grid">${fields.map(f => input(f, d[f[0]], person)).join('')}</div></section>`).join('');
   const docs = `<section class="app-section" aria-labelledby="app-docs"><header><span class="app-step">${SECTIONS.length + 1}</span><div><h2 id="app-docs">Supporting documents</h2><p>They help the DeepSprout team verify the institution faster. PDF or image.</p></div></header><div class="app-docs">${DOCS.map(([slot, label, hint, req]) => `<label class="app-doc"><span class="app-doc-text"><strong>${e(label)}${req ? ' <em>Recommended</em>' : ''}</strong><small>${e(hint)}</small>${kept(slot).length ? `<small class="app-doc-kept">Attached: ${e(kept(slot).join(', '))}</small>` : ''}</span><input type="file" name="doc-${slot}" ${slot === 'other' ? 'multiple' : ''} accept=".pdf,.png,.jpg,.jpeg"></label>`).join('')}</div><p class="static-info">Files remain on this device. Only selected names appear in your application; no file content is uploaded.</p></section>`;
-  return sections + docs;
+  return sections + (live ? '<p class="static-info">Enter a two-letter country code such as JO. Document uploads and approval are unavailable while the verification policy is pending.</p>' : docs);
 }
 
 /** Reads the form into {details, files, fileKinds}, keeping earlier files for slots left empty. */
@@ -122,11 +122,11 @@ export function groupsValid(form) {
 }
 
 /** Applicant's review step: the same groups, read-only. */
-export function reviewMarkup(a) {
+export function reviewMarkup(a, live = false) {
   const d = a.details || {}, kinds = a.fileKinds || {};
   const value = ([key, , kind]) => kind === 'ages' ? ages(d[key]).join(', ') : key === 'authority' ? authorityLabel(d[key]) : d[key];
   return SECTIONS.map(([, title, , fields]) => `<h3 class="app-review-head">${e(title)}</h3><dl class="preview-facts">${fields.map(f => `<div><dt>${e(labelOf(f[0]))}</dt><dd>${e(value(f) || '—')}</dd></div>`).join('')}</dl>`).join('')
-    + `<h3 class="app-review-head">Supporting documents</h3><dl class="preview-facts">${DOCS.map(([slot, label]) => `<div><dt>${e(label)}</dt><dd>${e((a.files || []).filter(f => (kinds[f] || 'other') === slot).join(', ') || 'Not attached')}</dd></div>`).join('')}</dl>`;
+    + (live ? '' : `<h3 class="app-review-head">Supporting documents</h3><dl class="preview-facts">${DOCS.map(([slot, label]) => `<div><dt>${e(label)}</dt><dd>${e((a.files || []).filter(f => (kinds[f] || 'other') === slot).join(', ') || 'Not attached')}</dd></div>`).join('')}</dl>`);
 }
 
 /* ------------------------------------------------------------ admin signals */

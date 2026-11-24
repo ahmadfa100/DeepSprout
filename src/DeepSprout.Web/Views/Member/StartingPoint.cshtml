@@ -22,6 +22,8 @@
 </head>
 <body data-page="onboarding" data-root="../../../../">
   <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-shapes" viewBox="0 0 32 32"><circle cx="9" cy="9" r="5"/><path d="m23 4 5 10H18z"/><rect x="4" y="18" width="10" height="10" rx="1.5"/><path d="m23 18 5 5-5 5-5-5z"/></symbol>
+    <symbol id="i-evidence" viewBox="0 0 32 32"><rect x="3" y="4" width="11" height="9" rx="2"/><rect x="18" y="19" width="11" height="9" rx="2"/><path d="M8.5 13v9a2 2 0 0 0 2 2H18M18 8h10M18 12h7"/></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
     <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H5m6-6-6 6 6 6"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
@@ -160,19 +162,23 @@
             <div class="card sp-summary">
               <p class="eyebrow">Your plan at a glance</p>
               <dl id="plan-summary"></dl><p class="card-note" id="preview-reason"></p>
-              <div class="field"><label for="plan-minutes">Minutes per practice</label><select id="plan-minutes"><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option></select></div>
+              <div class="field"><label for="plan-minutes">Minutes per practice</label><select id="plan-minutes"><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20" data-server-only hidden>20 minutes</option></select></div>
               <div class="field sp-days-field">
                 <label for="plan-days">Days you can give it</label>
                 <select id="plan-days">
+                  <option value="1" data-server-only hidden>1 day a week</option>
                   <option value="2">2 days a week</option>
                   <option value="3">3 days a week</option>
                   <option value="4">4 days a week</option>
-                  <option value="5">5 days or more</option>
+                  <option value="5">5 days a week</option>
                 </select>
                 <p class="field-hint">Changing this rewrites the preview above.</p>
               </div>
+              <fieldset class="field" id="preview-activities" hidden><legend>Practice choices</legend></fieldset>
+              <fieldset class="field" id="preview-days" hidden><legend>Week 1 practice days</legend></fieldset>
+              <fieldset class="field" id="preview-routine-days" hidden><legend>Offline routine days</legend></fieldset>
               <button class="btn btn-primary sp-activate" type="button" id="activate" disabled>Activate my plan <svg><use href="#i-arrow"/></svg></button>
-              <p class="sp-activate-note" id="activate-note">Choose one offline commitment to continue.</p>
+              <p class="sp-activate-note" id="activate-note" role="status">Choose one offline commitment to continue.</p>
               <button class="btn btn-quiet" type="button" id="back-to-results"><svg><use href="#i-back"/></svg> Back to my results</button>
             </div>
           </aside>

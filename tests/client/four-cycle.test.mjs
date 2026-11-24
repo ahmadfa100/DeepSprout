@@ -120,7 +120,7 @@ test('Admin suspension hides an Outdoor Activity from Explore, notifies everyone
 
 test('Coach loop: assign → submit → revision → resubmit → approve, with scoped timelines', () => {
   reset('p-karim');
-  const aid = dispatch('mentor.assignment.create', {groupId:'g-today-a', title:'One calm evening', activity:'Protected Work', instructions:'Protect twenty minutes.', due:'2026-10-25'});
+  const aid = dispatch('mentor.assignment.create', {groupId:'g-today-a', title:'One calm evening', activity:'Reasoning & Digital Judgment', instructions:'Protect twenty minutes.', due:'2026-10-25'});
   as('p-noor'); dispatch('student.submit', {assignmentId:aid, text:'Phone in a drawer for twenty minutes.'});
   let sub = read().submissions.find(x => x.assignmentId === aid);
   as('p-karim'); dispatch('mentor.review', {id:sub.id, decision:'Needs Revision', feedback:'What helped most?'});
@@ -143,14 +143,31 @@ test('Coach loop: assign → submit → revision → resubmit → approve, with 
 
 test('Supervisor scope follows active grants; revocation ends future access', () => {
   reset('p-maya');
-  let s = read(); const grant = s.grants.find(g => g.personId === 'p-hala' && g.role === 'supervisor');
-  assert.ok(scopeFor(s, 'supervisor', 'p-hala').initiativeIds.includes('i-today'));
-  assert.ok(timelineEvents(s, scopeFor(s, 'supervisor', 'p-hala')).past.length > 0);
+  let s = read();
+  const grants = s.grants.filter(g => g.personId === 'p-hala' && g.role === 'supervisor' && g.status === 'Active');
+  const grant = grants.find(g => g.scopeId === 'i-today');
+  const otherGrants = grants.filter(g => g.id !== grant.id);
+  assert.ok(otherGrants.length > 0, 'fixture exercises independent grants');
+  const initialScope = scopeFor(s, 'supervisor', 'p-hala');
+  assert.ok(initialScope.initiativeIds.includes('i-today'));
+  const acceptedEventId = `grant:${grant.id}:h0`;
+  assert.ok(timelineEvents(s, initialScope).past.some(e => e.id === acceptedEventId));
+
   dispatch('initiative.staff.revoke', {id:grant.id, reason:'Role change'});
   s = read();
-  assert.equal(scopeFor(s, 'supervisor', 'p-hala').initiativeIds.length, 0, 'revoked grant gives no scope');
-  assert.ok(timelineEvents(s, scopeFor(s, 'organization', 'p-maya')).past.some(e => e.id.startsWith(`grant:${grant.id}`) && e.status === 'Revoked'), 'revocation is attributable history');
+  const scope = scopeFor(s, 'supervisor', 'p-hala');
+  assert.deepEqual(scope.initiativeIds.sort(), otherGrants.map(g => g.scopeId).sort(), 'only independently granted initiatives stay in scope');
+  assert.ok(!timelineEvents(s, scope).past.some(e => e.id === acceptedEventId), 'revoked initiative history is outside the Supervisor scope');
+  as('p-hala');
+  assert.throws(() => dispatch('initiative.application.flag', {id:'adm-omar', note:'Review eligibility'}), /Only an active Supervisor/);
+
+  as('p-maya');
+  for (const {id} of otherGrants) dispatch('initiative.staff.revoke', {id, reason:'Role change'});
+  s = read();
+  assert.equal(scopeFor(s, 'supervisor', 'p-hala').initiativeIds.length, 0, 'no initiative scope remains after the last grant is revoked');
   // Upcoming schedule and history are never mixed
   const t = timelineEvents(s, scopeFor(s, 'organization', 'p-maya'));
+  assert.ok(t.past.some(e => e.id === acceptedEventId && e.status === 'Active'), 'the original acceptance stays in the Institution timeline');
+  assert.ok(t.past.some(e => e.id.startsWith(`grant:${grant.id}:`) && e.status === 'Revoked' && e.actor === 'p-maya'), 'revocation is attributable history');
   assert.ok(t.upcoming.every(e => e.when === 'upcoming') && t.past.every(e => e.when === 'past'));
 });

@@ -13,7 +13,7 @@
   <script src="assets/vendor/qrcode/qrcode.js" defer></script>
   <script type="module" src="~/src/workspaces/app.js" asp-append-version="true"></script>
 </head>
-<body>
+<body data-community-account="@(User.Identity?.IsAuthenticated == true ? "signed-in" : "guest")" data-community-admin="@(ViewData["CommunityAdmin"])">
   <a class="skip-link" href="#main">Skip to content</a>
   <div id="app"></div>
   <div id="workspace-toast" class="toast" popover="manual" role="status" aria-live="polite"><span class="toast-icon" aria-hidden="true"></span><span class="toast-text"></span><button type="button" class="toast-close" aria-label="Dismiss message"></button></div>

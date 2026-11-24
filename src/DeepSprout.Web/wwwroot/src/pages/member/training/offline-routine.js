@@ -10,7 +10,6 @@
  * anything they already earned is untouched. Deletion is always confirmed.
  */
 (() => {
-  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
   const Account = window.DeepSproutAccount;
   if (!Account) return;
   const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -46,7 +45,7 @@
     try { localStorage.setItem(doingKey, JSON.stringify([...doingIds])); } catch {}
   }
 
-  function moveItem(item, lane) {
+  async function moveItem(item, lane) {
     if (!item || item.paused || !['todo', 'doing', 'done'].includes(lane)) return;
     const status = account.routineStatusOn(item, account.today);
     const current = status === 'done' ? 'done' : doingIds.has(item.id) ? 'doing' : 'todo';
@@ -56,8 +55,8 @@
     if (lane === 'doing') doingIds.add(item.id);
     saveDoing();
     try {
-      if (lane === 'done' && status !== 'done') account.mutate({ type: 'routine.log', id: item.id, status: 'done' });
-      else if (lane !== 'done' && (status === 'done' || lane === 'doing' && status === 'skipped')) account.mutate({ type: 'routine.log', id: item.id, status: null });
+      if (lane === 'done' && status !== 'done') await account.routineCommand({ type: 'routine.log', id: item.id, status: 'done' });
+      else if (lane !== 'done' && (status === 'done' || lane === 'doing' && status === 'skipped')) await account.routineCommand({ type: 'routine.log', id: item.id, status: null });
       else render();
       if (lane === 'done') burst(doneList.querySelector(`[data-id="${item.id}"] .routine-tick`));
       flash(`“${item.title}” moved to ${lane === 'todo' ? 'To do' : lane === 'doing' ? 'Doing' : 'Done'}${lane === 'done' ? ' · self-reported for today' : ''}.`);
@@ -204,19 +203,27 @@
     }));
     form.querySelector('[data-act="cancel"]').addEventListener('click', () => { editingId = null; render(); focusRow(item.id); });
     form.querySelector('[data-act="delete"]').addEventListener('click', () => confirmDelete(item));
-    form.addEventListener('submit', event => {
+    form.addEventListener('submit', async event => {
       event.preventDefault();
       const fields = form.elements;
       const title = fields.namedItem('title').value.trim().replace(/\s+/g, ' ');
       if (!days.size) { form.querySelector('.routine-editor-error').hidden = false; return; }
       if (!title) { fields.namedItem('title').focus(); return; }
-      account.mutate({
-        type: 'routine.update', id: item.id, title,
-        days: [...days].sort(), recurrence: fields.namedItem('recurrence').value, paused: fields.namedItem('paused').checked
-      });
-      editingId = null;
-      flash(`Saved “${title}”. The change applies from today.`);
-      focusRow(item.id);
+      const submit = form.querySelector('[type="submit"]');
+      submit.disabled = true;
+      try {
+        await account.routineCommand({
+          type: 'routine.update', id: item.id, title,
+          days: [...days].sort(), recurrence: fields.namedItem('recurrence').value, paused: fields.namedItem('paused').checked
+        });
+        editingId = null;
+        render();
+        flash(`Saved “${title}”. The change applies from today.`);
+        focusRow(item.id);
+      } catch (error) {
+        flash(error.message);
+        submit.disabled = false;
+      }
     });
     form.addEventListener('keydown', event => {
       if (event.key === 'Escape') { event.preventDefault(); editingId = null; render(); focusRow(item.id); }
@@ -288,7 +295,15 @@
         skip.setAttribute('aria-label', status === 'skipped' ? `Undo skip for “${item.title}”` : `Skip “${item.title}” today`);
         skip.title = status === 'skipped' ? 'Undo skip' : 'Skip today';
         skip.innerHTML = '<svg><use href="#i-minus"/></svg>';
-        skip.addEventListener('click', () => { doingIds.delete(item.id); saveDoing(); account.mutate({ type: 'routine.log', id: item.id, status: status === 'skipped' ? null : 'skipped' }); });
+        skip.addEventListener('click', async () => {
+          skip.disabled = true;
+          try {
+            await account.routineCommand({ type: 'routine.log', id: item.id, status: status === 'skipped' ? null : 'skipped' });
+            doingIds.delete(item.id);
+            saveDoing();
+            render();
+          } catch (error) { flash(error.message); skip.disabled = false; }
+        });
         actions.append(skip);
       }
       const edit = document.createElement('button');
@@ -352,7 +367,8 @@
 
   /* ------------------------------------------------------------- the actions */
 
-  function add(title, hint = 'Your own.') {
+  async function add(title, hint = 'Your own.') {
+    if (!account) return;
     const clean = title.trim().replace(/\s+/g, ' ');
     if (!clean) { input.focus(); return; }
     if (account.routine().items.some(item => item.title.toLowerCase() === clean.toLowerCase())) {
@@ -360,10 +376,12 @@
       flash('That one is already on your list.');
       return;
     }
-    const event = account.mutate({ type: 'routine.add', title: clean, hint, days: [0, 1, 2, 3, 4, 5, 6], recurrence: 'weekly' });
-    freshId = event.id;
-    input.value = '';
-    render();
+    try {
+      const event = await account.routineCommand({ type: 'routine.add', title: clean, hint, days: [0, 1, 2, 3, 4, 5, 6], recurrence: 'weekly' });
+      freshId = event.id;
+      input.value = '';
+      render();
+    } catch (error) { flash(error.message); }
   }
 
   /* Delete — always confirmed, never one click. */
@@ -386,16 +404,19 @@
 
   $('routine-delete-cancel').addEventListener('click', () => dialog.close('cancel'));
   $('routine-delete-confirm').addEventListener('click', () => dialog.close('delete'));
-  dialog.addEventListener('close', () => {
+  dialog.addEventListener('close', async () => {
     const item = pendingDelete;
     pendingDelete = null;
     if (dialog.returnValue === 'delete' && item) {
-      doingIds.delete(item.id);
-      saveDoing();
-      account.mutate({ type: 'routine.remove', id: item.id });
-      editingId = null;
-      flash(`Deleted “${item.title}”. Its past check-ins are kept in your history.`);
-      input.focus();
+      try {
+        await account.routineCommand({ type: 'routine.remove', id: item.id });
+        doingIds.delete(item.id);
+        saveDoing();
+        editingId = null;
+        render();
+        flash(`Deleted “${item.title}”. Its past check-ins are kept in your history.`);
+        input.focus();
+      } catch (error) { flash(error.message); returnFocus?.focus?.(); }
     } else {
       returnFocus?.focus?.();
     }

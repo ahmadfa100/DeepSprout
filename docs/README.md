@@ -15,10 +15,12 @@ Start here. Each question has exactly one current answer; anything not listed as
 | Question | Document |
 |---|---|
 | What should DeepSprout do? | [DeepSprout.md](../DeepSprout.md) (v4.1); decisions in [p0-target-v4.1.md](architecture/p0-target-v4.1.md) |
-| What does the running demo do, page by page? | [Current product guide](current-product-guide.md) |
+| What does the running product do, page by page? | [Current product guide](current-product-guide.md) |
 | What is the database? | [Database index](architecture/database/README.md): 58 application tables, v5-lean-2 |
 | Where does each feature store its data today, and where will it go? | [Persistence contract](architecture/database/persistence-contract.md) |
-| Where should backend implementation start? | [Backend implementation plan](implementation/backend-start-plan.md) |
+| What is implemented and what should the backend connect next? | [Backend implementation plan](implementation/backend-start-plan.md) |
+| How do accounts, sessions and live Admin authority work? | [Authentication guide](backend/authentication/README.md) |
+| What may each role do within its resource? | [Permissions matrix](architecture/permissions-matrix-v4.1.md) |
 | What Community server endpoints exist? | [Community server API](implementation/community-server-api.md) |
 | What schema would cross-device quiz rooms need? | [Community quiz backend proposal](architecture/community-quiz-backend-proposal.md) (pending owner review) |
 | How does EF Core build or adopt the database? | [EF Core adoption](architecture/database/efcore-v5-adoption.md) |
@@ -38,7 +40,7 @@ Older round reports, cycle audits, phase audits and database design generations 
 
 ## What is implemented versus future
 
-| Implemented (browser-local demo) | Future work |
+| Implemented | Future work |
 |---|---|
-| All Individual, partner and Admin pages; Onboarding 2.0; local journals and the ecosystem graph; Community server API (not yet used by pages) | Remaining server commands, resource authorization and connecting pages to SQL Server |
-| Approved 58-table SQL script, negative tests, EF Core model and two migrations verified on disposable databases | Adopting and upgrading `DeepSprout_V5_Demo`; connecting pages to SQL Server; importing browser journals |
+| The [persistence contract](architecture/database/persistence-contract.md) lists SQL-backed workflows, including signed-in Community posts and Platform Admin moderation. | SQL-backed partner commands. Cross-device Community quiz rooms await schema and transport approval. |
+| The approved 58-table V5 model plus Identity framework tables run on disposable SQL Server. The historical M1 model remains separate. | Owner-approved named-database adoption, and any approved import of real browser records. Demo seeds remain separate. |

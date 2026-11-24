@@ -12,7 +12,7 @@
 (() => {
   const host = document.getElementById('assigned-list');
   if (!host) return;
-  const PRACTICE_SESSION = { depth: 'depth', listening: 'listening', practical: 'challenge', 'protected-work': 'protected' };
+  const PRACTICE_SESSION = { depth: 'depth', listening: 'listening', 'visual-observation': 'visual', 'digital-judgment': 'judgment' };
   const repo = () => window.DeepSproutRepo;
 
   function render() {

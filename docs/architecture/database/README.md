@@ -1,6 +1,6 @@
 # DeepSprout database architecture
 
-**Status (8 November 2026): approved.** DeepSprout's target database is the **v5 lean design: 58 application tables in 18 schemas**, one SQL Server database, one EF Core context (`DeepSproutV5DbContext`). The product owner approved this design; do not reopen the table count and do not return to the older 129-table M1 model. SQL Server system objects and framework tables (`__EFMigrationsHistory`, any future ASP.NET Core Identity tables) are not application tables and are not counted.
+**Status (8 November 2026): approved.** DeepSprout's target database is the **v5 lean design: 58 application tables in 18 schemas**, one SQL Server database and one V5 EF Core context (`DeepSproutV5DbContext`). The older 129-table M1 model is historical. SQL Server system objects, the EF migration history and the ASP.NET Core Identity framework tables are outside the 58.
 
 Current revision: **v5-lean-2**, which applies Onboarding 2.0 and the [4 November v4.1 decisions](../p0-target-v4.1.md) inside the same 58 tables.
 
@@ -9,7 +9,7 @@ Current revision: **v5-lean-2**, which applies Onboarding 2.0 and the [4 Novembe
 | Document | What it answers |
 |---|---|
 | [Persistence contract](persistence-contract.md) | Where each UI workflow keeps its data today, which of the 58 tables it maps to, the Onboarding 2.0 setup-answer contract and the browser-state → database mapping |
-| [EF Core adoption](efcore-v5-adoption.md) | The V5 EF Core model, its two migrations, how to create a new database, how to adopt `DeepSprout_V5_Demo`, rollback, and the verification evidence |
+| [EF Core adoption](efcore-v5-adoption.md) | The V5 EF Core model, baseline, v5-lean-2 and Identity migrations, new database setup, and the historical adoption evidence |
 | [v5 lean design](v5-lean-design/README.md) | The table inventory, data dictionary, ERDs, generator and the executable SQL script |
 | [Historical M1 database](historical-m1-validation-database.md) | What `DeepSprout_Validation` and the 129-table EF code are, and why they are kept only for history |
 
@@ -66,4 +66,4 @@ To change the schema: edit `model.mjs` (and `generator/sql/seed.sql` if demo row
 
 - 58 application tables. A requirement that seems to need a new table is first mapped to existing tables, columns, JSON contracts or `ops.AuditEvent`; if it truly does not fit, document the conflict and ask the owner.
 - Never delete history to fit a new rule. Retire a concept by freezing its rows (permissions) and refusing new ones (constraints and services).
-- No page reads or writes SQL Server yet. Do not describe browser-local data as stored in the database.
+- The running MVC host uses V5 SQL for the migrated Individual and Community flows in the persistence contract. The 58 application tables are counted separately from Identity framework and EF migration metadata. Partner demo records remain browser-local.

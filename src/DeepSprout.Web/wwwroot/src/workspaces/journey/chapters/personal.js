@@ -84,10 +84,10 @@ export default f => ({
     {
       id: 'pers-practice', overview: true,
       title: 'Four practices, four trees',
-      summary: 'A valid attempt at Depth Practice, Listening & Recall, Practical Micro-Challenge or Protected Work progresses only that practice’s tree in the one fixed Personal Garden.',
+      summary: 'A valid attempt at Depth Practice, Listening & Recall, Visual Observation & Analysis or Reasoning & Digital Judgment progresses only that practice’s tree in the one fixed Personal Garden.',
       brief: 'Each valid practice grows only its own tree in the Personal Garden.',
       show: ['garden', 'practice', 'practice.2', 'practice.3', 'practice.4'],
-      labels: { practice: 'Depth Practice', 'practice.2': 'Listening & Recall', 'practice.3': 'Micro-Challenge', 'practice.4': 'Protected Work' },
+      labels: { practice: 'Depth Practice', 'practice.2': 'Listening & Recall', 'practice.3': 'Visual Observation', 'practice.4': 'Digital Judgment' },
       shorts: { practice: 'Depth', 'practice.2': 'Listening', 'practice.3': 'Challenge', 'practice.4': 'Protected' },
       subs: { garden: 'Four trees, one scene' },
       edges: ['practice>garden', 'practice.2>garden', 'practice.3>garden', 'practice.4>garden'], flows: ['practice>garden'], token: 'leaf',

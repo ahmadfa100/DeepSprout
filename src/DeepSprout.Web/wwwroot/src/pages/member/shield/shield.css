@@ -4,7 +4,8 @@
    Built on the shared tokens (style.css) and the .ds- layer (individual-ui.css). */
 .shield-page{max-width:1180px;margin:auto;padding:28px 24px 80px;color:var(--color-ink)}
 .shield-page [hidden]{display:none!important}
-.shield-page .ds-hero{width:100%;margin-top:0}.shield-page .ds-hero-copy{box-sizing:border-box}
+.shield-page .ds-hero{width:100%;height:auto;margin-top:0}
+.shield-page .ds-hero-copy{box-sizing:border-box;width:100%;height:auto;padding:32px 48px}
 .sh-defs{position:absolute;width:0;height:0;overflow:hidden}
 .shield-page svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .sh-kicker{margin:0;color:var(--color-leaf);font-size:var(--text-eyebrow);font-weight:800;letter-spacing:var(--tracking-eyebrow);text-transform:uppercase}

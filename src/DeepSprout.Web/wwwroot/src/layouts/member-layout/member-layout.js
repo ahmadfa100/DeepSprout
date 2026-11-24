@@ -36,7 +36,7 @@
       <nav class="member-nav" id="member-nav" aria-label="Member navigation">${links}</nav>
       <div class="member-header-actions">
         <div class="member-notifications"><button class="member-icon-button" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="member-notification-panel">${icon('icons/bell.svg')}<span class="member-alert-dot" hidden></span></button><div class="member-popover" id="member-notification-panel" hidden>${notice}</div></div>
-        <details class="member-account"><summary><span class="member-avatar">${initial}</span><span>${displayName}</span>${icon('icons/chevron-down.svg')}</summary><div class="member-account-menu"><a href="${root}index.html">Home</a><a href="${root}src/pages/member/profile/profile.html">Profile &amp; settings</a><a class="member-review-link" href="${root}src/pages/member/recovery-plan/recovery-plan.html#adjust">${icon('icons/calendar.svg')}<span>Weekly Review &amp; Plan Adjustments</span><span class="member-review-due" hidden>Due</span></a><a href="${root}src/pages/member/explore/explore.html#my-registrations">My registrations</a><a href="${root}src/pages/member/lab/lab.html">Lab &amp; check-ins</a><a href="#product-guide" data-tour-replay>Help &amp; product guide</a><a href="${root}src/pages/member/onboarding/onboarding.html">Replay first run</a><a href="${root}login.html">Log in page</a></div></details>
+        <details class="member-account"><summary><span class="member-avatar">${initial}</span><span>${displayName}</span>${icon('icons/chevron-down.svg')}</summary><div class="member-account-menu"><a href="${root}index.html">Home</a><a href="${root}src/pages/member/profile/profile.html">Profile &amp; settings</a><a class="member-review-link" href="${root}src/pages/member/recovery-plan/recovery-plan.html#adjust">${icon('icons/calendar.svg')}<span>Weekly Review &amp; Plan Adjustments</span><span class="member-review-due" hidden>Due</span></a><a href="${root}src/pages/member/explore/explore.html#my-registrations">My registrations</a><a href="${root}src/pages/member/onboarding/onboarding.html">Replay first run</a><a href="${root}login.html">Log in page</a></div></details>
         <button class="member-menu-toggle" type="button" aria-label="Open navigation" aria-controls="member-nav" aria-expanded="false">${icon('icons/menu.svg')}</button>
       </div>
     </div>
@@ -318,7 +318,7 @@
     const block = document.createElement('div');
     block.className = 'member-identity';
     const people = repo.individuals();
-    const links = repo.workspaceLinks();
+    const links = repo.workspaceLinks().filter(link => link.id !== 'mentor' && link.id !== 'organization');
     block.innerHTML = `${me ? `<p class="member-identity-who"><small>Signed in as</small><strong>${escapeHtml(me.name)}</strong><span>${escapeHtml(me.email)}</span></p>` : '<p class="member-identity-who"><strong>Not signed in</strong></p>'}
       <a href="${root}src/pages/member/explore/explore.html#my-initiatives">My Initiatives</a><a href="${root}src/pages/member/training/training.html#assigned">Assigned tasks</a>
       ${links.map(link => `<a href="${root}${link.href}">${escapeHtml(link.label)} workspace</a>`).join('')}

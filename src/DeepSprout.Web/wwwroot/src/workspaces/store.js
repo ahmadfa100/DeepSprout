@@ -1,4 +1,5 @@
 import {normalizeActivityData} from './activity-rules.js';
+import {refreshPracticeCatalog} from './activity-contract.js';
 import {mentorship} from './data/mentorship.js';
 import {institution} from './data/institution.js';
 import {outdoor} from './data/outdoor.js';
@@ -58,6 +59,7 @@ export function read(){
     if(addSamiSupervisorDemo(s)){s.samiSupervisorDemoVersion=1;changed=true;}
   }
   setClockOffset(s.clock?.offsetMs);
+  if(refreshPracticeCatalog(s))changed=true;
   if(expireOffers(s))changed=true;
   if(expireInitiativeOffers(s))changed=true;
   if(addQuizDemo(s))changed=true;

@@ -1,5 +1,7 @@
-(() => {
- const access=window.DeepSproutPersonal;if(access.denied()){try{access.requireAccess();}catch{}return;}
+(async () => {
+ const access=window.DeepSproutPersonal;
+ await window.DeepSproutAccount.resolveIdentity();
+ if(access.denied()){try{access.requireAccess();}catch{}return;}
  const personId=access.subject(),bridge=window.DeepSproutShield,$=id=>document.getElementById(id);
  const still=matchMedia('(prefers-reduced-motion: reduce)');
  // Must match SITES in extensions/digital-shield/policy.js.
@@ -183,4 +185,4 @@
   $('shield-history').replaceChildren(...(s?.history||[]).slice(-20).reverse().map(h=>{const li=document.createElement('li');li.textContent=`${new Date(h.at).toLocaleString()} · ${h.type} · ${h.personId} · ${h.detail||''}`;return li;}));
  }
  window.addEventListener('deepsprout:shield',render);render();summary();setInterval(render,1000);
-})();
+})().catch(error=>window.DeepSproutPersonal.failure(error.message));

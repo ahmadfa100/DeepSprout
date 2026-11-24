@@ -2,6 +2,8 @@
 
 This record covers the Supervisor attendance redesign. Owner decisions of 8 November 2026 took precedence over older attendance text in `DeepSprout.md` §16–§17.
 
+**Current boundary:** the MVC Supervisor Attendance page still operates on browser records. Later local code includes venue self check-in and typed, QR and manual paths. The server QR foundation described below has no controller route or connected production scanner. The signed-in Personal Garden reads separately persisted, authorized V5 attendance and completion evidence when present. See the [persistence contract](../architecture/database/persistence-contract.md).
+
 ## What changed for the Supervisor
 
 **Supervisor → Attendance** now opens on the Supervisor's own sessions, never on a scanner or a roster.
@@ -108,6 +110,8 @@ All derived views read the same records, so changes appear in all of them: parti
 New browser collections: `attendanceImports`, `attendanceReviews`, `attendanceLog`, plus `rosterAdditions` on Outdoor Activity sessions.
 
 ## Browser demo versus real integration
+
+The following table describes the 8 November milestone.
 
 | Capability | In this demo | Needs before production |
 |---|---|---|

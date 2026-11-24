@@ -24,6 +24,10 @@ let drawer=false;
 const app=document.getElementById('app');
 function route(){const name=location.hash.replace(/^#\/?/,'').split('/')[0];return name==='reports'?'subscriptions':labels[name]?name:'dashboard';}
 function render(){
+  if(route()==='community' && document.documentElement.dataset.communityAuth === 'True'){
+    location.replace('/workspaces.html?community=live#/admin/moderation');
+    return;
+  }
   if(!isDemo())return;
   const data=read(),current=route(),attention=attentionItems(data);
   let seen=[];try{const saved=JSON.parse(localStorage.getItem('deepsprout-admin-notifications-seen')||'[]');seen=Array.isArray(saved)?saved:[];}catch{}

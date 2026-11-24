@@ -88,8 +88,8 @@
   const PRACTICES = {
     depth: { title: 'Depth Practice', icon: 'i-book', note: 'Read a short passage, then answer questions about it.' },
     listening: { title: 'Listening & Recall', icon: 'i-headphones', note: 'Listen to a short clip, then recall what it said.' },
-    challenge: { title: 'Practical Micro-Challenge', icon: 'i-pencil', note: 'One small concrete task with a clear outcome.' },
-    protected: { title: 'Protected Work', icon: 'i-timer', note: 'Your own real task, with optional site protection.' }
+    visual: { title: 'Visual Observation & Analysis', icon: 'i-shapes', note: 'Study a scene and answer questions about its details and patterns.' },
+    judgment: { title: 'Reasoning & Digital Judgment', icon: 'i-evidence', note: 'Open the sources and decide what a fictional claim can support.' }
   };
 
   const DIRECTIONS = {
@@ -120,10 +120,10 @@
   };
 
   const PRACTICE_MIX = {
-    'reduce-scrolling': ['challenge', 'protected', 'challenge'],
-    'intentional-phone': ['challenge', 'protected', 'challenge'],
-    'offline-time': ['listening', 'challenge', 'listening'],
-    'focus-objective': ['depth', 'protected', 'protected']
+    'reduce-scrolling': ['visual', 'judgment', 'visual'],
+    'intentional-phone': ['judgment', 'visual', 'judgment'],
+    'offline-time': ['listening', 'visual', 'listening'],
+    'focus-objective': ['depth', 'judgment', 'visual']
   };
 
   const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -132,7 +132,52 @@
   let days = Number(DS.get().profile.availableDays) || 3;
   let commitment = null;
   let minutes=5;
-  const savePreview=()=>{if(!journal)return;const previous=journal.preview()||{goal:journal.profile().goal?.id||'reduce-scrolling',days:Number(journal.profile().setup?.availableDays)||3,minutes:5,commitment:null};try{journal.mutate({type:'onboarding.preview',preview:{goal,days,minutes,commitment}});}catch(error){({goal,days,minutes,commitment}=previous);document.getElementById('plan-days').value=String(days);document.getElementById('plan-minutes').value=String(minutes);throw error;}};
+  const Account = window.DeepSproutAccount;
+  const types = {depth:'depth',listening:'listening','visual-observation':'visual','digital-judgment':'judgment'};
+  let server, saving = false;
+  function useSavedPreview() {
+    const prefs = server.plan.preferences;
+    document.getElementById('plan-days').disabled = server.kind === 'Maintenance';
+    ({goal,minutes} = prefs);
+    days = prefs.practiceDays.length;
+    commitment = prefs.routine;
+    document.getElementById('plan-days').value = String(days);
+    document.getElementById('plan-minutes').value = String(minutes);
+  }
+
+  async function savePreview(changes = {}) {
+    if (server?.canEdit) {
+      if (saving) return false;
+      saving = true;
+      document.getElementById('activate').disabled = true;
+      document.getElementById('activate-note').textContent = 'Saving your preview…';
+      try {
+        server = await Account.writeRecovery(server, {...server.plan.preferences,...changes});
+        return true;
+      } catch (error) {
+        window.DeepSproutPersonal.failure(error.message);
+        return false;
+      } finally {
+        saving = false;
+        useSavedPreview();
+        renderPreview();
+        renderCommitments();
+      }
+    }
+    if (!journal) return false;
+    const previous = journal.preview() || {goal:journal.profile().goal?.id || 'reduce-scrolling',
+      days:Number(journal.profile().setup?.availableDays) || 3,minutes:5,commitment:null};
+    try {
+      journal.mutate({type:'onboarding.preview',preview:{goal,days,minutes,commitment}});
+      return true;
+    } catch (error) {
+      ({goal,days,minutes,commitment} = previous);
+      document.getElementById('plan-days').value = String(days);
+      document.getElementById('plan-minutes').value = String(minutes);
+      window.DeepSproutPersonal.failure(error.message);
+      return false;
+    }
+  }
 
   /** Spread the week's practices across the seven days rather than bunching them. */
   function practiceDays(count) {
@@ -143,9 +188,19 @@
   }
 
   function buildWeekOne() {
+    if (server?.canEdit) return server.plan.weekOne.map(day => {
+      const date = DS.addDays(Account.parse(server.startsOn), day.offset);
+      const label = day.offset === 0 ? 'Day 1' : WEEKDAYS[date.getDay()];
+      const practice = PRACTICES[types[day.activityType]];
+      if (practice) return {label,title:practice.title,kind:'practice',icon:practice.icon,minutes,
+        note:`${minutes} minutes · ${practice.note}${day.review ? ' Also planned: Weekly review.' : ''}`};
+      if (day.review) return {label,title:'Weekly review',kind:'review',note:'A few short questions at the end of Week 1.'};
+      return {label,title:'Nothing else scheduled',kind:'rest',
+        note:day.routine ? 'Your offline commitment is planned.' : 'Space for a day off.'};
+    });
     const interests=journal?.profile().setup?.offlineInterests||DS.get().profile.offlineInterests||[];
     const base=PRACTICE_MIX[goal]||PRACTICE_MIX['reduce-scrolling'];
-    const mix=goal==='reduce-scrolling'&&interests.includes('reading')?['challenge','depth','protected']:goal==='offline-time'&&interests.includes('music')?['listening','challenge','listening']:base;
+    const mix=goal==='reduce-scrolling'&&interests.includes('reading')?['visual','depth','judgment']:goal==='offline-time'&&interests.includes('music')?['listening','visual','listening']:base;
     const practiceCount = Math.min(5,Math.max(2,days));
     const slots = practiceDays(practiceCount);
     const start = journal?.today||new Date();
@@ -169,7 +224,7 @@
   function renderPreview() {
     document.getElementById('goal-card-text').textContent = DS.GOALS[goal];
 
-    const directions = DIRECTIONS[goal] || DIRECTIONS['reduce-scrolling'];
+    const directions = server?.canEdit ? server.plan.weeks.map(week => [week.title,week.note]) : DIRECTIONS[goal] || DIRECTIONS['reduce-scrolling'];
     document.getElementById('roadmap').replaceChildren(...directions.map(([title, note], index) => {
       const item = document.createElement('li');
       item.innerHTML = `<span class="sp-week-tag">W${index + 1}</span>
@@ -196,13 +251,13 @@
       ? `You named ${sites} service${sites === 1 ? '' : 's'} that pull you in. Digital Shield currently demonstrates site protection and reminders. No extension is connected, so this preview cannot block or measure those services. Your choices remain preferences.`
       : 'Digital Shield is a local prototype of site protection and reminders. No extension is connected and phone apps cannot be blocked or measured.';
 
-    document.getElementById('preview-reason').textContent=`Demo recommendation rule v1: your ${DS.GOALS[goal].toLowerCase()} goal, ${days} available days, ${minutes}-minute preference and ${(profile.offlineInterests||[]).join(', ')||'unselected offline interests'} shape this preview. ${baselinesComplete()?'Your four Lab results stay separate measurements':'You start at Journey Level 1; Lab assessments are optional and missing results remain unknown'}; every practice starts at introductory Level 1. These rules are not scientific calibration.`;
+    document.getElementById('preview-reason').textContent=`Your ${DS.GOALS[goal].toLowerCase()} goal, selected practices, ${days} available days and ${minutes}-minute preference shape Week 1. Lab assessments are optional.`;
     document.getElementById('back-to-results').hidden=!baselinesComplete();
     const summary = document.getElementById('plan-summary');
     summary.replaceChildren();
     [
-      ['Cycle length', '28 days · 4 weeks'],
-      ['Starts', DS.formatDate(journal?.today||new Date(), { weekday: 'short', month: 'short', day: 'numeric' })],
+      ['Cycle length', `${server?.plan?.cycleDays || 28} days · ${directions.length} weeks`],
+      ['Starts on activation', DS.formatDate(server?.startsOn ? Account.parse(server.startsOn) : journal?.today || new Date(), { weekday: 'short', month: 'short', day: 'numeric' })],
       ['Practices in week 1', String(practiceCount)],
       ['Offline commitment', commitment ? commitment.title : 'Not chosen yet'],
       ['Weekly review', 'End of each week']
@@ -215,10 +270,44 @@
     });
 
     const activate = document.getElementById('activate');
-    activate.disabled = !commitment;
+    activate.disabled = !commitment || saving;
     document.getElementById('activate-note').textContent = commitment
-      ? 'Activating starts day 1. You can adjust future days at any time.'
+      ? 'Activating starts day 1 and saves your first week.'
       : 'Choose one offline commitment to continue.';
+    renderServerControls();
+  }
+
+  function renderServerControls() {
+    if (!server?.canEdit) return;
+    const prefs = server.plan.preferences;
+    const headings = Array.from({length:7}, (_, offset) => [offset, `Day ${offset + 1}`]);
+    const controls = [
+      ['preview-activities',Object.entries(types).map(([type,key]) => [type,PRACTICES[key].title]),prefs.activityTypes,'Practice choices',
+        values => savePreview({activityTypes:values})],
+      ['preview-days',headings,prefs.practiceDays,'Week 1 practice days',values => savePreview({practiceDays:values})],
+      ['preview-routine-days',headings,prefs.routine?.days,'Offline routine days',values => savePreview({routine:{...commitment,days:values}})]
+    ];
+    for (const [id,options,selected,title,save] of controls) {
+      const field = document.getElementById(id);
+      field.hidden = !selected;
+      if (!selected) continue;
+      const legend = document.createElement('legend');
+      legend.textContent = title;
+      field.replaceChildren(legend,...options.map(([value,label]) => {
+        const choice = document.createElement('label');
+        const checkbox = document.createElement('input');
+          const oneDay = server.kind==='Maintenance' && id==='preview-days';
+          checkbox.type = oneDay?'radio':'checkbox';
+          if(oneDay)checkbox.name='maintenance-day';
+        checkbox.checked = selected.includes(value);
+        checkbox.onchange = () => {
+            const next = oneDay?[value]:checkbox.checked?[...selected,value]:selected.filter(item=>item!==value);
+          save(next);
+        };
+        choice.append(checkbox, ' ', label);
+        return choice;
+      }));
+    }
   }
 
   /* ----------------------------------------------------- offline commitment */
@@ -238,7 +327,8 @@
     };
 
     // The Quick Setup proposal (if any) comes first, so the preliminary suggestion is visible and changeable.
-    const proposed = commitment && !Object.values(byInterest).some(item => item.title === commitment.title) ? [commitment] : [];
+    const candidate = commitment || server?.plan?.suggestedRoutine;
+    const proposed = candidate && !Object.values(byInterest).some(item => item.title === candidate.title) ? [candidate] : [];
     const matched = interests.map(key => byInterest[key]).filter(Boolean);
     const fallback = DS.ROUTINE_IDEAS.filter(idea =>
       !matched.some(match => match.title === idea.title));
@@ -253,11 +343,12 @@
       button.className = 'choice';
       button.setAttribute('role', 'radio');
       button.setAttribute('aria-checked', String(commitment?.title === option.title));
-      button.innerHTML = `<span class="mark"><svg><use href="#i-check"/></svg></span>
-        <span><strong>${option.title}</strong><small>${option.hint}</small></span>`;
-      button.addEventListener('click', () => {
+      button.innerHTML = '<span class="mark"><svg><use href="#i-check"/></svg></span><span><strong></strong><small></small></span>';
+      button.querySelector('strong').textContent = option.title;
+      button.querySelector('small').textContent = option.hint || '';
+      button.addEventListener('click', async () => {
         commitment = option;
-        try{savePreview();}catch(error){window.DeepSproutPersonal.failure(error.message);return;}
+        if (!await savePreview({routine:routineChoice(option)})) return;
         renderCommitments();
         renderPreview();
       });
@@ -265,12 +356,15 @@
     }));
   }
 
-  document.getElementById('add-custom').addEventListener('click', () => {
+  const routineChoice = option => ({title:option.title,minutes:option.minutes || server?.plan?.suggestedRoutine.minutes || minutes,
+    days:option.days || [0,1,2,3,4,5,6]});
+
+  document.getElementById('add-custom').addEventListener('click', async () => {
     const input = document.getElementById('custom-routine');
     const title = input.value.trim();
     if (!title) { input.focus(); return; }
     commitment = { title, hint: 'Your own commitment.' };
-    try{savePreview();}catch(error){window.DeepSproutPersonal.failure(error.message);return;}
+    if (!await savePreview({routine:routineChoice(commitment)})) return;
     input.value = '';
     renderCommitments();
     renderPreview();
@@ -289,9 +383,9 @@
       button.setAttribute('role', 'radio');
       button.setAttribute('aria-checked', String(value === goal));
       button.innerHTML = `<span class="mark"><svg><use href="#i-check"/></svg></span><span><strong>${label}</strong></span>`;
-      button.addEventListener('click', () => {
+      button.addEventListener('click', async () => {
         goal = value;
-        try{savePreview();}catch(error){window.DeepSproutPersonal.failure(error.message);return;}
+        if (!await savePreview({goal,activityTypes:[...new Set(PRACTICE_MIX[goal])].map(key => Object.keys(types).find(type => types[type] === key))})) return;
         goalDialog.close();
         renderPreview();
       });
@@ -305,13 +399,13 @@
     if (event.target === goalDialog) goalDialog.close();
   });
 
-  document.getElementById('plan-days').addEventListener('change', event => {
+  document.getElementById('plan-days').addEventListener('change', async event => {
     days = Number(event.target.value);
-    try{savePreview();}catch(error){window.DeepSproutPersonal.failure(error.message);return;}
+    if (!await savePreview({practiceDays:practiceDays(days)})) return;
     renderPreview();
   });
 
-  document.getElementById('plan-minutes').addEventListener('change',event=>{minutes=Number(event.target.value);try{savePreview();renderPreview();}catch(error){window.DeepSproutPersonal.failure(error.message);}});
+  document.getElementById('plan-minutes').addEventListener('change',async event=>{minutes=Number(event.target.value);if(await savePreview({minutes}))renderPreview();});
 
   /* ---------------------------------------------------------- the transition */
 
@@ -340,8 +434,28 @@
 
   /* ------------------------------------------------------------- activation */
 
-  document.getElementById('activate').addEventListener('click', () => {
-    if (!commitment) return;
+  document.getElementById('activate').addEventListener('click', async () => {
+    if (!commitment || saving) return;
+
+    if (server?.canEdit) {
+      saving = true;
+      document.getElementById('activate').disabled = true;
+      document.getElementById('activate-note').textContent = 'Activating your plan…';
+      try {
+        const active = await Account.writeRecovery(server);
+        document.getElementById('done-day').textContent = `Day 1 of ${active.plan.cycleDays}`;
+        document.getElementById('done-lead').textContent = `Your first week is saved, including your offline commitment, “${active.plan.preferences.routine.title}”.`;
+        show('done');
+        Account.load(true).then(() => {
+          if(active.cycleNumber===1)window.DeepSproutTour?.open();
+        }, () => {});
+      } catch (error) {
+        window.DeepSproutPersonal.failure(error.message);
+        document.getElementById('activate-note').textContent = error.message;
+        document.getElementById('activate').disabled = false;
+      } finally { saving = false; }
+      return;
+    }
 
     const week = buildWeekOne();
     // Activation is the person's explicit choice here; the four baselines are optional (Onboarding 2.0).
@@ -350,7 +464,7 @@
     // The same plan in the personal journal that Home and Roadmap read.
     try {
     if (!journal.plan()) {
-      const typeOf = { 'Depth Practice': 'depth', 'Listening & Recall': 'listening', 'Practical Micro-Challenge': 'practical', 'Protected Work': 'protected-work' };
+      const typeOf = { 'Depth Practice': 'depth', 'Listening & Recall': 'listening', 'Visual Observation & Analysis': 'visual-observation', 'Reasoning & Digital Judgment': 'digital-judgment' };
       const today = journal.today;
       journal.mutate({ type: 'plan.activate', goal, goalLabel: DS.GOALS[goal], lengthDays: 28, firstRunPlan, commitment,
         direction: (DIRECTIONS[goal] || DIRECTIONS['reduce-scrolling']).map(([title, note]) => ({ title, note })),
@@ -379,9 +493,17 @@
   };
   start();
   // Refresh once the personal journal (where the baselines are recorded) has loaded.
-  window.DeepSproutAccount?.load().then(loaded => { journal = loaded;const draft=journal.preview();goal=draft?.goal||journal.profile().goal?.id||goal;days=draft?.days||Number(journal.profile().setup?.availableDays)||days;minutes=draft?.minutes||5;commitment=draft?.commitment||null;document.getElementById('plan-days').value=String(days);document.getElementById('plan-minutes').value=String(minutes);renderResults();document.getElementById('to-building').disabled=!baselinesComplete();
+  Account?.load().then(loaded => { journal = loaded;server=journal.serverRecovery();const draft=journal.preview();goal=draft?.goal||journal.profile().goal?.id||goal;days=draft?.days||Number(journal.profile().setup?.availableDays)||days;minutes=draft?.minutes||5;commitment=draft?.commitment||null;document.getElementById('plan-days').value=String(days);document.getElementById('plan-minutes').value=String(minutes);renderResults();document.getElementById('to-building').disabled=!baselinesComplete();
     const active=journal.plan();
-    if(active){document.getElementById('done-day').textContent=`Day ${active.day} of ${active.lengthDays}`;document.getElementById('done-lead').textContent='Your personal plan is already active.';show('done');}
+    if(active){document.getElementById('done-day').textContent=`Day ${active.day} of ${active.lengthDays}`;document.getElementById('done-lead').textContent='Your personal plan is already saved.';show('done');}
+    else if(server?.canEdit){
+      document.querySelectorAll('[data-server-only]').forEach(option => {option.hidden=false;});
+      useSavedPreview();renderPreview();renderCommitments();show('preview');
+    }
+    else if(journal.serverAuthenticated()){
+      if(!server) location.replace('onboarding.html?step=setup');
+      else {show('results');window.DeepSproutPersonal.failure('Open your Roadmap to see your saved cycle.');}
+    }
     // Without optional Lab results, the Week 1 preview opens directly.
     else if(!baselinesComplete()||DS.get().onboarding.resultsSeen){renderPreview();renderCommitments();show('preview');}
     else show('results'); },error=>{show('results');window.DeepSproutPersonal.failure(error.message);});

@@ -443,165 +443,6 @@
       "audioDurationSeconds": 27.047528344671203
     },
     {
-      "id": "practice-practical-l1-a",
-      "practiceType": "practical",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "micro-1-0-1",
-      "kind": "practice",
-      "level": 1,
-      "title": "A usable next step",
-      "goalTags": [
-        "offline-time",
-        "reduce-scrolling"
-      ],
-      "estimatedMinutes": 4,
-      "instructions": "Choose one postponed real task. Write its intended outcome and three ordered steps. Carry out the first step, then record what you actually did.",
-      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
-      "responseMethod": "artifact-description",
-      "validationVersion": "self-report-fields-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
-    },
-    {
-      "id": "practice-practical-l1-b",
-      "practiceType": "practical",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "micro-1-1-1",
-      "kind": "practice",
-      "level": 1,
-      "title": "A findable space",
-      "goalTags": [
-        "offline-time",
-        "reduce-scrolling"
-      ],
-      "estimatedMinutes": 4,
-      "instructions": "Choose a small physical workspace or folder. Define three categories, place at least three items, and record one item that is easier to find now.",
-      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
-      "responseMethod": "artifact-description",
-      "validationVersion": "self-report-fields-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
-    },
-    {
-      "id": "practice-practical-l1-c",
-      "practiceType": "practical",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "micro-1-2-1",
-      "kind": "practice",
-      "level": 1,
-      "title": "A clear explanation",
-      "goalTags": [
-        "offline-time",
-        "reduce-scrolling"
-      ],
-      "estimatedMinutes": 4,
-      "instructions": "Choose a familiar everyday process. Write instructions for a beginner, test one step yourself, and revise one sentence that could be misunderstood.",
-      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
-      "responseMethod": "artifact-description",
-      "validationVersion": "self-report-fields-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
-    },
-    {
-      "id": "practice-protected-work-l1-a",
-      "practiceType": "protected-work",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "work-1-0-1",
-      "kind": "practice",
-      "level": 1,
-      "title": "Begin a meaningful piece of work",
-      "goalTags": [
-        "focus-objective",
-        "intentional-phone"
-      ],
-      "estimatedMinutes": 2,
-      "sessionSeconds": 120,
-      "instructions": "Begin a meaningful piece of work. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
-      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
-      "responseMethod": "intention-timer-outcome",
-      "validationVersion": "observed-time-self-report-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
-    },
-    {
-      "id": "practice-protected-work-l1-b",
-      "practiceType": "protected-work",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "work-1-1-1",
-      "kind": "practice",
-      "level": 1,
-      "title": "Continue an unfinished task",
-      "goalTags": [
-        "focus-objective",
-        "intentional-phone"
-      ],
-      "estimatedMinutes": 2,
-      "sessionSeconds": 120,
-      "instructions": "Continue an unfinished task. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
-      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
-      "responseMethod": "intention-timer-outcome",
-      "validationVersion": "observed-time-self-report-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
-    },
-    {
-      "id": "practice-protected-work-l1-c",
-      "practiceType": "protected-work",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "work-1-2-1",
-      "kind": "practice",
-      "level": 1,
-      "title": "Finish and check one small deliverable",
-      "goalTags": [
-        "focus-objective",
-        "intentional-phone"
-      ],
-      "estimatedMinutes": 2,
-      "sessionSeconds": 120,
-      "instructions": "Finish and check one small deliverable. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
-      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
-      "responseMethod": "intention-timer-outcome",
-      "validationVersion": "observed-time-self-report-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
-    },
-    {
       "id": "practice-depth-l2-a",
       "practiceType": "depth",
       "status": "Published",
@@ -1092,165 +933,6 @@
       "audio": "assets/practices/practice-listening-l2-c.wav",
       "audioVersion": "practice-listening-l2-c-audio-1",
       "audioDurationSeconds": 37.682267573696144
-    },
-    {
-      "id": "practice-practical-l2-a",
-      "practiceType": "practical",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "micro-2-0-1",
-      "kind": "practice",
-      "level": 2,
-      "title": "A usable next step",
-      "goalTags": [
-        "offline-time",
-        "reduce-scrolling"
-      ],
-      "estimatedMinutes": 6,
-      "instructions": "Choose one postponed real task. Write its intended outcome and three ordered steps. Carry out the first step, then record what you actually did. Include one constraint and how you handled it.",
-      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
-      "responseMethod": "artifact-description",
-      "validationVersion": "self-report-fields-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
-    },
-    {
-      "id": "practice-practical-l2-b",
-      "practiceType": "practical",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "micro-2-1-1",
-      "kind": "practice",
-      "level": 2,
-      "title": "A findable space",
-      "goalTags": [
-        "offline-time",
-        "reduce-scrolling"
-      ],
-      "estimatedMinutes": 6,
-      "instructions": "Choose a small physical workspace or folder. Define three categories, place at least three items, and record one item that is easier to find now. Include one constraint and how you handled it.",
-      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
-      "responseMethod": "artifact-description",
-      "validationVersion": "self-report-fields-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
-    },
-    {
-      "id": "practice-practical-l2-c",
-      "practiceType": "practical",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "micro-2-2-1",
-      "kind": "practice",
-      "level": 2,
-      "title": "A clear explanation",
-      "goalTags": [
-        "offline-time",
-        "reduce-scrolling"
-      ],
-      "estimatedMinutes": 6,
-      "instructions": "Choose a familiar everyday process. Write instructions for a beginner, test one step yourself, and revise one sentence that could be misunderstood. Include one constraint and how you handled it.",
-      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
-      "responseMethod": "artifact-description",
-      "validationVersion": "self-report-fields-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
-    },
-    {
-      "id": "practice-protected-work-l2-a",
-      "practiceType": "protected-work",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "work-2-0-1",
-      "kind": "practice",
-      "level": 2,
-      "title": "Begin a meaningful piece of work",
-      "goalTags": [
-        "focus-objective",
-        "intentional-phone"
-      ],
-      "estimatedMinutes": 3,
-      "sessionSeconds": 180,
-      "instructions": "Begin a meaningful piece of work. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
-      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
-      "responseMethod": "intention-timer-outcome",
-      "validationVersion": "observed-time-self-report-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
-    },
-    {
-      "id": "practice-protected-work-l2-b",
-      "practiceType": "protected-work",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "work-2-1-1",
-      "kind": "practice",
-      "level": 2,
-      "title": "Continue an unfinished task",
-      "goalTags": [
-        "focus-objective",
-        "intentional-phone"
-      ],
-      "estimatedMinutes": 3,
-      "sessionSeconds": 180,
-      "instructions": "Continue an unfinished task. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
-      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
-      "responseMethod": "intention-timer-outcome",
-      "validationVersion": "observed-time-self-report-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
-    },
-    {
-      "id": "practice-protected-work-l2-c",
-      "practiceType": "protected-work",
-      "status": "Published",
-      "version": 1,
-      "contentVersion": "work-2-2-1",
-      "kind": "practice",
-      "level": 2,
-      "title": "Finish and check one small deliverable",
-      "goalTags": [
-        "focus-objective",
-        "intentional-phone"
-      ],
-      "estimatedMinutes": 3,
-      "sessionSeconds": 180,
-      "instructions": "Finish and check one small deliverable. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
-      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
-      "responseMethod": "intention-timer-outcome",
-      "validationVersion": "observed-time-self-report-1",
-      "accessibilityModes": [
-        "standard"
-      ],
-      "repetition": {
-        "rewardCooldownDays": 7
-      },
-      "rewardPolicyVersion": 1
     },
     {
       "id": "practice-depth-l3-a",
@@ -1805,23 +1487,89 @@
       "audioDurationSeconds": 43.39437641723356
     },
     {
-      "id": "practice-practical-l3-a",
-      "practiceType": "practical",
+      "id": "practice-visual-observation-l1-a",
+      "practiceType": "visual-observation",
       "status": "Published",
       "version": 1,
-      "contentVersion": "micro-3-0-1",
+      "contentVersion": "practice-visual-observation-l1-a-1",
       "kind": "practice",
-      "level": 3,
-      "title": "A usable next step",
+      "level": 1,
+      "title": "The printmaker’s tray",
+      "subtitle": "Remember the positions and shapes on the tray.",
+      "scene": {
+        "columns": 3,
+        "boards": [
+          {
+            "label": "Sorting tray",
+            "cells": [
+              "sage-circle",
+              ".",
+              "ochre-triangle",
+              "ink-square",
+              ".",
+              ".",
+              ".",
+              "clay-diamond",
+              "."
+            ]
+          }
+        ]
+      },
+      "questions": [
+        {
+          "prompt": "What was in the upper-right compartment?",
+          "options": [
+            "Diamond",
+            "Triangle",
+            "Circle",
+            "Square"
+          ],
+          "answer": 1,
+          "explanation": "The triangle was at the far right of the top row."
+        },
+        {
+          "prompt": "Which shape was directly below the circle?",
+          "options": [
+            "Square",
+            "Triangle",
+            "Diamond",
+            "Another circle"
+          ],
+          "answer": 0,
+          "explanation": "The circle and square shared the left column, one above the other."
+        },
+        {
+          "prompt": "Which row held the diamond?",
+          "options": [
+            "Top",
+            "Middle",
+            "Bottom",
+            "The tray held no diamond"
+          ],
+          "answer": 2,
+          "explanation": "The diamond was alone in the bottom row."
+        },
+        {
+          "prompt": "How many shapes occupied the top row?",
+          "options": [
+            "One",
+            "Three",
+            "Four",
+            "Two"
+          ],
+          "answer": 3,
+          "explanation": "The circle and triangle occupied the ends with an empty space between them."
+        }
+      ],
       "goalTags": [
         "offline-time",
+        "focus-objective",
         "reduce-scrolling"
       ],
-      "estimatedMinutes": 8,
-      "instructions": "Choose one postponed real task. Write its intended outcome and three ordered steps. Carry out the first step, then record what you actually did. Include one constraint and how you handled it. Compare two approaches and explain why you chose one.",
-      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
-      "responseMethod": "artifact-description",
-      "validationVersion": "self-report-fields-1",
+      "estimatedMinutes": 3,
+      "instructions": "Study the full composition first. Continue when you are ready to answer four questions about it.",
+      "responseMethod": "observation-questions",
+      "validationVersion": "interactive-questions-1",
       "accessibilityModes": [
         "standard"
       ],
@@ -1831,23 +1579,89 @@
       "rewardPolicyVersion": 1
     },
     {
-      "id": "practice-practical-l3-b",
-      "practiceType": "practical",
+      "id": "practice-visual-observation-l1-b",
+      "practiceType": "visual-observation",
       "status": "Published",
       "version": 1,
-      "contentVersion": "micro-3-1-1",
+      "contentVersion": "practice-visual-observation-l1-b-1",
       "kind": "practice",
-      "level": 3,
-      "title": "A findable space",
+      "level": 1,
+      "title": "A window of stamps",
+      "subtitle": "Study the arrangement on a stamp sheet.",
+      "scene": {
+        "columns": 3,
+        "boards": [
+          {
+            "label": "Stamp sheet",
+            "cells": [
+              "clay-ring",
+              "sage-cross",
+              ".",
+              ".",
+              "ochre-arch",
+              "ink-circle",
+              "sage-triangle",
+              ".",
+              "."
+            ]
+          }
+        ]
+      },
+      "questions": [
+        {
+          "prompt": "What shape occupied the center?",
+          "options": [
+            "Arch",
+            "Cross",
+            "Triangle",
+            "Ring"
+          ],
+          "answer": 0,
+          "explanation": "The arch was in the center, in the second row and second column."
+        },
+        {
+          "prompt": "Where was the filled circle?",
+          "options": [
+            "Bottom left",
+            "Top right",
+            "Middle right",
+            "Top middle"
+          ],
+          "answer": 2,
+          "explanation": "The filled circle was immediately to the right of the arch."
+        },
+        {
+          "prompt": "What was immediately to the right of the ring?",
+          "options": [
+            "Empty space",
+            "Cross",
+            "Arch",
+            "Filled circle"
+          ],
+          "answer": 1,
+          "explanation": "The ring and cross were neighbors in the top row."
+        },
+        {
+          "prompt": "Which row had exactly one stamp?",
+          "options": [
+            "Top",
+            "Middle",
+            "All rows",
+            "Bottom"
+          ],
+          "answer": 3,
+          "explanation": "The bottom row held only the triangle."
+        }
+      ],
       "goalTags": [
         "offline-time",
+        "focus-objective",
         "reduce-scrolling"
       ],
-      "estimatedMinutes": 8,
-      "instructions": "Choose a small physical workspace or folder. Define three categories, place at least three items, and record one item that is easier to find now. Include one constraint and how you handled it. Compare two approaches and explain why you chose one.",
-      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
-      "responseMethod": "artifact-description",
-      "validationVersion": "self-report-fields-1",
+      "estimatedMinutes": 3,
+      "instructions": "Study the full composition first. Continue when you are ready to answer four questions about it.",
+      "responseMethod": "observation-questions",
+      "validationVersion": "interactive-questions-1",
       "accessibilityModes": [
         "standard"
       ],
@@ -1857,23 +1671,89 @@
       "rewardPolicyVersion": 1
     },
     {
-      "id": "practice-practical-l3-c",
-      "practiceType": "practical",
+      "id": "practice-visual-observation-l1-c",
+      "practiceType": "visual-observation",
       "status": "Published",
       "version": 1,
-      "contentVersion": "micro-3-2-1",
+      "contentVersion": "practice-visual-observation-l1-c-1",
       "kind": "practice",
-      "level": 3,
-      "title": "A clear explanation",
+      "level": 1,
+      "title": "The ceramic shelf",
+      "subtitle": "Notice which pieces share a row or a column.",
+      "scene": {
+        "columns": 3,
+        "boards": [
+          {
+            "label": "Display shelf",
+            "cells": [
+              ".",
+              "ochre-diamond",
+              "ink-ring",
+              "sage-arch",
+              ".",
+              "clay-cross",
+              ".",
+              ".",
+              "sage-square"
+            ]
+          }
+        ]
+      },
+      "questions": [
+        {
+          "prompt": "Which shape was below the ring in the same column, one row down?",
+          "options": [
+            "Square",
+            "Arch",
+            "Cross",
+            "Diamond"
+          ],
+          "answer": 2,
+          "explanation": "The ring was top right and the cross was middle right."
+        },
+        {
+          "prompt": "Where was the only arch?",
+          "options": [
+            "Middle left",
+            "Middle right",
+            "Top center",
+            "Bottom right"
+          ],
+          "answer": 0,
+          "explanation": "The arch was the leftmost piece in the middle row."
+        },
+        {
+          "prompt": "Which piece was alone in its row?",
+          "options": [
+            "Ring",
+            "Square",
+            "Cross",
+            "Diamond"
+          ],
+          "answer": 1,
+          "explanation": "The square was at the end of the bottom row, and both cells beside it were empty."
+        },
+        {
+          "prompt": "Which of the three columns held the most pieces?",
+          "options": [
+            "Left",
+            "Middle",
+            "All equal",
+            "Right"
+          ],
+          "answer": 3,
+          "explanation": "The ring, cross, and square filled the right column."
+        }
+      ],
       "goalTags": [
         "offline-time",
+        "focus-objective",
         "reduce-scrolling"
       ],
-      "estimatedMinutes": 8,
-      "instructions": "Choose a familiar everyday process. Write instructions for a beginner, test one step yourself, and revise one sentence that could be misunderstood. Include one constraint and how you handled it. Compare two approaches and explain why you chose one.",
-      "content": "Expected outcome: a usable change and a concrete record of what happened. Your written evidence is self-reported, not independently verified.",
-      "responseMethod": "artifact-description",
-      "validationVersion": "self-report-fields-1",
+      "estimatedMinutes": 3,
+      "instructions": "Study the full composition first. Continue when you are ready to answer four questions about it.",
+      "responseMethod": "observation-questions",
+      "validationVersion": "interactive-questions-1",
       "accessibilityModes": [
         "standard"
       ],
@@ -1883,24 +1763,103 @@
       "rewardPolicyVersion": 1
     },
     {
-      "id": "practice-protected-work-l3-a",
-      "practiceType": "protected-work",
+      "id": "practice-visual-observation-l2-a",
+      "practiceType": "visual-observation",
       "status": "Published",
       "version": 1,
-      "contentVersion": "work-3-0-1",
+      "contentVersion": "practice-visual-observation-l2-a-1",
       "kind": "practice",
-      "level": 3,
-      "title": "Begin a meaningful piece of work",
+      "level": 2,
+      "title": "Two editions",
+      "subtitle": "Compare the proof with the final edition.",
+      "scene": {
+        "columns": 3,
+        "boards": [
+          {
+            "label": "Proof",
+            "cells": [
+              "sage-circle",
+              "ochre-triangle",
+              ".",
+              ".",
+              "ink-square",
+              "clay-diamond",
+              ".",
+              "sage-ring",
+              "."
+            ]
+          },
+          {
+            "label": "Final",
+            "cells": [
+              "sage-circle",
+              ".",
+              "ochre-triangle",
+              "clay-diamond",
+              "ink-square",
+              ".",
+              ".",
+              "sage-ring",
+              "."
+            ]
+          }
+        ]
+      },
+      "questions": [
+        {
+          "prompt": "Which shape shifted one space to the right?",
+          "options": [
+            "Square",
+            "Ring",
+            "Triangle",
+            "Diamond"
+          ],
+          "answer": 2,
+          "explanation": "The triangle moved from top center to top right."
+        },
+        {
+          "prompt": "Which shape crossed the middle row from right to left?",
+          "options": [
+            "Diamond",
+            "Circle",
+            "Square",
+            "Triangle"
+          ],
+          "answer": 0,
+          "explanation": "The diamond moved from the far right to the far left of the middle row."
+        },
+        {
+          "prompt": "Which two pieces stayed in the center column?",
+          "options": [
+            "Triangle and ring",
+            "Square and ring",
+            "Diamond and square",
+            "Circle and ring"
+          ],
+          "answer": 1,
+          "explanation": "The square at the center and the ring below it stayed in place."
+        },
+        {
+          "prompt": "What happened to the top-center compartment?",
+          "options": [
+            "A square appeared",
+            "A ring appeared",
+            "It stayed occupied",
+            "It became empty"
+          ],
+          "answer": 3,
+          "explanation": "The triangle moved away, leaving the top-center compartment empty."
+        }
+      ],
       "goalTags": [
+        "offline-time",
         "focus-objective",
-        "intentional-phone"
+        "reduce-scrolling"
       ],
       "estimatedMinutes": 4,
-      "sessionSeconds": 240,
-      "instructions": "Begin a meaningful piece of work. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
-      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
-      "responseMethod": "intention-timer-outcome",
-      "validationVersion": "observed-time-self-report-1",
+      "instructions": "Study the full composition first. Continue when you are ready to answer four questions about it.",
+      "responseMethod": "observation-questions",
+      "validationVersion": "interactive-questions-1",
       "accessibilityModes": [
         "standard"
       ],
@@ -1910,24 +1869,103 @@
       "rewardPolicyVersion": 1
     },
     {
-      "id": "practice-protected-work-l3-b",
-      "practiceType": "protected-work",
+      "id": "practice-visual-observation-l2-b",
+      "practiceType": "visual-observation",
       "status": "Published",
       "version": 1,
-      "contentVersion": "work-3-1-1",
+      "contentVersion": "practice-visual-observation-l2-b-1",
       "kind": "practice",
-      "level": 3,
-      "title": "Continue an unfinished task",
+      "level": 2,
+      "title": "Mirror study",
+      "subtitle": "Compare the original arrangement with its reflection.",
+      "scene": {
+        "columns": 3,
+        "boards": [
+          {
+            "label": "Original",
+            "cells": [
+              "ochre-arch",
+              ".",
+              "sage-circle",
+              ".",
+              "clay-cross",
+              "ink-square",
+              "ink-ring",
+              ".",
+              "."
+            ]
+          },
+          {
+            "label": "Reflection",
+            "cells": [
+              "sage-circle",
+              ".",
+              "ochre-arch",
+              "ink-square",
+              "clay-cross",
+              ".",
+              ".",
+              ".",
+              "ink-ring"
+            ]
+          }
+        ]
+      },
+      "questions": [
+        {
+          "prompt": "Which direction was flipped?",
+          "options": [
+            "Left and right",
+            "Top and bottom",
+            "Both directions",
+            "Neither direction"
+          ],
+          "answer": 0,
+          "explanation": "Pieces stayed in their rows and switched sides around the center column."
+        },
+        {
+          "prompt": "Which piece kept exactly the same position?",
+          "options": [
+            "Ring",
+            "Arch",
+            "Cross",
+            "Circle"
+          ],
+          "answer": 2,
+          "explanation": "Only the cross was on the vertical mirror line through the center."
+        },
+        {
+          "prompt": "Where is the reflected square in relation to the reflected cross?",
+          "options": [
+            "Immediately above",
+            "Immediately left",
+            "Immediately right",
+            "Immediately below"
+          ],
+          "answer": 1,
+          "explanation": "The square moved to the left of the cross while staying in the middle row."
+        },
+        {
+          "prompt": "Which empty compartment stayed empty in both boards?",
+          "options": [
+            "Top left",
+            "Middle left",
+            "Bottom left",
+            "Top center"
+          ],
+          "answer": 3,
+          "explanation": "The top-center empty compartment was on the mirror line itself."
+        }
+      ],
       "goalTags": [
+        "offline-time",
         "focus-objective",
-        "intentional-phone"
+        "reduce-scrolling"
       ],
       "estimatedMinutes": 4,
-      "sessionSeconds": 240,
-      "instructions": "Continue an unfinished task. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
-      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
-      "responseMethod": "intention-timer-outcome",
-      "validationVersion": "observed-time-self-report-1",
+      "instructions": "Study the full composition first. Continue when you are ready to answer four questions about it.",
+      "responseMethod": "observation-questions",
+      "validationVersion": "interactive-questions-1",
       "accessibilityModes": [
         "standard"
       ],
@@ -1937,24 +1975,109 @@
       "rewardPolicyVersion": 1
     },
     {
-      "id": "practice-protected-work-l3-c",
-      "practiceType": "protected-work",
+      "id": "practice-visual-observation-l2-c",
+      "practiceType": "visual-observation",
       "status": "Published",
       "version": 1,
-      "contentVersion": "work-3-2-1",
+      "contentVersion": "practice-visual-observation-l2-c-1",
       "kind": "practice",
-      "level": 3,
-      "title": "Finish and check one small deliverable",
+      "level": 2,
+      "title": "The exhibit switch",
+      "subtitle": "Find which moves account for the differences between two layouts.",
+      "scene": {
+        "columns": 4,
+        "boards": [
+          {
+            "label": "Morning",
+            "cells": [
+              "sage-arch",
+              ".",
+              "ochre-circle",
+              ".",
+              ".",
+              "clay-ring",
+              ".",
+              "ink-diamond",
+              "ink-cross",
+              ".",
+              "sage-square",
+              "."
+            ]
+          },
+          {
+            "label": "Afternoon",
+            "cells": [
+              "sage-arch",
+              ".",
+              ".",
+              "ochre-circle",
+              ".",
+              "ink-diamond",
+              ".",
+              "clay-ring",
+              ".",
+              ".",
+              "sage-square",
+              "ink-cross"
+            ]
+          }
+        ]
+      },
+      "questions": [
+        {
+          "prompt": "Which two pieces exchanged positions with one another?",
+          "options": [
+            "Circle and cross",
+            "Arch and square",
+            "Ring and diamond",
+            "Square and circle"
+          ],
+          "answer": 2,
+          "explanation": "The ring and diamond traded the occupied cells in the middle row."
+        },
+        {
+          "prompt": "Which piece shifted the furthest horizontally?",
+          "options": [
+            "Cross",
+            "Circle",
+            "Ring",
+            "Diamond"
+          ],
+          "answer": 0,
+          "explanation": "The cross moved three columns. The pair in the middle each moved two, and the circle moved one."
+        },
+        {
+          "prompt": "Which column holds two more pieces in the afternoon?",
+          "options": [
+            "First",
+            "Fourth",
+            "Second",
+            "Third"
+          ],
+          "answer": 1,
+          "explanation": "The fourth column held one piece in the morning and three in the afternoon."
+        },
+        {
+          "prompt": "What still occupied the third column of the bottom row?",
+          "options": [
+            "Ring",
+            "Cross",
+            "Diamond",
+            "Square"
+          ],
+          "answer": 3,
+          "explanation": "The square stayed in the third column of the bottom row."
+        }
+      ],
       "goalTags": [
+        "offline-time",
         "focus-objective",
-        "intentional-phone"
+        "reduce-scrolling"
       ],
       "estimatedMinutes": 4,
-      "sessionSeconds": 240,
-      "instructions": "Finish and check one small deliverable. Name a real task and the small outcome you want before starting. Pause or leave safely; hidden-page time is not counted. Record the actual outcome at the end.",
-      "content": "The local timer observes time only. Task quality and completion are self-reported. Digital Shield is a prototype; this session does not block websites.",
-      "responseMethod": "intention-timer-outcome",
-      "validationVersion": "observed-time-self-report-1",
+      "instructions": "Study the full composition first. Continue when you are ready to answer four questions about it.",
+      "responseMethod": "observation-questions",
+      "validationVersion": "interactive-questions-1",
       "accessibilityModes": [
         "standard"
       ],
@@ -1962,6 +2085,1277 @@
         "rewardCooldownDays": 7
       },
       "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-visual-observation-l3-a",
+      "practiceType": "visual-observation",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-visual-observation-l3-a-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "The transfer diagram",
+      "subtitle": "Read a diagram of four stations. Arrows show where each item moves once.",
+      "scene": {
+        "columns": 3,
+        "boards": [
+          {
+            "label": "Transfer instructions",
+            "cells": [
+              "map-A",
+              "arrow-right",
+              "map-B",
+              "arrow-up",
+              ".",
+              "arrow-down",
+              "map-C",
+              "arrow-left",
+              "map-D"
+            ]
+          }
+        ]
+      },
+      "questions": [
+        {
+          "prompt": "Starting at A and following two arrows, where do you arrive?",
+          "options": [
+            "A",
+            "D",
+            "C",
+            "B"
+          ],
+          "answer": 1,
+          "explanation": "A sends an item to B, and B sends it down to D."
+        },
+        {
+          "prompt": "Which station sends an item directly to A?",
+          "options": [
+            "C",
+            "D",
+            "B",
+            "A"
+          ],
+          "answer": 0,
+          "explanation": "The arrow pointing up in the left column leads from C to A."
+        },
+        {
+          "prompt": "Where does an item starting at B arrive after three moves?",
+          "options": [
+            "B",
+            "D",
+            "A",
+            "C"
+          ],
+          "answer": 2,
+          "explanation": "Starting at B, the route is D, then C, then A."
+        },
+        {
+          "prompt": "How many moves return an item at D to D for the first time?",
+          "options": [
+            "One",
+            "Two",
+            "Three",
+            "Four"
+          ],
+          "answer": 3,
+          "explanation": "D goes to C, then A, then B, then back to D in one four-station loop."
+        }
+      ],
+      "goalTags": [
+        "offline-time",
+        "focus-objective",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Study the full composition first. Continue when you are ready to answer four questions about it.",
+      "responseMethod": "observation-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-visual-observation-l3-b",
+      "practiceType": "visual-observation",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-visual-observation-l3-b-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "The offset mosaic",
+      "subtitle": "Find the rule linking adjacent rows. Treat the four positions as a loop.",
+      "scene": {
+        "columns": 4,
+        "boards": [
+          {
+            "label": "Pattern study",
+            "cells": [
+              "sage-circle",
+              "ochre-triangle",
+              "ink-square",
+              "clay-diamond",
+              "clay-diamond",
+              "sage-circle",
+              "ochre-triangle",
+              "ink-square",
+              "ink-square",
+              "clay-diamond",
+              "sage-circle",
+              "ochre-triangle"
+            ]
+          }
+        ]
+      },
+      "questions": [
+        {
+          "prompt": "What rule takes the top row to the middle row?",
+          "options": [
+            "Move every piece one position right, wrapping the end",
+            "Reverse the entire row",
+            "Move every piece two positions left",
+            "Swap only the two ends"
+          ],
+          "answer": 0,
+          "explanation": "The diamond wraps from last to first, and every other shape moves one position right."
+        },
+        {
+          "prompt": "What would start a fourth row if the rule continued?",
+          "options": [
+            "Circle",
+            "Square",
+            "Diamond",
+            "Triangle"
+          ],
+          "answer": 3,
+          "explanation": "The triangle is at the end of the third row. It wraps into the first position next."
+        },
+        {
+          "prompt": "In the fourth row, what would follow the square?",
+          "options": [
+            "Triangle",
+            "Diamond",
+            "Circle",
+            "The row ends there"
+          ],
+          "answer": 1,
+          "explanation": "The fourth row would read triangle, square, diamond, circle."
+        },
+        {
+          "prompt": "If the rule keeps repeating, which row first repeats the top row?",
+          "options": [
+            "Fourth",
+            "Sixth",
+            "Fifth",
+            "Seventh"
+          ],
+          "answer": 2,
+          "explanation": "Four positions require four shifts to return to the starting arrangement, so row five matches row one."
+        }
+      ],
+      "goalTags": [
+        "offline-time",
+        "focus-objective",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Study the full composition first. Continue when you are ready to answer four questions about it.",
+      "responseMethod": "observation-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-visual-observation-l3-c",
+      "practiceType": "visual-observation",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-visual-observation-l3-c-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "The reading-room map",
+      "subtitle": "Use the numbered floor plan. Each move crosses one shared edge. The blocked cell cannot be entered.",
+      "scene": {
+        "columns": 4,
+        "boards": [
+          {
+            "label": "Floor plan",
+            "cells": [
+              "map-A",
+              "map-1",
+              "map-2",
+              "map-B",
+              "map-3",
+              "map-X",
+              "map-4",
+              "map-5",
+              "map-C",
+              "map-6",
+              "map-7",
+              "map-D"
+            ]
+          }
+        ]
+      },
+      "questions": [
+        {
+          "prompt": "What is the fewest moves from A to D?",
+          "options": [
+            "Three",
+            "Four",
+            "Five",
+            "Six"
+          ],
+          "answer": 2,
+          "explanation": "The endpoints differ by three columns and two rows. Five moves are possible along the outer edge."
+        },
+        {
+          "prompt": "For the shortest route from C to B that visits cell 1, which cell must follow 1?",
+          "options": [
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "answer": 0,
+          "explanation": "Cell 2 is the next step toward B. The cell below 1 is blocked."
+        },
+        {
+          "prompt": "Which two cells could be the first step out of A?",
+          "options": [
+            "2 and 3",
+            "1 and 4",
+            "2 and 6",
+            "1 and 3"
+          ],
+          "answer": 3,
+          "explanation": "Cell 1 shares A’s right edge and cell 3 shares its bottom edge."
+        },
+        {
+          "prompt": "Which station can reach cell 4 in exactly two moves by a shortest route?",
+          "options": [
+            "A only",
+            "B and D",
+            "A and C",
+            "C only"
+          ],
+          "answer": 1,
+          "explanation": "B can go through 2 or 5. D can go through 5 or 7. A and C need three moves."
+        }
+      ],
+      "goalTags": [
+        "offline-time",
+        "focus-objective",
+        "reduce-scrolling"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Study the full composition first. Continue when you are ready to answer four questions about it.",
+      "responseMethod": "observation-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-digital-judgment-l1-a",
+      "practiceType": "digital-judgment",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-digital-judgment-l1-a-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "The focus trick",
+      "claim": "A study club posts, “Our five-minute reset makes almost everyone concentrate better.”",
+      "evidence": [
+        {
+          "id": "s1",
+          "title": "The poll",
+          "detail": "10 volunteers",
+          "body": "Nine of the ten volunteers said they felt more focused immediately afterwards."
+        },
+        {
+          "id": "s2",
+          "title": "The method",
+          "detail": "One session",
+          "body": "Everyone tried the reset. Nobody was asked to do a different activity, and there was no concentration test."
+        },
+        {
+          "id": "s3",
+          "title": "The audience",
+          "detail": "One club",
+          "body": "Volunteers were members of one after-school study club. More than 300 students follow the account."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Which statement reflects what was recorded?",
+          "options": [
+            "Nine students passed a focus test",
+            "Nine volunteers reported feeling more focused",
+            "Nine percent disliked the routine",
+            "Most followers improved"
+          ],
+          "answer": 1,
+          "explanation": "The poll recorded nine self-reports. It did not measure test performance or ask the followers.",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "prompt": "What does 90% describe here?",
+          "options": [
+            "The share of the ten volunteers",
+            "The share of the school",
+            "The increase in concentration",
+            "The share of account followers"
+          ],
+          "answer": 0,
+          "explanation": "Nine out of the ten people who responded is 90%. The denominator is ten.",
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "prompt": "Which piece of evidence would best help test whether the reset itself caused a change?",
+          "options": [
+            "A brighter announcement",
+            "More likes on the post",
+            "A comparable group that did a different activity",
+            "The room number"
+          ],
+          "answer": 2,
+          "explanation": "A comparison group helps separate the reset from other causes, such as expectations or a quiet room.",
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "prompt": "Which rewrite is justified?",
+          "options": [
+            "The reset works for everyone",
+            "The reset reliably raises grades",
+            "Followers who saw the post improved",
+            "Most of the volunteers said they felt more focused that day"
+          ],
+          "answer": 3,
+          "explanation": "This wording preserves who answered, what they reported, and when.",
+          "sources": [
+            "s1",
+            "s3"
+          ]
+        }
+      ],
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 3,
+      "instructions": "Open each fictional source, compare what it shows, and support your answer with the available evidence.",
+      "responseMethod": "evidence-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-digital-judgment-l1-b",
+      "practiceType": "digital-judgment",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-digital-judgment-l1-b-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "The library notice",
+      "claim": "A shared screenshot says the library now stays open late every evening.",
+      "evidence": [
+        {
+          "id": "s1",
+          "title": "Library notice",
+          "detail": "Current week",
+          "body": "The librarian lists opening hours of 09:00–19:00 on Tuesday and Thursday. Other weekdays close at 16:00."
+        },
+        {
+          "id": "s2",
+          "title": "Shared comment",
+          "detail": "Posted yesterday",
+          "body": "One reader wrote, “These are the best hours the library has ever had.”"
+        },
+        {
+          "id": "s3",
+          "title": "Old flyer",
+          "detail": "Last term",
+          "body": "A special exam-week flyer advertised weekday closing at 21:00. The event has ended."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "When can you visit at 18:00 this week?",
+          "options": [
+            "Every weekday",
+            "Monday and Wednesday",
+            "Tuesday and Thursday",
+            "Friday only"
+          ],
+          "answer": 2,
+          "explanation": "The current notice lists 19:00 closing on Tuesday and Thursday only.",
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "prompt": "Which sentence expresses a preference?",
+          "options": [
+            "The new hours are the best",
+            "Thursday closes at 19:00",
+            "The flyer was for exam week",
+            "Friday closes at 16:00"
+          ],
+          "answer": 0,
+          "explanation": "“Best” expresses the reader’s judgment. The other statements are checkable details.",
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "prompt": "Which evidence should you use for next Thursday?",
+          "options": [
+            "The oldest flyer",
+            "The current notice",
+            "The number of likes",
+            "The reader’s comment"
+          ],
+          "answer": 1,
+          "explanation": "The official current notice directly lists Thursday’s hours.",
+          "sources": [
+            "s1",
+            "s3"
+          ]
+        },
+        {
+          "prompt": "Why does the old flyer fail to support the screenshot?",
+          "options": [
+            "A 24-hour clock is unreliable",
+            "Printed notices are always wrong",
+            "Exam week lasts forever",
+            "The flyer covers a different period"
+          ],
+          "answer": 3,
+          "explanation": "The 21:00 time was for an exam week that has ended.",
+          "sources": [
+            "s3"
+          ]
+        }
+      ],
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 3,
+      "instructions": "Open each fictional source, compare what it shows, and support your answer with the available evidence.",
+      "responseMethod": "evidence-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-digital-judgment-l1-c",
+      "practiceType": "digital-judgment",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-digital-judgment-l1-c-1",
+      "kind": "practice",
+      "level": 1,
+      "title": "A faster commute",
+      "claim": "A route app displays, “The River route is always faster.”",
+      "evidence": [
+        {
+          "id": "s1",
+          "title": "Tuesday log",
+          "detail": "River route",
+          "body": "The bus left at 08:00 and arrived at 08:22."
+        },
+        {
+          "id": "s2",
+          "title": "Tuesday log",
+          "detail": "Park route",
+          "body": "The bus left at 08:00 and arrived at 08:28."
+        },
+        {
+          "id": "s3",
+          "title": "Friday log",
+          "detail": "Both routes",
+          "body": "At 08:00, River took 31 minutes and Park took 25 minutes."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Which route was faster on Tuesday?",
+          "options": [
+            "Park",
+            "They tied",
+            "The logs omit the start times",
+            "River"
+          ],
+          "answer": 3,
+          "explanation": "River took 22 minutes and Park took 28.",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "prompt": "Which entry directly challenges the word “always”?",
+          "options": [
+            "Friday’s route times",
+            "Tuesday’s departure time",
+            "The route names",
+            "The app’s headline"
+          ],
+          "answer": 0,
+          "explanation": "On Friday, Park was six minutes quicker than River.",
+          "sources": [
+            "s3"
+          ]
+        },
+        {
+          "prompt": "What is the most accurate summary of the logs?",
+          "options": [
+            "Park is always faster",
+            "River was faster Tuesday and Park was faster Friday",
+            "River was faster both days",
+            "Neither day can be compared"
+          ],
+          "answer": 1,
+          "explanation": "The logs show a different quicker route on each of the two observed days.",
+          "sources": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        },
+        {
+          "prompt": "What would improve an estimate for future trips?",
+          "options": [
+            "Counting app downloads",
+            "Removing Friday’s log",
+            "Comparing logs over more comparable days and times",
+            "Repeating the title"
+          ],
+          "answer": 2,
+          "explanation": "More trips at comparable times give better evidence of how the routes usually perform.",
+          "sources": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        }
+      ],
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 3,
+      "instructions": "Open each fictional source, compare what it shows, and support your answer with the available evidence.",
+      "responseMethod": "evidence-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-digital-judgment-l2-a",
+      "practiceType": "digital-judgment",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-digital-judgment-l2-a-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "Half the waste?",
+      "claim": "A café shares, “Reusable cups cut our monthly waste in half.”",
+      "evidence": [
+        {
+          "id": "s1",
+          "title": "April record",
+          "detail": "200 drinks",
+          "body": "The café discarded 100 single-use cups in April."
+        },
+        {
+          "id": "s2",
+          "title": "May record",
+          "detail": "100 drinks",
+          "body": "The café introduced reusable cups and discarded 50 single-use cups in May."
+        },
+        {
+          "id": "s3",
+          "title": "Reporting note",
+          "detail": "One waste category",
+          "body": "Staff counted cups only. They did not count packaging, spoiled food, or other rubbish."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Which number was halved?",
+          "options": [
+            "The share of drinks in disposable cups",
+            "The number of cups discarded",
+            "The total weight of rubbish",
+            "The price of a drink"
+          ],
+          "answer": 1,
+          "explanation": "Cup count fell from 100 to 50. Total rubbish was not measured.",
+          "sources": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        },
+        {
+          "prompt": "How did discarded cups per drink change?",
+          "options": [
+            "The rate doubled",
+            "It fell from 50% to 25%",
+            "It stayed at 50%",
+            "It rose from 25% to 50%"
+          ],
+          "answer": 2,
+          "explanation": "100 of 200 and 50 of 100 are both one cup for every two drinks.",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "prompt": "What should the café collect to support a claim about total waste?",
+          "options": [
+            "The same measure of all waste categories in both periods",
+            "A review of the drink menu",
+            "The number of reusable colours",
+            "A photo from just May"
+          ],
+          "answer": 0,
+          "explanation": "The claim covers all waste, so it needs comparable measurements of all waste categories.",
+          "sources": [
+            "s3"
+          ]
+        },
+        {
+          "prompt": "Which headline fits the evidence?",
+          "options": [
+            "Reusable cups caused a 50% improvement",
+            "All waste was halved",
+            "Half the customers stopped using cups",
+            "Fewer cups were discarded as drink sales also fell"
+          ],
+          "answer": 3,
+          "explanation": "The records show count changes but do not show a lower per-drink rate or establish cause.",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Open each fictional source, compare what it shows, and support your answer with the available evidence.",
+      "responseMethod": "evidence-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-digital-judgment-l2-b",
+      "practiceType": "digital-judgment",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-digital-judgment-l2-b-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "The quiet seats test",
+      "claim": "A campus post says, “The north room makes people work for longer.”",
+      "evidence": [
+        {
+          "id": "s1",
+          "title": "Room log",
+          "detail": "North · 10 visitors",
+          "body": "Median stay was 42 minutes. Visitors were mainly on study breaks between lectures."
+        },
+        {
+          "id": "s2",
+          "title": "Room log",
+          "detail": "South · 10 visitors",
+          "body": "Median stay was 29 minutes. Most visitors came while waiting for a shuttle every 30 minutes."
+        },
+        {
+          "id": "s3",
+          "title": "Observer’s note",
+          "detail": "Entry and exit only",
+          "body": "The observer noted arrival and departure. They did not track what anyone did inside."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "What was measured directly?",
+          "options": [
+            "Quality of work",
+            "Number of tasks completed",
+            "Time between arrival and departure",
+            "Concentration"
+          ],
+          "answer": 2,
+          "explanation": "The observer recorded entry and exit, which allows duration to be calculated.",
+          "sources": [
+            "s3"
+          ]
+        },
+        {
+          "prompt": "What plausible explanation besides the room itself fits the result?",
+          "options": [
+            "South visitors often left to meet shuttle times",
+            "Both rooms had the same number of visitors",
+            "North had a higher median",
+            "Duration was counted in minutes"
+          ],
+          "answer": 0,
+          "explanation": "Different reasons for visiting can change when people leave, even if rooms have the same effect.",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "prompt": "Which conclusion is supported?",
+          "options": [
+            "North makes anyone productive",
+            "South can never suit students",
+            "All north stays were longer",
+            "The observed median stay was longer in the north room"
+          ],
+          "answer": 3,
+          "explanation": "42 minutes exceeds 29. A difference in medians does not prove every stay differed or establish cause.",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "prompt": "Which change would best test the claim about work?",
+          "options": [
+            "Observe fewer visitors",
+            "Assign similar participants to rooms at random and measure work time consistently",
+            "Ask which room has nicer walls",
+            "Count all stays as work"
+          ],
+          "answer": 1,
+          "explanation": "Comparable groups and a measure of actual work address both confounding and measurement.",
+          "sources": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        }
+      ],
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Open each fictional source, compare what it shows, and support your answer with the available evidence.",
+      "responseMethod": "evidence-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-digital-judgment-l2-c",
+      "practiceType": "digital-judgment",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-digital-judgment-l2-c-1",
+      "kind": "practice",
+      "level": 2,
+      "title": "The recycled screenshot",
+      "claim": "A neighborhood chat shares a pool-closure screenshot with the caption “Closed today.”",
+      "evidence": [
+        {
+          "id": "s1",
+          "title": "Image",
+          "detail": "Date cropped out",
+          "body": "The notice in the image says “Closed Friday for pump maintenance.” It does not show a date."
+        },
+        {
+          "id": "s2",
+          "title": "Official update",
+          "detail": "This Thursday",
+          "body": "The pool’s posted schedule lists normal Friday hours for this week."
+        },
+        {
+          "id": "s3",
+          "title": "Archived notice",
+          "detail": "Four Fridays ago",
+          "body": "A dated pool notice has the exact maintenance wording shown in the cropped image."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "What essential detail is missing from the screenshot?",
+          "options": [
+            "The day of the week",
+            "The calendar date",
+            "Whether it says closed",
+            "The maintenance reason"
+          ],
+          "answer": 1,
+          "explanation": "Friday occurs every week. A date is needed to connect the notice to this week.",
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "prompt": "Which evidence most directly addresses this week?",
+          "options": [
+            "The cropped image",
+            "The number of people who forwarded it",
+            "The current official update",
+            "The chat caption"
+          ],
+          "answer": 2,
+          "explanation": "The official update explicitly applies to the current week.",
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "prompt": "What does the archive add to the investigation?",
+          "options": [
+            "The same wording was used in a dated notice four weeks earlier",
+            "The pool has never shut",
+            "Every screenshot is edited",
+            "Friday hours change weekly"
+          ],
+          "answer": 0,
+          "explanation": "The matching earlier notice gives a plausible source for the undated image.",
+          "sources": [
+            "s3"
+          ]
+        },
+        {
+          "prompt": "What is the most accurate reply?",
+          "options": [
+            "It is definitely closed every Friday",
+            "A closure is impossible",
+            "The old notice proves that every future change is false",
+            "The current schedule shows normal hours. The screenshot may be from an earlier closure."
+          ],
+          "answer": 3,
+          "explanation": "The dated sources support the current schedule and explain the older wording while leaving room for a later update.",
+          "sources": [
+            "s2",
+            "s3"
+          ]
+        }
+      ],
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 4,
+      "instructions": "Open each fictional source, compare what it shows, and support your answer with the available evidence.",
+      "responseMethod": "evidence-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-digital-judgment-l3-a",
+      "practiceType": "digital-judgment",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-digital-judgment-l3-a-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "The homework reminder trial",
+      "claim": "A newsletter credits message reminders for “better completion in all groups.”",
+      "evidence": [
+        {
+          "id": "s1",
+          "title": "Reminder group",
+          "detail": "80 of 100 overall",
+          "body": "Experienced students: 72 of 80 completed. New students: 8 of 20 completed."
+        },
+        {
+          "id": "s2",
+          "title": "No-reminder group",
+          "detail": "60 of 100 overall",
+          "body": "Experienced students: 19 of 20 completed. New students: 41 of 80 completed."
+        },
+        {
+          "id": "s3",
+          "title": "Assignment note",
+          "detail": "Groups chose their own tools",
+          "body": "The study team did not randomly assign people. “Experienced” meant having finished a previous course."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Which group had the higher overall completion rate?",
+          "options": [
+            "Reminder group",
+            "No-reminder group",
+            "They tied",
+            "The totals cannot be compared"
+          ],
+          "answer": 0,
+          "explanation": "The overall rates were 80% and 60%, respectively.",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "prompt": "Within each experience group, which group had the higher observed completion rate?",
+          "options": [
+            "Reminders in both",
+            "Reminders among new students only",
+            "No reminders in both",
+            "The same rate in both"
+          ],
+          "answer": 2,
+          "explanation": "Experienced: 95% without reminders versus 90% with them. New: about 51% without versus 40% with.",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "prompt": "What helps explain why the overall comparison goes the other way?",
+          "options": [
+            "The totals are different sizes",
+            "The outcomes were recorded in hours",
+            "Experienced students did worse everywhere",
+            "Experienced students made up a larger share of the reminder group"
+          ],
+          "answer": 3,
+          "explanation": "Experienced students finished more often in both groups and formed 80% of the reminder group but only 20% of the comparison group.",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "prompt": "Which decision best follows from these records?",
+          "options": [
+            "Use a better controlled trial before attributing a benefit to reminders",
+            "Stop all reminders because they are proven harmful",
+            "Claim success in every subgroup",
+            "Ignore experience when interpreting results"
+          ],
+          "answer": 0,
+          "explanation": "Selection and different group composition prevent either direction of the observed association from proving a causal effect.",
+          "sources": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        }
+      ],
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Open each fictional source, compare what it shows, and support your answer with the available evidence.",
+      "responseMethod": "evidence-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-digital-judgment-l3-b",
+      "practiceType": "digital-judgment",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-digital-judgment-l3-b-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "The battery test",
+      "claim": "An app comparison headline says that Lite mode saves battery on every phone.",
+      "evidence": [
+        {
+          "id": "s1",
+          "title": "SmallPhone lab",
+          "detail": "Per-hour battery drop",
+          "body": "With the same device and brightness, Lite fell 8 points per hour and Standard fell 12 on the same video."
+        },
+        {
+          "id": "s2",
+          "title": "LargePhone lab",
+          "detail": "Per-hour battery drop",
+          "body": "Lite fell 10 points and Standard fell 9 on the same video. Conditions were held fixed for this device."
+        },
+        {
+          "id": "s3",
+          "title": "Third review",
+          "detail": "Uncontrolled use",
+          "body": "A reviewer ended the day at 60% with Lite and 40% with Standard. The two days had different screen time."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "How much smaller was the drop on SmallPhone in Lite mode?",
+          "options": [
+            "Two percent of the remaining battery",
+            "Four percentage points per hour",
+            "Eight percentage points per hour",
+            "Twelve percentage points per hour"
+          ],
+          "answer": 1,
+          "explanation": "The per-hour drops were 12 and 8 points. Their difference is four points.",
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "prompt": "Which source offers a direct counterexample to “every phone”?",
+          "options": [
+            "The uncontrolled review",
+            "The headline itself",
+            "The SmallPhone test",
+            "The LargePhone test"
+          ],
+          "answer": 3,
+          "explanation": "Lite used one more point per hour on that device under its matched conditions.",
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "prompt": "Why can the end-of-day reviewer’s numbers fail to isolate the effect?",
+          "options": [
+            "They used percentage notation",
+            "The device could not have a battery",
+            "Screen time differed between the two days",
+            "There were two modes"
+          ],
+          "answer": 2,
+          "explanation": "More or less screen time changes battery use independent of the app mode.",
+          "sources": [
+            "s3"
+          ]
+        },
+        {
+          "prompt": "What is a justified takeaway for a third phone model?",
+          "options": [
+            "Lite is guaranteed to save four points",
+            "The comparison must be tested under comparable conditions on that model",
+            "Standard always wins",
+            "The uncontrolled review settles the result"
+          ],
+          "answer": 1,
+          "explanation": "Two models behaved differently. A matched test on the third model would be relevant evidence.",
+          "sources": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        }
+      ],
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Open each fictional source, compare what it shows, and support your answer with the available evidence.",
+      "responseMethod": "evidence-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    },
+    {
+      "id": "practice-digital-judgment-l3-c",
+      "practiceType": "digital-judgment",
+      "status": "Published",
+      "version": 1,
+      "contentVersion": "practice-digital-judgment-l3-c-1",
+      "kind": "practice",
+      "level": 3,
+      "title": "The reading app’s cohort",
+      "claim": "A fictional app claims, “Using the app makes readers finish twice as many articles.”",
+      "evidence": [
+        {
+          "id": "s1",
+          "title": "Dashboard",
+          "detail": "2 articles vs 1",
+          "body": "The dashboard compares the per-person median for users who returned daily with the median for visitors who opened the app only once."
+        },
+        {
+          "id": "s2",
+          "title": "Counting rule",
+          "detail": "The same week",
+          "body": "Both groups used the same definition of “finish,” but the dashboard includes articles opened only in the app."
+        },
+        {
+          "id": "s3",
+          "title": "Follow-up",
+          "detail": "One additional check",
+          "body": "A poll found daily returners already reported reading more often before joining. No before-and-after totals were collected."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "What comparison did the dashboard actually make?",
+          "options": [
+            "Before and after for each reader",
+            "Typical finishes among daily returners versus one-time visitors",
+            "App versus no app in a randomized trial",
+            "Reading completion across every website"
+          ],
+          "answer": 1,
+          "explanation": "The comparison was between distinct groups defined by how often they opened the app.",
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "prompt": "What alternative explanation fits the follow-up?",
+          "options": [
+            "The amount of reading was experimentally fixed",
+            "The two groups contained the same people",
+            "People who already read often may be more likely to return",
+            "The app must have changed reading outside it"
+          ],
+          "answer": 2,
+          "explanation": "The groups may differ before exposure, so the comparison mixes prior habits with possible app effects.",
+          "sources": [
+            "s1",
+            "s3"
+          ]
+        },
+        {
+          "prompt": "What would be needed to claim an effect on overall reading?",
+          "options": [
+            "Comparable groups and a common measure that covers reading both inside and outside the app",
+            "A higher logo resolution",
+            "More app-only charts for the same users",
+            "Minutes since account creation"
+          ],
+          "answer": 0,
+          "explanation": "App-only finishes miss reading elsewhere, and comparable groups help distinguish initial differences from an effect.",
+          "sources": [
+            "s2",
+            "s3"
+          ]
+        },
+        {
+          "prompt": "Which conclusion best summarizes the evidence?",
+          "options": [
+            "The app doubles reading for all users",
+            "One-time visitors stopped reading elsewhere",
+            "Returning daily guarantees completion",
+            "Daily returners finished more articles in the app during the measured week"
+          ],
+          "answer": 3,
+          "explanation": "The descriptive comparison is supported. It cannot identify a change caused by the app.",
+          "sources": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        }
+      ],
+      "goalTags": [
+        "reduce-scrolling",
+        "intentional-phone",
+        "focus-objective"
+      ],
+      "estimatedMinutes": 5,
+      "instructions": "Open each fictional source, compare what it shows, and support your answer with the available evidence.",
+      "responseMethod": "evidence-questions",
+      "validationVersion": "interactive-questions-1",
+      "accessibilityModes": [
+        "standard"
+      ],
+      "repetition": {
+        "rewardCooldownDays": 7
+      },
+      "rewardPolicyVersion": 1
+    }
+  ],
+  "families": [
+    {
+      "id": "visual-observation",
+      "title": "Visual Observation & Analysis",
+      "skill": "Visual observation",
+      "icon": "shapes",
+      "replaces": "practical"
+    },
+    {
+      "id": "digital-judgment",
+      "title": "Reasoning & Digital Judgment",
+      "skill": "Digital judgment",
+      "icon": "evidence",
+      "replaces": "protected-work"
     }
   ]
 }

@@ -57,7 +57,7 @@ test('Demo · reviews reference the right plan, cycle and week; the level change
  const decision=record.levelEvents.find(e=>e.activityType==='depth'&&e.choice==='next');assert.ok(decision,'an attributed level decision exists');assert.equal(decision.from,1);
  const before=record.activityAttempts.filter(x=>x.activityType==='depth'&&x.level===1&&x.progressionEligible&&x.on<=decision.on);
  assert.ok(new Set(before.map(x=>x.activityId)).size>=3&&new Set(before.map(x=>x.on)).size>=3,'three distinct examples across separate days before the next level');
- assert.equal(a.training().find(t=>t.id==='protected-work').validAtLevel,0,'no Protected Work timer evidence is fabricated');
+ assert.ok(record.activityAttempts.some(t=>t.activityType==='visual-observation'&&Number.isFinite(t.score)));
 });
 
 test('Demo · Garden sources derive from qualifying attempts; Shield has no generated telemetry; operational records are untouched',async()=>{

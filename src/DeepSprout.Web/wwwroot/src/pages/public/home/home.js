@@ -25,7 +25,14 @@
     const fmt = Account.format;
     const plan = account.plan();
     const reviews = account.reviews();
-    if (plan) {
+    const server = account.serverRecovery();
+    if (server && ['Ended','Reviewed'].includes(server.status)) {
+      $('space-roadmap-title').textContent = `Cycle ${server.cycleNumber} · ${server.status==='Ended'?'Ready for review':'Review saved'}`;
+      $('space-roadmap-note').textContent = server.status==='Ended'?'Open your Roadmap to review the recorded evidence.':'Your completed cycle is available in History.';
+    } else if (server?.canEdit && server.cycleNumber>1) {
+      $('space-roadmap-title').textContent = `Cycle ${server.cycleNumber} preview`;
+      $('space-roadmap-note').textContent = 'Your next week starts after you review and activate it.';
+    } else if (plan) {
       const week = plan.direction[plan.week - 1];
       $('space-roadmap-title').textContent = `Week ${plan.week} · ${week.title}`;
       const toReview = reviews.nextDue ? Account.daysBetween(account.today, reviews.nextDue) : null;
@@ -56,29 +63,35 @@
       $('space-shield-note').textContent = 'Connect the optional extension and choose sites to observe. Missing time is unknown.';
     }
 
-    // The same model and policy as My Garden: four small practice-type trees,
-    // grown from the journal's valid practices and Coach-approved tasks.
-    const paintGarden = () => {
-      const journal = account.practiceGarden();
+    const paintGarden = async () => {
+      const saved = account.serverAuthenticated() ? await account.readPersonalGarden() : null;
+      const journal = saved || account.practiceGarden();
       const policy = journal.policy;
       const repo = window.DeepSproutRepo, me = repo?.me();
-      const shared = repo && me && repo.selectors.hasPersonalGarden(repo.read(), me.id) ? repo.selectors.personalGardenEffects(repo.read(), me.id) : [];  // Invited Students: Group Garden only until upgrade (D12).
+      const shared = !saved && repo && me && repo.selectors.hasPersonalGarden(repo.read(), me.id) ? repo.selectors.personalGardenEffects(repo.read(), me.id) : [];
       const trees = journal.types.map(type => {
         const n = type.sources.length + shared.filter(e => e.effect === 'tree' && e.type === type.id).length;
-        return { title: type.title, n, stage: policy.treeSteps.filter(step => n >= step).length };
+        return { title: type.title, n, stage: saved ? type.stage : policy.treeSteps.filter(step => n >= step).length };
       });
       const records = trees.reduce((sum, tree) => sum + tree.n, 0);
       const growing = trees.filter(tree => tree.stage > 0).length;
       $('space-garden-title').textContent = records ? `${growing} of 4 trees growing · ${plural(records, 'qualifying record')}` : 'Four places, ready to grow';
-      $('space-garden-note').textContent = trees.map(tree => `${tree.title.split(' ')[0]}: ${policy.stageNames[tree.stage].toLowerCase()}`).join(' · ');
+      const labels = trees.map(tree => `${tree.title.split(' ')[0]}: ${policy.stageNames[tree.stage].toLowerCase()}`);
+      if (saved) for (const [items, noun] of [[saved.flowers,'flower'],[saved.rabbits,'rabbit'],[saved.birdhouses,'birdhouse']])
+        if (items.length) labels.push(plural(items.length,noun));
+      $('space-garden-note').textContent = labels.join(' · ');
       const spots = [[250, 228], [305, 254], [195, 254], [250, 280]];
       if (Art) $('mini-garden').innerHTML = `${Art.defs}${Art.tile(250, 250, 2)}${trees.map((tree, index) => {
         const [x, y] = spots[index];
         return `<g class="mini-plant" transform="translate(${x} ${y}) scale(.42) translate(${-x} ${-y})">${Art.plant(tree.stage, x, y, index + 2)}</g>`;
       }).join('')}`;
     };
-    paintGarden();
-    window.addEventListener('deepsprout:repo-ready', paintGarden, { once: true });
+    paintGarden().catch(() => {
+      $('space-garden-title').textContent = 'Garden unavailable';
+      $('space-garden-note').textContent = 'Your saved Garden could not be loaded.';
+      $('mini-garden').replaceChildren();
+    });
+    if (!account.serverAuthenticated()) window.addEventListener('deepsprout:repo-ready', paintGarden, { once: true });
   }
 
   /* ------------------------------------------------------------ your week */
@@ -101,34 +114,40 @@
     const profile = account.profile();
     const setup = profile.setup || {};
     const draft = account.preview() || {};
-    const minutes = Number(setup.dailyMinutes) || Number(draft.commitment?.durationMinutes) || Number(draft.minutes) || 10;
+    const cycleNumber = account.serverRecovery()?.cycleNumber || 1;
+    const goal = window.DeepSprout?.GOALS[draft.goal] || profile.goal?.label || '';
+    const minutes = Number(draft.commitment?.minutes) || Number(setup.dailyMinutes) || Number(draft.commitment?.durationMinutes) || Number(draft.minutes) || 10;
     const activity = draft.commitment?.title || `${minutes} minutes of something offline`;
-    const practices = Math.min(5, Math.max(2, Number(draft.days) || 3));
+    const practices = draft.weekOne ? draft.days : Math.min(5, Math.max(2, Number(draft.days) || 3));
     const slots = Array.from({ length: practices }, (_, i) => Math.round(i * 6 / practices));
-    const start = account.today || new Date();
+    const start = draft.startsOn ? Account.parse(draft.startsOn) : account.today || new Date();
     // The days rotate through the activities the person said they would love more time for.
     const chosen = (setup.makeTimeFor || []).map(key => SHORT_ACTIVITY[key]).filter(Boolean);
     const rotation = chosen.length ? chosen : ['Offline time'];
     const days = Array.from({ length: 7 }, (_, offset) => {
       const date = new Date(start); date.setDate(date.getDate() + offset);
-      const practice = slots.includes(offset) && offset !== 6;
-      return `<li class="${offset === 0 ? 'is-first' : ''}"><b>${offset === 0 ? 'Day 1' : WEEKDAYS[date.getDay()]}</b><span>${esc(rotation[offset % rotation.length])}</span><small>${minutes} min, offline</small><small>${offset === 6 ? '+ short weekly review' : practice ? `+ ${Math.min(15, minutes)}-min practice` : 'Nothing else'}</small></li>`;
+      const day = draft.weekOne?.[offset];
+      const practice = day ? Boolean(day.activityType) : slots.includes(offset) && offset !== 6;
+      const review = day ? day.review : offset === 6;
+      const activityTitle = day?.activityType ? account.activityType(day.activityType)?.title : null;
+      const additions = [practice ? `${day ? draft.minutes : Math.min(15, minutes)}-min practice` : '', review ? 'short weekly review' : ''].filter(Boolean);
+      return `<li class="${offset === 0 ? 'is-first' : ''}"><b>${offset === 0 ? 'Day 1' : WEEKDAYS[date.getDay()]}</b><span>${esc(activityTitle || rotation[offset % rotation.length])}</span><small>${day && !day.routine ? 'No offline routine scheduled' : `${minutes} min, offline`}</small><small>${additions.length ? '+ ' + additions.join(' · ') : 'Nothing else'}</small></li>`;
     }).join('');
     const apps = (setup.distracting || []).map(key => SETUP_LABELS.apps[key] || key);
     const moment = SETUP_LABELS.moments[setup.peakTime];
     const scroll = SETUP_LABELS.scroll[setup.baselineMinutes];
     const reasons = [
-      `<li><strong>Your goal</strong>${esc(profile.goal?.label || '')}</li>`,
+      `<li><strong>Your goal</strong>${esc(goal)}</li>`,
       moment ? `<li><strong>Your tricky moment</strong>Scrolling takes over ${esc(moment)}. Week 1 keeps one small offline thing ready for that time.</li>` : '',
       apps.length ? `<li><strong>Apps you named</strong>${esc(apps.join(', '))}. Digital Shield can help in a supported desktop browser; it cannot block phone apps.</li>` : '',
       scroll ? `<li><strong>Your estimate</strong>About ${esc(scroll)} of scrolling a day — self-reported, not measured.</li>` : ''
     ].join('');
-    $('week-eyebrow').textContent = 'Journey Level 1 · New Beginning';
-    $('week-heading').textContent = 'Your first week, ready when you are';
-    $('week-sub').textContent = 'A gentle Week 1 proposal built from your six answers. Nothing has started yet.';
+    $('week-eyebrow').textContent = cycleNumber>1?`Cycle ${cycleNumber} · Preview`:'Journey Level 1 · New Beginning';
+    $('week-heading').textContent = cycleNumber>1?'Your next week, ready when you are':'Your first week, ready when you are';
+    $('week-sub').textContent = cycleNumber>1?'Review the proposed week based on your saved plan and review choices.':'A gentle Week 1 proposal built from your six answers. Nothing has started yet.';
     const chip = $('goal-chip');
-    chip.textContent = profile.goal?.label || '';
-    chip.hidden = !profile.goal;
+    chip.textContent = goal;
+    chip.hidden = !goal;
     $('week-active').hidden = true;
     const host = $('week-empty');
     host.hidden = false;
@@ -195,8 +214,9 @@
     const routine = account.routine();
     const reviews = account.reviews();
     const week = plan.direction[plan.week - 1];
-    $('week-eyebrow').textContent = `Week ${plan.week} of ${plan.weeks} · day ${plan.day}`;
-    $('week-heading').textContent = 'Your week so far';
+    const closed = ['Cycle Review Due','Reviewed'].includes(plan.status);
+    $('week-eyebrow').textContent = closed?`Cycle ${plan.cycleNumber} · ${plan.status==='Reviewed'?'Review saved':'Ended'}`:`Week ${plan.week} of ${plan.weeks} · day ${plan.day}`;
+    $('week-heading').textContent = closed?'Your final week, as recorded':'Your week so far';
     $('week-sub').textContent = `${week.title} · ${fmt.date(days[0].date)} – ${fmt.date(days[6].date)}`;
     const chip = $('goal-chip');
     chip.textContent = goal.label;

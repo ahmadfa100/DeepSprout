@@ -2,10 +2,10 @@ const form = document.getElementById('login-form');
 const email = document.getElementById('email');
 const password = document.getElementById('password');
 const passwordToggle = document.querySelector('.password-toggle');
-document.getElementById('admin-demo-button').addEventListener('click', () => {
+document.getElementById('admin-demo-button')?.addEventListener('click', () => {
   try { localStorage.setItem('deepsprout-admin-demo-session', 'active'); }
   catch { sessionStorage.setItem('deepsprout-admin-demo-session', 'active'); }
-  location.href = '../../../../admin.html#/dashboard';
+  location.href = '/admin.html?demo=1#/dashboard';
 });
 const toast = document.getElementById('auth-toast');
 const dialog = document.getElementById('auth-dialog');

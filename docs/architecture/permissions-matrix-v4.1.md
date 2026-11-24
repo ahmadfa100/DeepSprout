@@ -1,6 +1,6 @@
 # Role and resource permissions
 
-**Target:** [DeepSprout v4.1](../../DeepSprout.md) and the [4 November P0 map](p0-target-v4.1.md). This matrix is a documentation target, not evidence that browser guards or server authorization implement it. The retired Coach/Provider demo routes are dated evidence only. Database mapping: [persistence contract](database/persistence-contract.md).
+**Target:** [DeepSprout v4.1](../../DeepSprout.md) and the [4 November P0 map](p0-target-v4.1.md). The matrix states partner permission requirements. Independent Coach Program writes remain in the legacy demo. Provider entry routes show retirement. Database mapping: [persistence contract](database/persistence-contract.md).
 
 `Own` means an authorized resource grant, never every record of that type. One human account can hold several scoped appointments. A platform account suspension denies protected access through existing sessions; revoking one appointment ends only that appointment's future access. A pending invitation grants nothing.
 
@@ -21,3 +21,5 @@
 **Invitation checks:** Representative issues an unguessable, expiring, revocable, email-bound Initiative Coach/Supervisor link. Recipient signs in or registers as one human, proves the matching verified email, and accepts after server revalidation. No Supervisor `Requested` state, self-request path, independent Coach/Provider grant or extra Admin approval. Wrong email, expired/reused token, cross-Institution scope, stale session and fourth concurrent Supervisor cannot grant authority.
 
 **Migration boundary:** existing `mentor/programs/*` and `provider/*` pages, stores and tests require route/data/retention mapping. Their current visibility is not active authorization. The server must enforce each action; UI hiding and browser-local checks are demonstration aids only.
+
+**Current server boundary:** Identity checks the active Person and security stamp. Signed-in Individual endpoints enforce ownership. Community moderation and Institution application decisions require `PlatformRole = Admin` in SQL. Applicants can read their own Institution claims and decision history. A verified Institution profile requires confirmed Identity email and a current active membership for that Institution. New approvals and grants await the approved email ownership, legal and Representative evidence, and secure document handling policies. Coach, Supervisor and Student permissions in the matrix remain a server target. `AttendanceQrService` contains assignment and booking checks but has no exposed MVC route.

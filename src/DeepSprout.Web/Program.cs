@@ -27,7 +27,7 @@ builder.Services.AddDataProtection()
         ?? Path.Combine(builder.Environment.ContentRootPath, ".keys")));
 
 // A database connection is opt-in and points at the approved 58-table design (DeepSproutV5DbContext).
-// Starting the site never migrates or writes to any database; no page reads or writes SQL Server yet.
+// Database migrations run separately from site startup.
 var connectionString = builder.Configuration.GetConnectionString("DeepSprout");
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("Configure ConnectionStrings:DeepSprout for the V5 SQL Server database.");
@@ -35,6 +35,7 @@ builder.Services.AddDbContext<DeepSproutV5DbContext>(options => options.UseSqlSe
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<AttendanceQrService>();
 builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddScoped<PracticeCatalog>();
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
         options.User.RequireUniqueEmail = true;
@@ -117,7 +118,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
     app.UseHttpsRedirection();
 }
-app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api"),
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api") &&
+    !context.Request.Path.Equals("/admin.html", StringComparison.OrdinalIgnoreCase) &&
+    !(context.Request.Path.Equals("/workspaces.html", StringComparison.OrdinalIgnoreCase) &&
+        context.Request.Query["community"] == "live"),
     branch => branch.UseStatusCodePagesWithReExecute("/404.html"));
 if (app.Environment.IsDevelopment())
 {

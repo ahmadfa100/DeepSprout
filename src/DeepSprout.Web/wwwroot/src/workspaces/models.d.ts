@@ -1,4 +1,4 @@
-export type PracticeType = 'depth'|'listening'|'practical'|'protected-work';
+export type PracticeType = 'depth'|'listening'|'visual-observation'|'digital-judgment'|'practical'|'protected-work';
 export interface ActivityReference {activityId:string;activityVersion:number;contentVersion:string;definitionSnapshot:Record<string,unknown>;}
 /** Frontend demo domain contracts. These are not a production API schema. */
 export type Workspace = 'mentor' | 'student' | 'organization' | 'provider' | 'supervisor' | 'admin' | 'participant';

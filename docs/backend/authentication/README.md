@@ -1,5 +1,46 @@
 # DeepSprout authentication implementation guide
 
+This is the current guide to the MVC account boundary. The [P0 record](../../architecture/p0-target-v4.1.md) governs partner identity. The [permissions matrix](../../architecture/permissions-matrix-v4.1.md) identifies approved resource scopes. The application uses 58 V5 application tables plus seven separate Identity framework tables.
+
+## Current Individual flow
+
+| Area | Implemented behavior | Verification boundary |
+|---|---|---|
+| Register | The existing Razor form posts to `AccountController`. The controller validates fields and consent and creates one `iam.Person`, linked Identity user, `IndividualProfile` and consent row in one V5 transaction. The user enters Onboarding 2.0 at Journey Level 1. | Registration and new-session use are exercised by the disposable SQL/HTTP and browser suite. |
+| Sign in | UserManager checks the password and tracks failed attempts/lockout. The controller checks active Person status and allows only a local return URL. | Successful login and authenticated isolation are exercised. The suite does not exhaust lockout, malicious redirect or provider-fault cases. |
+| Session | `JwtTokenService` issues a signed JWT (30 minutes) in an HTTP-only cookie. The middleware validates signature, issuer, audience, lifetime, current Identity security stamp and active Person status. `/account/session` returns the caller's identity display fields and antiforgery token. | Protected routes, unauthorized requests and missing antiforgery are exercised. Session expiry, key rotation and hostile cookie replay require additional release tests. |
+| Profile and logout | `/account/profile` reads the signed-in Person. POST `/account/logout` updates the security stamp and clears the cookie, revoking existing sessions for the account. The broader Profile & settings page retains browser controls. | The disposable suite covers own-profile access, sign-out, replay denial and fresh login. |
+| Admin | The live `/admin.html` entry, live workspace, account access API and Community moderation resolve `ApplicationUser.PersonId` and require an active SQL `Person.PlatformRole = Admin`. Default Admin sign-in opens the live entry. The explicit Development demo entry is `/admin.html?demo=1`. | Existing Admin role removal takes effect on the next protected request. Demo flags grant no server authority. |
+| Partner and account lifecycle | Partner intake, copied staff links, demo email and role switching use the browser graph. | Real confirmation/reset email, Admin provisioning UI, and SQL-backed Institution/Representative and staff onboarding are still pending. |
+
+`Program.cs` registers ASP.NET Core Identity with `DeepSproutV5DbContext` and JWT validation with the same-origin cookie. Use the established path for new commands. Browser identity flags do not create an authenticated account. Unsafe MVC requests use the global antiforgery filter; JSON clients use the token in `RequestVerificationToken`.
+
+### Account access commands
+
+Platform Admin can POST to `/api/admin/accounts/{personPublicId}/suspend`, `/restore` or `/revoke-sessions` with a reason of up to 1,000 characters and an antiforgery token. These commands use the existing Person status and Identity security stamp. They commit the change and its `ops.AuditEvent` together. Suspension denies password login and existing sessions. Restoration requires a fresh login. Session revocation leaves account status unchanged. The commands apply to ordinary accounts with an Identity user. Admin provisioning and removal remain owner-controlled. Email delivery and the confirmation policy are pending, so public password reset and email confirmation are unavailable.
+
+## Ownership and configuration
+
+- Resolve the server actor through `ApplicationUser.PersonId`. Check the current resource grant on each command. Do not accept a client-selected actor, role or Institution scope.
+- Identity owns password hashes, lockout and the security stamp. Approved legacy credential fields and `iam.OtpChallenge` remain separate. Email confirmation and reset require their own validated delivery and token flow. Current Individual password sign-in is not gated by confirmed email.
+- Configure `ConnectionStrings__DeepSprout`, `Jwt__Issuer`, `Jwt__Audience`, and a random `Jwt__SigningKey` of at least 32 UTF-8 bytes through local secrets or protected environment settings. Use `DataProtection__KeyDirectory` for protected persistent keys. Production uses HTTPS and secure cookies.
+- `IdentityFramework` adds framework tables and a required unique Person FK. Keep the V5 generators and the historical M1 context separate. For a disposable database, follow [EF Core adoption](../../architecture/database/efcore-v5-adoption.md) or run the existing suite. Existing named databases require separate approval and a verified backup.
+
+## Tests and next stage
+
+Run `dotnet build DeepSprout.sln --no-restore` and `node --test tests/onboarding-integration.test.mjs`. The latter creates and drops its own V5 database and exercises real Identity sessions, actor isolation, antiforgery and migrated pages. The client model suites only establish demo behavior. Do not use the historical M1 validation harness for V5.
+
+Reuse this account model for authorized Institution Representative application, verification, and resource-scoped invitations. Add focused tests for rollback, lockout and session revocation, confirmed-email matching, expiring invitation replay and permission denial. The [backend implementation plan](../../implementation/backend-start-plan.md) lists dependencies and frontend handoffs.
+
+The 9 November 2026 implementation plan and its named-development-database examples describe the pre-Identity baseline. Git history retains that planning version.
+
+<details>
+<summary>9 November 2026 authentication plan (historical)</summary>
+
+The text below preserves the pre-Identity proposal and its original observations. Use the current sections above for the runtime scheme and test commands. The historical development database examples are reference material.
+
+# DeepSprout authentication implementation guide
+
 **Audience:** the student developer implementing this code personally. **Scope:** one ASP.NET Core MVC application with Razor views, Identity, EF Core, and SQL Server. This guide describes work to do; it does not claim that authentication works today. Read [AGENTS.md](../../../AGENTS.md), the [v4.1 owner decisions](../../architecture/p0-target-v4.1.md), the [database index](../../architecture/database/README.md), and the [persistence contract](../../architecture/database/persistence-contract.md) before changing the schema or an existing workflow. The approved database has 58 **application** tables; Identity's framework tables are outside that count. Never target `DeepSprout_V5_Demo`, `DeepSprout_Validation`, or `DeepSprout_Task` while learning this flow.
 
 ## 1. Starting point verified on 9 November 2026
@@ -268,3 +309,5 @@ Use a disposable SQL Server database for FK, uniqueness, transactions, and concu
 **Initial Individual authentication is done** when a person can register through the existing Razor design, produce one linked Identity user/Person/IndividualProfile in SQL Server, satisfy the chosen real confirmation policy, sign in with a verified password, access only their own protected profile, sign out via POST, and repeat after an application restart. Weak/duplicate credentials, bad tokens, missing antiforgery, external redirects, suspended accounts, broken links, and partial transactions fail safely. Tests prove the server behavior; a localStorage identity cannot grant an MVC cookie. The development database has the reviewed Identity migration and 58 unchanged application tables.
 
 **Next Authorization/Institution phase:** Partner verification, actual Representative membership, scoped Coach/Supervisor invitations, Initiative resource handlers, seat limits, cross-workspace data migration, and the browser-local onboarding/plan persistence bridge. Do not claim those are solved by Identity registration. Current onboarding Home/Garden visuals and historical M1 data remain protected by the repository guidance.
+
+</details>

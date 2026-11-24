@@ -2,6 +2,7 @@ import {createFloatingNetwork} from '../shared/floating-network.js';
 import {choiceMarkup,bindChoices} from './experience/entry.js';
 const entry = document.getElementById('register-entry');
 entry.innerHTML = choiceMarkup('../../../../workspaces.html#/auth/account/');
+entry.querySelector('[data-partner-path="organization"]').href = '/workspaces.html?partner=live#/auth/application/organization';
 let world, unbindChoices;
 function showStep(moveFocus = true) {
   const step = location.hash.slice(1), individual = step === 'individual' || (!step && document.body.dataset.openForm === 'true'), partner = step === 'partner';

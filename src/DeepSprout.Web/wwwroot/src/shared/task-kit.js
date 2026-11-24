@@ -40,12 +40,14 @@ const PATHS = {
   star:'M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9Z',
   book:'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z M4 19V5 M8 7h7',
   ear:'M7 9a5 5 0 0 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0 M10 9a2 2 0 0 1 4 0',
+  shapes:'M4 4h6v6H4Z M15 4l5 6h-10Z M7 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6 M17 14l4 4-4 4-4-4Z',
+  sources:'M3 4h7v6H3Z M14 14h7v6h-7Z M6.5 10v7H14 M14 5h7 M14 8h5',
   pencil:'M4 20h4L19 9l-4-4L4 16Z M13.5 6.5l4 4',
   timer:'M12 8v5l3 2 M9 2h6 M12 4a9 9 0 1 0 0 18 9 9 0 0 0 0-18',
   sprout:'M12 21v-9 M12 12C12 7 8 5 4 5c0 4 3 7 8 7Z M12 14c0-4 3-7 8-7 0 4-3 7-8 7'
 };
 export const icon = (name, cls = '') => `<svg class="tk-icon${cls ? ` ${cls}` : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${PATHS[name] || PATHS.sprout}"/></svg>`;
-export const practiceIcon = type => ({depth:'book', listening:'ear', practical:'pencil', 'protected-work':'timer'}[type] || 'sprout');
+export const practiceIcon = type => ({depth:'book', listening:'ear', 'visual-observation':'shapes', 'digital-judgment':'sources', practical:'pencil', 'protected-work':'timer'}[type] || 'sprout');
 
 /* ---------------------------------------------------------------- dates */
 

@@ -9,7 +9,7 @@ const reset=personId=>{dispatch('demo.reset');dispatch('demo.clock',{at:'2026-10
 // Updated 16 Oct 2026 (Independent Coach cycle, master §13.1): a Group has exactly one parent, so the
 // Program is created first, the Group is created under it, and invitations need a published Program.
 test('Mentor creation → invitation → OTP → program → submission → review → one Garden contribution',()=>{
- reset('p-maya');const programId=dispatch('mentor.program.save',{title:'Begin with a small step',description:'A short group program.',purpose:'Intentional work',focus:'Digital balance',duration:14,start:'2026-10-14',end:'2026-10-28',stages:[{id:'new-stage',title:'Try a first step',objective:'Name and try a small first step.',date:'2026-10-20'}],activities:['Practical Micro-Challenge'],required:true});
+ reset('p-maya');const programId=dispatch('mentor.program.save',{title:'Begin with a small step',description:'A short group program.',purpose:'Intentional work',focus:'Digital balance',duration:14,start:'2026-10-14',end:'2026-10-28',stages:[{id:'new-stage',title:'Try a first step',objective:'Name and try a small first step.',date:'2026-10-20'}],activities:['Visual Observation & Analysis'],required:true});
  const gid=dispatch('mentor.group.save',{programId,name:'A new beginning',purpose:'Practice starting meaningful work.',capacity:4});
  dispatch('mentor.program.publish',{id:programId});
  const token=dispatch('mentor.invite.create',{groupId:gid,expires:'2026-12-31',limit:2,email:'new-student@demo.example'});

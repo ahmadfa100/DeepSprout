@@ -4,7 +4,7 @@
   <p><strong>Less scrolling. More living.</strong></p>
   <p>A digital wellbeing platform for reclaiming attention from compulsive short-form feeds and making room for meaningful life beyond the screen.</p>
   <p>
-    <img src="https://img.shields.io/badge/status-browser--local%20demo-567d64" alt="Status: browser-local demo">
+    <img src="https://img.shields.io/badge/status-MVC%20%2B%20V5%20SQL-567d64" alt="Status: MVC with V5 SQL workflows">
     <img src="https://img.shields.io/badge/current-ASP.NET%20Core%20MVC-173c33" alt="Current stack: ASP.NET Core MVC">
     <a href="https://github.com/ahmadfa100/DeepSprout"><img src="https://img.shields.io/badge/repository-DeepSprout-305b48" alt="DeepSprout repository"></a>
   </p>
@@ -12,7 +12,7 @@
 
 ![Editorial DeepSprout illustration: a short-form feed gives way to a growing sprout](docs/assets/readme/deepsprout-hero.svg)
 
-DeepSprout joins a **personal Recovery Journey** with practice, browser support, real-world opportunities, and guided group work. The [v4.1 product specification](DeepSprout.md) and [4 November P0 target map](docs/architecture/p0-target-v4.1.md) define the intended Institution-only partner model. The [current product guide](docs/current-product-guide.md) inventories the demo, including older Coach and Provider routes that require migration. The ASP.NET Core MVC website serves Razor views from `src/DeepSprout.Web`; interactions still use browser-local demo records, so Identity-backed access and durable product workflows remain future work. The approved database is the [58-table design](docs/architecture/database/README.md), modelled in EF Core but not yet used by any page.
+DeepSprout joins a **personal Recovery Journey** with practice, browser support, real-world opportunities, and guided group work. The [v4.1 product specification](DeepSprout.md) and [P0 target map](docs/architecture/p0-target-v4.1.md) define the Institution-only partner model. The MVC application serves Razor views and uses Identity and the approved [58-table V5 SQL Server design](docs/architecture/database/README.md). Signed-in Individual Recovery and Community workflows use SQL. Partner operational workflows still use browser data. See the [current product guide](docs/current-product-guide.md) for actual functionality and verification.
 
 **Explore the demo:** [Home](http://127.0.0.1:8765/) · [Individual activities](http://127.0.0.1:8765/src/pages/member/training/training.html) · [Partner workspaces](http://127.0.0.1:8765/workspaces.html#/auth/login) · [System Journey walkthrough](http://127.0.0.1:8765/workspaces.html#/admin/system-journey)
 
@@ -43,7 +43,7 @@ The personal journey is supported by four distinct systems: **Recovery Plan** sc
 
 ## Current page and cycle guide
 
-The [3 November 2026 guide](docs/current-product-guide.md) inventories the public and access pages, every Individual destination, partner and Admin workspaces, and the personal, Institution, Coach, Student, Provider, Supervisor and governance cycles. It distinguishes what the browser demo does now from the database milestone and intended MVC server.
+The [current product guide](docs/current-product-guide.md) inventories the seven product cycles and notes the live SQL, demo and historical paths. The [persistence contract](docs/architecture/database/persistence-contract.md) maps them to their runtime sources.
 
 ## Product preview
 
@@ -55,15 +55,15 @@ The image above is a **local browser capture** of the homepage at 1440 × 900 wi
 
 | Area | Purpose | Current checkout |
 | --- | --- | --- |
-| Onboarding with Azm | Meet Azm, six quick questions, HeroReels story, then Home at Journey Level 1 with a preliminary Week 1 plan | Browser-local flow; [Onboarding 2.0 report](docs/implementation/onboarding2-reconciliation-report.md) |
-| Recovery Plan | One continuous journey with usually 28-day cycles, an actionable week, review, future-only adjustment, and continuation decisions | Browser-local versioned journal |
-| Meaningful Practices | Depth Practice, Listening & Recall, Practical Micro-Challenge, and Protected Work; independent levels and evidence | Four local players and versioned content |
-| Offline Routine | Small personally chosen real-world commitments | Local self-report, separate from system-scored practice |
+| Onboarding with Azm | Meet Azm, six quick questions, HeroReels story, then Home at Journey Level 1 with a preliminary Week 1 plan | Six answers save in V5 and survive a new login. |
+| Recovery Plan | One continuous journey with 28-day cycles, four progressively detailed weeks, reviews and continuation | SQL preview, explicit activation, weekly and final review, history and Next Cycle/Maintenance |
+| Meaningful Practices | Depth Practice, Listening & Recall, Visual Observation & Analysis, and Reasoning & Digital Judgment | Four server-scored practice families with pinned content and independent Activity Levels 1–3. Legacy attempts retain original attribution. |
+| Offline Routine | Small personally chosen real-world commitments | SQL routine and self-reported check-ins, separate from system-scored practice |
 | Digital Shield | Manual Website Protection and one shared selected-site Usage Reminder | Optional **local Chrome extension**; supported-domain, browser-only coverage and pairing limits in its [guide](extensions/digital-shield/README.md). No Pages pairing or production sync is claimed |
-| Personal Garden | Earned visual growth from eligible practice and selected participation records | Four practice-type trees and bounded details in the current demo; a later one-main-plant design direction is a separate Garden task |
-| Lab and Insights | Optional assessments, source-labelled progress and missing-data context | Historical attempts and versions retained; no new weekly official window is scheduled |
-| Explore and Community | Discover initiatives, workshops, experiences and community participation | Local opportunity, registration and community flows; no public multi-user service |
-| Notifications, profile and account | Next steps, operational notices, profile settings and workspace entry | In-app/browser-local notices and demo identities; no real email, OTP or server authentication |
+| Personal Garden | Earned visual growth from eligible practice and selected participation records | Four trees and bounded decorations drawn from the same SQL projection as Home. Production thresholds and the separate one-main-plant direction remain open. |
+| Lab and Insights | Optional assessments, source-labelled progress and missing-data context | Lab is optional and browser-local. Core Insights reads saved SQL evidence. No new periodic official Lab window is scheduled. |
+| Explore and Community | Discover initiatives, workshops, experiences and community participation | Explore projects browser-local partner records and samples. Community posts, interactions and moderation use SQL; quiz rooms stay local. |
+| Notifications, profile and account | Next steps, operational notices, profile settings and workspace entry | Individual credentials, sessions and own account profile use Identity. Partner access, notices and most member settings are browser-local. Email delivery is pending. |
 
 ![Four DeepSprout Meaningful Practices and their distinct evidence](docs/assets/readme/meaningful-practices.svg)
 
@@ -73,7 +73,7 @@ The image above is a **local browser capture** of the homepage at 1440 × 900 wi
 
 ![Diagram of first-run steps and the nested weekly Recovery Cycle](docs/assets/readme/recovery-cycle.svg)
 
-A **Journey** is the person's continuing history, beginning at Level 1. A **Recovery Cycle** is one bounded planning interval within it, normally four weeks in the present demo. A **week** contains scheduled actions, rest or routine context, and a review. A **Meaningful Practice** is an activity attempt with its own content and evidence; a scheduled action only points to it. **Lab assessments** are optional separate measurements; their old weekly eligibility rule is retired. The weekly review can accept a suggested next week, keep pace, or explicitly adjust future work. A cycle ending leads to review and a deliberate next-cycle or maintenance choice; elapsed days are not a recovery score. Details: [master §§4–5](DeepSprout.md#4-individual-onboarding-azm-six-questions-the-story-and-journey-level-1).
+A **Journey** is the person's continuing history, beginning at Level 1. A **Recovery Cycle** is one bounded planning interval within it, 28 calendar days across four weeks for every new cycle. A **week** contains scheduled actions, rest or routine context, and a review. A **Meaningful Practice** is an activity attempt with its own content and evidence; a scheduled action only points to it. **Lab assessments** are optional separate measurements; their old weekly eligibility rule is retired. The weekly review can accept a suggested next week, keep pace, or explicitly adjust future work. A cycle ending leads to review and a deliberate next-cycle or maintenance choice; elapsed days are not a recovery score. Details: [master §§4–5](DeepSprout.md#4-individual-onboarding-azm-six-questions-the-story-and-journey-level-1).
 
 ## Meet Azm
 
@@ -99,7 +99,7 @@ The Garden makes earned participation visible. Valid, eligible original practice
 | **Institution Representative** | [Dashboard, Create new, Initiatives, Outdoor Activities, Applications, Bookings & waitlist, Team, Sessions, Forms, Reports](http://127.0.0.1:8765/workspaces.html#/organization/dashboard) | Publishes and runs Initiatives (online, hybrid or face-to-face) **and** Outdoor Activities (trips, hikes, camps), appoints staff, reviews participation and received Supervisor reports |
 | ~~Outdoor Provider~~ | Retired 6 Nov 2026 — `#/provider/*` explains the change | Institutions organize Outdoor Activities directly; see the [v4.1 partner-workspace redesign log](docs/implementation/partner-workspaces-v41-redesign.md) |
 | **Supervisor** | [Dashboard, Schedule, Attendance, Excuses, Competitions, Reports](http://127.0.0.1:8765/workspaces.html#/supervisor/dashboard) | Acts only on an assigned Initiative or appointed Outdoor Activity sessions; confirms field evidence |
-| **Platform Admin** | [Overview, approvals, catalog, policy, CMS, moderation, reports, audit](http://127.0.0.1:8765/workspaces.html#/admin/overview) | Governs publication and platform policy; [legacy Admin](http://127.0.0.1:8765/admin.html#/dashboard) still holds some separate demo capabilities |
+| **Platform Admin** | [Overview, approvals, catalog, policy, CMS, moderation, reports, audit](http://127.0.0.1:8765/workspaces.html#/admin/overview) | Governs publication and platform policy; [legacy Admin](http://127.0.0.1:8765/admin.html?legacy=1#/dashboard) holds separate demo capabilities. [Signed-in Community moderation](http://127.0.0.1:8765/admin.html#/community) uses the current SQL Platform Admin role. |
 
 A person can have multiple **role grants**, each scoped to the relevant resource. A workspace switch does not grant permission. **Subscription entitlements** are a separate proposed commercial mechanism, not a substitute for identity or authorization; no real billing runs here. The current browser guards demonstrate policy, but production enforcement requires server-side checks. See [master §§2, 20, 23](DeepSprout.md#2-fundamental-concepts-authorization-and-workspaces).
 
@@ -113,7 +113,7 @@ A person can have multiple **role grants**, each scoped to the relevant resource
 - **Outdoor Activity:** a verified Institution publishes a versioned trip, hike, camp or outdoor event; an Individual books or joins a waiting list in regular Explore. Offers have expiry and capacity rules; an appointed Supervisor verifies attendance (the Representative cannot); completion follows the published criteria, then reports and eligible Garden effects read the original record. [Redesign log](docs/implementation/partner-workspaces-v41-redesign.md).
 - **Admin governance:** application approval, publication, policy, moderation and audit views span these flows. The two Admin demos still require measured consolidation before production.
 
-These flows document the current browser-local demo. The v4.1 target removes independent Coach and Outdoor Provider ownership: Institutions own Initiatives and Outdoor Activities, and Coaches/Supervisors serve through scoped Institution invitations. A registration is not attendance; attendance is not completion; a self-report is not a system-scored result. Where each workflow keeps its data, and which of the 58 tables it maps to, is in the [persistence contract](docs/architecture/database/persistence-contract.md).
+The partner operations above illustrate the browser-local workflows. Signed-in Individual Recovery and Community use live server records. The v4.1 target removes independent Coach and Outdoor Provider ownership: Institutions own Initiatives and Outdoor Activities, and Coaches/Supervisors serve through scoped Institution invitations. A registration is not attendance; attendance is not completion; a self-report is not a system-scored result. Where each workflow keeps its data, and which of the 58 tables it maps to, is in the [persistence contract](docs/architecture/database/persistence-contract.md).
 
 ## Pages and navigation
 
@@ -122,7 +122,7 @@ These flows document the current browser-local demo. The v4.1 target removes ind
 | Public and access | [Home](http://127.0.0.1:8765/), [former story landing](http://127.0.0.1:8765/landing.html), [Pricing](http://127.0.0.1:8765/pricing.html), [Register](http://127.0.0.1:8765/register.html), [Login](http://127.0.0.1:8765/login.html), [Partner entry](http://127.0.0.1:8765/partners.html) | MVC Razor views under [`src/DeepSprout.Web/Views/`](src/DeepSprout.Web/Views/) |
 | Individual first run | [Onboarding](http://127.0.0.1:8765/onboarding.html), [Home](http://127.0.0.1:8765/) | Meet Azm → six questions → HeroReels story (watch or skip) → Home at Journey Level 1. The [Lab](http://127.0.0.1:8765/lab.html) is optional. |
 | Individual ongoing | [Recovery Plan](http://127.0.0.1:8765/recovery-plan.html), [Weekly Review](http://127.0.0.1:8765/weekly-review.html), [Activities](http://127.0.0.1:8765/training.html), [Shield](http://127.0.0.1:8765/shield.html), [Garden](http://127.0.0.1:8765/garden.html), [Insights](http://127.0.0.1:8765/insights.html), [Explore](http://127.0.0.1:8765/explore.html), [Community](http://127.0.0.1:8765/community.html), [Profile](http://127.0.0.1:8765/profile.html) | Historic `.html` URLs resolve through [the MVC route manifest](src/DeepSprout.Web/page-routes.json). |
-| Partner and administration | [Partner workspaces](http://127.0.0.1:8765/workspaces.html#/auth/login), [legacy Admin](http://127.0.0.1:8765/admin.html#/dashboard) | Hash routes such as `#/mentor/dashboard`, `#/organization/initiatives`, `#/provider/waitlist`, `#/supervisor/attendance`, `#/admin/overview` |
+| Partner and administration | [Partner workspaces](http://127.0.0.1:8765/workspaces.html#/auth/login), [Community moderation](http://127.0.0.1:8765/admin.html#/community), [legacy Admin demo](http://127.0.0.1:8765/admin.html?legacy=1#/dashboard) | Hash routes include `#/mentor/dashboard`, `#/organization/initiatives`, `#/organization/bookings`, `#/supervisor/attendance`, and `#/admin/overview`. |
 
 The workspace [navigation source](src/DeepSprout.Web/wwwroot/src/workspaces/navigation.js) is the exact current menu inventory. The [current product guide](docs/current-product-guide.md) describes every destination and cycle.
 
@@ -133,9 +133,9 @@ The workspace [navigation source](src/DeepSprout.Web/wwwroot/src/workspaces/navi
 | Layer | Running in this repository | Planned production direction |
 | --- | --- | --- |
 | Web experience | 46 Razor views and MVC routing in `src/DeepSprout.Web`; CSS, JavaScript and images under `wwwroot/`, and the hash-routed `workspaces.html` partner workspaces | Server-backed MVC actions; the older Angular client direction needs a separate integration decision |
-| State | Browser-local person journals, ecosystem graph, seeded JSON and some separate legacy Admin data. The approved 58-table EF Core model (`DeepSproutV5DbContext`) and its migrations exist but no page uses them | ASP.NET Core MVC application with C# domain services on the approved 58-table SQL Server database |
-| Identity and access | Demo identity selector and browser-side scoped guards | ASP.NET Core Identity for one human account, with server-enforced resource-scoped authorization and one Platform Admin |
-| Business changes | Local commands and projections; some original records bridge Individual and partner screens | Versioned workflows, transactions, service-layer invariants and durable audit trails |
+| State | SQL-backed migrated workflows use `DeepSproutV5DbContext`. Demo operations, several settings, Lab and Shield use local journals or the partner graph. | ASP.NET Core MVC application with C# domain services on the approved 58-table SQL Server database |
+| Identity and access | ASP.NET Core Identity and signed JWT session, server ownership checks, and SQL Platform Admin checks for Community. Partner guards are browser-local. | Expand one human account and server-enforced resource grants across partner workflows. |
+| Business changes | V5 commands and audit for migrated workflows. Partner projections and commands share one browser origin. | Versioned workflows, transactions, service-layer invariants and durable audit trails |
 | Browser protection | Optional Chrome extension with local-origin pairing and restricted site coverage | Technically validated extension and authenticated, consent-aware sync |
 | Hosting | One ASP.NET Core MVC application run locally; validation database is separate | Hosted ASP.NET Core MVC application, database and optional extension distribution |
 
@@ -179,7 +179,7 @@ Open [`DeepSprout.sln`](DeepSprout.sln) in Visual Studio, set `DeepSprout.Web` a
 dotnet run --project src/DeepSprout.Web/DeepSprout.Web.csproj
 ```
 
-Open `http://127.0.0.1:8765/`. Partner workspaces are at `/workspaces.html#/auth/login`. The demo stores records in the **browser origin**, so a different port or host starts with empty local data. A database connection is optional (`ConnectionStrings__DeepSprout`, registering the approved 58-table context); running the site never migrates or writes to any database. Before adding server sessions, configure a persistent protected key store through `DataProtection__KeyDirectory`.
+Open `http://127.0.0.1:8765/`. Partner workspaces are at `/workspaces.html#/auth/login`. The demo stores records in the **browser origin**, so a different port or host starts with empty local data. Configure a V5 SQL Server connection in `ConnectionStrings__DeepSprout` and set `Jwt__Issuer`, `Jwt__Audience` and a random `Jwt__SigningKey` of at least 32 UTF-8 bytes outside source control. The host uses the configured database for live workflows and never applies migrations at startup. See the [authentication guide](docs/backend/authentication/README.md) for protected Data Protection keys and the [EF Core adoption guide](docs/architecture/database/efcore-v5-adoption.md) for disposable database setup.
 
 Razor views are compiled into the site DLL, while CSS and JavaScript are served live from `wwwroot`. After changing a `.cshtml` file, rebuild and restart; the site logs a warning at startup when a view is newer than the running build. Starting `bin/.../DeepSprout.Web.exe` directly runs as Production (`dotnet run` uses Development from `launchSettings.json`). Workspace stylesheets are listed once, in `wwwroot/src/workspaces/workspace-styles.css`.
 
@@ -188,33 +188,17 @@ Publish with `dotnet publish src/DeepSprout.Web/DeepSprout.Web.csproj -c Release
 
 ## Status and roadmap
 
-The spec's [§29 snapshot](DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) is dated 15 October and predates substantial client and database work. Use the [current product guide](docs/current-product-guide.md) and milestone evidence for this working tree.
-
-| Status | Scope |
-| --- | --- |
-| **Implemented in the local demo** | Static public/member pages; six-question Azm onboarding, HeroReels handoff and Home at Level 1; optional Lab interfaces and user-confirmed local plan activation; four practice players; local Recovery cycles and reviews; institution/Coach/Student/Supervisor/Provider records and example flows; received Institution report inbox; community interactions; root Pages-ready homepage |
-| **Partial or simulated** | Local identity, permissions, QR/code checks, notices, demo capacity and clocks, payment acknowledgements, Admin split, source coverage and some cross-workspace edge cases. Extension pairing/enforcement is restricted to supported local Chrome conditions |
-| **Next validation and product work** | Re-run cross-workspace acceptance after active changes; consolidate Admin by capability; settle Garden direction and thresholds; test additional accessibility, responsive and error states; validate extension distribution and consent policy |
-| **Implemented MVC presentation and database foundation** | 46 routed Razor views and static assets; the approved 58-table design as SQL script, EF Core model and two tested migrations (not yet applied to `DeepSprout_V5_Demo`); product records remain browser-local |
-| **Planned production engineering** | Server-backed MVC commands with EF Core/SQL Server persistence, real authentication and resource authorization, transactional capacity, durable audits, secure notifications, deployment/operations and threat review; any Angular client work is a separate target described in the specification |
-
-Dated round reports and cycle audits were retired on 8 November 2026 (they remain in Git history). The [documentation map](docs/README.md) lists the current sources.
+The [current product guide](docs/current-product-guide.md#end-to-end-cycles-and-evidence) records all seven cycles and their verification limits. The [backend implementation plan](docs/implementation/backend-start-plan.md) puts Platform Admin authority, Institution verification, Initiative and regular Explore integration first. It then covers scoped staff, sessions, Outdoor Activities, and Admin consolidation. Legacy design illustrations and the [§29 snapshot](DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) describe earlier milestones.
 
 ## Testing, accessibility and privacy
 
-With the site running (`dotnet run --project src/DeepSprout.Web`), the checks are:
-
-```sh
-node tests/mvc-smoke.mjs                      # every routed page, custom 404, every local link and asset
-node --test tests/client/partner-store.test.mjs tests/client/institution-cycle.test.mjs tests/client/supervisor-cycle.test.mjs tests/client/coach-cycle.test.mjs
-node --test tests/client/four-cycle.test.mjs tests/client/outdoor-activity-cycle.test.mjs   # Institution-owned Outdoor Activities, timeline, governance
-node --test tests/client/round2a-personal.test.mjs tests/client/round2b-practices.test.mjs tests/client/round2c-recovery.test.mjs tests/client/round2d-shield.test.mjs
-BASE_URL=http://127.0.0.1:8765 node tests/client/round0-browser.test.cjs   # Playwright suites; set CHROME_PATH
-BASE_URL=http://127.0.0.1:8765 node tests/client/onboarding2-browser.test.cjs          # Onboarding 2.0: six questions, story skip, Level 1, explicit activation
-BASE_URL=http://127.0.0.1:8765 node tests/client/personal-tour-lab-browser.test.cjs    # activation without Lab, product tour, optional Lab and practice
+```powershell
+dotnet build DeepSprout.sln --no-restore
+node --test tests/client/*.test.mjs
+node --test tests/onboarding-integration.test.mjs
 ```
 
-Browser suites in `tests/client/` need Playwright and Chrome (`CHROME_PATH`) and the site at `BASE_URL`. Some existing browser tests write screenshots under validation folders; choose a temporary `SHOTS_DIR` when supported and inspect the test before running it. The root `package.json` has a placeholder `npm test` command, so use the actual test commands above.
+The client model suite checks browser-local behavior. The integration suite requires SQL Server at `localhost`, `sqlcmd`, EF CLI and Playwright Chromium. It creates and drops a fresh disposable V5 database, starts its own MVC host, and exercises HTTP, browser flows and routing smoke checks. To check routes against an already running local instance, run `node tests/mvc-smoke.mjs` with that instance's `BASE_URL`. Older browser scripts document their demo identities and may need the original entry route or updated fixtures; a passing demo does not prove SQL persistence. Some standalone scripts write screenshots, so check their configured output paths before running them.
 
 The approved database has its own checks: `docs/architecture/database/v5-lean-design/submission/DeepSprout-v5-NEGATIVE-TESTS.sql` (40 rolled-back tests) and the EF Core commands in [EF Core adoption](docs/architecture/database/efcore-v5-adoption.md).
 

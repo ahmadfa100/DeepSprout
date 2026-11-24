@@ -2,7 +2,9 @@
 (() => {
   if (window.DeepSproutPersonal) return;
   const graphKey = 'deepsprout-ecosystem-demo-v1';
+  let serverPerson = null;
   const person = () => {
+    if (serverPerson) return serverPerson;
     const graph = JSON.parse(localStorage.getItem(graphKey) || 'null');
     return graph?.people?.find(p => p.id === graph.session?.personId) || null;
   };
@@ -66,5 +68,10 @@
   window.addEventListener('storage', event => { if (event.key === graphKey || event.key === null) changed(); });
   window.addEventListener('deepsprout:repo', changed);
   window.addEventListener('error', event => { if (/saved|identity changed/.test(event.message)) failure(event.message); });
-  window.DeepSproutPersonal = {person, subject, journal, preference, requireAccess, assert, save, failure, denied, rebind: () => { loadedSubject = subject(); }};
+  const bindServer = ({subject, displayName, email}) => {
+    serverPerson = {id: subject, name: displayName, email, individual: true, verified: true, status: 'Active'};
+    loadedSubject = subject;
+    window.DeepSprout?.bind();
+  };
+  window.DeepSproutPersonal = {person, subject, journal, preference, requireAccess, assert, save, failure, denied, bindServer, rebind: () => { loadedSubject = subject(); }};
 })();

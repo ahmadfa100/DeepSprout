@@ -139,7 +139,8 @@ export function personalGardenEffects(s, personId) {
     const a = s.assignments.find(x => x.id === sub.assignmentId);
     const type = a?.practiceType || practiceTypeOf(a?.activity);
     if (!type) continue;
-    effects.push({key:`submission:${sub.id}`, effect:'tree', type, sourceType:'reviewed-assignment', sourceId:sub.id, on:String(sub.reviewedAt || sub.submitted).slice(0, 10), title:a.title, detail:`Approved by ${nameOf(s, sub.reviewedBy || a.ownerId)}`});
+    const slot = {'visual-observation':'practical','digital-judgment':'protected-work'}[type] || type;
+    effects.push({key:`submission:${sub.id}`, effect:'tree', type:slot, practiceType:type, sourceType:'reviewed-assignment', sourceId:sub.id, on:String(sub.reviewedAt || sub.submitted).slice(0, 10), title:a.title, detail:`Approved by ${nameOf(s, sub.reviewedBy || a.ownerId)}`});
   }
   for (const att of (s.sessionAttendance || []).filter(x => x.personId === personId && ['Present','Late'].includes(x.status))) {
     const ss = s.sessions.find(x => x.id === att.sessionId);

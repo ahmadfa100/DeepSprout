@@ -1,4 +1,5 @@
 import {read,person} from './store.js';
+import {communityRequest} from '../js/data/community-api.js';
 export const COMMUNITY_KEY='deepsprout-community-demo-v1';
 let originals=null;
 export async function loadCommunity(){
@@ -6,7 +7,37 @@ export async function loadCommunity(){
  const response=await fetch(new URL('../pages/member/community/community.html',import.meta.url));
  if(!response.ok)throw new Error('Community posts could not be loaded. Refresh to try again.');
  const doc=new DOMParser().parseFromString(await response.text(),'text/html');
- originals=[...doc.querySelectorAll('.post-card[data-id]')].map(card=>({id:card.dataset.id,title:card.querySelector('h2')?.textContent,body:card.querySelector('.post-body > p')?.textContent,author:card.querySelector('.post-author strong')?.textContent,category:card.dataset.category,source:'Existing community post'}));
+ originals=[...(doc.querySelector('#demo-posts')?.content || doc).querySelectorAll('.post-card[data-id]')].map(card=>({id:card.dataset.id,title:card.querySelector('h2')?.textContent,body:card.querySelector('.post-body > p')?.textContent,author:card.querySelector('.post-author strong')?.textContent,category:card.dataset.category,source:'Existing community post'}));
+}
+
+const serverStates = {Draft:'pending', Published:'visible', Hidden:'hidden', Removed:'removed'};
+const mapPost = post => ({...post, body:post.message, created:post.createdAt, status:serverStates[post.status]});
+const blank = {loaded:true, posts:[], reports:[], history:[]};
+
+export async function loadServerCommunity(route) {
+ const tab=route.query.get('tab') || (route.page==='posts' ? 'posts' : 'reports');
+ const page=Math.max(1, Number.parseInt(route.query.get('page'),10) || 1);
+ const id=encodeURIComponent(route.id || '');
+ const path=route.page==='audit' ? '/history?page='+page
+   : id ? (route.page==='posts' ? '/posts/' : '/reports/')+id
+   : '?'+new URLSearchParams({view:tab,page});
+ try {
+   const data=await communityRequest('/moderation'+path);
+   return {...blank, page, counts:data.counts, hasMore:data.hasMore,
+     posts:(data.posts || []).map(mapPost),
+     reports:(data.reports || []).map(report=>({...report,id:String(report.id),created:report.createdAt,
+       status:report.status==='Resolved'?'reviewed':'pending',post:report.post?mapPost(report.post):null})),
+     history:(data.history || []).map(row=>({...row,created:row.createdAt}))};
+ } catch (error) {
+   return {...blank, error:error.message};
+ }
+}
+
+export async function decideServerCommunity({post, report, status, reason}) {
+ const next={visible:'Published',hidden:'Hidden',removed:'Removed',rejected:'Removed',dismissed:'Unchanged'}[status];
+ const target=report?.commentId ? '/comments/'+report.commentId : '/posts/'+post.id;
+ await communityRequest('/moderation'+target,'PATCH',{status:next,reason,
+   reportId:report?Number(report.id):null,expectedRevision:report?.commentId?null:post.revision});
 }
 export function communityRecords(){
  const data=JSON.parse(localStorage.getItem(COMMUNITY_KEY)||'{}');

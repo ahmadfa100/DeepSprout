@@ -1,10 +1,8 @@
 /**
  * Insights.
  *
- * Every figure on this page comes from DeepSproutAccount, which computes it
- * from the account's raw records. Nothing here is a literal number, and an
- * absent measurement is never drawn as zero: it gets its own state (hatched,
- * "no data", or an empty-state message).
+ * Personal plan, practice, and routine figures use the saved Insights endpoint.
+ * Browser usage and optional Lab keep their own evidence sources.
  */
 (() => {
   if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
@@ -22,6 +20,7 @@
 
   const BADGE_ICONS = {
     measured: 'i-gauge',
+    'source-labelled': 'i-gauge',
     'self-reported': 'i-pencil',
     'organiser-confirmed': 'i-badge',
     'supervisor-confirmed': 'i-eye'
@@ -41,7 +40,7 @@
   const compactEmpty = (iconName, title, line, action = '') =>
     `<div class="ds-empty"><span class="ds-empty-icon">${icon(iconName)}</span><p class="ds-empty-copy"><strong>${title}</strong><span>${line}</span></p>${action}</div>`;
 
-  const TYPE_ICONS = { depth: 'i-book', listening: 'i-headphones', practical: 'i-pencil', 'protected-work': 'i-shield' };
+  const TYPE_ICONS = { depth: 'i-book', listening: 'i-headphones', 'visual-observation': 'i-shapes', 'digital-judgment': 'i-evidence' };
   const DAY_STATE_LABELS = {
     completed: 'Completed',
     missed: 'Missed',
@@ -49,8 +48,14 @@
     'not-due': 'Not due yet',
     none: 'Nothing scheduled'
   };
+  const SAVED_DAY_STATES = {Completed:'completed', Missed:'missed', Rest:'rest', Upcoming:'not-due',
+    Due:'due', Partial:'partial', Unavailable:'unknown', Excluded:'excluded'};
+  const SAVED_DAY_LABELS = {...DAY_STATE_LABELS, due:'Due today', partial:'In progress', unknown:'No data', excluded:'Excluded'};
+  const planEvidence = {id:'source-labelled',label:'Linked practice evidence'};
+  const scoredEvidence = {id:'source-labelled',label:'System-scored'};
+  const selfReported = {id:'self-reported',label:'Self-reported'};
 
-  let account;
+  let account, insights;
   let period = 14;
 
   /* ------------------------------------------------------------ periods */
@@ -79,25 +84,28 @@
   /* ---------------------------------------------------------- at a glance */
 
   const renderGlance = () => {
-    const plan = account.plan();
-    const adherence = plan ? account.adherence() : null;
+    const plan = insights ? insights.current : account.plan();
+    const adherence = insights ? plan?.week.adherence : plan ? account.adherence() : null;
     const usage = account.browserUsage(14);
     const checks = account.checkIns();
-    const routine = account.routine();
+    const routine = routineMetrics();
+    const date = insights ? Account.parse(insights.today) : account.today;
+    const week = plan?.cycle && ['Ended','Reviewed'].includes(plan.cycle.status) ? 'in the final week' : 'this week';
     const anyResult = checks.some(item => item.latest);
     const comparison = checks.some(item => item.comparison);
     const tile = (target, iconName, title, value, detail, tone = '') => `<a class="ins-glance-card ${tone}" href="#${target}"><span class="ins-glance-icon">${icon(iconName)}</span><span class="ins-glance-label">${title}</span><strong class="ins-glance-value">${value}</strong><span class="ins-glance-sub">${detail}</span></a>`;
     $('glance-grid').innerHTML = [
-      tile('adherence','i-calendar','Plan adherence',adherence?.due ? `${adherence.completed} of ${adherence.due}` : 'No plan',adherence?.due ? 'due practices completed this week' : plan ? 'Nothing due yet this week' : 'Start your Recovery Plan','is-plan'),
+      tile('adherence','i-calendar','Plan adherence',adherence?.due ? `${adherence.completed} of ${adherence.due}` : insights?'No data':'No plan',adherence?.due ? `due practices completed ${week}` : adherence?.unavailable ? 'No reliable completion records' : plan ? `No eligible practices due ${week}` : 'Start your Recovery Plan','is-plan'),
       tile('usage','i-chart','Digital usage',usage.available ? minutes(usage.totalSeconds) : 'No data',usage.available ? `${usage.periods.length} observed ${plural(usage.periods.length,'day')} in the last 14 days` : 'Browser tracking not set up yet','is-usage'),
       tile('checkins','i-flask','Assessments',comparison ? 'Comparison ready' : anyResult ? 'First result only' : 'No results',comparison ? 'Valid change measured' : anyResult ? 'No valid comparison yet' : 'Optional first Lab check','is-checks'),
-      tile('beyond','i-walk','Offline routine',`${routine.monthDays} ${plural(routine.monthDays,'day')}`,routine.monthDays ? `self-reported in ${account.today.toLocaleDateString('en-GB',{month:'long'})}` : routine.primary ? 'No days reported this month' : 'Add a routine in Activities','is-routine')
+      tile('beyond','i-walk','Offline routine',insights&&!routine.monthDays&&!routine.skippedDays?'No data':`${routine.monthDays} ${plural(routine.monthDays,'day')}`,routine.monthDays ? `self-reported in ${date.toLocaleDateString('en-GB',{month:'long'})}` : routine.skippedDays ? `${routine.skippedDays} self-reported skipped` : routine.primary ? 'No days reported this month' : 'Add a routine in Activities','is-routine')
     ].join('');
   };
 
   /* ------------------------------------------------------- plan adherence */
 
   const shortTitle = day => {
+    if (day.title) return day.title;
     if (!day.action) return 'Nothing scheduled';
     if (day.action.kind === 'rest') return 'Rest day';
     if (day.action.kind === 'review') return 'Weekly review';
@@ -105,48 +113,86 @@
   };
 
   const renderAdherence = () => {
-    const plan = account.plan();
+    const current = insights?.current;
+    const plan = insights ? current : account.plan();
+    const history = insights ? cycleHistory() : '';
     if (!plan) {
       // Six setup answers and the story lead to Home; plan activation is a separate choice.
-      $('adherence-body').innerHTML = compactEmpty('i-flag', 'No active Recovery Plan yet',
-        'Your week appears here once your plan is active. Until then nothing is scheduled, so nothing is counted.',
-        `<a class="ds-btn" data-size="sm" href="${href('src/pages/member/onboarding/onboarding.html')}">Continue setup${icon('i-arrow')}</a>`);
+      const preview = insights && account.serverRecovery()?.canEdit;
+      $('adherence-body').innerHTML = compactEmpty('i-flag', insights?'No data for a current cycle':'No active Recovery Plan yet',
+        'Your week appears here once your plan is active.',
+        `<a class="ds-btn" data-size="sm" href="${href(preview?'src/pages/member/onboarding/starting-point.html':'src/pages/member/onboarding/onboarding.html')}">${preview?'Open plan preview':'Continue setup'}${icon('i-arrow')}</a>`)+history;
       return;
     }
-    const days = account.schedule();
-    const adherence = account.adherence();
-    const reviews = account.reviews();
+    const days = insights ? current.week.days.map(row=>({
+      date:Account.parse(row.date), title:row.title||account.activityType(row.activityType)?.title||(row.state==='Unavailable'?'No practice record':null),
+      state:SAVED_DAY_STATES[row.state]||'unknown',isToday:row.date===insights.today
+    })) : account.schedule();
+    const adherence = insights ? {...current.week.adherence,provenance:planEvidence,
+      restDays:days.filter(day=>day.state==='rest').length} : account.adherence();
+    const reviews = insights ? {
+      completed:current.cycle.reviews.filter(review=>review.decision!=='AutoContinued').length,
+      expected:current.cycle.detailedWeeks,nextDue:current.nextReviewOn&&Account.parse(current.nextReviewOn),
+      lastAdjustment:current.lastPlanChangeOn&&{on:Account.parse(current.lastPlanChangeOn),label:'Plan revision effective'}
+    } : account.reviews();
     const range = `${fmt.date(days[0].date)} – ${fmt.date(days[6].date)}`;
+    const weekHeading = $('adherence-heading');
+    if (weekHeading && current && ['Ended','Reviewed'].includes(current.cycle.status)) weekHeading.textContent = 'Final week adherence';
     $('adherence-meta').innerHTML = `${badge(adherence.provenance)}`;
 
     const tiles = days.map((day, index) => {
-      const label = `${fmt.date(day.date, { weekday: true })} · ${shortTitle(day)} · ${DAY_STATE_LABELS[day.state]}${day.isToday ? ' · today' : ''}`;
+      const label = `${fmt.date(day.date, { weekday: true })} · ${shortTitle(day)} · ${SAVED_DAY_LABELS[day.state]}${day.isToday ? ' · today' : ''}`;
       return `<li class="ins-day${day.isToday ? ' is-today' : ''}">
-        <span class="ins-day-mark" data-state="${day.state}" style="--i:${index}" role="img" aria-label="${esc(label)}"></span>
+        <span class="ins-day-mark" data-state="${markFor(day.state)}" style="--i:${index}" role="img" aria-label="${esc(label)}"></span>
         <span class="ins-day-name">${fmt.weekday(day.date)} ${day.date.getDate()}</span>
         <span class="ins-day-what">${esc(shortTitle(day))}</span>
         ${day.isToday ? '<span class="ins-day-today">Today</span>' : ''}
       </li>`;
     }).join('');
 
-    const legend = Object.entries(DAY_STATE_LABELS)
-      .map(([state, label]) => `<li><span class="ins-day-mark" data-state="${state}" aria-hidden="true"></span>${label}</li>`).join('');
+    const legend = (insights ? [...new Set(days.map(day=>day.state))].map(state=>[state,SAVED_DAY_LABELS[state]]) : Object.entries(DAY_STATE_LABELS))
+      .map(([state, label]) => `<li><span class="ins-day-mark" data-state="${markFor(state)}" aria-hidden="true"></span>${label}</li>`).join('');
 
     const restNote = adherence.restDays
       ? ` The rest ${plural(adherence.restDays, 'day is', 'days are')} not counted.`
       : '';
     const formula = adherence.due
-      ? `${num(adherence.completed)} ÷ ${num(adherence.due)} due this week.${restNote}`
-      : 'Nothing has been due yet this week.';
+      ? `${num(adherence.completed)} ÷ ${num(adherence.due)} eligible due practices.${restNote}`
+      : insights?'No data for eligible due practices.':'Nothing has been due yet this week.';
 
     const adjustment = reviews.lastAdjustment
       ? `<li>Last adjustment: <strong>${fmt.date(reviews.lastAdjustment.on)} — ${esc(reviews.lastAdjustment.label.toLowerCase())}</strong></li>`
       : '<li>No plan adjustments yet.</li>';
     const nextReview = reviews.nextDue ? ` · next due ${fmt.date(reviews.nextDue, { weekday: true })}` : '';
 
+    const fill = adherence.due ? `<div class="ins-progress-track" role="progressbar" aria-valuenow="${adherence.completed}" aria-valuemin="0" aria-valuemax="${adherence.due}" aria-label="Eligible due practices completed"><span style="width:${100*(adherence.completionRate??adherence.completed/adherence.due)}%"></span></div>` : '';
+    const weekLabel = insights ? `Cycle ${current.cycle.number} · ${current.cycle.status} · Week ${current.week.number} of 4 · Day ${current.day}` : `Week ${plan.week} of ${plan.weeks}`;
+    const counts = insights ? `<li>${adherence.scheduled} scheduled · ${adherence.missed} missed${adherence.unavailable?` · ${adherence.unavailable} unavailable`:''}</li>` : '';
     $('adherence-body').innerHTML = `
-      <div class="ins-week-summary"><div class="ins-week-progress"><div class="ins-progress-track" role="progressbar" aria-valuenow="${adherence.completed}" aria-valuemin="0" aria-valuemax="${adherence.due}" aria-label="Due practices completed this week"><span style="width:${adherence.due ? Math.min(100,adherence.completed/adherence.due*100) : 0}%"></span></div><p>${range} · Week ${plan.week} of ${plan.weeks}</p></div><strong>${adherence.completed} of ${adherence.due}</strong><a class="ins-link" href="${href('src/pages/member/recovery-plan/recovery-plan.html#week')}">View week details${icon('i-arrow')}</a></div>
-      <details class="ins-detail-disclosure"><summary>See daily schedule and review evidence</summary><div class="ins-detail-content"><ol class="ins-days" aria-label="This week's schedule">${tiles}</ol><ul class="ins-legend" aria-label="Legend">${legend}</ul><div class="ins-adherence-foot"><p class="ins-formula">${formula}</p><ul class="ins-facts"><li>Weekly reviews: <strong>${reviews.completed} of ${reviews.expected} completed</strong>${nextReview}</li>${adjustment}<li><a class="ins-link" href="${href('src/pages/member/recovery-plan/recovery-plan.html#history')}">Roadmap → History${icon('i-arrow')}</a></li></ul></div></div></details>`;
+      <div class="ins-week-summary"><div class="ins-week-progress">${fill}<p>${range} · ${weekLabel}</p></div><strong>${adherence.due?`${adherence.completed} of ${adherence.due}`:'No data'}</strong><a class="ins-link" href="${href('src/pages/member/recovery-plan/recovery-plan.html#week')}">View week details${icon('i-arrow')}</a></div>
+      <details class="ins-detail-disclosure"><summary>See daily schedule and review evidence</summary><div class="ins-detail-content"><ol class="ins-days" aria-label="This week's schedule">${tiles}</ol><ul class="ins-legend" aria-label="Legend">${legend}</ul><div class="ins-adherence-foot"><p class="ins-formula">${formula}</p><ul class="ins-facts">${counts}<li>Weekly reviews: <strong>${reviews.completed} of ${reviews.expected} completed</strong>${nextReview}</li>${adjustment}<li><a class="ins-link" href="${href('src/pages/member/recovery-plan/recovery-plan.html#history')}">Roadmap → History${icon('i-arrow')}</a></li></ul></div>${insights?weeklyReviews(current.cycle.reviews):''}</div></details>${history}`;
+  };
+
+  const markFor = state => ({due:'not-due',partial:'not-due',unknown:'none',excluded:'none'})[state]||state;
+  const decisionLabels = {AcceptNext:'Accepted next week',KeepPace:'Kept current pace',Adjust:'Adjusted the proposal',
+    AutoContinued:'Continued without review answers'};
+  const weeklyReviews = rows => rows.length ? `<ul class="ins-facts">${rows.map(row=>`
+    <li>Week ${row.week} · ${esc(decisionLabels[row.decision]||row.decision)} · ${fmt.date(row.recordedOn)}
+    ${row.manageability?` · Manageability: ${esc(row.manageability.replaceAll('-',' '))}`:''}
+    ${row.fit?` · Fit: ${esc(row.fit.replaceAll('-',' '))}`:''}</li>`).join('')}</ul>` : '<p>No weekly reviews recorded.</p>';
+  const cycleHistory = () => {
+    const {history,comparison} = insights;
+    if (!history.length && !comparison) return '';
+    const completion = item => item.due ? `${item.completed} of ${item.due} eligible due practices completed` : 'No data for eligible due practices';
+    return `<details class="ins-detail-disclosure"><summary>Previous cycles and comparison</summary><div class="ins-detail-content">
+      ${history.map(cycle=>`<div><h4>Cycle ${cycle.number} · ${esc(cycle.kind==='Maintenance'?'Maintenance':cycle.status)}</h4>
+      <p>${fmt.date(cycle.startsOn)} – ${fmt.date(cycle.endsOn)} · ${completion(cycle.adherence)} · ${cycle.reportedRoutineDays} self-reported routine days</p>
+      ${weeklyReviews(cycle.reviews)}</div>`).join('')}
+      ${comparison?`<p>Scheduled practice adherence · two completed cycles with the same goal and mode.</p>
+        <ul class="ins-facts"><li>Cycle ${comparison.earlierCycle} · ${completion(comparison.earlier)}</li>
+        <li>Cycle ${comparison.laterCycle} · ${completion(comparison.later)}</li></ul>`:'<p>No comparable completed cycles yet.</p>'}
+      <a class="ins-link" href="${href('src/pages/member/recovery-plan/recovery-plan.html#history')}">Open Roadmap history${icon('i-arrow')}</a>
+    </div></details>`;
   };
 
   /* -------------------------------------------------------- digital usage */
@@ -287,9 +333,15 @@
   };
 
   const renderTraining = () => {
-    const types = account.training();
+    const types = insights ? insights.practices.map(item => {
+      const type = account.activityType(item.activityType);
+      const level = item.progress?.level;
+      return {...type,id:item.activityType,level,maxLevel:insights.maxLevel,required:insights.requiredExamples,
+        requiredDays:insights.requiredDays,validAtLevel:item.progress?.validAtLevel,days:item.progress?.days,
+        atMax:level===insights.maxLevel,eligible:item.progress?.eligible,provenance:scoredEvidence,insight:item};
+    }) : account.training();
     if (!types.some(type => type.level)) {
-      $('training-body').innerHTML = compactEmpty('i-book', 'Levels start with your plan', 'Each practice type gets its own level when your plan is active. No level is shown until one is earned or chosen.');
+      $('training-body').innerHTML = compactEmpty('i-book', insights?'No practice data yet':'Levels start with your plan', 'Each practice type starts at Level 1 when your plan is activated.');
       $('training-note').textContent = '';
       return;
     }
@@ -306,11 +358,16 @@
         ? 'Top level reached.'
         : type.eligible
           ? `Requirement met — level ${type.level + 1} is ready when you are.`
-          : `${type.validAtLevel} of ${type.required} valid attempts to unlock the next level`;
-      const last = type.lastAttempt
+          : `${type.validAtLevel} of ${type.required} eligible examples · ${type.days} of ${type.requiredDays} days`;
+      const latest = type.insight?.latest;
+      const earlier = type.insight?.comparableEarlier;
+      const score = item => `${item.result.correctCount} of ${item.result.questionCount} correct`;
+      const last = type.insight ? latest ? `${type.insight.validAttempts} valid ${plural(type.insight.validAttempts,'attempt')} ·
+        ${esc(latest.result.title)} · Level ${latest.level} · ${score(latest)} · ${fmt.date(latest.date)} · ${esc(latest.result.evidenceTier)}`
+        : 'No scored attempts recorded.' : type.lastAttempt
         ? `Last attempt ${fmt.date(type.lastAttempt.on)} · ${type.lastAttempt.valid ? esc(type.lastAttempt.outcome) : `not counted: ${esc(type.lastAttempt.invalidReason || type.lastAttempt.outcome)}`}`
         : 'No attempts yet.';
-      return `<article class="ins-skill">
+      return `<article class="ins-skill" data-practice="${esc(type.id)}">
         <div class="ins-skill-head">
           <span class="ins-skill-icon">${icon(TYPE_ICONS[type.id] || 'i-book')}</span>
           <div><h3>${esc(type.title)}</h3><small>${esc(levelLabel(type))}${type.levelReason ? help(`${type.title} level`, type.levelReason) : ''}</small></div>
@@ -319,6 +376,7 @@
         <div class="ins-notches" role="img" aria-label="Level ${type.level} of ${type.maxLevel}">${notches.join('')}</div>
         <div class="ins-attempts"><div class="ins-ticks" aria-hidden="true">${ticks}</div><span>${progress}</span></div>
         <p class="ins-last">${last}</p>
+        ${earlier?`<p class="ins-note">Same exercise version · ${fmt.date(earlier.date)}: ${score(earlier)}</p>`:''}
         ${type.verificationNote ? `<p class="ins-note">${icon('i-info')}<span>${esc(type.verificationNote)}</span></p>` : ''}
       </article>`;
     }).join('');
@@ -413,15 +471,21 @@
 
   /* ---------------------------------------------------- beyond the screen */
 
+  const routineMetrics = () => insights ? {
+    primary:insights.routine.activeTitle&&{title:insights.routine.activeTitle},
+    monthDays:insights.routine.doneDays.length,skippedDays:insights.routine.skippedDays.length,
+    provenance:selfReported
+  } : account.routine();
+
   const renderBeyond = () => {
-    const routine = account.routine();
+    const routine = routineMetrics();
     const cards = [];
 
-    if (routine.primary || routine.monthDays) {
-      const today = account.today;
-      const first = new Date(today.getFullYear(), today.getMonth(), 1, 12);
+    if (routine.monthDays || routine.skippedDays || !insights && routine.primary) {
+      const today = insights ? Account.parse(insights.today) : account.today;
+      const first = insights ? Account.parse(insights.routine.monthStartsOn) : new Date(today.getFullYear(), today.getMonth(), 1, 12);
       const last = new Date(today.getFullYear(), today.getMonth() + 1, 0, 12);
-      const done = new Set(account.routineDays(first, today));
+      const done = new Set(insights ? insights.routine.doneDays : account.routineDays(first, today));
       const offset = (first.getDay() + 6) % 7;
       const dots = [];
       for (let blank = 0; blank < offset; blank++) dots.push('<i class="is-blank"></i>');
@@ -434,11 +498,11 @@
         <header><h3>Offline routine</h3>${badge(routine.provenance)}</header>
         <div class="ins-glance-figure">${num(routine.monthDays)}<span>${plural(routine.monthDays, 'day')} in ${today.toLocaleDateString('en-GB', { month: 'long' })}${routine.primary ? ` · ${esc(routine.primary.title)}` : ''}</span></div>
         <div class="ins-month" role="img" aria-label="${esc(`Routine ticked on ${routine.monthDays} ${plural(routine.monthDays, 'day')} this month`)}">${dots.join('')}</div>
-        <p>Each tick is your own report. It is never graded.</p>
+        <p>${routine.skippedDays?`${routine.skippedDays} ${plural(routine.skippedDays,'day')} with a self-reported skipped check-in. `:''}Each tick is your own report. It is never graded.</p>
       </article>`);
     } else {
-      cards.push(`<article class="ins-beyond-card"><header><h3>Offline routine</h3></header>
-        ${empty('No routine yet.', button('Add a routine item', href('src/pages/member/training/training.html#offline-routine'), { quiet: true }))}</article>`);
+      cards.push(`<article class="ins-beyond-card"><header><h3>Offline routine</h3>${insights?badge(selfReported):''}</header>
+        ${empty(insights?'No data for routine check-ins this month.':'No routine yet.', button(routine.primary?'Open Offline Routine':'Add a routine item', href('src/pages/member/training/training.html#offline-routine'), { quiet: true }))}</article>`);
     }
 
     // Verified Institution initiatives: read from the shared records, never copied.
@@ -515,7 +579,22 @@
   /* ------------------------------------------------------------ next steps */
 
   const renderNext = () => {
-    const steps = account.nextSteps(root);
+    let steps = account.nextSteps(root);
+    if (insights) {
+      steps = steps.filter(item=>!item.id.startsWith('level-')&&item.id!=='review');
+      const ready = insights.practices.find(item=>item.progress?.eligible);
+      const status = insights.current?.cycle.status;
+      if (ready && status==='Active') {
+        const title = account.activityType(ready.activityType)?.title || 'Practice';
+        steps.push({action:`Choose Level ${ready.progress.level+1}`,reason:`${title} meets the examples and days required for your next level.`,
+          href:href('src/pages/member/training/training.html#training-types')});
+      }
+      const due = insights.current?.nextReviewOn;
+      if (due && status==='Active' && Account.daysBetween(Account.parse(insights.today),Account.parse(due))<=1)
+        steps.unshift({action:'Open Weekly Review',reason:'Your review window is open.',
+          href:href('src/pages/member/weekly-review/weekly-review.html')});
+      steps = steps.slice(0,3);
+    }
     $('next-body').innerHTML = steps.length
       ? steps.map(step => `<li><a class="ins-step" href="${step.href}"><span class="ins-step-icon">${icon(step.href.includes('shield') ? 'i-shield' : step.href.includes('review') ? 'i-calendar' : 'i-arrow')}</span><span class="ins-step-copy"><strong>${esc(step.action)}</strong><small>${esc(step.reason)}</small></span>${icon('i-arrow')}</a></li>`).join('')
       : `<li>${empty('Nothing needs your attention right now.')}</li>`;
@@ -548,9 +627,15 @@
   window.addEventListener('hashchange', updateSectionNav);
   updateSectionNav();
 
-  Account.load().then(loaded => {
+  Account.load().then(async loaded => {
     account = loaded;
-    $('ins-snapshot').innerHTML = `${icon('i-calendar')}<span>Demo snapshot · ${fmt.date(account.today, { year: true })}</span>${help('snapshot date','This page shows the local demonstration account at its planning date. Browser observations use the device calendar and are labeled separately.')}`;
+    if (account.serverAuthenticated()) {
+      const response = await fetch('/api/insights',{cache:'no-store'});
+      if (!response.ok) throw new Error('Insights data could not be loaded.');
+      insights = await response.json();
+    }
+    const date = insights ? Account.parse(insights.today) : account.today;
+    $('ins-snapshot').innerHTML = `${icon('i-calendar')}<span>${insights?'Saved records':'Demo snapshot'} · ${fmt.date(date, { year: true })}</span>${help('snapshot date',insights?'Plan, practice and routine figures use your saved records. Browser observations use the device calendar and are labeled separately.':'This page shows the local demonstration account at its planning date.')}`;
     renderGlance();
     renderAdherence();
     renderUsage();
@@ -566,8 +651,10 @@
     $('ins-coverage').textContent = 'No data loaded.';
     const error = $('ins-error');
     error.hidden = false;
-    error.textContent = 'We couldn’t load your data, so nothing is shown rather than zeros. If you opened this file directly from disk, serve the Client folder locally (see README) and reload.';
+    error.textContent = 'Your Insights could not be loaded. Reload to try again.';
     document.querySelectorAll('.ins-section').forEach(section => { section.hidden = true; });
   });
-  window.addEventListener('deepsprout:shield',()=>{if(account){renderGlance();renderUsage();}});
+  window.addEventListener('deepsprout:shield',()=>{
+    if(account&&(!account.serverAuthenticated()||insights)){renderGlance();renderUsage();}
+  });
 })();

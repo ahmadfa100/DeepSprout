@@ -116,6 +116,7 @@ let loading=false,cleanupOwner=()=>{};
 export function unmountOwner(){cleanupOwner();cleanupOwner=()=>{};}
 
 export function mountOwner(ctx){
+ if(ctx.community)return;
  const form=document.querySelector('[data-form="owner-assessment"]');
  let dirty=false;const initial=form?JSON.stringify([...new FormData(form)]):'';
  const beforeUnload=event=>{if(dirty){event.preventDefault();event.returnValue='';}};

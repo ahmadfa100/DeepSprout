@@ -1,4 +1,4 @@
-const personalSubject = window.DeepSproutPersonal.subject();
+let personalSubject;
 const personalKey = key => `${key}:person:${personalSubject}`;
 /**
  * Activities — focused practices, run in a full-screen focus mode.
@@ -8,7 +8,7 @@ const personalKey = key => `${key}:person:${personalSubject}`;
  * checklist lives in offline-routine.js.
  */
 const sessions = {
-  today:{title:'Depth Practice'},depth:{title:'Depth Practice'},listening:{title:'Listening & Recall'},challenge:{title:'Practical Micro-Challenge'},protected:{title:'Protected Work'}
+  today:{title:'Depth Practice'},depth:{title:'Depth Practice'},listening:{title:'Listening & Recall'},visual:{title:'Visual Observation & Analysis'},judgment:{title:'Reasoning & Digital Judgment'}
 };
 const PRACTICE_GUIDES = {
   depth: {
@@ -20,35 +20,25 @@ const PRACTICE_GUIDES = {
     heading: 'Listen, then recall',
     steps: ['Choose audio or the accessible transcript before starting.', 'Listen once or read the transcript, then answer from memory.', 'Submit your answers to save the attempt.'],
     hint: 'For audio, check your volume first. You cannot seek or replay within the same attempt.'
-  },
-  practical: {
-    heading: 'Try one real task',
-    steps: ['Read the example and choose a small task you can do now.', 'Do the task away from the prompt.', 'Describe your steps and what happened in your own words.'],
-    hint: 'A small, honest outcome is enough. Your written result is a self-report.'
-  },
-  'protected-work': {
-    heading: 'Make room for focused work',
-    steps: ['Name one specific task you want to work on.', 'Start the local timer and pause it when you finish.', 'Record what you did, then submit your self-report.'],
-    hint: 'The timer does not block websites. Turn on Digital Shield separately if you want that support.'
   }
 };
 const SESSION_BY_TITLE = {
   'Depth Practice': 'depth', 'Listening & Recall': 'listening',
-  'Practical Micro-Challenge': 'challenge', 'Protected Work': 'protected'
+  'Visual Observation & Analysis': 'visual', 'Reasoning & Digital Judgment': 'judgment'
 };
-const ICON_BY_SESSION = { depth: 'i-book', listening: 'i-headphones', challenge: 'i-pencil', protected: 'i-timer' };
+const ICON_BY_SESSION = { depth: 'i-book', listening: 'i-headphones', visual: 'i-shapes', judgment: 'i-evidence' };
 
 const Account = window.DeepSproutAccount;
 let account = null;
 /** Session key → the practice type it is scored as. Other sessions are not a training type. */
-const TYPE_BY_SESSION = { today: 'depth', depth: 'depth', listening: 'listening', challenge: 'practical', protected: 'protected-work' };
-const SESSION_BY_TYPE = { depth: 'depth', listening: 'listening', practical: 'challenge', 'protected-work': 'protected' };
+const TYPE_BY_SESSION = { today: 'depth', depth: 'depth', listening: 'listening', visual: 'visual-observation', judgment: 'digital-judgment', challenge: 'visual-observation', protected: 'digital-judgment' };
+const SESSION_BY_TYPE = { depth: 'depth', listening: 'listening', 'visual-observation': 'visual', 'digital-judgment': 'judgment' };
 const readStored = (key, fallback) => {
   return window.DeepSproutPersonal.preference(key, fallback, personalSubject);
 };
 const writeStored = (key, value) => {
-  try { window.DeepSproutPersonal.assert(personalSubject); window.DeepSproutPersonal.save(personalKey(key), JSON.stringify(value)); }
-  catch (error) { throw error; }
+  window.DeepSproutPersonal.assert(personalSubject);
+  window.DeepSproutPersonal.save(personalKey(key), JSON.stringify(value));
 };
 
 /* --------------------------------------------------------------- progress */
@@ -89,8 +79,9 @@ const renderUpNext = () => {
     document.getElementById('up-next-title').textContent = today.action.type?.title || sessions[key].title;
     document.getElementById('up-next-note').textContent = `${today.action.minutes} minutes · level ${today.action.level}`;
     icon.setAttribute('href', `#${ICON_BY_SESSION[key] || 'i-bolt'}`);
-    card.href = `?session=${key}`;
-    card.onclick = event => { event.preventDefault(); openSession(key); };
+    const code = today.action.activityCode;
+    card.href = `?session=${key}${code ? '&practice=' + encodeURIComponent(code) : ''}`;
+    card.onclick = event => { event.preventDefault(); openSession(key,code); };
     return;
   }
 
@@ -118,8 +109,7 @@ const renderUpNext = () => {
 
 /* ------------------------------------------------------------- saved items */
 
-let savedSessions = readStored('deepsprout-training-saved', []);
-if (!Array.isArray(savedSessions)) savedSessions = [];
+let savedSessions = [];
 const renderSaved = () => {
   document.querySelectorAll('[data-save]').forEach(button => {
     const saved = savedSessions.includes(button.dataset.save);
@@ -132,9 +122,11 @@ const renderSaved = () => {
   line.textContent = names.length ? `Saved: ${names.join(' · ')}` : '';
 };
 document.querySelectorAll('[data-save]').forEach(button => button.addEventListener('click', () => {
+  if (!personalSubject) return;
   const key = button.dataset.save;
-  savedSessions = savedSessions.includes(key) ? savedSessions.filter(item => item !== key) : [...savedSessions, key];
-  writeStored('deepsprout-training-saved', savedSessions);
+  const next = savedSessions.includes(key) ? savedSessions.filter(item => item !== key) : [...savedSessions, key];
+  writeStored('deepsprout-training-saved', next);
+  savedSessions = next;
   renderSaved();
   button.classList.remove('is-popping');
   void button.offsetWidth;
@@ -152,46 +144,280 @@ const renderPracticeGuide=type=>{
  return `<aside class="practice-guide" aria-label="Before you start"><p class="practice-guide-label">Before you start</p><h3>${esc(guide.heading)}</h3><ol>${guide.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol><p class="practice-guide-hint"><strong>Helpful hint</strong> ${esc(guide.hint)}</p></aside>`;
 };
 const renderPracticeHint=type=>`<p class="practice-in-session-hint"><strong>Helpful hint:</strong> ${esc(PRACTICE_GUIDES[type].hint)}</p>`;
-let selectedType='depth',run=null,heartbeat=null;
+const interactive = window.DeepSproutInteractivePractice;
+const familyTitle = type => account.activityType(type)?.title || 'Practice';
+let selectedType='depth', preferredDefinition=null, run=null;
+let pendingAnswers = Promise.resolve();
+let startingPractice = false;
 const fail=error=>{feedback.textContent=error.message;feedback.setAttribute('role','alert');};
 const safely=fn=>{try{fn();}catch(error){fail(error);}};
 const latestRun=()=>account.practiceHistory().find(r=>r.id===run?.id);
-const responses=()=>({answers:[...player.querySelectorAll('fieldset')].map(f=>Number(f.querySelector('input:checked')?.value??-1)),artifact:player.querySelector('[name=artifact]')?.value||'',outcome:player.querySelector('[name=outcome]')?.value||'',confirmed:!!player.querySelector('[name=confirmed]')?.checked});
-const showTimer=()=>{const r=latestRun();if(!r)return;const elapsed=Math.max(0,Math.floor(r.observedSeconds)),goal=r.definitionSnapshot.sessionSeconds,clock=seconds=>`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;const display=byId('session-timer'),target=byId('work-clock-goal'),progress=byId('work-clock-progress'),phase=byId('work-clock-phase');if(display)display.textContent=clock(elapsed);if(target)target.textContent=clock(goal);if(progress){progress.style.setProperty('--progress',String(Math.min(1,elapsed/goal)));progress.setAttribute('aria-valuemax',String(goal));progress.setAttribute('aria-valuenow',String(Math.min(elapsed,goal)));}if(phase)phase.textContent=elapsed>=goal?'Time reached':r.activeSince?'Running':elapsed?'Paused':'Ready';};
-function stopHeartbeat(){clearInterval(heartbeat);heartbeat=null;}
-function startHeartbeat(){stopHeartbeat();heartbeat=setInterval(()=>safely(()=>{const r=latestRun();if(r?.status==='Started'&&r.activeSince){account.progressPractice(r.id,'tick');showTimer();if(latestRun().observedSeconds>=r.definitionSnapshot.sessionSeconds){stopHeartbeat();account.progressPractice(r.id,'pause');showTimer();byId('work-state').textContent='Expected duration reached. Record your actual outcome.';}}}),1000);}
-function chooseContent(){
- player.onchange=null;run=null;stopHeartbeat();feedback.textContent='';document.getElementById('session-title').textContent=sessions[SESSION_BY_TYPE[selectedType]].title;
- document.getElementById('session-description').textContent='Choose an example and read the steps before you begin.';
- const level=account.training().find(t=>t.id===selectedType)?.level;
- const defs=account.practiceDefinitions(selectedType).filter(d=>d.level===level);
- const draft=account.practiceHistory().find(r=>['Started','Paused'].includes(r.status));
- player.innerHTML=`${draft?`<p>You have an unfinished ${esc(sessions[SESSION_BY_TYPE[draft.activityType]].title)} attempt with its original content.</p><button type="button" id="resume-practice">Resume original attempt</button><button type="button" id="interrupt-practice">Interrupt & choose a new attempt</button>`:''}<label>Example<select id="practice-definition">${defs.map(d=>`<option value="${esc(d.id)}">${esc(d.title)} · Level ${d.level}${d.access.allowed?'':' · '+esc(d.access.reason)}</option>`).join('')}</select></label><div id="practice-preview"></div>`;
- player.insertAdjacentHTML('afterbegin',renderPracticeGuide(selectedType));
- const preview=()=>{const d=defs.find(d=>d.id===byId('practice-definition').value);byId('practice-preview').innerHTML=d?`<p>${esc(d.instructions)}</p><p class="practice-meta">About ${d.estimatedMinutes} min · <span class="ph-ref">${esc(d.contentVersion)}</span></p>${selectedType==='listening'?'<label>Access mode<select id="practice-mode"><option value="standard">Audio playback + recall</option><option value="transcript">Accessible transcript recall — changed conditions</option></select></label>':''}${selectedType==='protected-work'?'<label>Your real task / intention<input id="practice-intention" minlength="8" maxlength="500" autocomplete="off"></label><p>Local timer only. No website blocking or task-quality verification.</p><p><a href="../shield/shield.html" target="_blank" rel="noopener">Optional browser protection: open Digital Shield</a>. Start any protection separately; this attempt never implies that blocking occurred.</p>':''}<p>${esc(d.access.reason)}</p><button type="button" id="begin-practice" ${!d.access.allowed||draft?'disabled':''}>Start this example</button>`:'<p>Activate your personal plan to initialize Level 1, then return here.</p>';};
- player.querySelector('select').addEventListener('change',preview);preview();
- byId('resume-practice')?.addEventListener('click',()=>safely(()=>{run=draft;renderPlayer();}));
- byId('interrupt-practice')?.addEventListener('click',()=>safely(()=>{account.progressPractice(draft.id,'interrupt');chooseContent();renderPracticeSummary();}));
- player.onclick=beginClick;
+const responses=()=>({answers:[...player.querySelectorAll('fieldset')].map(f=>Number(f.querySelector('input:checked')?.value??-1))});
+
+function serverRun(state, previous = {}) {
+  return {...previous,activityType:state.definition.practiceType,level:state.level,status:state.status,
+    attemptId:state.attemptId,mode:state.mode,audioComplete:state.audioReady,
+    definitionSnapshot:{...state.definition,questions:state.questions},
+    responses:{answers:state.definition.practiceType === 'visual-observation' || state.definition.practiceType === 'digital-judgment'
+      ? state.answers.filter(answer => answer !== null) : state.answers,observed:state.observed}};
 }
-function beginClick(event){if(event.target.id!=='begin-practice')return;safely(()=>{run=account.beginPractice(byId('practice-definition').value,{mode:byId('practice-mode')?.value||'standard',intention:byId('practice-intention')?.value||''});renderPlayer();renderPracticeSummary();});if(!run)player.onclick=beginClick;}
-function renderPlayer(){
- player.onclick=null;stopHeartbeat();run=latestRun()||run;feedback.textContent='';const d=run.definitionSnapshot,r=run.responses||{};
- document.getElementById('session-title').textContent=sessions[SESSION_BY_TYPE[run.activityType]].title;
- document.getElementById('session-description').textContent=d.practiceType==='protected-work'?'Track time on your task, then record what happened.':'Follow the activity below, then submit your response.';
- player.innerHTML=`<p class="practice-meta">${esc(d.title)} · Level ${run.level} · ${esc(run.status)}</p>${d.practiceType==='protected-work'?'':`<p>${esc(d.instructions)}</p>`}${d.practiceType==='depth'?`<article class="practice-passage" tabindex="0"><h3>${esc(d.title)}</h3><p>${esc(d.content)}</p></article>`:''}${d.practiceType==='listening'?(run.mode==='transcript'?`<p><strong>Accessible transcript mode. Changed measurement conditions; this is not verified audio recall.</strong></p><article class="practice-passage" tabindex="0">${esc(d.content)}</article>`:`<p>One playback, no seeking/replay. Audio may be paused. Questions are scored; audible output cannot be verified by the app.</p><audio id="practice-audio" controls preload="metadata" src="../../../../${esc(d.audio)}"></audio><p id="audio-status">${run.audioComplete?'Original playback completed.':'Listen from start to finish before submitting.'}</p><button type="button" id="audio-retry">Interrupt and retry audio</button>`):''}${d.questions?`<form id="practice-answers">${d.questions.map((q,i)=>`<fieldset><legend>${i+1}. ${esc(q.prompt)}</legend>${q.options.map((o,j)=>`<label class="practice-option"><input type="radio" name="answer-${i}" value="${j}" ${r.answers?.[i]===j?'checked':''} required>${esc(o)}</label>`).join('')}</fieldset>`).join('')}</form>`:`${d.practiceType==='protected-work'?`<details class="work-notes"><summary>How this timer works</summary><p>${esc(d.content)}</p></details>`:`<p>${esc(d.content)}</p>`}${d.practiceType==='protected-work'?`<p class="work-intention"><span>Your task</span><strong>${esc(run.intention)}</strong></p><section class="work-clock" aria-label="Observed work timer"><div class="work-clock-head"><span>FOCUS TIMER</span><span id="work-clock-phase">Ready</span></div><div class="work-clock-readout"><strong id="session-timer" role="timer">00:00</strong><span>/ <span id="work-clock-goal">00:00</span></span></div><div class="work-clock-progress" id="work-clock-progress" role="progressbar" aria-label="Observed work time" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span></span></div><div class="work-clock-foot"><p id="work-state">${run.status==='Paused'?'Paused. Resume when ready.':'Start the local timer when ready.'}</p><button type="button" id="timer-toggle" class="work-clock-control"><svg aria-hidden="true"><use href="#${run.activeSince?'i-pause':'i-play'}"/></svg>${run.activeSince?'Pause timer':run.observedSeconds>0?'Resume timer':'Start timer'}</button></div></section>`:`<label>Your steps, categories or revised instructions<textarea name="artifact" minlength="30" maxlength="5000" rows="5">${esc(r.artifact||'')}</textarea></label>`}<label>What actually happened?<textarea name="outcome" minlength="20" maxlength="5000" rows="3">${esc(r.outcome||'')}</textarea></label><label class="practice-option"><input type="checkbox" name="confirmed" ${r.confirmed?'checked':''}>This outcome is my self-report; it has not been independently verified.</label>`}<div class="practice-actions"><button type="button" id="save-practice">Save draft</button><button type="button" id="complete-session">Submit evidence</button><button type="button" id="end-practice">Interrupt attempt</button></div>`;
- if(d.practiceType!=='protected-work')player.querySelector('.practice-meta').insertAdjacentHTML('afterend',renderPracticeHint(run.activityType));
- player.onchange=()=>safely(()=>{account.progressPractice(run.id,'save',{responses:responses()});feedback.textContent='Draft saved to your personal journal.';});
- byId('save-practice').onclick=()=>safely(()=>{account.progressPractice(run.id,'save',{responses:responses()});feedback.textContent='Draft saved.';});
- byId('complete-session').onclick=()=>safely(()=>{
-  const result=account.submitPractice(run.id,responses());stopHeartbeat();
-  const ok=result.status==='Completed';
-  player.innerHTML=`<div class="pr-result" data-status="${ok?'done':'invalid'}"><span class="pr-mark" aria-hidden="true"><svg><use href="#${ok?'i-check':'i-x'}"/></svg></span><h3>${esc(result.status)} · ${esc(result.outcome)}</h3><p class="pr-tier">${esc(result.evidenceTier)}</p><p>${esc(result.invalidReason||'Original responses and content are saved in History.')}</p><p class="pr-garden" data-eligible="${result.rewardEligible}"><svg aria-hidden="true"><use href="#i-sprout"/></svg>${result.rewardEligible?'Eligible source for this practice-type tree.':'No new tree growth from this attempt.'}</p><div class="pr-actions"><button type="button" id="retry-practice">Choose another example / retry</button><button type="button" class="pr-done" id="practice-done">Back to Activities</button></div></div>`;
-  byId('retry-practice').onclick=chooseContent;byId('practice-done').onclick=()=>byId('session-close').click();feedback.textContent='Saved. No cognitive recovery score is inferred.';renderPracticeSummary();updateProgress();renderUpNext();
- });
- byId('end-practice').onclick=()=>safely(()=>{account.progressPractice(run.id,'interrupt');stopHeartbeat();chooseContent();renderPracticeSummary();});
- byId('timer-toggle')?.addEventListener('click',()=>safely(()=>{const r=latestRun();account.progressPractice(r.id,r.activeSince?'pause':'resume');renderPlayer();}));
- showTimer();if(run.activeSince)startHeartbeat();
+
+async function startSavedPractice(send, previous, control) {
+  if (startingPractice) return;
+  startingPractice = true;
+  if (control) control.disabled = true;
+  try {
+    const state = await send();
+    if (!sessionDialog.open || (control && !control.isConnected)) {
+      account = await Account.load(true);
+      refreshPracticePage();
+      return;
+    }
+    run = serverRun(state, previous);
+    if (state.result) await finishPractice(state.result);
+    else renderPlayer();
+  } catch (error) { fail(error); }
+  finally {
+    startingPractice = false;
+    if (control) control.disabled = false;
+  }
+}
+
+function chooseContent(focus = false) {
+  player.onchange = player.onclick = null;
+  run = null;
+  feedback.textContent = '';
+  byId('session-title').textContent = familyTitle(selectedType);
+  byId('session-description').textContent = 'Choose an example at your current level.';
+  sessionDialog.dataset.family = selectedType;
+  const level = account.training().find(t => t.id === selectedType)?.level;
+  const defs = account.practiceDefinitions(selectedType).filter(d => d.level === level || d.access.core);
+  const preferred = preferredDefinition || defs.find(definition => definition.access.core)?.id;
+  if (preferred) defs.sort((a,b) => Number(b.id === preferred) - Number(a.id === preferred));
+  const saved = account.serverAuthenticated();
+  const draft = account.practiceHistory().find(item => ['Started','Paused'].includes(item.status) &&
+    (!saved || item.server && item.activityType === selectedType && item.on === account.todayKey));
+  const canResume = draft && !!SESSION_BY_TYPE[draft.activityType];
+  const resume = () => {
+    if (saved) return startSavedPractice(() => account.serverPractice(draft.attemptId,'resume'), draft,
+      player.querySelector('[data-resume],#resume-practice'));
+    safely(() => {
+      run = draft;
+      selectedType = run.activityType;
+      preferredDefinition = null;
+      if (interactive.types[run.activityType] && run.status === 'Paused') account.progressPractice(run.id, 'resume');
+      renderPlayer();
+    });
+  };
+  const interrupt = async () => {
+    try {
+      if (saved) {
+        await account.serverPractice(draft.attemptId,'interrupt');
+        account = await Account.load(true);
+      } else account.progressPractice(draft.id, 'interrupt');
+      chooseContent(true);
+      feedback.textContent = 'Attempt ended. You can see the saved responses in History.';
+      refreshPracticePage();
+    } catch (error) { fail(error); }
+  };
+  const requests = new Map();
+  const start = (id, mode = 'standard') => {
+    if (saved) {
+      const listing = defs.find(item => item.id === id), key = id + ':' + mode;
+      if (!requests.has(key)) requests.set(key, crypto.randomUUID());
+      return startSavedPractice(() => account.startServerPractice(listing,mode,requests.get(key)), {},
+        [...player.querySelectorAll('[data-definition],#begin-practice')].find(button => !button.dataset.definition || button.dataset.definition === id));
+    }
+    safely(() => {
+      run = account.beginPractice(id, { mode });
+      renderPlayer();
+      renderPracticeSummary();
+    });
+  };
+  if (interactive.types[selectedType]) {
+    interactive.intro({ root: player, type: selectedType, level, definitions: defs, draft, draftName: draft && familyTitle(draft.activityType), canResume, start, resume, interrupt, focus });
+    return;
+  }
+  player.innerHTML = renderPracticeGuide(selectedType) + (draft ? '<p>You have an unfinished <strong>' + esc(familyTitle(draft.activityType)) + '</strong> attempt.</p>' + (canResume ? '<button type="button" id="resume-practice">Resume original attempt</button>' : '') + '<button type="button" id="interrupt-practice">End draft and choose a new attempt</button>' : '') + '<label>Example<select id="practice-definition">' + defs.map(d => '<option value="' + esc(d.id) + '">' + esc(d.title) + ' ? Level ' + d.level + (d.access.allowed ? '' : ' ? ' + esc(d.access.reason)) + '</option>').join('') + '</select></label><div id="practice-preview"></div>';
+  const select = byId('practice-definition');
+  function preview() {
+    const d = defs.find(d => d.id === select.value);
+    byId('practice-preview').innerHTML = d ? '<p>' + esc(d.instructions) + '</p><p class="practice-meta">About ' + d.estimatedMinutes + ' min ? <span class="ph-ref">' + esc(d.contentVersion) + '</span></p>' + (selectedType === 'listening' ? '<label>Access mode<select id="practice-mode"><option value="standard">Audio playback + recall</option><option value="transcript">Accessible transcript recall ? changed conditions</option></select></label>' : '') + '<p>' + esc(d.access.reason) + '</p><button type="button" id="begin-practice" ' + (!d.access.allowed || draft ? 'disabled' : '') + '>Start this example</button>' : '<p>Activate your personal plan to initialize Level 1, then return here.</p>';
+    const button = byId('begin-practice');
+    if (d?.access.core && button && saved) {
+      button.disabled = !d.access.allowed;
+      button.textContent = draft?.scheduledActionId === d.access.core ? 'Resume scheduled practice' : 'Open scheduled practice';
+      if (draft?.scheduledActionId === d.access.core) {
+        button.onclick = resume;
+        return;
+      }
+    }
+    button?.addEventListener('click', () => start(d.id, byId('practice-mode')?.value));
+  }
+  select.addEventListener('change', preview);
+  preview();
+  byId('resume-practice')?.addEventListener('click', resume);
+  byId('interrupt-practice')?.addEventListener('click', interrupt);
+}
+
+function refreshPracticePage() { renderPracticeSummary(); updateProgress(); renderUpNext(); }
+
+function showPracticeResult(result) {
+  player.onchange = null;
+  player.innerHTML = '<div class="pr-result" data-status="done"><span class="pr-mark" aria-hidden="true"><svg><use href="#i-check"/></svg></span><h3>Completed · ' + esc(result.outcome) + '</h3><p class="pr-tier">' + esc(result.evidenceTier) + '</p><p>Original responses and content are saved in History.</p><p class="pr-garden" data-eligible="' + result.rewardEligible + '"><svg aria-hidden="true"><use href="#i-sprout"/></svg>' + (result.rewardEligible ? 'Eligible source for this practice-type tree.' : 'No new tree growth from this attempt.') + '</p><div class="pr-actions"><button type="button" id="retry-practice">Choose another example / retry</button><button type="button" class="pr-done" id="practice-done">Back to Activities</button></div></div>';
+  byId('retry-practice').onclick = () => chooseContent();
+  byId('practice-done').onclick = () => byId('session-close').click();
+  byId('practice-done').focus();
+}
+
+async function finishPractice(result) {
+  run = null;
+  showPracticeResult({...result,outcome:`${result.correctCount} of ${result.questionCount} correct`});
+  account = await Account.load(true);
+  refreshPracticePage();
+}
+
+function bindServerAnswers() {
+  const active = run, id = active.attemptId;
+  pendingAnswers = Promise.resolve();
+  const save = () => {
+    const answers = responses().answers.map(answer => answer < 0 ? null : answer);
+    pendingAnswers = pendingAnswers.catch(() => {}).then(() => account.serverPractice(id,'answers',{answers},true));
+    pendingAnswers.then(() => { if (run === active) feedback.textContent = 'Draft saved.'; },
+      error => { if (run === active) fail(error); });
+  };
+  player.onchange = save;
+  byId('save-practice').onclick = save;
+  const form = byId('practice-answers'), submit = byId('complete-session'), pause = byId('end-practice');
+  const busy = value => { submit.disabled = pause.disabled = byId('save-practice').disabled = value; };
+  submit.onclick = async () => {
+    if (!form.reportValidity()) return;
+    const answers = responses().answers;
+    busy(true);
+    try {
+      await pendingAnswers.catch(() => {});
+      const state = await account.serverPractice(id,'submit',{answers});
+      if (form.isConnected && sessionDialog.open) await finishPractice(state.result);
+      else {
+        account = await Account.load(true);
+        refreshPracticePage();
+      }
+    } catch (error) {
+      if (form.isConnected) { fail(error); busy(false); }
+    }
+  };
+  pause.textContent = 'Pause attempt';
+  pause.onclick = async () => {
+    busy(true);
+    try {
+      await pendingAnswers;
+      await account.serverPractice(id,'pause');
+      account = await Account.load(true);
+      if (form.isConnected && sessionDialog.open) {
+        chooseContent(true);
+        feedback.textContent = active.scheduledActionId || account.practiceHistory().find(item => item.attemptId === id)?.scheduledActionId
+          ? 'Attempt paused. Open the scheduled practice to resume.' : 'Attempt paused. Resume it when you are ready.';
+      }
+      refreshPracticePage();
+    } catch (error) { if (form.isConnected) { fail(error); busy(false); } }
+  };
+
+  const audio = byId('practice-audio');
+  if (!audio) return;
+  let playbackStart, position = 0, resuming = false;
+  if (active.audioComplete) audio.controls = false;
+  audio.onplay = () => {
+    if (active.audioComplete) { audio.pause(); return; }
+    if (!playbackStart) {
+      audio.pause();
+      playbackStart = account.serverPractice(id,'audio-start').then(() => {
+        if (audio.isConnected && sessionDialog.open) return audio.play();
+      }).catch(error => { playbackStart = null; fail(error); });
+    }
+  };
+  audio.onratechange = () => { if (audio.playbackRate !== 1) audio.playbackRate = 1; };
+  audio.ontimeupdate = () => { if (!audio.seeking) position = audio.currentTime; };
+  audio.onseeking = () => {
+    if (!resuming && Math.abs(audio.currentTime - position) > 1) {
+      resuming = true;
+      audio.currentTime = position;
+      resuming = false;
+    }
+  };
+  audio.onended = async () => {
+    try {
+      await playbackStart;
+      await account.serverPractice(id,'audio-finish');
+      active.audioComplete = true;
+      if (audio.isConnected) byId('audio-status').textContent = 'Original playback completed. Answer the recall questions.';
+    } catch (error) { fail(error); }
+  };
+  audio.onerror = () => fail(new Error('Audio could not load. Retry the audio or choose transcript mode.'));
+  byId('audio-retry').onclick = async () => {
+    try {
+      await pendingAnswers;
+      await account.serverPractice(id,'interrupt');
+      account = await Account.load(true);
+      chooseContent();
+      refreshPracticePage();
+    } catch (error) { fail(error); }
+  };
+}
+
+function renderPlayer() {
+  player.onchange = player.onclick = null;
+  run = run.attemptId ? run : latestRun() || run;
+  feedback.textContent = '';
+  const d = run.definitionSnapshot, r = run.responses || {};
+  byId('session-title').textContent = familyTitle(run.activityType);
+  sessionDialog.dataset.family = run.activityType;
+  if (interactive.types[run.activityType]) {
+    const active = run;
+    pendingAnswers = Promise.resolve();
+    byId('session-description').textContent = run.activityType === 'visual-observation' ? 'Study the composition at your own pace.' : 'Examine sources and evaluate the fictional claim.';
+    interactive.play({
+      root: player, attempt: run,
+      progress(action, details) {
+        if (active.attemptId) {
+          pendingAnswers = account.serverPractice(active.attemptId,action,details,true).then(state => {
+            const saved = serverRun(state, active);
+            if (run?.attemptId === active.attemptId) run = saved;
+            return saved;
+          });
+          return pendingAnswers;
+        }
+        account.progressPractice(run.id, action, details);
+        return latestRun();
+      },
+      async submit(current) {
+        if (!active.attemptId) return account.submitPractice(run.id);
+        const state = await account.serverPractice(active.attemptId,'submit',{answers:current.responses.answers});
+        account = await Account.load(true);
+        if (run?.attemptId === active.attemptId) run = null;
+        return {...serverRun(state),...state.result,requiredScore:account.practicePolicy().scoreToAdvance};
+      },
+      getLevel: () => account.training().find(t => t.id === active.activityType),
+      onDone: refreshPracticePage, onRetry: () => chooseContent(true), onClose: () => byId('session-close').click(), fail
+    });
+    return;
+  }
+  byId('session-description').textContent = 'Follow the activity below, then submit your response.';
+  const passage = '<article class="practice-passage" tabindex="0"><h3>' + esc(d.title) + '</h3><p>' + esc(d.content) + '</p></article>';
+  const body = d.practiceType === 'depth' ? passage : run.mode === 'transcript' ? '<p><strong>Accessible transcript mode. Changed measurement conditions; this is not verified audio recall.</strong></p>' + passage : '<p>One playback, no seeking or replay. Audio may be paused.</p><audio id="practice-audio" controls preload="metadata" src="../../../../' + esc(d.audio) + '"></audio><p id="audio-status">' + (run.audioComplete ? 'Original playback completed.' : 'Listen from start to finish before submitting.') + '</p><button type="button" id="audio-retry">Interrupt and retry audio</button>';
+  player.innerHTML = '<p class="practice-meta">' + esc(d.title) + ' ? Level ' + run.level + ' ? ' + esc(run.status) + '</p>' + renderPracticeHint(run.activityType) + '<p>' + esc(d.instructions) + '</p>' + body + '<form id="practice-answers">' + d.questions.map((q,i) => '<fieldset><legend>' + (i+1) + '. ' + esc(q.prompt) + '</legend>' + q.options.map((option,j) => '<label class="practice-option"><input type="radio" name="answer-' + i + '" value="' + j + '" ' + (r.answers?.[i] === j ? 'checked' : '') + ' required>' + esc(option) + '</label>').join('') + '</fieldset>').join('') + '</form><div class="practice-actions"><button type="button" id="save-practice">Save draft</button><button type="button" id="complete-session">Submit evidence</button><button type="button" id="end-practice">Interrupt attempt</button></div>';
+  if (run.attemptId) {
+    bindServerAnswers();
+    return;
+  }
+  const save = message => safely(() => { account.progressPractice(run.id, 'save', { responses: responses() }); feedback.textContent = message; });
+  player.onchange = () => save('Draft saved to your personal journal.');
+  byId('save-practice').onclick = () => save('Draft saved.');
+  byId('complete-session').onclick = () => safely(() => {
+    const result = account.submitPractice(run.id, responses());
+    showPracticeResult(result);
+    refreshPracticePage();
+  });
+  byId('end-practice').onclick = () => safely(() => { account.progressPractice(run.id, 'interrupt'); chooseContent(); renderPracticeSummary(); });
  const audio=byId('practice-audio');
  if(audio){
   let starting=false;
@@ -205,30 +431,67 @@ function renderPlayer(){
   byId('audio-retry').onclick=()=>safely(()=>{if(['Started','Paused'].includes(latestRun().status))account.progressPractice(run.id,'interrupt');chooseContent();renderPracticeSummary();});
  }
 }
-function openSession(key){
- if(!account)return;
- const type=TYPE_BY_SESSION[key];if(!type){feedback.textContent='Choose one of the four approved practices.';return;}
- selectedType=type;document.getElementById('session-title').textContent=sessions[key].title;
- chooseContent();sessionDialog.showModal?.();if(!sessionDialog.open)sessionDialog.setAttribute('open','');
+function openSession(key, preferred = null) {
+  if (!account) return;
+  const type = TYPE_BY_SESSION[key];
+  if (!type) return;
+  selectedType = type;
+  preferredDefinition = preferred;
+  chooseContent();
+  if (!sessionDialog.open) sessionDialog.showModal();
+  if (interactive.types[type]) player.querySelector('h3')?.focus({ preventScroll: true });
 }
-document.querySelectorAll('[data-session]').forEach(b=>b.addEventListener('click',()=>openSession(b.dataset.session)));
-const pauseLeaving=()=>{stopHeartbeat();const r=latestRun();if(r&&['Started','Paused'].includes(r.status))safely(()=>{if(r.activityType==='listening'&&r.audioStarted&&!r.audioComplete)account.progressPractice(r.id,'interrupt',{reason:'Audio interrupted; separate retry required.'});else if(r.activeSince)account.progressPractice(r.id,'pause');});player.querySelector('audio')?.pause();};
-document.getElementById('session-close').onclick=()=>{pauseLeaving();sessionDialog.close();};
-sessionDialog.addEventListener('cancel',pauseLeaving);sessionDialog.addEventListener('close',pauseLeaving);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseLeaving();});window.addEventListener('pagehide',pauseLeaving);
-const FAMILY={depth:{icon:'i-book',tone:'amber',noun:'Reading + questions',steps:['Read the passage','Answer the questions','Evidence is saved']},listening:{icon:'i-headphones',tone:'sky',noun:'Playback + recall',steps:['Listen once','Answer from memory','Evidence is saved']},practical:{icon:'i-pencil',tone:'lilac',noun:'Concrete outcome',steps:['Do one small task','Describe your steps','Report the outcome']},'protected-work':{icon:'i-timer',tone:'peach',noun:'Timed work session',steps:['Name a real task','Work under the timer','Record what you did']}};
+document.querySelectorAll('[data-session]').forEach(button => button.addEventListener('click', () => openSession(button.dataset.session)));
+function pauseLeaving(closing = false) {
+  if (run?.attemptId) {
+    player.querySelector('audio')?.pause();
+    if (!closing) return;
+    const id = run.attemptId;
+    run = null;
+    return pendingAnswers.catch(() => {}).then(() => account.serverPractice(id,'pause',undefined,true));
+  }
+  const draft = run && latestRun();
+  if (draft?.status === 'Started') safely(() => {
+    if (draft.activityType === 'listening' && draft.audioStarted && !draft.audioComplete) {
+      account.progressPractice(draft.id, 'interrupt', { reason: 'Audio interrupted; separate retry required.' });
+    } else if (closing && interactive.types[draft.activityType]) account.progressPractice(draft.id, 'pause');
+  });
+  player.querySelector('audio')?.pause();
+}
+byId('session-close').onclick = () => sessionDialog.close();
+sessionDialog.addEventListener('close', async () => {
+  try {
+    const paused = pauseLeaving(true);
+    if (paused) {
+      await paused;
+      account = await Account.load(true);
+    }
+    if (account) refreshPracticePage();
+  } catch (error) {
+    const status = document.getElementById('weekly-plan-count');
+    if (status) status.textContent = error.message;
+  }
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) pauseLeaving(); });
+window.addEventListener('pagehide', () => pauseLeaving(true)?.catch(() => {}));
+const FAMILY = {
+  depth: {icon:'i-book',tone:'amber',noun:'Reading + questions',steps:['Read the passage','Answer the questions','Evidence is saved']},
+  listening: {icon:'i-headphones',tone:'sky',noun:'Playback + recall',steps:['Listen once','Answer from memory','Evidence is saved']},
+  'visual-observation': {icon:'i-shapes',tone:'fern',noun:'Visual analysis',steps:['Study the scene','Answer four questions','Review the details']},
+  'digital-judgment': {icon:'i-evidence',tone:'linen',noun:'Evidence evaluation',steps:['Read the claim','Compare the sources','Review the reasoning']},
+  practical: {icon:'i-pencil',tone:'lilac'}, 'protected-work': {icon:'i-timer',tone:'peach'}
+};
 const helpTip=(label,text)=>window.DeepSproutUI?window.DeepSproutUI.help(label,text):'';
 const dayLabel=key=>{const d=new Date(`${key}T12:00:00`);return Number.isNaN(d.getTime())?esc(key):d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});};
-let pickDefinition=null;
 /** For You: one actionable recommendation, chosen from what the engine allows today. */
 function renderForYou(){
  const pick=document.getElementById('foryou-pick');if(!pick)return;
  const plan=account.plan(),goal=account.profile().goal,today=account.schedule().find(d=>d.isToday);
  const scheduledType=today?.action?.kind==='practice'&&today.state!=='completed'?today.action.activityType:null;
- const allowed=account.practiceDefinitions().filter(d=>d.access.allowed&&d.level===account.training().find(t=>t.id===d.practiceType)?.level);
+ const allowed=account.practiceDefinitions().filter(d=>d.access.allowed&&(d.access.core||d.level===account.training().find(t=>t.id===d.practiceType)?.level));
  const byGoal=allowed.filter(d=>d.goalTags.includes(goal?.id));
- const d=(scheduledType&&allowed.find(d=>d.practiceType===scheduledType))||byGoal.find(d=>d.practiceType!==scheduledType)||byGoal[0]||allowed[0]||null;
- pickDefinition=d;
+ const depth = scheduledDepth();
+ const d=(scheduledType&&allowed.find(d=>d.practiceType===scheduledType&&d.access.core))||(depth&&pinnedDepthListing(depth))||byGoal.find(d=>d.practiceType!==scheduledType)||byGoal[0]||allowed[0]||null;
  document.getElementById('practice-suggestion').textContent=d?`${sessions[SESSION_BY_TYPE[d.practiceType]].title} · ${d.title} · Level ${d.level}`:'';
  if(!d){
   pick.dataset.family='none';
@@ -247,7 +510,7 @@ function renderForYou(){
    <ol class="fy-steps">${f.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol>
    <div class="fy-foot"><span class="fy-meta"><svg><use href="#i-clock"/></svg>About ${d.estimatedMinutes} min · ${esc(f.noun)}</span><button type="button" class="ds-btn fy-start">${scheduled?'Start today’s practice':'Start'}<svg><use href="#i-arrow"/></svg></button></div>
   </div>`;
- pick.querySelector('.fy-start').onclick=()=>{openSession(SESSION_BY_TYPE[d.practiceType]);const select=byId('practice-definition');if(select&&[...select.options].some(o=>o.value===d.id)){select.value=d.id;select.dispatchEvent(new Event('change'));}};
+ pick.querySelector('.fy-start').onclick=()=>openSession(SESSION_BY_TYPE[d.practiceType], d.id);
 }
 function renderPracticeSummary(){
  const policy=account.practicePolicy();
@@ -265,34 +528,70 @@ function renderPracticeSummary(){
   </article>`;}).join('');
  const history=account.practiceHistory();
  const item=a=>{const type=a.activityType,f=FAMILY[type]||FAMILY.depth,status=a.status||(a.valid?'Legacy completed':'Legacy invalid'),tone=/Completed/.test(status)?'done':/Invalid|Interrupted/.test(status)?'warn':'quiet';
-  return `<details class="ph-item tone-${f.tone}"><summary><span class="ph-date">${dayLabel(a.on)}</span><span class="ph-dot" aria-hidden="true"><svg><use href="#${f.icon}"/></svg></span><span class="ph-title"><strong>${esc(a.title||a.definitionSnapshot?.title||sessions[SESSION_BY_TYPE[type]]?.title||'Practice')}</strong><small>${esc(sessions[SESSION_BY_TYPE[type]]?.title||'Practice')}${a.level?` · Level ${a.level}`:''}${a.outcome?` · ${esc(a.outcome)}`:''}</small></span><span class="ph-status" data-tone="${tone}">${esc(status)}</span></summary>
+  return `<details class="ph-item tone-${f.tone}"><summary><span class="ph-date">${dayLabel(a.on)}</span><span class="ph-dot" aria-hidden="true"><svg><use href="#${f.icon}"/></svg></span><span class="ph-title"><strong>${esc(a.title||a.definitionSnapshot?.title||familyTitle(type))}</strong><small>${esc(familyTitle(type))}${a.level?` · Level ${a.level}`:''}${a.outcome?` · ${esc(a.outcome)}`:''}</small></span><span class="ph-status" data-tone="${tone}">${esc(status)}</span></summary>
    <div class="ph-body"><dl><div><dt>Evidence</dt><dd>${esc(a.evidenceTier||'Legacy recorded evidence; no current validation claim')}</dd></div><div><dt>Content</dt><dd>${esc(a.contentVersion||'Historical content version not recorded')}</dd></div><div><dt>Record</dt><dd class="ph-ref">${esc(a.id)}</dd></div>${a.intention?`<div><dt>Intention</dt><dd>${esc(a.intention)}</dd></div>`:''}${a.invalidReason?`<div><dt>Not counted</dt><dd>${esc(a.invalidReason)}</dd></div>`:''}${a.eligibilityCorrection?`<div><dt>Eligibility withdrawn</dt><dd>${esc(a.eligibilityCorrection.reason)} · ${esc(a.eligibilityCorrection.actor)} · ${esc(a.eligibilityCorrection.at)}</dd></div>`:''}</dl>
    ${a.definitionSnapshot?`<details class="ph-sub"><summary>Original content &amp; instructions</summary><p>${esc(a.definitionSnapshot.instructions)}</p><p>${esc(a.definitionSnapshot.content)}</p><p>${esc(a.definitionSnapshot.questions?.map(q=>q.prompt).join(' • ')||'')}</p></details>`:''}
-   <details class="ph-sub"><summary>Recorded responses</summary><pre>${esc(JSON.stringify(a.responses||{},null,2))}</pre></details></div></details>`;};
+   <details class="ph-sub"${a.server&&!a.legacy?` data-server-history="${esc(a.attemptId)}"`:''}><summary>Recorded responses</summary>${a.server&&!a.legacy?'<div aria-live="polite">Open to load the saved exercise and answers.</div>':a.server?'<p>This historical entry has no compatible response snapshot.</p>':interactive.types[type]&&a.definitionSnapshot ? interactive.reviewAnswers(a) : `<pre>${esc(JSON.stringify(a.responses||{},null,2))}</pre>`}</details></div></details>`;};
  const first=history.slice(0,6),rest=history.slice(6);
  document.getElementById('practice-history').innerHTML=history.length?`<div class="ph-list">${first.map(item).join('')}</div>${rest.length?`<div class="ph-list" id="practice-history-more" hidden>${rest.map(item).join('')}</div><button type="button" class="ds-link ph-more" aria-expanded="false" aria-controls="practice-history-more">Show ${rest.length} earlier ${rest.length===1?'attempt':'attempts'}</button>`:''}`:`<div class="ds-empty"><span class="ds-empty-icon" aria-hidden="true"><svg><use href="#i-chart"/></svg></span><p class="ds-empty-copy"><strong>No attempts yet</strong><span>Completed, invalid and interrupted attempts appear here with their original evidence.</span></p></div>`;
+ document.querySelectorAll('[data-server-history]').forEach(details => {
+  details.ontoggle = async () => {
+   if (!details.open || details.dataset.loaded) return;
+   const body = details.querySelector('div');
+   body.textContent = 'Loading saved answers?';
+   try {
+    const state = await account.serverPractice(details.dataset.serverHistory, 'read');
+    if (!state) throw new Error('The saved attempt could not be found.');
+    const original = serverRun(state);
+    const answers = '<ol>' + state.questions.map((question,index) =>
+      '<li><strong>' + esc(question.prompt) + '</strong><p>' + esc(question.options[state.answers[index]]) + '</p></li>').join('') + '</ol>';
+    body.innerHTML = '<p>' + esc(state.content) + '</p>' +
+      (interactive.types[original.activityType] ? interactive.reviewAnswers(original) : answers);
+    details.dataset.loaded = 'true';
+   } catch (error) { body.textContent = error.message; }
+  };
+ });
  const more=document.querySelector('.ph-more');if(more)more.onclick=()=>{const list=byId('practice-history-more'),open=list.hidden;list.hidden=!open;more.setAttribute('aria-expanded',String(open));more.textContent=open?'Show fewer':`Show ${rest.length} earlier ${rest.length===1?'attempt':'attempts'}`;};
  renderForYou();renderCardLevels();
 }
 /** Each Browse card shows the person's own level for that family. */
 function renderCardLevels(){
- const map={depth:'depth',listening:'listening',challenge:'practical',protected:'protected-work'};
+ const map=TYPE_BY_SESSION;
  document.querySelectorAll('.practice-card[data-card]').forEach(card=>{const t=account.training().find(t=>t.id===map[card.dataset.card]);let chip=card.querySelector('.practice-level');if(!t?.level){chip?.remove();return;}if(!chip){chip=document.createElement('span');chip.className='practice-level';card.querySelector('.practice-art').append(chip);}chip.textContent=t.eligible?`Level ${t.level} · ready for ${t.level+1}`:`Your level ${t.level}`;});
 }
-document.getElementById('practice-levels').onclick=e=>{const b=e.target.closest('[data-choice]');if(b)safely(()=>{account.decidePracticeLevel(b.dataset.levelType,b.dataset.choice);renderPracticeSummary();});};
+document.getElementById('practice-levels').onclick=async event=>{
+ const button=event.target.closest('[data-choice]');
+ if (!button) return;
+ const {levelType,choice}=button.dataset;
+ button.disabled=true;
+ try {
+  if (account.serverAuthenticated()) {
+   await account.chooseServerLevel(levelType,choice,account.training().find(item=>item.id===levelType).level);
+   account=await Account.load(true);
+  } else account.decidePracticeLevel(levelType,choice);
+  refreshPracticePage();
+ } catch (error) {
+  document.getElementById('weekly-plan-count').textContent=error.message;
+  button.disabled=false;
+ }
+};
 
 /* ----------------------------------------------------------------- startup */
 
-renderSaved();
-const requestedSession = new URLSearchParams(window.location.search).get('session');
+const params = new URLSearchParams(window.location.search);
+const requestedSession = params.get('session');
 const openRequested = () => {
-  if (requestedSession && Object.prototype.hasOwnProperty.call(sessions, requestedSession)) openSession(requestedSession);
+  if (requestedSession && Object.hasOwn(TYPE_BY_SESSION, requestedSession)) openSession(requestedSession,params.get('practice'));
 };
 Account?.load().then(loaded => {
   account = loaded;
+  personalSubject = window.DeepSproutPersonal.subject();
+  const saved = readStored('deepsprout-training-saved', []);
+  savedSessions = Array.isArray(saved) ? saved : [];
+  renderSaved();
   if(account.plan())account.visitRecovery();
   // Recover a crashed/closed page without adding any unseen timer duration.
-  for(const r of account.practiceHistory())if(r.activeSince&&['Started','Paused'].includes(r.status))account.progressPractice(r.id,'recover');
+  for (const r of account.practiceHistory()) if (!r.server && interactive.types[r.activityType] && r.status === 'Started') account.progressPractice(r.id, 'recover');
   updateProgress();
   renderUpNext();
   renderPracticeSummary();

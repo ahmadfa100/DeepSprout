@@ -71,6 +71,8 @@ export const confirmedInMode = (s, session, mode) => (s.sessionRegistrations || 
 export const PRACTICE_TYPES = [
   {id:'depth', title:'Depth Practice', match:/depth/i},
   {id:'listening', title:'Listening & Recall', match:/listening/i},
+  {id:'visual-observation', title:'Visual Observation & Analysis', match:/^visual observation/i},
+  {id:'digital-judgment', title:'Reasoning & Digital Judgment', match:/^reasoning.*digital judgment/i},
   {id:'practical', title:'Practical Micro-Challenge', match:/practical|micro/i},
   {id:'protected-work', title:'Protected Work', match:/protected/i}
 ];

@@ -1,13 +1,10 @@
 /**
  * Onboarding 2.0: Meet Azm → six questions → "You're ready to begin" → the story → Home.
  *
- * Answers are saved after every change (device-local demo state and the personal journal), so a
- * refresh resumes on the same question with the same answers. Finishing records the setup and a
- * preliminary Week 1 proposal; nothing is activated. No cognitive assessment is required.
+ * Answers and progress come from the signed-in person's server profile.
  */
 (() => {
-  if (window.DeepSproutPersonal?.denied()) { try { window.DeepSproutPersonal.requireAccess(); } catch {} return; }
-  const DS = window.DeepSprout;
+  const account = window.DeepSproutAccount;
   const root = document.body.dataset.root || '../../../../';
   const $ = id => document.getElementById(id);
   const shell = $('qs');
@@ -32,36 +29,25 @@
   ];
   const TOTAL = QUESTIONS.length;
 
-  // Earlier interest keys stay readable by the plan preview, Profile and the activity pages.
-  const LEGACY_INTERESTS = { 'walking-sports': ['walking', 'sport'], 'reading-learning': ['reading'], 'drawing-creativity': ['drawing'], 'friends-family': ['people'], hobbies: ['hobbies'], other: ['other'] };
-  const COMMITMENTS = {
-    'walking-sports': m => ({ title: `A ${m}-minute walk or some movement`, hint: 'Outside if you can, around the room if not.' }),
-    'reading-learning': m => ({ title: `${m} minutes of reading, on paper`, hint: 'A book, a magazine, or notes you want to learn.' }),
-    'drawing-creativity': m => ({ title: `${m} minutes of drawing or making`, hint: 'No skill required. One small thing is enough.' }),
-    'friends-family': m => ({ title: `${m} minutes with someone, phone away`, hint: 'In person or on a call — not a message.' }),
-    hobbies: m => ({ title: `${m} minutes on a hobby you enjoy`, hint: 'Something you already like doing.' }),
-    other: m => ({ title: `${m} minutes of something offline`, hint: 'Anything away from a screen.' })
-  };
-
-  /* ------------------------------------------------------------- state */
-
-  const state = DS.get();
-  const saved = state.onboarding.quickSetup || {};
-  const answers = { ...(saved.answers || {}) };
-  let index = Math.min(TOTAL - 1, Math.max(0, Number(saved.index) || 0));
-  let journal = null;
+  let state;
+  let answers = {};
+  let index = 0;
   let scene = 'meet';
+  let writes = Promise.resolve();
 
   const answered = q => Array.isArray(answers[q.id]) ? answers[q.id].length > 0 : Boolean(answers[q.id]);
-  const remember = () => {
-    try {
-      DS.update(current => {
-        current.onboarding.bimoSeen = true;
-        current.onboarding.quickSetup = { version: 2, index, answers: JSON.parse(JSON.stringify(answers)), updatedAt: new Date().toISOString() };
-      });
-      $('qs-saved').textContent = 'Saved';
-    } catch (error) { $('qs-error').textContent = error.message; }
-  };
+
+  function persist(action, data) {
+    const write = writes.then(async () => {
+      state = await account.writeQuickSetup(state, action, data);
+    });
+    writes = write.catch(() => {});
+    return write;
+  }
+
+  function saveAnswer(question, finish = false) {
+    return persist('answers', { question: question.id, answer: answers[question.id], finish });
+  }
 
   /* ---------------------------------------------------------- progress */
 
@@ -98,8 +84,16 @@
       else answers[q.id] = input.value;
       $('qs-error').textContent = '';
       syncControls();
-      remember();
+      const selected = answers[q.id];
+      $('qs-saved').textContent = '';
+      if (!answered(q)) return;
+      saveAnswer(q).then(() => {
+        if (QUESTIONS[index] === q && answers[q.id] === selected) $('qs-saved').textContent = 'Saved';
+      }, error => {
+        if (QUESTIONS[index] === q && answers[q.id] === selected) $('qs-error').textContent = error.message;
+      });
     }));
+    $('qs-saved').textContent = '';
     $('qs-count').textContent = `Question ${index + 1} of ${TOTAL}`;
     $('qs-back').hidden = false;
     $('qs-back').disabled = false;
@@ -135,20 +129,33 @@
       return;
     }
     busy = true;
-    setProgress(index + 1);
-    if (index === TOTAL - 1) {
-      try { await finish(); } catch (error) { $('qs-error').textContent = error.message; setProgress(index); busy = false; return; }
-      await wait(reduced() ? 0 : 520);
+    $('qs-question').querySelector('fieldset').disabled = true;
+    const finish = index === TOTAL - 1;
+    $('qs-error').textContent = '';
+    try {
+      await saveAnswer(q, finish);
+      $('qs-saved').textContent = 'Saved';
+      setProgress(index + 1);
+      if (finish) {
+        try {
+          account.mirrorQuickSetup(await account.load(), state);
+        } catch {
+          window.DeepSproutPersonal.failure('Your answers are saved. Reload to refresh your Week 1 preview.');
+        }
+        await wait(reduced() ? 0 : 520);
+        showReady();
+      } else {
+        await leaveQuestion(1);
+        index += 1;
+        renderQuestion(1);
+        focusTitle();
+      }
+    } catch (error) {
+      $('qs-error').textContent = error.message;
+    } finally {
+      $('qs-question').querySelector('fieldset').disabled = false;
       busy = false;
-      show('ready', 1);
-      return;
     }
-    await leaveQuestion(1);
-    index += 1;
-    remember();
-    renderQuestion(1);
-    focusTitle();
-    busy = false;
   }
 
   async function back() {
@@ -158,7 +165,7 @@
     await leaveQuestion(-1);
     index -= 1;
     setProgress(index);
-    remember();
+    $('qs-error').textContent = '';
     renderQuestion(-1);
     focusTitle();
     busy = false;
@@ -166,44 +173,6 @@
 
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   const focusTitle = () => $('q-title')?.focus({ preventScroll: true });
-
-  /* ------------------------------------------------------------ finish */
-
-  // Records the six answers and a preliminary Week 1 proposal. Nothing is activated here.
-  async function finish() {
-    const account = journal || await window.DeepSproutAccount.load();
-    journal = account;
-    const previous = account.profile().setup || {};
-    const minutes = Number(answers.dailyMinutes) || 10;
-    const interests = [...new Set((answers.makeTimeFor || []).flatMap(key => LEGACY_INTERESTS[key] || [key]))];
-    const goal = answers.change;
-    const setup = {
-      ...previous,
-      version: 2,
-      previousAnswers: previous.version !== 2 && previous.answers ? JSON.parse(JSON.stringify(previous.answers)) : previous.previousAnswers,
-      answeredOn: account.todayKey,
-      answers: JSON.parse(JSON.stringify(answers)),
-      distracting: answers.apps || [],
-      baselineMinutes: answers.dailyScroll || '',
-      baselineSource: 'self-reported estimate',
-      peakTime: answers.moments || '',
-      makeTimeFor: answers.makeTimeFor || [],
-      offlineInterests: interests,
-      dailyMinutes: minutes
-    };
-    account.mutate({ type: 'setup.save', goal: { id: goal, label: DS.GOALS[goal] || goal, setOn: account.todayKey }, setup });
-    if (!account.plan()) {
-      const first = (answers.makeTimeFor || [])[0] || 'other';
-      const commitment = { ...(COMMITMENTS[first] || COMMITMENTS.other)(minutes), durationMinutes: minutes };
-      const draft = account.preview() || {};
-      account.mutate({ type: 'onboarding.preview', preview: { ...draft, goal, days: Number(draft.days) || 3, minutes: Math.min(15, minutes), commitment, source: 'Quick Setup v2 · preliminary proposal' } });
-    }
-    DS.update(current => {
-      Object.assign(current.profile, { goal, distracting: setup.distracting, peakTime: setup.peakTime, baselineMinutes: setup.baselineMinutes, offlineInterests: interests });
-      Object.assign(current.onboarding, { bimoSeen: true, introSeen: true, setupDone: true, journeyLevel: Math.max(1, Number(current.onboarding.journeyLevel) || 1) });
-      current.onboarding.quickSetup = { version: 2, index: TOTAL - 1, answers: JSON.parse(JSON.stringify(answers)), completedAt: new Date().toISOString() };
-    });
-  }
 
   /* ------------------------------------------------------------ scenes */
 
@@ -221,8 +190,22 @@
     if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus({ preventScroll: true }); }
   }
 
-  $('meet-begin').addEventListener('click', () => { remember(); show('questions', 1); });
-  $('meet-skip').addEventListener('click', () => { DS.update(c => { c.onboarding.bimoSeen = true; c.onboarding.introSeen = true; }); show('questions', 1); });
+  async function start() {
+    if (busy || !state) return;
+    busy = true;
+    showMeetError('');
+    try {
+      await persist('start');
+      show('questions', 1);
+    } catch (error) {
+      showMeetError(error.message);
+    } finally {
+      busy = false;
+    }
+  }
+
+  $('meet-begin').addEventListener('click', start);
+  $('meet-skip').addEventListener('click', start);
   $('qs-form').addEventListener('submit', event => { event.preventDefault(); next(); });
   $('qs-back').addEventListener('click', back);
 
@@ -236,30 +219,52 @@
 
   /* ------------------------------------------------------------ resume */
 
-  window.DeepSproutAccount.load().then(value => { journal = value; }, error => { $('qs-error').textContent = error.message; });
-  const person = window.DeepSproutPersonal?.person?.();
-  if (person?.name) $('meet-hello').textContent = `Welcome, ${String(person.name).split(' ')[0]}`;
-
-  const requested = new URLSearchParams(location.search).get('step');
-  const progress = DS.get().onboarding;
-  if (requested === 'setup') {
-    // Changing earlier answers: start from the first question with everything prefilled.
-    const setup = progress.quickSetup?.answers;
-    if (!setup) {
-      const stored = DS.get().profile;
-      if (stored.goal && !answers.change) answers.change = stored.goal;
+  function showReady() {
+    if (state.stage !== 'Story') {
+      $('qs-returning').hidden = false;
+      $('ready-title').textContent = 'Welcome back.';
+      document.querySelector('.qs-ready-lead em').textContent = 'Your setup is saved. Watch the short story again, or head straight to Home.';
     }
-    index = 0;
-    show('questions', 1);
-  } else if (progress.setupDone) {
-    // Completed users are never sent through the questions again.
-    $('qs-returning').hidden = false;
-    $('ready-title').textContent = 'Welcome back.';
-    document.querySelector('.qs-ready-lead em').textContent = 'Your setup is saved. Watch the short story again, or head straight to Home.';
     show('ready', 0);
-  } else if (progress.quickSetup || progress.introSeen) {
-    show('questions', 0);
-  } else {
-    show('meet', 0);
   }
+
+  function showMeetError(message) {
+    $('meet-error').textContent = message;
+    $('meet-error').hidden = !message;
+  }
+
+  async function resume() {
+    $('meet-begin').disabled = $('meet-skip').disabled = true;
+    try {
+      state = await account.quickSetup();
+      if (!state) throw new Error('Sign in to an Individual account to load your setup.');
+      if (state.displayName) $('meet-hello').textContent = `Welcome, ${state.displayName.split(' ')[0]}`;
+      const stored = state.answers || {};
+      for (const question of QUESTIONS) {
+        const options = question.options.map(([value]) => value);
+        const value = stored[question.id];
+        if (question.type === 'multi' && Array.isArray(value)) {
+          answers[question.id] = value.filter(item => options.includes(item));
+        } else if (options.includes(value)) {
+          answers[question.id] = value;
+        }
+      }
+
+      const editing = new URLSearchParams(location.search).get('step') === 'setup';
+      if (editing) {
+        show('questions', 1);
+      } else if (state.setupComplete) {
+        showReady();
+      } else if (state.stage === 'QuickSetup' || state.answers) {
+        const firstUnanswered = state.answersVersion === 2 ? QUESTIONS.findIndex(question => !answered(question)) : 0;
+        index = firstUnanswered < 0 ? TOTAL - 1 : firstUnanswered;
+        show('questions', 0);
+      }
+      $('meet-begin').disabled = $('meet-skip').disabled = false;
+    } catch (error) {
+      showMeetError(error.message);
+    }
+  }
+
+  resume();
 })();

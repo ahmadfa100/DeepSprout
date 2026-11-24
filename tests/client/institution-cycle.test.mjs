@@ -119,7 +119,7 @@ test('C · one Application seen by Rep and Supervisor; one approval, one seat; a
   as('p-zaid'); const zid = dispatch('member.application.submit', {initiativeId:iid, age:23, consent:true});
   as('p-hala'); assert.throws(() => dispatch('initiative.group.allocate', {initiativeId:iid, personId:'p-zaid', groupId:gB}), /accepted student/);
   dispatch('initiative.application.approve', {id:zid}); dispatch('initiative.group.allocate', {initiativeId:iid, personId:'p-zaid', groupId:gB});
-  as('p-yara'); assert.throws(() => dispatch('mentor.assignment.create', {groupId:gA, title:'x', activity:'Protected Work', instructions:'x', due:'2026-11-01'}), /currently assigned/);
+  as('p-yara'); assert.throws(() => dispatch('mentor.assignment.create', {groupId:gA, title:'x', activity:'Reasoning & Digital Judgment', instructions:'x', due:'2026-11-01'}), /currently assigned/);
   // Transfer keeps history.
   as('p-maya'); dispatch('initiative.group.allocate', {initiativeId:iid, personId:'p-zaid', groupId:gA});
   const s = read(); assert.ok(s.groups.find(g => g.id === gB).memberHistory.some(h => h.personId === 'p-zaid' && h.action === 'Transferred out'));
@@ -151,10 +151,10 @@ test('C · 135th accepted, 136th queued; Waiting List offer → expiry → re-of
 test('D · Coach task → Individual Assigned → revision → approval → one tree effect, Supervisor and Rep see it', () => {
   reset('p-karim');
   const before = read().submissions.length;
-  const taskId = dispatch('mentor.assignment.create', {groupId:'g-today-a', title:'Twenty minutes of protected study', activity:'Protected Work', instructions:'Protect twenty minutes for one study task.', start:'2026-10-15', due:'2026-10-30', required:true});
+  const taskId = dispatch('mentor.assignment.create', {groupId:'g-today-a', title:'Twenty minutes of protected study', activity:'Reasoning & Digital Judgment', instructions:'Protect twenty minutes for one study task.', start:'2026-10-15', due:'2026-10-30', required:true});
   as('p-rania');
   const task = assignedTasks(read(), 'p-rania').find(t => t.id === taskId);
-  assert.ok(task, 'appears in the regular Individual Assigned read model'); assert.equal(task.context.type, 'initiative'); assert.equal(task.practiceType, 'protected-work');
+  assert.ok(task, 'appears in the regular Individual Assigned read model'); assert.equal(task.context.type, 'initiative'); assert.equal(task.practiceType, 'digital-judgment');
   assert.equal(assignedTasks(read(), 'p-omar').some(t => t.id === taskId), false, 'not visible outside the group');
   dispatch('member.task.start', {id:taskId});
   dispatch('member.task.submit', {assignmentId:taskId, text:'I studied for 20 minutes with my phone away.'});

@@ -13,7 +13,7 @@ import {todoBoard, evaluationView, dueChip} from '../../src/DeepSprout.Web/wwwro
 
 const as = personId => dispatch('demo.signin', {personId});
 const reset = () => { dispatch('demo.reset'); dispatch('demo.clock', {at:'2026-10-20T09:00:00+03:00'}); as('p-karim'); };
-const base = {activity:'Practical Micro-Challenge', instructions:'Try one small step and describe it.', due:'2026-10-27', start:'2026-10-20'};
+const base = {activity:'Visual Observation & Analysis', instructions:'Try one small step and describe it.', due:'2026-10-27', start:'2026-10-20'};
 const ref = (id, name) => ({id, name, type:'application/pdf', size:1200});
 
 test('Chosen students: one task per group, only those students see it', () => {

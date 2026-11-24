@@ -23,6 +23,7 @@ public sealed class AccountController(
     private const string LoginView = "~/Views/Auth/Login.cshtml";
     private const string RegisterView = "~/Views/Auth/Register.cshtml";
     private const string LoginPath = "/src/pages/auth/login/login.html";
+    private const string OnboardingPath = "/src/pages/member/onboarding/onboarding.html";
     private const string DefaultDestination = "/src/pages/member/dashboard/dashboard.html";
 
     [HttpGet]
@@ -57,9 +58,20 @@ public sealed class AccountController(
             return View(LoginView, model);
         }
 
-        await users.ResetAccessFailedCountAsync(user);
+        if (!(await users.ResetAccessFailedCountAsync(user)).Succeeded)
+        {
+            ModelState.AddModelError("", "Sign-in could not be completed. Try again.");
+            return View(LoginView, model);
+        }
         await IssueCookieAsync(user);
-        return LocalRedirect(SafeReturnUrl(model.ReturnUrl, DefaultDestination));
+        if (model.ReturnUrl.Length > 0) return LocalRedirect(model.ReturnUrl);
+
+        if (await PersonalRecords.PlatformAdmins(db).AnyAsync(person => person.Id == user.PersonId))
+            return LocalRedirect("/admin.html");
+
+        var onboardingPending = await db.Set<IndividualProfile>().AnyAsync(profile => profile.PersonId == user.PersonId
+            && (profile.OnboardingStage == "Started" || profile.OnboardingStage == "QuickSetup" || profile.OnboardingStage == "Story"));
+        return LocalRedirect(onboardingPending ? OnboardingPath : DefaultDestination);
     }
 
     [HttpGet]
@@ -131,7 +143,7 @@ public sealed class AccountController(
             await db.SaveChangesAsync();
             await transaction.CommitAsync();
             await IssueCookieAsync(user);
-            return LocalRedirect(SafeReturnUrl(model.ReturnUrl, "/src/pages/member/onboarding/onboarding.html"));
+            return LocalRedirect(SafeReturnUrl(model.ReturnUrl, OnboardingPath));
         }
         catch (DbUpdateException ex) when (ex.InnerException is SqlException sql && sql.Number is 2601 or 2627)
         {

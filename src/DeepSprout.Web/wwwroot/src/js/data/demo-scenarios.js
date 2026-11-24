@@ -56,7 +56,7 @@
       start: '2026-09-28',
       goal: {id: 'reduce-scrolling', label: 'Spend less time on short-video feeds'},
       commitment: 'A 10-minute walk outside',
-      firstWeek: [['2026-09-28', 'depth'], ['2026-09-30', 'practical'], ['2026-10-01', 'listening'], ['2026-10-03', 'depth']],
+      firstWeek: [['2026-09-28', 'depth'], ['2026-09-30', 'visual-observation'], ['2026-10-01', 'listening'], ['2026-10-03', 'depth']],
       days: RANIA_DAYS
     }
   };
@@ -96,8 +96,12 @@
     // Listening uses the transcript accessibility mode: no audio is played by
     // this builder, so it must not claim observed in-app playback.
     const run = account.beginPractice(definition.id, type === 'listening' ? {mode: 'transcript'} : {});
-    const responses = definition.responseMethod === 'choice-questions' ? {answers: definition.questions.map(q => q.answer)} : PRACTICAL;
-    const attempt = account.submitPractice(run.id, responses);
+    const answers = definition.questions.map(q => q.answer);
+    if (definition.responseMethod === 'observation-questions') account.progressPractice(run.id, 'observe');
+    if (definition.responseMethod !== 'choice-questions') {
+      answers.forEach((answer,question) => account.progressPractice(run.id, 'answer', {question,answer}));
+    }
+    const attempt = account.submitPractice(run.id, {answers});
     if (!attempt.valid) throw new Error(`${type}: ${attempt.invalidReason}`);
     return attempt;
   }

@@ -260,7 +260,7 @@ export function tasksPage(ctx) {
 }
 
 const addDays = (d, n) => { const x = new Date(`${d}T12:00:00Z`); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
-const ACTIVITY_HINT = {depth:'Read or study one thing with full attention', listening:'Listen, then recall what stayed with you', practical:'A small challenge in real life', 'protected-work':'A timed, phone-free work block'};
+const ACTIVITY_HINT = {depth:'Read or study one thing with full attention', listening:'Listen, then recall what stayed with you', 'visual-observation':'Study a scene and identify meaningful details', 'digital-judgment':'Compare sources and decide what they support'};
 export const EVIDENCE_CHOICES = [['A short written reflection', 'pencil', 'Reflection'], ['A document or PDF', 'doc', 'Document'], ['A photo or image', 'image', 'Photo'], ['A reflection, a file or both', 'layers', 'Any of these']];
 
 /** The “Assign a task” composer: audience, activity, brief, files and timing, with a live summary. */

@@ -96,7 +96,7 @@ async function main() {
     await next();
     await click('[data-action=builder-stage-add]'); await fill('title-0', 'Notice and begin'); await fill('objective-0', 'Name one distraction and try one small step.'); await fill('date-0', '2026-10-22');
     await next();
-    await page.check('form[data-form=builder] [name=activities][value="Practical Micro-Challenge"]');
+    await page.check('form[data-form=builder] [name=activities][value="Visual Observation & Analysis"]');
     await next(); assert.match(await text('form[data-form=builder]'), /does not admit anyone/);
     await click('[data-action=builder-publish]'); await page.waitForFunction(() => /\/mentor\/programs\/program-/.test(location.hash));
     const s = await read(); const pr = s.programs.find(p => p.title === 'Small Steps Lab'); programId = pr.id;
@@ -145,7 +145,7 @@ async function main() {
   await step('C9', 'Coach assigns an approved activity to the group; the Student is notified', async () => {
     await as(coachId); await ws('mentor/assignments?scope=own'); await click('[data-action=assignment-create]');
     await page.fill('#dialog-body [name=title]', 'Ten protected minutes'); await page.selectOption('#dialog-body [name=groupId]', groupA);
-    await page.selectOption('#dialog-body [name=activity]', 'Protected Work'); await page.fill('#dialog-body [name=instructions]', 'Protect ten minutes for one task and describe it.'); await page.fill('#dialog-body [name=due]', '2026-10-28');
+    await page.selectOption('#dialog-body [name=activity]', 'Reasoning & Digital Judgment'); await page.fill('#dialog-body [name=instructions]', 'Compare the sources and explain which claim is supported.'); await page.fill('#dialog-body [name=due]', '2026-10-28');
     await save();
     const s = await read(); directTask = s.assignments.find(a => a.title === 'Ten protected minutes').id;
     assert.ok(s.notifications.some(n => n.recipientId === studentId && n.link.includes(`/student/tasks/${directTask}`)));

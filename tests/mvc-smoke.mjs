@@ -39,7 +39,16 @@ for (const { path: route, view } of routes) {
     'garden.html', 'insights.html', 'lab.html', 'onboarding.html',
     'recovery-plan.html', 'shield.html', 'training.html', 'weekly-review.html'
   ].includes(route);
-  const response = await fetch(new URL(`/${route}`, base), { redirect: 'manual' });
+  let response = await fetch(new URL(`/${route}`, base), { redirect: 'manual' });
+  if (route === 'admin.html') {
+    assert.equal(response.status, 302, 'live Admin entry requires login');
+    assert.match(response.headers.get('location') ?? '', /login\.html\?returnUrl=%2Fadmin\.html/i);
+    response = await fetch(new URL('/admin.html?demo=1', base), {redirect:'manual'});
+    if (response.status !== 200) {
+      assert.equal(response.status, 302, 'outside Development the query does not bypass login');
+      continue;
+    }
+  }
   if (protectedPage) {
     assert.equal(response.status, 302, route);
     assert.match(response.headers.get('location') ?? '', /^\/src\/pages\/auth\/login\/login\.html\?returnUrl=/, route);
@@ -53,7 +62,15 @@ for (const { path: route, view } of routes) {
     assert.match(rendered, /name="__RequestVerificationToken"/, route);
     assert.match(rendered, /method="post"/, route);
   } else {
-    assert.equal(comparableView(rendered), comparableView(source), `Rendered markup differs from view: ${route}`);
+    let expected = source;
+    if (route === 'admin.html') {
+      expected = expected.replace('data-community-auth="@(User.Identity?.IsAuthenticated.ToString())"', 'data-community-auth="False"');
+    }
+    if (route === 'workspaces.html') {
+      expected = expected.replace('data-community-account="@(User.Identity?.IsAuthenticated == true ? "signed-in" : "guest")"', 'data-community-account="guest"')
+        .replace('data-community-admin="@(ViewData["CommunityAdmin"])"', 'data-community-admin=""');
+    }
+    assert.equal(comparableView(rendered), comparableView(expected), `Rendered markup differs from view: ${route}`);
   }
 
   const pageUrl = new URL(`/${route}`, base);

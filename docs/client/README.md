@@ -1,6 +1,6 @@
 # Client documentation
 
-The [authoritative DeepSprout specification](../../DeepSprout.md) defines the approved target and decision register. These files are **dated implementation and design handoffs**; their original test results, collaboration boundaries and open-question lists should not override later owner approvals. The [current product guide](../current-product-guide.md) inventories current routes, while [master §29](../../DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) summarizes current versus target.
+The [authoritative DeepSprout specification](../../DeepSprout.md) defines the approved target and decision register. These files retain their original dates and test results. The [current product guide](../current-product-guide.md) compares current routes and behavior against the target. [Master §29](../../DeepSprout.md#29-current-implementation-versus-agreed-target-15-october-2026) is the October snapshot.
 
 ## Architecture and current-state reports
 

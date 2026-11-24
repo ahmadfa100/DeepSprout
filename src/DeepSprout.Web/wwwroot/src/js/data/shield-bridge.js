@@ -1,7 +1,11 @@
 /* Public-page status is always a fresh extension response, never a stored connected boolean. */
 (() => {
-  if(window.DeepSproutShield || window.DeepSproutPersonal?.denied())return;
-  const access=window.DeepSproutPersonal,personId=access.subject();
+  if(window.DeepSproutShield)return;
+  const access=window.DeepSproutPersonal,Account=window.DeepSproutAccount;
+  let personId=null;
+  const identityReady=Account.resolveIdentity().then(()=>{
+    if(!access.denied())personId=access.subject();
+  });
   const pending=new Map();
   let account,info=null,snapshot=null,connected=false,installed=false,busy=false,pendingConnection=null,activeConnection=null,invalidated=false;
   let state=/Chrome|Chromium|Edg\//.test(navigator.userAgent)?'Not Installed':'Unsupported Browser',error='';
@@ -35,8 +39,10 @@
   async function refresh() {
     if(busy)return view();busy=true;
     try {
+      await identityReady;
+      if(!personId)return view();
       if(access.subject()!==personId||access.denied()){invalidate();return view();}
-      account ||= await window.DeepSproutAccount.load();access.assert(personId);
+      account ||= await Account.load();access.assert(personId);
       const r=await request('hello');installed=true;info=r.info;
       const connection=pendingConnection||account.shield().connection;
       if(!connection){connected=false;state='Installed but Not Connected';error='';emit();return view();}
@@ -45,14 +51,16 @@
     finally{busy=false;}
   }
   async function pair(code) {
-    account ||= await window.DeepSproutAccount.load();
+    await identityReady;
+    account ||= await Account.load();
     if(personId==='preview'||!access.person()?.individual)throw new Error('Sign in to an active Individual account before pairing.');
     const r=await request('pair',{code:code.trim()});
     pendingConnection={token:r.token,installationId:r.snapshot.installationId};
     return accept(r,pendingConnection);
   }
   async function command(command,payload={}) {
-    account ||= await window.DeepSproutAccount.load();
+    await identityReady;
+    account ||= await Account.load();
     const connection=account.shield().connection;if(!connection)throw new Error('Connect the extension first.');
     let r;
     try{r=await request(command,{...payload,token:connection.token});}
@@ -66,7 +74,7 @@
   }
   window.DeepSproutShield={refresh,pair,command,view};
   function invalidate(){
-    if(invalidated)return;
+    if(!personId||invalidated)return;
     if(access.subject()===personId&&!access.denied())return;
     invalidated=true;
     const connection=pendingConnection||activeConnection;
@@ -75,7 +83,7 @@
   }
   window.addEventListener('deepsprout:repo',invalidate);
   window.addEventListener('storage',e=>{if(e.key==='deepsprout-ecosystem-demo-v1')invalidate();});
-  setInterval(()=>{if(access.subject()!==personId||access.denied())invalidate();},1000);
+  setInterval(invalidate,1000);
   refresh();
   setInterval(()=>{if(!document.hidden)refresh();},10000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
