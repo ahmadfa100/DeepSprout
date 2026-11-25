@@ -23,6 +23,7 @@ Platform Admin can POST to `/api/admin/accounts/{personPublicId}/suspend`, `/res
 
 - Resolve the server actor through `ApplicationUser.PersonId`. Check the current resource grant on each command. Do not accept a client-selected actor, role or Institution scope.
 - Identity owns password hashes, lockout and the security stamp. Approved legacy credential fields and `iam.OtpChallenge` remain separate. Email confirmation and reset require their own validated delivery and token flow. Current Individual password sign-in is not gated by confirmed email.
+- Initiative staff acceptance requires a signed-in account with an already-confirmed matching Identity email. Acceptance links the appointment to the account's existing Person. Manual link sharing and invitation acceptance use separate proofs.
 - Configure `ConnectionStrings__DeepSprout`, `Jwt__Issuer`, `Jwt__Audience`, and a random `Jwt__SigningKey` of at least 32 UTF-8 bytes through local secrets or protected environment settings. Use `DataProtection__KeyDirectory` for protected persistent keys. Production uses HTTPS and secure cookies.
 - `IdentityFramework` adds framework tables and a required unique Person FK. Keep the V5 generators and the historical M1 context separate. For a disposable database, follow [EF Core adoption](../../architecture/database/efcore-v5-adoption.md) or run the existing suite. Existing named databases require separate approval and a verified backup.
 

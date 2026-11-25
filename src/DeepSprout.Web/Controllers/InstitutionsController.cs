@@ -196,12 +196,7 @@ public sealed class InstitutionsController(DeepSproutV5DbContext db, TimeProvide
     public async Task<IActionResult> MyInstitutions(Guid? id, CancellationToken ct)
     {
         if (await PersonalRecords.PersonId(db, User, ct) is not { } actor) return Unauthorized();
-        var members = from membership in db.Set<OrganizationMember>().AsNoTracking()
-                      join org in db.Set<Organization>().AsNoTracking() on membership.OrganizationId equals org.Id
-                      where membership.PersonId == actor && membership.Status == "Active" && membership.RevokedAtUtc == null &&
-                        org.Kind == "Institution" && org.Status == "Verified" &&
-                        db.Set<ApplicationUser>().Any(user => user.PersonId == actor && user.EmailConfirmed)
-                      select org;
+        var members = InstitutionAccess.VerifiedInstitutions(db, actor).AsNoTracking();
         if (id.HasValue)
         {
             var org = await members.SingleOrDefaultAsync(x => x.PublicId == id, ct);

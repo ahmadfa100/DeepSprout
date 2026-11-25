@@ -90,9 +90,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var users = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
                 var db = context.HttpContext.RequestServices.GetRequiredService<DeepSproutV5DbContext>();
                 var user = await users.FindByIdAsync(userId.ToString());
-                if (user is null || user.SecurityStamp != stamp || !await db.Set<DeepSprout.Domain.V5.Person>()
-                    .AnyAsync(person => person.Id == user.PersonId && person.Status == "Active"))
+                var person = user is null || user.SecurityStamp != stamp ? null : await db.Set<DeepSprout.Domain.V5.Person>()
+                    .AsNoTracking().SingleOrDefaultAsync(row => row.Id == user.PersonId && row.Status == "Active");
+                if (person is null)
+                {
                     context.Fail("Account is no longer active.");
+                    return;
+                }
+                // The flag comes from SQL on each request, so upgrade works in the current session.
+                var identity = (ClaimsIdentity)context.Principal!.Identity!;
+                foreach (var claim in identity.FindAll(PersonalRecords.IndividualClaim).ToArray()) identity.RemoveClaim(claim);
+                if (person.IndividualEnabledAtUtc != null) identity.AddClaim(new Claim(PersonalRecords.IndividualClaim, "true"));
             },
             OnChallenge = context =>
             {
@@ -108,7 +116,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options => options.AddPolicy(PersonalRecords.IndividualPolicy,
+    policy => policy.RequireAuthenticatedUser().RequireClaim(PersonalRecords.IndividualClaim, "true")));
 
 var app = builder.Build();
 var pages = app.Services.GetRequiredService<PageCatalog>();

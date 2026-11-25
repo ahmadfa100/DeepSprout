@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DeepSprout.Web.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = PersonalRecords.IndividualPolicy)]
 [Route("api/activities")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class DepthPracticeController(DeepSproutV5DbContext db, PracticeCatalog catalog, TimeProvider clock) : ControllerBase

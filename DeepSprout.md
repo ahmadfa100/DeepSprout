@@ -578,7 +578,7 @@ Reward evaluation consumes a unique source event ID, source version, subject, be
 
 `My Garden` shows the fixed visual, keyboard-accessible descriptions of each tree and decoration, a compact next eligible milestone only when a real rule exists, recent earned events with date/source, and a separate link to authorized Group Garden(s). Empty state shows the four tree positions and explains how to begin without pretending rewards were earned. Missing source data reads `No recent data`; revoked or corrected evidence has a transparent history. Rendering and animation respect reduced motion. The Group Garden shows owner, initiative/program/group name, collective milestone history, source counts and authorized contributor summary without exposing personal Lab, Shield or Recovery records.
 
-**Current implementation:** the signed-in Garden and Home read `GET /api/personal-garden`. Four practice trees and bounded decorations derive from eligible V5 evidence. Inactivity is neutral. The legacy local Garden helper and Group Gardens are separate paths. The current numerical defaults preserve the previous behavior. Production thresholds and caps remain open in §26.2.
+**Current implementation:** the signed-in Garden and Home read `GET /api/personal-garden`. Four practice trees and bounded decorations derive from eligible V5 evidence. The live Group Garden reads one scoped Initiative projection from `GET /api/initiative-gardens/{initiativeId}/{role}`. It counts qualifying linked practice evidence once across groups, retains superseded approvals in history, and displays a neutral scene while collective milestone thresholds await approval. New assignment-linked practice intake remains pending. Production thresholds and caps remain open in §26.2.
 
 ---
 

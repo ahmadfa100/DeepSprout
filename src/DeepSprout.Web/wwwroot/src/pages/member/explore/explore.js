@@ -31,8 +31,93 @@
     cancelled: { label: 'Cancelled', icon: 'i-x' }
   };
 
-  // Live Institution records, read through the shared bridge (never copied).
+  // The browser bridge still serves the explicitly selected demo and Outdoor Activity previews.
   const Repo = () => window.DeepSproutRepo || null;
+  const signedIn = document.body.dataset.exploreSignedIn === 'yes';
+  const demoApplications = !signedIn || new URLSearchParams(location.search).get('account') === 'demo';
+  const initiativeApi = '/api/initiatives/explore';
+  const applicationApi = '/api/initiative-applications';
+  let publishedInitiatives = [];
+  let myApplications = [], applicationsError = '';
+  let publishedSessions = [], mySessions = [], sessionHistoryError = '', sessionApi;
+  const sessionError = message => {
+    const node = $('ex-session-error');
+    if (node) { node.textContent = message; node.hidden = !message; }
+  };
+  async function loadSessions() {
+    try {
+      sessionApi = await import('../../../workspaces/session-api.js');
+      publishedSessions = (await sessionApi.sessionRequest('/discover')).map(sqlSession);
+      sessionError('');
+    } catch { sessionError('Live sessions could not be loaded. Reload to try again.'); }
+  }
+  async function loadMySessions() {
+    if (!signedIn || !sessionApi) return;
+    try { mySessions = await sessionApi.sessionRequest('/mine'); sessionHistoryError = ''; }
+    catch { mySessions = []; sessionHistoryError = 'Your live session registrations could not be loaded.'; }
+  }
+  function sqlSession(session) {
+    return {...session,sessionMode:session.mode,listing:'sql-session',kind:'session',kindLabel:'Session / Workshop',
+      mode:{Online:'online',Hybrid:'hybrid',InPerson:'in-person'}[session.mode],
+      summary:session.initiative,startDate:session.startsAtUtc.slice(0,10),endDate:session.endsAtUtc.slice(0,10)};
+  }
+  const sessionRegistration = id => mySessions.find(row=>row.session.id === id && row.registration.status !== 'Cancelled')?.registration;
+  const initiativeError = message => {
+    const node = $('ex-initiative-error');
+    node.textContent = message;
+    node.hidden = !message;
+  };
+  async function requestInitiatives(id) {
+    const response = await fetch(initiativeApi+(id ? '/'+encodeURIComponent(id) : ''),{cache:'no-store'});
+    if (!response.ok) throw new Error(response.status === 404 ? 'This Initiative is unavailable.' :
+      response.status === 401 ? 'Sign in again to view live Initiatives.' : 'Live Initiatives could not be loaded. Reload to try again.');
+    return response.json();
+  }
+  async function requestApplications(path, payload) {
+    const headers = {Accept:'application/json'};
+    if (payload !== undefined) {
+      const session = await memberSession();
+      headers.RequestVerificationToken = session.requestToken;
+      headers['Content-Type'] = 'application/json';
+    }
+    const response = await fetch(applicationApi+path,{cache:'no-store',headers,
+      method:payload === undefined ? 'GET' : 'POST',
+      body:payload === undefined ? undefined : JSON.stringify(payload)});
+    if (!response.ok) {
+      if (response.status === 401) throw new Error('Sign in again to continue.');
+      if (response.status === 404) throw new Error('This application is unavailable.');
+      const type = response.headers.get('content-type') || '';
+      if (response.status < 500 && type.includes('text/plain')) throw new Error(await response.text());
+      if (response.status < 500 && type.includes('json')) {
+        const problem = await response.json();
+        if (typeof problem === 'string') throw new Error(problem);
+        if (response.status === 400) throw new Error(Object.values(problem.errors || {}).flat().join(' ') || 'Check your application and try again.');
+      }
+      throw new Error('Application data could not be loaded or saved. Try again.');
+    }
+    return response.json();
+  }
+  async function memberSession() {
+    const response = await fetch('/account/session',{cache:'no-store',redirect:'manual'});
+    if (!response.ok) throw new Error('Sign in again to continue.');
+    return response.json();
+  }
+  async function loadMyApplications() {
+    if (!signedIn) return;
+    try { myApplications = await requestApplications('/mine'); applicationsError = ''; }
+    catch (error) { myApplications = []; applicationsError = error.message; }
+  }
+  const myApplication = id => myApplications.find(item => item.initiativeId === id);
+  const cannotReapply = ['Pending','Queued','Offered','Accepted','Suspended','Blocked','Completed'];
+  const applicationCode = id => 'APP-'+id.replaceAll('-','').slice(0,12).toUpperCase();
+  function sqlItem(item) {
+    return {...item,listing:'sql',kind:'initiative',kindLabel:'Initiative',
+      mode:{Online:'online',InPerson:'in-person',Hybrid:'hybrid'}[item.participationMode],
+      modes:item.participationMode === 'Hybrid' ? ['Online','In-person'] : [item.participationMode === 'InPerson' ? 'In-person' : 'Online'],
+      eligibility:item.audience+(item.minAge != null || item.maxAge != null ? ` · Ages ${item.minAge ?? 0}–${item.maxAge ?? 'any'}` : ''),
+      startDate:item.start,endDate:item.end,start:Account.parse(item.start),end:Account.parse(item.end),
+      image:item.cover?.image,imageAlt:item.cover?.alt};
+  }
   const APP_STATUS = {
     Pending: { label: 'Pending review', icon: 'i-hourglass', tone: 'pending' },
     Accepted: { label: 'Accepted', icon: 'i-check', tone: 'confirmed' },
@@ -45,6 +130,10 @@
     Withdrawn: { label: 'Withdrawn', icon: 'i-x', tone: 'cancelled' },
     Declined: { label: 'Offer declined', icon: 'i-x', tone: 'cancelled' },
     Expired: { label: 'Offer expired', icon: 'i-clock', tone: 'cancelled' },
+    OfferDeclined: { label: 'Offer declined', icon: 'i-x', tone: 'cancelled' },
+    OfferExpired: { label: 'Offer expired', icon: 'i-clock', tone: 'cancelled' },
+    BlockLifted: { label: 'Block lifted', icon: 'i-info', tone: 'confirmed' },
+    Cancelled: { label: 'Cancelled', icon: 'i-x', tone: 'cancelled' },
     Completed: { label: 'Completed', icon: 'i-check', tone: 'complete' },
     Closed: { label: 'Closed', icon: 'i-x', tone: 'cancelled' }
   };
@@ -52,8 +141,7 @@
   const liveById = id => {
     const repo = Repo();
     if (!repo) return null;
-    const card = repo.selectors.exploreInitiatives(repo.read(), repo.me()?.id).find(item => item.id === id)
-      || repo.selectors.myInitiatives(repo.read(), repo.me()?.id).map(entry => entry.initiative).find(item => item.id === id);
+    const card = demoApplications && repo.selectors.myInitiatives(repo.read(), repo.me()?.id).map(entry => entry.initiative).find(item => item.id === id);
     if(card)return toItem(card);
     const activity=repo.selectors.exploreOutdoorActivities(repo.read(),repo.me()?.id).find(e=>e.id===id)||repo.selectors.myActivityBookings(repo.read(),repo.me()?.id).find(b=>b.experienceId===id)?.experience;
     return activity ? outdoorItem(activity) : null;
@@ -68,7 +156,7 @@
     };
   }
   const outdoorItem = e => ({...e,listing:'outdoor',startDate:e.start,endDate:e.end,start:Account.parse(e.start),end:Account.parse(e.end),startTime:e.sessions[0]?.time||'',mode:e.modes.includes('Hybrid')||e.modes.length>1?'hybrid':e.modes[0]==='Online'?'online':'in-person',past:false});
-  const liveItems = () => { const repo = Repo(); if (!repo) return []; return [...repo.selectors.exploreInitiatives(repo.read(),repo.me()?.id).map(toItem),...repo.selectors.exploreOutdoorActivities(repo.read(),repo.me()?.id).map(outdoorItem)]; };
+  const outdoorPreviews = () => { const repo = Repo(); return repo ? repo.selectors.exploreOutdoorActivities(repo.read(),repo.me()?.id).map(outdoorItem) : []; };
   const countdown = iso => { const ms = Date.parse(iso) - (Repo()?.nowMs() || Date.now()); if (ms <= 0) return 'expired'; const h = Math.floor(ms / 3600000); const m = Math.floor((ms % 3600000) / 60000); return h ? `${h} h ${m} min left` : `${m} min left`; };
   const qrSvg = code => { try { const qr = window.qrcode(0, 'M'); qr.addData(code); qr.make(); return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); } catch { return ''; } };
   const passMarkup = (title, qrData, code, detail = '') => `<section class="ex-pass" aria-label="Booking pass for ${esc(title)}">
@@ -77,11 +165,12 @@
     <div class="ex-pass-foot"><span>Browser demo credential</span><span>Attendance is confirmed separately</span></div></section>`;
 
   let account = null;
-  const filters = { kind: 'all', mode: 'all' };
+  const filters = { kind: 'all', mode: 'all', search: '' };
 
   /* -------------------------------------------------------------- helpers */
 
   const when = item => {
+    if (item.listing === 'sql-session') return sessionApi.sessionWhen(item);
     const sameDay = item.startDate === item.endDate;
     if (item.kind === 'initiative' || item.kind === 'competition' || !sameDay) {
       return `${fmt.date(item.start)} – ${fmt.date(item.end, { year: true })}`;
@@ -89,7 +178,7 @@
     return `${fmt.date(item.start, { weekday: true, year: true })} · ${item.startTime}`;
   };
   const where = item => (item.mode === 'online' ? 'Online'
-    : item.mode === 'hybrid' ? `${item.city} or online` : item.venue);
+    : item.mode === 'hybrid' ? `${item.city || item.venue || 'In person'} or online` : item.venue || item.city || 'In person');
   const places = item => {
     if (item.capacity === null) return { text: 'Open — no limit on places', full: false };
     if (item.full) return { text: 'Full — waiting list open', full: true };
@@ -97,7 +186,7 @@
   };
   // Live listings come from a verified Institution's published record. Fixture
   // listings are static preview samples and say so, whatever organiser they name.
-  const trust = item => item.listing==='outdoor' ? '<span class="ex-trust is-verified is-live">Verified institution · Outdoor Activity</span>' : (item.listing === 'live'
+  const trust = item => item.listing==='outdoor' || item.listing==='live' ? '<span class="ex-trust is-demo">Browser demo</span>' : (['sql','sql-session'].includes(item.listing)
     ? `<span class="ex-trust is-verified is-live" title="Published by an Institution verified by DeepSprout">${icon('i-shield-check')}Verified institution</span>`
     : '<span class="ex-trust is-demo" title="Static sample listing in this preview — not a live record">Sample listing</span>');
   const statusChip = status => `<span class="ex-status" data-status="${status}">${icon(STATUS[status].icon)}${STATUS[status].label}</span>`;
@@ -113,8 +202,13 @@
   let cards = new Map();
 
   function cardHtml(item) {
-    const place = item.listing==='outdoor' ? {text:!item.canBook?'Booking unavailable':`${item.remaining} places left${!item.remaining&&item.waitlist?' · waiting list':''}`,full:!item.remaining} : item.listing === 'live' ? livePlaces(item) : places(item);
-    const mine = ['live','outdoor'].includes(item.listing) ? null : item.mine;
+    const isSession = item.listing === 'sql-session';
+    const place = isSession ? {text:item.registrationState === 'Full' ? 'Full' :
+      sessionApi.modeSeats({...item,mode:item.sessionMode}),full:item.registrationState === 'Full'} :
+      item.listing==='sql' ? {text:sqlAvailability(item),full:false} : item.listing==='outdoor' ? {text:!item.canBook?'Booking unavailable':`${item.remaining} places left${!item.remaining&&item.waitlist?' · waiting list':''}`,full:!item.remaining} : places(item);
+    const sqlMine = item.listing === 'sql' ? myApplication(item.id) : null;
+    const liveRegistration = isSession ? sessionRegistration(item.id) : null;
+    const mine = ['live','outdoor','sql','sql-session'].includes(item.listing) ? null : item.mine;
     // Listings without an approved photo get a calm kind-tinted art panel, never a stock image.
     return `${item.image ? `<div class="ex-card-media"><img src="${root}${item.image}" alt="${esc(item.imageAlt || '')}" loading="lazy"></div>` : `<div class="ex-card-media is-art" data-kind="${esc(item.kind)}" aria-hidden="true"><span>${icon(KIND_ICON[item.kind])}</span></div>`}
       <div class="ex-card-band"><span class="ex-kind">${icon(KIND_ICON[item.kind])}${esc(item.kindLabel)}</span>${trust(item)}</div>
@@ -129,8 +223,8 @@
         </ul>
         <p class="ex-reveal">${esc(item.summary)}</p>
         <div class="ex-card-foot">
-          <button type="button" class="ex-card-link" data-open="${item.id}" aria-label="${esc(`View ${item.title}`)}">View details ${icon('i-arrow')}</button>
-          ${mine ? statusChip(mine.status) : ''}${['live','outdoor'].includes(item.listing) && item.mine ? appChip(item.mine.status) : ''}
+          <button type="button" class="ex-card-link" data-open="${item.id}" ${isSession ? 'data-sql-session-link' : ''} aria-label="${esc(`View ${item.title}`)}">View details ${icon('i-arrow')}</button>
+          ${liveRegistration ? appChip(liveRegistration.status) : ''}${mine ? statusChip(mine.status) : ''}${sqlMine ? appChip(sqlMine.status) : ''}${['live','outdoor'].includes(item.listing) && item.mine ? appChip(item.mine.status) : ''}
         </div>
       </div>`;
   }
@@ -142,7 +236,8 @@
   }
 
   function renderGrid() {
-    const items = [...liveItems(), ...account.listings().filter(item => !item.past)];
+    const items = [...publishedInitiatives, ...publishedSessions, ...outdoorPreviews(), ...account.listings()
+      .filter(item => !item.past && (demoApplications || !['initiative','session'].includes(item.kind)))];
     const seen = new Set();
     items.forEach((item, index) => {
       let card = cards.get(item.id);
@@ -157,18 +252,26 @@
       }
       card.dataset.kind = item.kind;
       card.dataset.mode = item.mode;
+      card.dataset.search = [item.title,item.organizer,item.summary,item.topic].filter(Boolean).join(' ').toLowerCase();
       card.innerHTML = cardHtml(item);
       seen.add(item.id);
     });
     cards.forEach((card, id) => { if (!seen.has(id)) { card.remove(); cards.delete(id); } });
     applyFilters(false);
-    const registered = account.allRegistrations().filter(entry => entry.status !== 'cancelled').length;
-    const live = items.filter(item => item.listing === 'live').length;
+    const registered = account.allRegistrations().filter(entry => entry.status !== 'cancelled' &&
+      (demoApplications || !['initiative','session'].includes(entry.listing?.kind))).length
+      + myApplications.filter(entry => entry.status === 'Accepted').length + mySessions.filter(row=>row.registration.status==='Confirmed').length;
+    const live = publishedInitiatives.length + publishedSessions.length;
     $('ex-hero-meta').innerHTML = `<span>${icon('i-compass')}${items.length} listings</span><span>${icon('i-shield-check')}${live} live from verified institutions</span>${registered ? `<span>${icon('i-check')}${registered} you’re registered for</span>` : ''}`;
   }
 
   const matches = card => (filters.kind === 'all' || card.dataset.kind === filters.kind)
-    && (filters.mode === 'all' || card.dataset.mode === filters.mode);
+    && (filters.mode === 'all' || card.dataset.mode === filters.mode)
+    && card.dataset.search.includes(filters.search);
+  $('ex-search')?.addEventListener('input',event=>{
+    filters.search=event.target.value.trim().toLowerCase();
+    applyFilters(false);
+  });
 
   /** Show the cards that match; animate the change (FLIP) unless motion is reduced. */
   function applyFilters(animate = true) {
@@ -179,7 +282,7 @@
     const finish = () => {
       all.forEach(card => { card.hidden = !matches(card); });
       const shown = all.filter(card => !card.hidden);
-      $('ex-count').textContent = `${shown.length} ${shown.length === 1 ? 'listing' : 'listings'}${filters.kind !== 'all' || filters.mode !== 'all' ? ' match these filters' : ''}`;
+      $('ex-count').textContent = `${shown.length} ${shown.length === 1 ? 'listing' : 'listings'}${filters.kind !== 'all' || filters.mode !== 'all' || filters.search ? ' match these filters' : ''}`;
       const empty = $('ex-empty');
       empty.hidden = shown.length > 0;
       if (!shown.length) {
@@ -211,7 +314,10 @@
   };
   document.querySelectorAll('[data-kind]').forEach(button => button.addEventListener('click', () => setFilter('kind', button.dataset.kind)));
   document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => setFilter('mode', button.dataset.mode)));
-  $('ex-clear').addEventListener('click', () => { setFilter('kind', 'all'); setFilter('mode', 'all'); });
+  $('ex-clear').addEventListener('click', () => {
+    filters.search=''; $('ex-search').value='';
+    setFilter('kind', 'all'); setFilter('mode', 'all');
+  });
 
   /* Staggered entrance as cards reach the viewport. */
   let observer = null;
@@ -232,10 +338,13 @@
 
   function renderMine() {
     const list = $('ex-mine-list');
-    const entries = account.allRegistrations().filter(entry => entry.listing)
+    const entries = account.allRegistrations().filter(entry => entry.listing && (demoApplications || !['initiative','session'].includes(entry.listing.kind)))
       .sort((a, b) => (a.status === 'cancelled') - (b.status === 'cancelled') || a.listing.startDate.localeCompare(b.listing.startDate));
     const outdoorEntries=activityRegistrations();
-    if (!entries.length && !outdoorEntries) {
+    const sessionEntries = mySessions.map(({session,registration})=>`<li class="ex-mine-item" data-session-registration="${esc(registration.id)}">
+      <div><strong>${esc(session.title)}</strong><small>${esc(session.organizer)} · ${esc(sessionApi.sessionMode(registration.mode))} · ${esc(sessionApi.sessionWhen(session))}</small></div>
+      <div class="ex-mine-actions">${appChip(registration.status)}<button type="button" class="ex-card-link" data-open="${esc(session.id)}" data-sql-session-link>View session</button></div></li>`).join('');
+    if (!entries.length && !outdoorEntries && !sessionEntries && !sessionHistoryError) {
       list.innerHTML = '<li><p class="ex-mine-empty">You haven’t registered for anything yet. When you do, it appears here with its real status.</p></li>';
       return;
     }
@@ -246,7 +355,7 @@
         <div><strong>${esc(item.title)}</strong><small>${esc(item.kindLabel)} · ${esc(when(item))} · ${esc(where(item))}${entry.reference ? ` · ${esc(entry.reference)}` : ''}${esc(attended)}</small></div>
         <div class="ex-mine-actions">${statusChip(entry.status)}<button type="button" class="ex-card-link" data-open="${item.id}" aria-label="${esc(`View ${item.title}`)}">View</button></div>
       </li>`;
-    }).join('')+outdoorEntries;
+    }).join('')+sessionEntries+outdoorEntries+(sessionHistoryError ? '<li class="ex-error" role="alert">'+esc(sessionHistoryError)+'</li>' : '');
   }
 
   /* -------------------------------------------------------------- the sheet */
@@ -258,13 +367,36 @@
   let current = null;
   let draft = {};
 
-  function openSheet(id, origin) {
-    current = liveById(id) || account.listingById(id);
+  let sheetRequest = 0;
+  async function openSheet(id, origin, isSession = origin?.hasAttribute('data-sql-session-link')) {
+    const operation = ++sheetRequest;
+    const fromSql = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(id);
+    if (fromSql && isSession) {
+      try {
+        const details = await sessionApi.sessionRequest('/discover/'+encodeURIComponent(id));
+        if (operation !== sheetRequest) return;
+        current = {...sqlSession(details.session),details};
+        history.replaceState(history.state,'','#session='+id);
+      } catch (error) { if (operation === sheetRequest) sessionError(error.message); return; }
+    } else if (fromSql) {
+      try {
+        const item = sqlItem(await requestInitiatives(id));
+        if (operation !== sheetRequest) return;
+        current = item;
+        history.replaceState(history.state,'','#initiative='+item.id);
+      } catch (error) {
+        if (operation === sheetRequest) initiativeError(error.message);
+        return;
+      }
+    } else {
+      current = liveById(id) || account.listingById(id);
+      if (!demoApplications && current?.kind === 'initiative') return;
+    }
     if (!current) return;
     openedFrom = origin || null;
     draft = {};
     showDetail();
-    sheet.showModal();
+    if (!sheet.open) sheet.showModal();
     $('ex-sheet-close').focus();
     if (reduced() || !origin) return;
     // Grow out of the card: start at the card's box, end at the sheet's.
@@ -279,6 +411,8 @@
   }
 
   function closeSheet() {
+    sheetRequest++;
+    if (['sql','sql-session'].includes(current?.listing)) history.replaceState(history.state,'',location.pathname+location.search);
     const done = () => { sheet.close(); openedFrom?.focus?.(); };
     if (reduced()) { done(); return; }
     panel.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(24px)' }], { duration: 200, easing: 'ease-in' }).finished.then(done, done);
@@ -324,6 +458,8 @@
     `<li class="${index < stage ? 'is-done' : index === stage ? 'is-now' : ''}"${index === stage ? ' aria-current="step"' : ''}>${label}</li>`).join('')}</ol>`;
 
   function showDetail() {
+    if (current?.listing === 'sql-session') { showSqlSession(); return; }
+    if (current?.listing === 'sql') { showSqlInitiative(); return; }
     if (current?.listing === 'outdoor') { showActivityDetail(); return; }
     if (current?.listing === 'live') { showLiveDetail(); return; }
     const item = current;
@@ -384,6 +520,106 @@
       current = account.listingById(item.id);
       showDetail();
     });
+  }
+
+  function sqlAvailability(item) {
+    return item.registration === 'Closed' ? 'Applications closed' :
+      item.registration === 'Upcoming' ? 'Applications scheduled for '+fmtDay(item.registrationOpen) :
+      item.seatsLeft ? `${item.seatsLeft} of ${item.capacity} student seats open` : 'All student seats are taken';
+  }
+
+  function showSqlInitiative() {
+    const item=current;
+    const ages = item.minAge != null || item.maxAge != null
+      ? ' · Ages '+(item.minAge ?? 'any')+'–'+(item.maxAge ?? 'any') : '';
+    const location = item.mode === 'online' ? 'Online' : (item.venue || item.city || 'In person')+
+      (item.mode === 'hybrid' ? ' or online' : '');
+    const dates = [item.registrationOpen,item.registrationClose].map(fmtDay).filter(Boolean).join(' – ');
+    const mine = myApplication(item.id);
+    const canApply = signedIn && !applicationsError && item.applicationFormAvailable && item.registration === 'InWindow'
+      && !cannotReapply.includes(mine?.status);
+    view(frame({
+      wrap:'data-sql-initiative="'+esc(item.id)+'"',
+      media:item.image ? {src:root+item.image,alt:item.imageAlt} : null,
+      kind:{icon:'i-flag',label:'Initiative'},badge:item.historical ? 'Historical Initiative' : trust(item),
+      title:item.title,by:'Organized by <strong>'+esc(item.organizer)+'</strong>',lead:item.summary,
+      facts:[['When',esc(when(item)),'i-calendar'],['Where',esc(location),'i-globe'],
+        ['Capacity',esc(item.capacity)+' students','i-users'],['Application window',esc(dates || 'No dates listed'),'i-clock']],
+      action:`<p class="ex-muted">${esc(sqlAvailability(item))}</p>${mine ? appChip(mine.status) : ''}
+        ${canApply ? '<button type="button" class="ex-button" data-act="apply">Apply to join '+icon('i-arrow')+'</button>' : ''}
+        ${mine ? '<button type="button" class="ex-button is-quiet" data-act="my-initiatives">See My Initiatives</button>' : ''}
+        ${applicationsError ? '<p class="ex-error" role="alert">'+esc(applicationsError)+'</p>' : ''}
+        ${!item.applicationFormAvailable ? '<p class="ex-muted">This Initiative’s registration form is unavailable here.</p>' : ''}`,
+      sections:[
+        section('What it’s for',[item.objective,item.description].filter(Boolean).map(text=>'<p>'+esc(text)+'</p>').join('')),
+        section('Who can join','<p>'+esc(item.audience+ages)+'</p>'+
+          [item.country==='Other'?item.countryOther:item.country,item.requirements].filter(Boolean).map(text=>'<p>'+esc(text)+'</p>').join('')),
+        section('Components',item.components?.length ? '<ul class="exd-list">'+item.components.map(component=>
+          '<li><strong>'+esc(component.title)+'</strong> · '+esc(component.type)+
+          (component.date?' · '+esc(fmtDay(component.date)+' · '+component.time+'–'+component.endTime+' · '+component.format):'')+
+          (component.description?'<p>'+esc(component.description)+'</p>':'')+'</li>').join('')+'</ul>' : ''),
+        section('Sessions & workshops',initiativeSessions(item.id)),
+        section('Participation rules',[item.consent,item.completion,item.withdrawal].filter(Boolean).map(text=>'<p>'+esc(text)+'</p>').join(''))
+      ],foot:'Times in '+esc(item.timezone)
+    }));
+    body.querySelector('[data-act="apply"]')?.addEventListener('click', showLiveForm);
+    body.querySelector('[data-act="my-initiatives"]')?.addEventListener('click', goToMyInitiatives);
+  }
+
+  function initiativeSessions(initiativeId) {
+    const sessions = publishedSessions.filter(item=>item.initiativeId === initiativeId);
+    return sessions.length ? '<ul class="ex-session-list">'+sessions.map(item=>
+      `<li class="ex-session"><strong>${esc(item.title)}</strong><small>${esc(when(item))}</small>
+        <button type="button" class="ex-card-link" data-open="${esc(item.id)}" data-sql-session-link>View session</button></li>`).join('')+'</ul>' : '';
+  }
+
+  function showSqlSession() {
+    const item = current;
+    const {session,registration,eligible,consent,meetingLink} = item.details;
+    const modes = sessionApi.sessionModes(session).filter(row=>row.remaining !== 0);
+    const signIn = '/src/pages/auth/login/login.html?returnUrl='+encodeURIComponent(location.pathname+location.search+'#session='+session.id);
+    const registrationForm = !signedIn ? `<a class="ex-button" href="${esc(signIn)}">Sign in to register</a>` :
+      !eligible ? '<p class="ex-muted">Your Initiative application must be accepted before you can register.</p>' :
+      session.registrationState !== 'Open' ? '' :
+      `<form class="ex-form" data-live-session-register data-request-id="${crypto.randomUUID()}">
+        <label class="ex-field">Participation mode<select name="mode">${modes.map(({mode})=>
+          `<option value="${mode}">${esc(sessionApi.sessionMode(mode))}</option>`).join('')}</select></label>
+        <label class="ex-consent"><input type="checkbox" name="consent" required><span>${esc(consent)}</span></label>
+        <button type="submit" class="ex-button">Register for this session</button></form>`;
+    view(frame({wrap:'data-sql-session="'+esc(session.id)+'"',kind:{icon:'i-calendar',label:'Session / Workshop'},badge:trust(item),
+      title:session.title,by:'Organized by <strong>'+esc(session.organizer)+'</strong>',
+      facts:[['When',esc(when(item)),'i-calendar'],['Where',esc(where(item)),'i-pin'],
+        ['Seats',esc(sessionApi.modeSeats(session)),'i-users'],['Registration',esc(session.registrationState),'i-clock']],
+      sections:[section('Initiative',`<button type="button" class="ex-card-link" data-open="${esc(session.initiativeId)}">${esc(session.initiative)}</button>`),
+        session.cancelReason ? section('Cancellation','<p>'+esc(session.cancelReason)+'</p>') : ''],
+      action:(registration ? '<div>'+appChip(registration.status)+' · '+esc(sessionApi.sessionMode(registration.mode))+'</div>' : '')+
+        (meetingLink ? `<a class="ex-button" href="${esc(meetingLink)}" target="_blank" rel="noopener noreferrer">Join online</a>` : '')+
+        (registration?.canCancel ? '<button type="button" class="ex-button is-quiet" data-live-session-cancel>Cancel registration</button>' : '')+
+        (!registration || registration.status === 'Cancelled' ? registrationForm : '')+
+        '<p class="ex-error" role="alert" data-live-session-error hidden></p>'}));
+    body.querySelector('[data-live-session-register]')?.addEventListener('submit',event=>{
+      event.preventDefault();
+      const form = event.currentTarget;
+      changeSessionRegistration(form.querySelector('button'),session,()=>
+        sessionApi.registerSession(session,form.elements.mode.value,form.elements.consent.checked,form.dataset.requestId));
+    });
+    body.querySelector('[data-live-session-cancel]')?.addEventListener('click',event=>
+      changeSessionRegistration(event.currentTarget,session,()=>sessionApi.cancelSessionRegistration(session.id,registration.id)));
+  }
+
+  async function changeSessionRegistration(button,session,save) {
+    const error = body.querySelector('[data-live-session-error]');
+    error.hidden = true;
+    button.disabled = true;
+    try {
+      await save();
+      await Promise.all([loadSessions(),loadMySessions()]);
+      renderGrid();
+      renderMine();
+      renderMyInitiatives();
+      if (sheet.open && current?.id === session.id) await openSheet(session.id,openedFrom,true);
+    } catch (failure) { error.textContent = failure.message; error.hidden = false; }
+    finally { button.disabled = false; }
   }
 
   function showForm() {
@@ -631,19 +867,27 @@
     body.querySelector('[data-act="my-initiatives"]')?.addEventListener('click', () => { closeSheet(); setTimeout(() => $('my-initiatives').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }), 220); });
   }
 
-  function showLiveForm() {
+  async function showLiveForm() {
     const item = current;
-    const me = Repo().me();
+    const sql = item.listing === 'sql';
+    const operation = sheetRequest;
+    let me = Repo()?.me();
+    if (sql) {
+      try { me = await memberSession(); }
+      catch (error) { if (operation === sheetRequest) initiativeError(error.message); return; }
+      if (operation !== sheetRequest) return;
+    }
     view(`<div style="height:var(--space-22)"></div>
       <p class="ex-eyebrow">Application</p>
       <h2 id="sheet-title">${esc(item.title)}</h2>
       ${steps(0)}
       <form class="ex-form" id="ex-live-form" novalidate>
-        <p class="ex-muted">Applying as <strong>${esc(me.name)}</strong> · ${esc(me.email)}</p>
+        <p class="ex-muted">Applying as <strong>${esc(me.displayName || me.name)}</strong> · ${esc(me.email)}</p>
         <label class="ex-field"><span>Your age</span><input name="age" type="number" inputmode="numeric" min="1" max="120" required value="${esc(draft.age || '')}"><small>${esc(item.eligibility)}</small></label>
         ${item.modes.length > 1 ? `<label class="ex-field"><span>How would you mostly take part?</span><select name="mode">${item.modes.map(m => `<option${draft.mode === m ? ' selected' : ''}>${esc(m)}</option>`).join('')}</select></label>` : ''}
         <label class="ex-field"><span>Why would you like to join? (optional)</span><textarea name="motivation" rows="3" maxlength="400">${esc(draft.motivation || '')}</textarea></label>
         ${item.cost?.type === 'Paid' ? `<div class="ex-commit"><p><strong>Paid initiative · ${esc(item.cost.price)} ${esc(item.cost.currency)}.</strong> Payment is simulated in this demo. No card is requested and nothing is charged.</p></div>` : ''}
+        ${sql ? `<label class="ex-consent"><input type="checkbox" name="eligible"${draft.eligible ? ' checked' : ''} required><span>I meet the published eligibility requirements.${item.requirements ? ' '+esc(item.requirements) : ''}</span></label>` : ''}
         <label class="ex-consent"><input type="checkbox" name="consent"${draft.consent ? ' checked' : ''} required><span>${esc(item.consent || 'I agree to the participation terms.')}</span></label>
         <p class="ex-error" id="ex-form-error" role="alert" hidden></p>
         <div class="ex-sheet-actions">
@@ -653,14 +897,19 @@
       </form>`);
     const form = $('ex-live-form');
     form.elements.namedItem('age').focus();
-    body.querySelector('[data-act="back"]').addEventListener('click', showLiveDetail);
+    body.querySelector('[data-act="back"]').addEventListener('click', showDetail);
     form.addEventListener('submit', event => {
       event.preventDefault();
       const f = form.elements;
-      draft = { age: f.namedItem('age').value, mode: f.namedItem('mode')?.value || item.modes[0], motivation: f.namedItem('motivation').value.trim(), consent: f.namedItem('consent').checked };
+      draft = { ...draft, age: f.namedItem('age').value, mode: f.namedItem('mode')?.value || item.modes[0],
+        motivation: f.namedItem('motivation').value.trim(), consent: f.namedItem('consent').checked,
+        eligible: f.namedItem('eligible')?.checked };
       const age = Number(draft.age);
-      const problem = !age ? 'Add your age so eligibility can be checked.'
-        : (item.minAge && age < item.minAge) || (item.maxAge && age > item.maxAge) ? `This initiative is for ages ${item.minAge || 0}–${item.maxAge || 'any'}.`
+      const outsideRange = age < (item.minAge || 0) ||
+        (sql ? item.maxAge != null : Boolean(item.maxAge)) && age > item.maxAge;
+      const problem = !Number.isInteger(age) || age < 1 || age > 120 ? 'Enter an age from 1 to 120.'
+        : outsideRange ? `This initiative is for ages ${item.minAge || 0}–${item.maxAge ?? 'any'}.`
+        : sql && !draft.eligible ? 'Confirm that you meet the published requirements.'
         : !draft.consent ? 'Tick the consent box to continue.' : '';
       const error = $('ex-form-error');
       if (problem) { error.textContent = problem; error.hidden = false; return; }
@@ -670,8 +919,9 @@
 
   function showLiveReview() {
     const item = current;
+    const sql = item.listing === 'sql';
     const rows = [['Initiative', item.title], ['Institution', item.organizer], ['When', `${when(item)} · ${item.timezone}`], ['Your age', draft.age], ['Main mode', draft.mode], ['Cost', costText(item)],
-      ['What happens', item.full ? 'Eligible applicants join the waiting list in order' : 'The Representative or a Supervisor reviews your application once']];
+      ['What happens', sql ? 'The Institution Representative reviews your application' : item.full ? 'Eligible applicants join the waiting list in order' : 'The Representative or a Supervisor reviews your application once']];
     if (draft.motivation) rows.push(['Why you’re joining', draft.motivation]);
     view(`<div style="height:var(--space-22)"></div>
       <p class="ex-eyebrow">Review</p>
@@ -684,21 +934,43 @@
         <button type="button" class="ex-button" data-act="confirm">Submit application ${icon('i-check')}</button>
       </div>`);
     body.querySelector('[data-act="edit"]').addEventListener('click', showLiveForm);
-    body.querySelector('[data-act="confirm"]').addEventListener('click', event => {
-      event.currentTarget.disabled = true;
+    body.querySelector('[data-act="confirm"]').addEventListener('click', async event => {
+      const button = event.currentTarget;
+      const operation = sheetRequest;
+      button.disabled = true;
+      const edit = body.querySelector('[data-act="edit"]');
+      edit.disabled = true;
       try {
+        if (sql) {
+          const saved = await requestApplications('/'+item.id+'/apply', {
+            requestId:draft.requestId ||= crypto.randomUUID(), revision:item.revisionNo, age:Number(draft.age),
+            mode:draft.mode === 'In-person' ? 'InPerson' : 'Online', motivation:draft.motivation,
+            consent:draft.consent, meetsRequirements:draft.eligible
+          });
+          await loadMyApplications();
+          renderGrid();
+          renderMyInitiatives();
+          if (operation === sheetRequest) showLiveDone(saved.id, saved);
+          return;
+        }
         const appId = liveRun('member.application.submit', { initiativeId: item.id, age: Number(draft.age), mode: draft.mode, motivation: draft.motivation, consent: draft.consent });
         current = liveById(item.id) || current;
         showLiveDone(appId);
       } catch (error) {
-        const node = $('ex-live-error'); node.textContent = error.message; node.hidden = false; event.currentTarget.disabled = false;
+        if (operation !== sheetRequest) return;
+        const node = $('ex-live-error'); node.textContent = error.message; node.hidden = false; button.disabled = false; edit.disabled = false;
       }
     });
   }
 
-  function showLiveDone(appId) {
+  function goToMyInitiatives() {
+    closeSheet();
+    setTimeout(() => $('my-initiatives').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }), 220);
+  }
+
+  function showLiveDone(appId, saved) {
     const item = current;
-    const app = Repo().read().admissions.find(entry => entry.id === appId);
+    const app = saved ? {...saved,code:applicationCode(appId)} : Repo().read().admissions.find(entry => entry.id === appId);
     view(`<div class="ex-done">
       ${steps(2)}
       <span class="ex-done-mark" data-status="pending">${icon('i-hourglass')}</span>
@@ -708,13 +980,13 @@
       <div class="ex-ref" aria-label="${esc(`Application ID ${app.code}`)}">${esc(app.code)}</div>
       <h3>What happens next</h3>
       <ul class="ex-next">
-        <li>${icon('i-arrow')}<span>The Representative or an active Supervisor reviews this same application once. You’ll see the decision in My Initiatives.</span></li>
-        <li>${icon('i-arrow')}<span>${item.full ? 'Seats are full right now: if you are eligible you join the waiting list and are offered a seat in order.' : `Pending applications don’t hold a seat. ${item.seatsLeft} of ${item.capacity} seats are open now.`}</span></li>
-        <li>${icon('i-arrow')}<span>Once accepted, you register for each session separately and your Coach’s tasks appear in Activities → Assigned.</span></li>
+        <li>${icon('i-arrow')}<span>${saved ? 'The Institution Representative reviews your application. You’ll see the decision in My Initiatives.' : 'The Representative or an active Supervisor reviews this same application once. You’ll see the decision in My Initiatives.'}</span></li>
+        <li>${icon('i-arrow')}<span>${saved ? 'Pending applications don’t hold a seat.' : item.full ? 'Seats are full right now: if you are eligible you join the waiting list and are offered a seat in order.' : `Pending applications don’t hold a seat. ${item.seatsLeft} of ${item.capacity} seats are open now.`}</span></li>
+        ${saved ? '' : `<li>${icon('i-arrow')}<span>Once accepted, you register for each session separately and your Coach’s tasks appear in Activities → Assigned.</span></li>`}
       </ul>
       <div class="ex-sheet-actions"><button type="button" class="ex-button" data-act="my-initiatives">See My Initiatives ${icon('i-arrow')}</button></div>
     </div>`);
-    body.querySelector('[data-act="my-initiatives"]').addEventListener('click', () => { closeSheet(); setTimeout(() => $('my-initiatives').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }), 220); });
+    body.querySelector('[data-act="my-initiatives"]').addEventListener('click', goToMyInitiatives);
   }
 
   /* ---------------------------------------------------------- My Initiatives */
@@ -828,13 +1100,43 @@
   function renderMyInitiatives() {
     const host = $('ex-my-initiatives');
     if (!host) return;
+    if (signedIn) {
+      $('my-initiatives-who').textContent = '';
+      host.innerHTML = applicationsError ? `<p class="ex-error" role="alert">${esc(applicationsError)}</p>` :
+        myApplications.length ? myApplications.map(a => `<article class="ex-initiative" data-admission="${esc(a.id)}">
+          <header class="ex-initiative-head">
+            <span class="ex-initiative-mark">${icon('i-flag')}</span>
+            <div><p class="ex-eyebrow">${esc(a.organizer)}</p><h3>${esc(a.title)}</h3><small>Application <strong class="ex-code">${esc(applicationCode(a.id))}</strong> · applied ${esc(fmtWhen(a.submittedAtUtc))}</small></div>
+            <div class="ex-initiative-status">${appChip(a.status)}</div>
+          </header>
+          ${flash.has(a.id) ? `<p class="ex-flash" role="status">${icon('i-check')}${esc(flash.get(a.id))}</p>` : ''}
+          <div class="ex-sheet-actions">
+            <button type="button" class="ex-card-link" data-open="${esc(a.initiativeId)}">View Initiative</button>
+            ${a.status === 'Accepted' ? `<a class="ex-card-link" href="/workspaces.html?partner=live#/student/dashboard?initiative=${esc(a.initiativeId)}">Open Student workspace</a>` : ''}
+            ${a.canWithdraw ? `<button type="button" class="ex-button is-danger ex-small" data-sql-withdraw="${esc(a.id)}">Withdraw application</button>` : ''}
+          </div>
+          ${a.status === 'Accepted' ? initiativeSessions(a.initiativeId) : ''}
+          <details class="ex-initiative-body" data-sql-details="${esc(a.id)}"><summary>Application details and decision history</summary><div data-sql-history></div></details>
+          <p class="ex-error" role="alert" hidden></p>
+        </article>`).join('') : '<p class="ex-mine-empty">Your applications and the Institution’s decisions will appear here.</p>';
+      if (demoApplications) {
+        const demoHost = $('ex-demo-initiatives');
+        demoHost.hidden = false;
+        renderDemoInitiatives(demoHost, true);
+      }
+      return;
+    }
+    renderDemoInitiatives(host);
+  }
+
+  function renderDemoInitiatives(host, label = false) {
     const repo = Repo();
     const me = repo?.me();
     if (!repo || !me) { host.innerHTML = `<p class="ex-mine-empty">Sign in to see initiatives you have applied to.</p>`; return; }
     const entries = repo.selectors.myInitiatives(repo.read(), me.id);
-    $('my-initiatives-who').textContent = `Signed in as ${me.name}`;
+    if (!signedIn) $('my-initiatives-who').textContent = `Browser demo · ${me.name}`;
     if (!entries.length) { host.innerHTML = '<p class="ex-mine-empty">No initiative applications yet. When you apply, the institution’s decision and your sessions appear here — from the same record the institution sees.</p>'; return; }
-    host.innerHTML = entries.map(entry => {
+    host.innerHTML = (label ? '<h3>Browser demo participation</h3>' : '')+entries.map(entry => {
       const a = entry.admission, item = entry.initiative;
       const live = ['Pending', 'Queued', 'Offered', 'Accepted', 'Suspended'].includes(a.status);
       const tasks = entry.tasks;
@@ -859,6 +1161,50 @@
       </article>`;
     }).join('');
   }
+
+  $('ex-my-initiatives')?.addEventListener('toggle', async event => {
+    const details = event.target;
+    if (!details.open || !details.dataset.sqlDetails) return;
+    const history = details.querySelector('[data-sql-history]');
+    if (history.dataset.loaded) return;
+    history.textContent = 'Loading application history…';
+    try {
+      const record = await requestApplications('/mine/'+details.dataset.sqlDetails);
+      history.dataset.loaded = 'yes';
+      const mode = record.application.participationMode;
+      history.innerHTML = `<dl class="ex-review">
+        <div><dt>Participation mode</dt><dd>${esc(mode === 'InPerson' ? 'In person' : mode || '—')}</dd></div>
+        ${record.answers ? `<div><dt>Age at application</dt><dd>${esc(record.answers.age)}</dd></div>
+          ${record.answers.motivation ? `<div><dt>Why you applied</dt><dd>${esc(record.answers.motivation)}</dd></div>` : ''}` : ''}
+        <div><dt>Consent · revision ${esc(record.revisionNo)}</dt><dd>${esc(record.consent || 'Recorded')} · ${esc(fmtWhen(record.consentAtUtc))}</dd></div>
+        <div><dt>Withdrawal deadline</dt><dd>${esc(new Date(record.application.withdrawalCutoffAtUtc).toLocaleString())}</dd></div>
+      </dl><h4>Decision history</h4>${record.history.length ? `<ol class="ex-history">${record.history.map(h =>
+        `<li><span>${esc(fmtWhen(h.atUtc))}</span><span>${esc(APP_STATUS[h.afterStatus]?.label || h.afterStatus || h.action)}
+        ${h.actorCapacity ? ' · '+esc(h.actorCapacity) : ''}${h.reason ? ' · '+esc(h.reason) : ''}</span></li>`).join('')}</ol>` :
+        '<p class="ex-muted">No decision history was recorded.</p>'}`;
+    } catch (error) { history.textContent = error.message; }
+  }, true);
+
+  $('ex-my-initiatives')?.addEventListener('click', async event => {
+    const button = event.target.closest('[data-sql-withdraw]');
+    if (!button) return;
+    if (!button.dataset.armed) { button.dataset.armed = 'yes'; button.textContent = 'Yes, withdraw'; return; }
+    const application = myApplications.find(item => item.id === button.dataset.sqlWithdraw);
+    if (!application) return;
+    const errorNode = button.closest('article').querySelector('.ex-error');
+    button.disabled = true;
+    try {
+      await requestApplications(`/mine/${application.initiativeId}/${application.id}/withdraw`, {});
+      flash.set(application.id, 'Application withdrawn.');
+      await Promise.all([loadMyApplications(),loadCatalog()]);
+      renderMyInitiatives();
+      renderGrid();
+    } catch (error) {
+      errorNode.textContent = error.message;
+      errorNode.hidden = false;
+      button.disabled = false;
+    }
+  });
 
   function liveAction(node, run, success = '') {
     const card = node.closest('.ex-initiative');
@@ -947,12 +1293,19 @@
 
   /* ---------------------------------------------------------------- start */
 
-  Account.load().then(loaded => {
+  const loadCatalog = () => requestInitiatives().then(items=>{ publishedInitiatives=items.map(sqlItem); initiativeError(''); })
+    .catch(error=>initiativeError(error.message));
+  Promise.all([Account.load(),loadCatalog(),loadMyApplications(),loadSessions().then(loadMySessions)]).then(([loaded]) => {
     account = loaded;
     renderGrid();
     renderMine();
     renderMyInitiatives();
-    const requestedExperience=new URLSearchParams(location.hash.slice(1)).get('experience');
+    const requested = new URLSearchParams(location.hash.slice(1));
+    const requestedInitiative = requested.get('initiative');
+    if (requestedInitiative && /^[0-9a-f-]{36}$/i.test(requestedInitiative)) openSheet(requestedInitiative);
+    const requestedSession = requested.get('session');
+    if (requestedSession && /^[0-9a-f-]{36}$/i.test(requestedSession)) openSheet(requestedSession,null,true);
+    const requestedExperience=requested.get('experience');
     if(requestedExperience)openSheet(requestedExperience);
     if (location.hash === '#my-registrations') $('my-registrations').scrollIntoView({ block: 'start' });
     if (location.hash === '#my-initiatives') $('my-initiatives').scrollIntoView({ block: 'start' });

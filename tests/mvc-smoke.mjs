@@ -68,7 +68,9 @@ for (const { path: route, view } of routes) {
     }
     if (route === 'workspaces.html') {
       expected = expected.replace('data-community-account="@(User.Identity?.IsAuthenticated == true ? "signed-in" : "guest")"', 'data-community-account="guest"')
-        .replace('data-community-admin="@(ViewData["CommunityAdmin"])"', 'data-community-admin=""');
+        .replace('data-community-admin="@(ViewData["CommunityAdmin"])"', 'data-community-admin=""')
+        .replace('data-representative="@(ViewData["RepresentativeName"])"', 'data-representative=""')
+        .replace('data-individual="@(User.HasClaim("deepsprout:individual-workspace", "true") ? "yes" : "no")"', 'data-individual="no"');
     }
     assert.equal(comparableView(rendered), comparableView(expected), `Rendered markup differs from view: ${route}`);
   }

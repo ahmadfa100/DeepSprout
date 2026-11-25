@@ -55,8 +55,10 @@ for (const [page] of pages) {
     ...matchAll(html, /<link[^>]+href="([^"]+)"/g)
   ].filter(ref => !/^(https?:)?\/\//.test(ref) && !ref.startsWith('data:'));
 
+  // Root-absolute URLs ("/src/...") are served from wwwroot, not from the file system root.
+  const local = ref => ref.startsWith('/') ? path.join(root, ref.split(/[?#]/)[0]) : path.resolve(baseDir, ref.split(/[?#]/)[0]);
   for (const ref of refs) {
-    const target = path.resolve(baseDir, ref.split(/[?#]/)[0]);
+    const target = local(ref);
     if (!fs.existsSync(target)) problems.push(`${page}: missing file "${ref}"`);
   }
 
@@ -70,9 +72,11 @@ for (const [page] of pages) {
     .filter(src => !src.startsWith('http'));
 
   for (const script of scripts) {
-    const file = path.resolve(baseDir, script);
+    const file = local(script);
     if (!fs.existsSync(file)) continue;
     const code = fs.readFileSync(file, 'utf8');
+    // Elements the script builds itself (for example a dialog) are valid lookups too.
+    for (const id of matchAll(code, /\sid="([^"$]+)"/g)) ids.add(id);
 
     // Only check pages' own scripts — shared modules are used by many pages.
     if (!file.includes(path.resolve(root, dir)) || /[\\/]src[\\/](layouts|js)[\\/]/.test(file)) continue;

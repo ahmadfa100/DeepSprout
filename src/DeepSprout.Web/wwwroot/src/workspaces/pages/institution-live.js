@@ -1,6 +1,7 @@
 import * as u from '../ui.js';
 import * as institution from '../institution-application.js';
 import {renderConsole} from './admin/console.js';
+import * as initiatives from './initiative-live.js';
 
 const e = u.esc;
 const applicationPath = 'auth/application/organization';
@@ -53,7 +54,10 @@ export async function load(route) {
       return {items:items.map(row=>({...summaryView(row.summary,null,{name:row.applicantName}),details:row.details})),hasMore};
     }
     if (route.area === 'organization') {
-      return {profile:await request('mine/'+encodeURIComponent(route.id || ''))};
+      const id = route.page === 'settings' ? route.id : route.query.get('institution');
+      if (!id) return {error:'Choose an Institution from Application status.'};
+      const profile = await request('mine/'+encodeURIComponent(id));
+      return route.page === 'settings' ? {profile} : await initiatives.load(route,profile);
     }
     if (route.id === 'organization' && route.page === 'application') {
       return route.tail ? {detail:await request('applications/'+encodeURIComponent(route.tail))} : {};
@@ -89,8 +93,10 @@ export function render(ctx) {
     return view+`<div class="actions">${page ? u.link('Previous page',link+(page-1)) : ''}${data.hasMore ? u.link('Next page',link+(page+1)) : ''}</div>`;
   }
   if (route.area === 'organization') {
+    if (route.page !== 'settings') return initiatives.render(ctx);
     const org = data.profile;
-    return u.header('INSTITUTION PROFILE',org.name,'This workspace is limited to the Institution profile.',
+    return u.header('INSTITUTION PROFILE',org.name,'',
+      u.link('Initiatives',initiatives.workspacePath(org.id,'organization/initiatives'),'button primary')+
       '<a class="button quiet" href="/workspaces.html?partner=live#/auth/application-status">Application status</a>')
       +u.section('Institution details',`<dl class="preview-facts"><div><dt>Status</dt><dd>${e(org.status)}</dd></div>
         <div><dt>Country</dt><dd>${e(org.countryCode)}</dd></div><div><dt>City</dt><dd>${e(org.headquartersCity || '')}</dd></div>
@@ -109,7 +115,7 @@ export function render(ctx) {
       </div></form></div>`;
   }
   const detail = data.detail;
-  const workspaceLinks = data.institutions.map(org=>u.link(org.name,'organization/settings/'+org.id)).join('');
+  const workspaceLinks = data.institutions.map(org=>u.link(org.name,initiatives.workspacePath(org.id,'organization/dashboard'))).join('');
   if (detail) {
     const view = summaryView(detail.summary,detail.claim);
     const edit = detail.summary.status === 'MoreInfo' ? u.link('Update application',applicationPath+'/'+view.id,'button primary') : '';
@@ -124,6 +130,7 @@ export function render(ctx) {
 }
 
 export function submit(form,ctx) {
+  if (ctx.route.area === 'organization' && ctx.route.page === 'reports') return initiatives.submit(form,ctx);
   if (form.dataset.form !== 'live-institution' || !institution.groupsValid(form)) return;
   const {details} = institution.collect(form);
   const {audienceAges,...fields} = details;
@@ -139,7 +146,18 @@ export function submit(form,ctx) {
     },'Submit application',{wide:true});
 }
 
+export function change(target,ctx) {
+  if (ctx.route.area === 'organization' && ctx.institutionData?.profile && ctx.route.page !== 'settings')
+    return initiatives.change(target,ctx);
+}
+
+export function drop(detail,ctx) {
+  if (ctx.route.page === 'team' && ctx.institutionData.groups) return initiatives.drop(detail,ctx);
+}
+
 export function action(action,target,ctx) {
+  if (ctx.route.area === 'organization' && ctx.institutionData?.profile && ctx.route.page !== 'settings')
+    return initiatives.action(action,target,ctx);
   if (action !== 'application-decide') return;
   const entry = ctx.institutionData.entry;
   const decision = target.dataset.status === 'Needs More Info' ? 'MoreInfo' : target.dataset.status;

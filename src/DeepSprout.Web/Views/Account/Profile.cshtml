@@ -33,6 +33,11 @@
     <div class="actions">
       <a href="/src/pages/member/dashboard/dashboard.html">Continue to DeepSprout</a>
       <a href="/workspaces.html?partner=live#/auth/application-status">Institution applications</a>
+      <a href="/workspaces.html?partner=live#/auth/staff-access">Staff appointments</a>
+      @if (ViewData["HasStudentParticipation"] is true)
+      {
+        <a href="/workspaces.html?partner=live#/student/dashboard">Student workspace</a>
+      }
       <form method="post" action="/account/logout">@Html.AntiForgeryToken()<button type="submit">Log out</button></form>
     </div>
   </main>

@@ -22,7 +22,7 @@
   <script src="../../../../src/js/ui/individual-ui.js" defer></script>
   <script src="explore.js" defer></script>
 </head>
-<body data-page="explore" data-root="../../../../">
+<body data-page="explore" data-root="../../../../" data-explore-signed-in="@(User.Identity?.IsAuthenticated == true ? "yes" : "no")">
   <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
@@ -64,6 +64,7 @@
     <div class="ex-shell">
       <!-- Filters -->
       <section class="ex-filters" aria-label="Filter listings">
+        <label class="ex-field"><span>Search listings</span><input type="search" id="ex-search" placeholder="Search by title, topic or organizer"></label>
         <div class="ex-chip-row" role="group" aria-label="What kind" id="kind-filters">
           <button type="button" class="ex-chip" data-kind="all" aria-pressed="true">All</button>
           <button type="button" class="ex-chip" data-kind="initiative" aria-pressed="false">Initiatives</button>
@@ -80,6 +81,8 @@
       </section>
 
       <p class="ex-count" id="ex-count" aria-live="polite"></p>
+      <p class="ex-error" id="ex-initiative-error" role="alert" hidden></p>
+      <p class="ex-error" id="ex-session-error" role="alert" hidden></p>
       <div class="ex-grid" id="ex-grid"></div>
       <div class="ex-empty" id="ex-empty" hidden>
         <p id="ex-empty-text">Nothing matches these filters right now.</p>
@@ -93,6 +96,7 @@
           <p class="ex-head-note">Each step is recorded separately <button type="button" class="ds-help" aria-expanded="false" aria-label="About participation steps" data-help="Applying is not joining, joining is not booking a session, and attending is not completing. The institution sees the same records you see here."><span aria-hidden="true">?</span></button></p>
         </div>
         <div class="ex-initiative-list" id="ex-my-initiatives" aria-live="polite"></div>
+        <div class="ex-initiative-list" id="ex-demo-initiatives" hidden></div>
       </section>
 
       <!-- My registrations -->

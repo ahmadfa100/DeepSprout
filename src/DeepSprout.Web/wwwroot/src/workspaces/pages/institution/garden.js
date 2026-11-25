@@ -7,10 +7,13 @@
 import * as u from '../../ui.js';
 import {esc,head,stats,stat,card,emptyState,initiativeSwitcher,fmtDate} from './common.js';
 import {initiativeGarden,GROUP_MILESTONES} from '../../../shared/selectors.js';
+import {workspaceRequest} from '../../workspace-api.js';
 
 export function collectiveScene(stage, completed) {
-  const show = n => stage >= n ? '' : ' hidden';
-  return `<svg class="iw-garden-svg" viewBox="0 0 640 360" role="img" aria-label="${esc(`Shared garden at stage ${stage} of 5${completed ? ', initiative completed' : ''}`)}">
+  const show = n => (stage ?? 0) >= n ? '' : ' hidden';
+  const description = stage === null ? 'Shared Initiative Garden' :
+    `Shared garden at stage ${stage} of 5${completed ? ', initiative completed' : ''}`;
+  return `<svg class="iw-garden-svg" viewBox="0 0 640 360" role="img" aria-label="${esc(description)}">
     <defs><radialGradient id="gg-sky" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#fffef8"/><stop offset="1" stop-color="#f1f4e8"/></radialGradient><linearGradient id="gg-leaf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9dbb7d"/><stop offset="1" stop-color="#5f8a57"/></linearGradient></defs>
     <rect width="640" height="360" rx="28" fill="url(#gg-sky)"/>
     <ellipse cx="320" cy="300" rx="230" ry="34" fill="#e3ead6"/><ellipse cx="320" cy="296" rx="160" ry="20" fill="#d6e0c4"/>
@@ -23,6 +26,26 @@ export function collectiveScene(stage, completed) {
     <g class="gg-stage gg-bloom"${show(5)}><g fill="#e8b765"><circle cx="292" cy="128" r="5"/><circle cx="350" cy="120" r="5"/><circle cx="372" cy="170" r="5"/><circle cx="276" cy="176" r="5"/><circle cx="326" cy="150" r="5"/></g></g>
     ${completed ? '<g class="gg-ribbon"><rect x="236" y="24" width="168" height="34" rx="17" fill="#173e35"/><text x="320" y="46" text-anchor="middle" fill="#fffef9" font-size="14" font-family="Georgia, serif">Initiative completed</text></g>' : ''}
   </svg>`;
+}
+
+export const loadGarden = (id,role) => workspaceRequest('/api/initiative-gardens/'+encodeURIComponent(id)+'/'+role);
+
+export function renderLiveGarden(garden, picker = '') {
+  if (!garden) return head({eyebrow:'GROUP GARDEN',title:'Group Garden',meta:picker})+
+    emptyState('No Initiative Garden available','An authorized published Initiative will appear here.');
+  const history = garden.history.length ? `<ul class="iw-mini-list">${garden.history.map(row=>
+    `<li><div><strong>${esc(row.practiceTitle)}</strong>
+      <small>Practice ${esc(row.practiceVersion)} · Assignment revision ${esc(row.assignmentRevision)}</small>
+      ${row.correctedAtUtc ? `<small>Approval superseded on ${esc(fmtDate(row.correctedAtUtc))}</small>` : ''}</div>
+      <time datetime="${esc(row.approvedAtUtc)}">${esc(fmtDate(row.approvedAtUtc))}</time></li>`).join('')}</ul>` :
+    '<p class="iw-muted">No eligible collective evidence has been recorded yet.</p>';
+  return head({eyebrow:'GROUP GARDEN · '+garden.institution,title:garden.title,lead:'One shared Garden across all Initiative groups.',meta:picker})
+    + stats([stat(garden.contributionCount,'Qualifying contributions'),stat(garden.contributorCount,'Contributing students'),
+      stat(garden.contributingGroupCount,'Contributing groups')])
+    + `<div class="iw-split is-garden"><div class="iw-garden iw-reveal">${collectiveScene(null,false)}
+      <p class="iw-garden-caption">The scene is awaiting approved growth rules.</p></div>
+      ${card('Collective milestones','<p class="iw-muted">Collective milestone thresholds are pending approval.</p>')}</div>`
+    + card('Contribution history',history);
 }
 
 export function renderInitiativeGarden(ctx, {initiatives, role}) {

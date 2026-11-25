@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DeepSprout.Web.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = DeepSprout.Web.Services.PersonalRecords.IndividualPolicy)]
 [Route("api/onboarding")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class OnboardingController(DeepSproutV5DbContext db, IAntiforgery antiforgery, TimeProvider clock) : ControllerBase

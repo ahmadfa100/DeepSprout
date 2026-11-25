@@ -980,11 +980,15 @@
     if (requested === 'recovery-control') $('recovery-control').scrollIntoView({ block: 'start' });
     window.addEventListener('deepsprout:account', () => { refresh(); renderToday(); });
   }).catch(() => {
-    $('today-card').hidden = true;
+    // Without the saved plan, these controls and empty defaults would describe the wrong state.
+    activate('overview', { updateHash: false });
+    for (const node of [$('today-card'), $('recovery-control'), $('empty-plan-link'), document.querySelector('.rp-tabs'),
+      document.querySelector('.rp-review-adjust-link'), document.querySelector('.rp-routine')]) node.hidden = true;
+    $('cycle-day').textContent = 'Plan unavailable';
     const empty = $('empty-plan');
     empty.hidden = false;
     empty.querySelector('h2').textContent = 'Your roadmap couldn’t be loaded';
-    empty.querySelector('p').textContent = 'Nothing is shown rather than made-up progress. If you opened this file directly, serve the Client folder locally and reload.';
+    empty.querySelector('p').textContent = 'Nothing is shown rather than made-up progress. Reload the page to try again.';
   });
 
 })();

@@ -58,18 +58,21 @@ export function scene(key = 'neutral', {size = 'hero', label = ''} = {}) {
 const typeCard = (value, title, text, points, glyph, checked) => `<label class="cr-type"><input type="radio" name="create-type" value="${value}" ${checked ? 'checked' : ''}><span class="cr-type-card"><span class="cr-type-mark">${u.icon(glyph)}</span><span class="cr-type-copy"><strong>${esc(title)}</strong><span>${esc(text)}</span></span><ul>${points.map(p => `<li>${u.icon('check')}${esc(p)}</li>`).join('')}</ul><span class="cr-type-check" aria-hidden="true">${u.icon('check')}</span></span></label>`;
 
 export function renderCreate(ctx) {
-  const {s, person:p} = ctx, org = representativeOrg(s, p.id), state = ctx.localUI.create ||= {};
-  const preset = ctx.route.query.get('type'); if (preset === 'activity' || preset === 'initiative') state.type = preset;
+  const {s, person:p} = ctx, org = ctx.liveInstitution || representativeOrg(s, p.id), state = ctx.localUI.create ||= {};
+  const preset = ctx.route.query.get('type');
+  if (ctx.liveInstitution) state.type = 'initiative';
+  else if (preset === 'activity' || preset === 'initiative') state.type = preset;
   const type = state.type || '', mode = state.mode || 'Hybrid', kind = state.kind || 'Hike';
+  const path = ctx.workspacePath || (value=>value);
   const drafts = [...s.initiatives.filter(i => i.ownerId === org?.id && i.status === 'Draft').map(i => ({title:i.title, sub:`Initiative · ${i.deliveryMode ? DELIVERY_MODES.find(m => m[0] === i.deliveryMode)?.[1] : (i.modes || []).join(' · ')}`, path:`organization/initiatives/${i.id}/edit`, at:i.history?.at(-1)?.at})), ...s.experiences.filter(e => e.ownerId === org?.id && e.status === 'Draft').map(e => ({title:e.title, sub:'Outdoor Activity', path:`organization/activities/${e.id}/edit`, at:e.history?.at(-1)?.at}))];
   const unsaved = Object.entries(s.builderDrafts || {}).filter(([key, d]) => key.startsWith(`${p.id}:`) && /:(initiative|experience):new$/.test(key) && d && (d.title || d.step)).map(([key, d]) => ({title:d.title || 'Untitled draft', sub:`${key.includes(':initiative:') ? 'Initiative' : 'Outdoor Activity'} · unsaved, step ${(d.step || 0) + 1}`, path:key.includes(':initiative:') ? 'organization/initiatives/new' : 'organization/activities/new'}));
   const resume = [...unsaved, ...drafts];
   return `<div class="cr" data-create>
-    <p class="breadcrumbs">${u.link('Dashboard', 'organization/dashboard', 'text-link')} / Create new</p>
-    <section class="cr-hero iw-reveal">${scene(sceneKey(type, mode), {label:'Illustration that changes with your choice'})}<div class="cr-hero-copy"><p class="eyebrow">${esc(org?.name || 'Your institution')} · CREATE NEW</p><h1>What would you like to bring to life?</h1><p class="ds-lead">Both are published by your verified institution, appear in the regular Explore page, and keep their own applications or bookings.</p></div></section>
+    <p class="breadcrumbs">${u.link('Dashboard', path('organization/dashboard'), 'text-link')} / Create new</p>
+    <section class="cr-hero iw-reveal">${scene(sceneKey(type, mode), {label:'Illustration that changes with your choice'})}<div class="cr-hero-copy"><p class="eyebrow">${esc(org?.name || 'Your institution')} · CREATE NEW</p><h1>What would you like to bring to life?</h1><p class="ds-lead">${ctx.liveInstitution?'Create an Initiative draft and publish it to regular Explore when it is ready.':'Both are published by your verified institution, appear in the regular Explore page, and keep their own applications or bookings.'}</p></div></section>
     <fieldset class="cr-types iw-reveal"><legend class="sr-only">Choose what to create</legend>
       ${typeCard('initiative', 'Create an Initiative', 'Awareness, education and structured group work — online, hybrid or face-to-face.', ['Applications & admission (max 135 students)','Sessions, forms, competitions & Coach-led groups','Up to three active Supervisors'], 'nodes', type === 'initiative')}
-      ${typeCard('activity', 'Create an Outdoor Activity', 'Trips, hikes, camps and outdoor events your institution organizes and supervises.', ['Bookings with capacity & waiting list','Safety, consent and meeting logistics','Supervised check-in and completion'], 'mountain', type === 'activity')}
+      ${ctx.liveInstitution?'':typeCard('activity', 'Create an Outdoor Activity', 'Trips, hikes, camps and outdoor events your institution organizes and supervises.', ['Bookings with capacity & waiting list','Safety, consent and meeting logistics','Supervised check-in and completion'], 'mountain', type === 'activity')}
     </fieldset>
     <section class="cr-next ${type === 'initiative' ? 'is-open' : ''}" data-cr-panel="initiative" ${type === 'initiative' ? '' : 'hidden'}>
       <div class="cr-next-head"><p class="eyebrow">STEP 2 · DELIVERY MODE</p><h2>How will people take part?</h2><p>This sets the initiative’s overall mode. Each session still has its own format inside it.</p></div>
@@ -81,7 +84,7 @@ export function renderCreate(ctx) {
       <div class="cr-kinds" role="radiogroup" aria-label="Kind of Outdoor Activity">${ACTIVITY_KINDS.map(([value, label, text]) => `<label class="cr-kind"><input type="radio" name="create-kind" value="${value}" ${kind === value ? 'checked' : ''}><span><strong>${esc(label)}</strong><small>${esc(text)}</small></span></label>`).join('')}</div>
       <div class="cr-go">${u.button('Start the Outdoor Activity builder', 'create-start', {kind:'activity'}, 'button primary')}<small>Seven stages · location, safety, seats, booking rules and staffing</small></div>
     </section>
-    ${resume.length ? `<section class="cr-resume iw-reveal"><h2>Continue where you left off</h2><ul>${resume.slice(0, 6).map(r => `<li><a href="${u.href(r.path)}"><span>${u.icon('edit')}</span><span><strong>${esc(r.title || 'Untitled draft')}</strong><small>${esc(r.sub)}${r.at ? ` · saved ${esc(u.date(r.at))}` : ''}</small></span>${u.icon('arrow')}</a></li>`).join('')}</ul></section>` : ''}
+    ${resume.length ? `<section class="cr-resume iw-reveal"><h2>Continue where you left off</h2><ul>${resume.slice(0, 6).map(r => `<li><a href="${u.href(path(r.path))}"><span>${u.icon('edit')}</span><span><strong>${esc(r.title || 'Untitled draft')}</strong><small>${esc(r.sub)}${r.at ? ` · saved ${esc(u.date(r.at))}` : ''}</small></span>${u.icon('arrow')}</a></li>`).join('')}</ul></section>` : ''}
   </div>`;
 }
 

@@ -12,7 +12,9 @@ public sealed class PagesController(PageCatalog pages, DeepSproutV5DbContext db,
 {
     [Authorize]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    public Task<IActionResult> ShowProtected(string page, CancellationToken ct) => Show(page, ct);
+    public Task<IActionResult> ShowProtected(string page, CancellationToken ct) =>
+        User.HasClaim(PersonalRecords.IndividualClaim, "true") ? Show(page, ct) :
+            Task.FromResult<IActionResult>(LocalRedirect("/workspaces.html?partner=live#/student/dashboard"));
 
     public async Task<IActionResult> Show(string page, CancellationToken ct)
     {
@@ -33,7 +35,7 @@ public sealed class PagesController(PageCatalog pages, DeepSproutV5DbContext db,
         }
 
         if (page is "admin.html" or "workspaces.html") Response.Headers.CacheControl = "no-store";
-        if (page == "workspaces.html" && Request.Query["partner"] == "live" &&
+        if (page == "workspaces.html" && Request.Query["partner"] == "live" && Request.Query["staffInvite"] != "1" &&
             User.Identity?.IsAuthenticated != true) return Challenge();
         if (page == "admin.html" && !(environment.IsDevelopment() &&
             (Request.Query["demo"] == "1" || Request.Query["legacy"] == "1")))
@@ -53,6 +55,9 @@ public sealed class PagesController(PageCatalog pages, DeepSproutV5DbContext db,
         {
             ViewData["CommunityAdmin"] = await PersonalRecords.PlatformAdmins(db).Where(person => person.Id == personId)
                 .Select(person => person.DisplayName).SingleOrDefaultAsync(ct);
+            if (Request.Query["partner"] == "live")
+                ViewData["RepresentativeName"] = await db.Set<Person>().Where(person => person.Id == personId)
+                    .Select(person => person.DisplayName).SingleOrDefaultAsync(ct);
         }
         var viewPath = $"~/Views/{view}.cshtml";
         return View(viewPath);

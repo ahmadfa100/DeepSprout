@@ -32,30 +32,34 @@ function seatsText(s, ss) {
 }
 
 /** A real month grid: sessions sit on their day; the month's agenda below keeps actions on one row. */
-function monthCalendar(ctx, i, sessions, role) {
-  const {s, route:r} = ctx, day = today(s);
+export function monthCalendar(ctx, i, sessions, role, live) {
+  const {s, route:r} = ctx, day = live?.day || today(s);
   const month = /^\d{4}-\d{2}$/.test(r.query.get('month') || '') ? r.query.get('month') : ((sessions.find(x => x.date >= day) || sessions.at(-1))?.date || day).slice(0, 7);
   const [y, m] = month.split('-').map(Number), first = new Date(Date.UTC(y, m - 1, 1)), lead = (first.getUTCDay() + 6) % 7, count = new Date(Date.UTC(y, m, 0)).getUTCDate();
   const shift = n => { const d = new Date(Date.UTC(y, m - 1 + n, 1)); return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`; };
-  const nav = n => withInitiative(`${r.area}/${r.page}?view=calendar&month=${shift(n)}`, i);
+  const calendarPath = monthValue => (ctx.workspacePath || (path=>path))(withInitiative(`${r.area}/${r.page}?view=calendar&month=${monthValue}`, i));
+  const nav = n => calendarPath(shift(n));
+  const detail = session => live ? live.detail(session.id) : `${r.area}/${r.page}/${session.id}`;
+  const warning = session => !live && needsSupervisor(s, session);
   const title = first.toLocaleDateString('en-GB', {month:'long', year:'numeric', timeZone:'UTC'});
   const inMonth = sessions.filter(x => x.date.startsWith(month));
   const cells = [];
   for (let n = 0; n < lead; n++) cells.push('<div class="iw-cal-cell is-out" aria-hidden="true"></div>');
   for (let d = 1; d <= count; d++) {
     const date = `${month}-${String(d).padStart(2, '0')}`, list = inMonth.filter(x => x.date === date);
-    cells.push(`<div class="iw-cal-cell${date === day ? ' is-today' : ''}${list.length ? ' has-events' : ''}"><span class="iw-cal-num">${d}</span>${list.map(ss => `<a class="iw-cal-event${needsSupervisor(s, ss) ? ' is-warning' : ''}${ss.status === 'Cancelled' ? ' is-cancelled' : ''}" href="${u.href(`${r.area}/${r.page}/${ss.id}`)}" title="${esc(`${ss.title} · ${ss.time}–${ss.endTime}`)}"><b>${esc(ss.time)}</b> ${esc(ss.title)}</a>`).join('')}</div>`);
+    cells.push(`<div class="iw-cal-cell${date === day ? ' is-today' : ''}${list.length ? ' has-events' : ''}"><span class="iw-cal-num">${d}</span>${list.map(ss => `<a class="iw-cal-event${warning(ss) ? ' is-warning' : ''}${ss.status === 'Cancelled' ? ' is-cancelled' : ''}" href="${u.href(detail(ss))}" title="${esc(`${ss.title} · ${ss.time}–${ss.endTime}`)}"><b>${esc(ss.time)}</b> ${esc(ss.title)}</a>`).join('')}</div>`);
   }
   while (cells.length % 7) cells.push('<div class="iw-cal-cell is-out" aria-hidden="true"></div>');
   const agenda = inMonth.map(ss => {
     const acts = [];
-    if (role === 'rep' && ss.status === 'Draft') acts.push(u.button('Publish', 'session-publish', {id:ss.id}, 'button primary small'));
-    if (role === 'rep' && ss.status !== 'Cancelled') acts.push(u.button('Edit', 'session-edit', {id:ss.id}, 'button quiet small'));
-    if (ss.status !== 'Cancelled' && ss.attendanceRequired) acts.push(u.button(needsSupervisor(s, ss) ? 'Assign supervisor' : 'Change supervisor', 'session-assign', {id:ss.id}, needsSupervisor(s, ss) ? 'button primary small' : 'button quiet small'));
+    if (live) acts.push(u.link('Details',detail(ss),'button quiet small'));
+    if (!live && role === 'rep' && ss.status === 'Draft') acts.push(u.button('Publish', 'session-publish', {id:ss.id}, 'button primary small'));
+    if (!live && role === 'rep' && ss.status !== 'Cancelled') acts.push(u.button('Edit', 'session-edit', {id:ss.id}, 'button quiet small'));
+    if (!live && ss.status !== 'Cancelled' && ss.attendanceRequired) acts.push(u.button(needsSupervisor(s, ss) ? 'Assign supervisor' : 'Change supervisor', 'session-assign', {id:ss.id}, needsSupervisor(s, ss) ? 'button primary small' : 'button quiet small'));
     const dt = new Date(ss.date + 'T12:00');
-    return `<li class="iw-agenda-row${needsSupervisor(s, ss) ? ' is-warning' : ''}"><time><b>${dt.getDate()}</b><span>${esc(dt.toLocaleDateString('en-GB', {weekday:'short'}))}</span></time><div class="iw-agenda-main"><a class="iw-agenda-title" href="${u.href(`${r.area}/${r.page}/${ss.id}`)}">${esc(ss.title)}</a><p>${esc(ss.time)}–${esc(ss.endTime)} · ${esc(ss.format)}${ss.venue ? ` · ${esc(ss.venue)}` : ''}</p><div class="iw-agenda-meta">${pill(ss.status)}${supervisorChip(s, ss)}<small>${esc(seatsText(s, ss))}</small></div></div><div class="actions">${acts.join('')}</div></li>`;
+    return `<li class="iw-agenda-row${warning(ss) ? ' is-warning' : ''}"><time><b>${dt.getDate()}</b><span>${esc(dt.toLocaleDateString('en-GB', {weekday:'short'}))}</span></time><div class="iw-agenda-main"><a class="iw-agenda-title" href="${u.href(detail(ss))}">${esc(ss.title)}</a><p>${esc(ss.time)}–${esc(ss.endTime)} · ${esc(ss.format)}${ss.venue ? ` · ${esc(ss.venue)}` : ''}</p><div class="iw-agenda-meta">${pill(ss.status)}${live ? '' : supervisorChip(s, ss)}<small>${esc(live ? live.seats(ss) : seatsText(s, ss))}</small></div></div><div class="actions">${acts.join('')}</div></li>`;
   }).join('');
-  return `<section class="iw-card iw-cal iw-reveal" aria-label="${esc(title)}"><header class="iw-cal-head"><h2>${esc(title)}</h2><div class="iw-cal-nav"><a class="button quiet small" href="${u.href(nav(-1))}" aria-label="Previous month">‹</a><a class="button quiet small" href="${u.href(withInitiative(`${r.area}/${r.page}?view=calendar&month=${day.slice(0, 7)}`, i))}">Today</a><a class="button quiet small" href="${u.href(nav(1))}" aria-label="Next month">›</a></div></header>
+  return `<section class="iw-card iw-cal iw-reveal" aria-label="${esc(title)}"><header class="iw-cal-head"><h2>${esc(title)}</h2><div class="iw-cal-nav"><a class="button quiet small" href="${u.href(nav(-1))}" aria-label="Previous month">‹</a><a class="button quiet small" href="${u.href(calendarPath(day.slice(0, 7)))}">Today</a><a class="button quiet small" href="${u.href(nav(1))}" aria-label="Next month">›</a></div></header>
     <div class="iw-cal-grid" role="presentation">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div class="iw-cal-dow">${d}</div>`).join('')}${cells.join('')}</div></section>
     <section class="iw-card iw-reveal"><div class="iw-card-head"><h2>${inMonth.length ? `${inMonth.length} ${inMonth.length === 1 ? 'session' : 'sessions'} in ${esc(first.toLocaleDateString('en-GB', {month:'long', timeZone:'UTC'}))}` : `No sessions in ${esc(title)}`}</h2></div>${inMonth.length ? `<ol class="iw-agenda-list">${agenda}</ol>` : '<p class="iw-muted">Use the arrows to see other months, or create a session.</p>'}</section>`;
 }

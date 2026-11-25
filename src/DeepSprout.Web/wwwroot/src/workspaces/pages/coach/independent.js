@@ -234,13 +234,13 @@ function linkTab(ctx, pr) {
 
 export function gardenPage(ctx) {
   const {s, route:r} = ctx, groups = ownProgramGroups(ctx).filter(g => g.programId);
-  if (!groups.length) return head({eyebrow:'GROUP GARDEN · ONE PER GROUP', title:'Group Gardens'}) + emptyState('No group garden yet', 'Each of your Program groups has its own collective garden.', u.link('My Groups', 'mentor/groups', 'button quiet'));
+  if (!groups.length) return head({eyebrow:'LEGACY PROGRAM DEMO', title:'Group Gardens'}) + emptyState('No group garden yet', 'Each of your Program groups has its own collective garden.', u.link('My Groups', 'mentor/groups', 'button quiet'));
   const g = groups.find(x => x.id === r.query.get('group')) || groups[0], gg = programGroupGarden(s, g.id);
   return gardenView(gg, `<label class="iw-scope is-select">${u.icon('people')}<span class="sr-only">Group</span><select data-action="coach-garden-group">${groups.map(x => `<option value="${esc(x.id)}" ${x.id === g.id ? 'selected' : ''}>${esc(x.name)} · ${esc(programName(s, x))}</option>`).join('')}</select></label>`, 'coach');
 }
 /** Shared by the Coach page and the Invited Student's Group Garden. */
 export function gardenView(gg, meta, role) {
-  return head({eyebrow:`GROUP GARDEN · ${esc(gg.program?.title || '').toUpperCase()}`, title:gg.group.name, lead:'One collective garden for this group. It grows only through bounded milestones from approved, Coach-reviewed work — never from joining, clicking, retries or repeated reviews.', meta})
+  return head({eyebrow:`LEGACY PROGRAM DEMO · ${gg.program?.title || 'Group Garden'}`, title:gg.group.name, lead:'One collective garden for this group. It grows only through bounded milestones from approved, Coach-reviewed work — never from joining, clicking, retries or repeated reviews.', meta})
     + stats([stat(gg.count, 'Approved tasks'), stat(gg.contributors, 'Contributing members', {of:Math.max(1, gg.group.members)}), stat(`${gg.reached}/${gg.total}`, 'Milestones reached'), stat(`${gg.stage}/5`, 'Collective stage')])
     + `<div class="iw-split is-garden"><div class="iw-garden iw-reveal" data-stage="${gg.stage}">${collectiveScene(gg.stage, gg.completed).replace('Initiative completed', 'Program completed').replace(', initiative completed', ', program completed')}<p class="iw-garden-caption">${gg.reached === gg.total ? 'Every collective milestone reached.' : `Next: “${esc(gg.milestones.find(m => !m.done)?.title || '')}”.`}</p></div>
       ${card('Collective milestones', `<ol class="iw-milestones">${gg.milestones.map((m, i) => `<li class="${m.done ? 'is-done' : ''}${m.done && m.key === 'completed' ? ' is-final' : ''}"><span>${m.done ? '✓' : i + 1}</span><div><strong>${esc(m.title)}</strong><small>${esc(m.note)}</small></div></li>`).join('')}</ol><p class="iw-muted">Stage quorum ${Math.round(PROGRAM_GARDEN_POLICY.stageQuorum * 100)}% is a configurable demo policy. Each approved submission counts once.</p>`, {eyebrow:'SOURCE-BACKED'})}</div>`

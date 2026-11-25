@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile, spawn } from 'node:child_process';
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { once } from 'node:events';
 import { mkdtemp, readFile, readdir, rmdir, unlink } from 'node:fs/promises';
 import { createServer } from 'node:net';
@@ -354,6 +354,1139 @@ test('Institution and Admin workspace screens save and reload live SQL applicati
     })));
     assert.equal((await page.request.get(origin+'/workspaces.html?community=live&demo=1#/admin/organizations')).status(),403);
     assert.equal((await page.request.get(origin+institutionApi+'/verification?demo=1')).status(),403);
+  } finally { await browser.close(); }
+});
+
+const initiativesApi = '/api/initiatives';
+const ownerApi = initiativesApi+'/owned';
+const exploreApi = initiativesApi+'/explore';
+const explorePage = '/src/pages/member/explore/explore.html';
+
+async function seedInitiativeOwners(prefix) {
+  await sql(`INSERT org.Organization(Kind,Name,Status,CountryCode,HeadquartersCity)
+      VALUES ('Institution','${prefix} North','Verified','JO','Amman'),
+        ('Institution','${prefix} South','Verified','JO','Irbid'),
+        ('Institution','${prefix} Pending','Applied','JO','Amman'),
+        ('Institution','${prefix} Rejected','Closed','JO','Amman');
+    INSERT org.OrganizationMember(OrganizationId,PersonId,Status,GrantedByPersonId,GrantedAtUtc)
+      SELECT o.Id,p.Id,'Active',p.Id,SYSUTCDATETIME() FROM org.Organization o CROSS JOIN iam.Person p
+      WHERE (o.Name IN ('${prefix} North','${prefix} Pending','${prefix} Rejected')
+        AND p.NormalizedEmail=UPPER('${prefix}-rep@example.test'))
+        OR (o.Name='${prefix} South' AND p.NormalizedEmail=UPPER('${prefix}-other@example.test'));
+    UPDATE dbo.AspNetUsers SET EmailConfirmed=1 WHERE NormalizedEmail IN
+      (UPPER('${prefix}-rep@example.test'),UPPER('${prefix}-other@example.test'));`);
+  const rows=await sql(`SELECT LOWER(CONVERT(varchar(36),PublicId)) FROM org.Organization
+    WHERE Name LIKE '${prefix} %' ORDER BY Name;`);
+  const [north,pending,rejected,south]=rows.split(/\s+/);
+  return {north,pending,rejected,south};
+}
+
+function futureDate(offset) {
+  const date=new Date();
+  date.setUTCDate(date.getUTCDate()+offset);
+  return date.toISOString().slice(0,10);
+}
+
+function initiativeDraft(title) {
+  const start=futureDate(7), end=futureDate(12);
+  return {title,topic:'Digital literacy',objective:'Build independent study skills.',summary:'Practice planning a focused week.',
+    description:'A short project for students.',audience:'Secondary school students',minAge:14,maxAge:18,
+    requirements:'Bring a notebook',consent:'Agree to respectful participation.',deliveryMode:'Online',
+    platform:'Google Meet',timezone:'Europe/London',capacity:30,start,end,registrationOpen:futureDate(2),
+    registrationClose:start,policies:{completion:'Attend the workshop.',waitlist:true,offerHours:24},
+    components:[{id:'session-one',type:'Session',title:'Study session',format:'Online',date:start,time:'16:00',
+      endTime:'17:00',meeting:'https://example.test/private-only'}]};
+}
+
+test('Initiative drafts, tenant authorization, versioned publication and lifecycle use V5 SQL', async () => {
+  const rep=session(), other=session(), individual=session(), fresh=session();
+  await rep.signIn('initiative-sql-rep');
+  await other.signIn('initiative-sql-other');
+  await individual.signIn('initiative-sql-individual');
+  const {north,pending,rejected,south}=await seedInitiativeOwners('initiative-sql');
+  const [token,otherToken,individualToken]=await Promise.all([rep,other,individual].map(communityToken));
+  const id=randomUUID(), path=ownerApi+'/'+id;
+  const draft=initiativeDraft('Study habits in practice');
+  const write=(owner,csrf,organization,input,record=id)=>command(owner,csrf,ownerApi+'/'+record+'/draft?institution='+organization,input,'PUT');
+  const input={draft,stage:3};
+  const pendingWrite=await write(rep,token,pending,input);
+  assert.equal(pendingWrite.status,404,await pendingWrite.text());
+  assert.equal((await write(rep,token,rejected,input)).status,404);
+  assert.equal((await write(individual,individualToken,north,input)).status,404);
+  const saves=await Promise.all([1,2].map(()=>write(rep,token,north,input).then(saved)));
+  const first=saves[0];
+  assert.equal(first.id,id);
+  assert.equal(saves[1].version,first.version);
+  assert.equal(first.stage,3);
+  assert.equal((await individual.request(exploreApi+'/'+id)).status,404);
+  assert.ok(!(await saved(await individual.request(exploreApi))).some(row=>row.id===id));
+  assert.equal((await other.request(path)).status,404);
+  assert.equal((await write(other,otherToken,south,{...input,version:first.version})).status,404);
+  assert.equal((await command(other,otherToken,path+'/publish',{version:first.version})).status,404);
+  const incomplete=await saved(await write(rep,token,north,{draft:{title:draft.title},stage:0,version:first.version}));
+  assert.equal((await command(rep,token,path+'/publish',{version:incomplete.version})).status,400);
+  assert.equal((await write(rep,token,north,{draft,stage:3,version:first.version})).status,409);
+  const updated=await saved(await write(rep,token,north,{draft,stage:5,version:incomplete.version}));
+  await fresh.signIn('initiative-sql-rep',false);
+  const reopened=await saved(await fresh.request(path));
+  assert.equal(reopened.initiative.stage,5);
+  assert.equal(reopened.initiative.draft.components[0].meeting,'https://example.test/private-only');
+  assert.ok((await saved(await fresh.request(ownerApi+'?institution='+north))).some(row=>row.id===id));
+  for (const status of ['Applied','Closed','Suspended']) {
+    await sql(`UPDATE org.Organization SET Status='${status}' WHERE Name='initiative-sql North'`);
+    assert.equal((await command(rep,token,path+'/publish',{version:updated.version})).status,404);
+  }
+  await sql("UPDATE org.Organization SET Status='Verified' WHERE Name='initiative-sql North'");
+  const published=await saved(await command(rep,token,path+'/publish',{version:updated.version}));
+  assert.equal(published.revision,1);
+  assert.equal((await saved(await command(rep,token,path+'/publish',{version:updated.version}))).version,published.version);
+  assert.equal((await write(rep,token,north,{draft,stage:5,version:published.version})).status,409);
+  const publicDetail=await saved(await individual.request(exploreApi+'/'+id));
+  assert.equal(publicDetail.id,published.id);
+  assert.equal(publicDetail.organizer,published.organizer);
+  assert.equal(publicDetail.start,draft.start);
+  assert.equal(publicDetail.end,draft.end);
+  assert.equal(publicDetail.registrationClose,draft.registrationClose);
+  assert.equal(publicDetail.registration,'Upcoming');
+  assert.equal(publicDetail.components[0].meeting,undefined);
+  await sql(`UPDATE institution.Initiative SET Status='Suspended' WHERE PublicId='${id}'`);
+  assert.equal((await individual.request(exploreApi+'/'+id)).status,404);
+  assert.ok(!(await saved(await individual.request(exploreApi))).some(row=>row.id===id));
+  await sql(`UPDATE institution.Initiative SET Status='Published' WHERE PublicId='${id}'`);
+  const restored=(await saved(await rep.request(path))).initiative;
+  const revised=await saved(await command(rep,token,path+'/revise',{version:restored.version,
+    reason:'Better description for the cohort.',draft:{...draft,summary:'Updated wording.'}}));
+  assert.equal(revised.revision,2);
+  assert.equal((await saved(await fresh.request(path+'?revision=1'))).initiative.draft.summary,draft.summary);
+  assert.equal((await saved(await individual.request(exploreApi+'/'+id))).summary,'Updated wording.');
+  assert.equal((await command(rep,token,path+'/status/Suspended',{version:revised.version})).status,409);
+  const closed=await saved(await command(rep,token,path+'/status/RegistrationClosed',{version:revised.version}));
+  assert.equal((await saved(await individual.request(exploreApi+'/'+id))).registration,'Closed');
+  const open=await saved(await command(rep,token,path+'/status/Published',{version:closed.version}));
+  const cancelled=await saved(await command(rep,token,path+'/status/Cancelled',{version:open.version,reason:'School schedule changed.'}));
+  assert.equal((await individual.request(exploreApi+'/'+id)).status,404);
+  await sql(`INSERT institution.InitiativeApplication
+      (InitiativeId,PersonId,AttemptNo,TermsRevisionId,Status,SubmittedAtUtc,ConsentAtUtc)
+    SELECT i.Id,p.Id,1,r.Id,'Withdrawn',SYSUTCDATETIME(),SYSUTCDATETIME()
+    FROM institution.Initiative i JOIN institution.InitiativeRevision r ON r.InitiativeId=i.Id AND r.RevisionNo=1
+    CROSS JOIN iam.Person p WHERE i.PublicId='${id}' AND p.NormalizedEmail='INITIATIVE-SQL-INDIVIDUAL@EXAMPLE.TEST'`);
+  const historical=await saved(await individual.request(exploreApi+'/'+id));
+  assert.equal(historical.historical,true);
+  assert.equal(historical.revisionNo,1);
+  assert.equal(historical.summary,draft.summary);
+  assert.equal((await other.request(exploreApi+'/'+id)).status,404);
+  assert.equal((await command(rep,token,path+'/status/Published',{version:cancelled.version})).status,409);
+  const history=await saved(await fresh.request(path));
+  assert.deepEqual(history.versions.map(row=>row.revisionNo),[2,1]);
+  assert.deepEqual(history.history.map(row=>row.action),
+    ['Cancelled','RegistrationReopened','RegistrationClosed','TermsUpdate','Published','DraftSaved','DraftSaved','DraftCreated']);
+  assert.equal(history.history[0].actor,'initiative-sql-rep');
+  await sql("UPDATE org.OrganizationMember SET Status='Revoked',RevokedAtUtc=SYSUTCDATETIME() WHERE OrganizationId=(SELECT Id FROM org.Organization WHERE Name='initiative-sql North')");
+  assert.equal((await command(rep,token,path+'/status/Archived',{version:cancelled.version})).status,404);
+});
+
+test('Initiative builder resumes in SQL and separate regular Explore browser shows the published ID', async () => {
+  const browser=await chromium.launch({headless:true});
+  try {
+    const rep=await browser.newContext({reducedMotion:'reduce'}), member=await browser.newContext({reducedMotion:'reduce'});
+    await registerBrowser(rep,'Initiative Browser Rep','initiative-browser-rep@example.test');
+    await registerBrowser(member,'Initiative Browser Member','initiative-browser-member@example.test');
+    const {north}=await seedInitiativeOwners('initiative-browser');
+    const scope='institution='+north;
+    const workspace='/workspaces.html?partner=live#/';
+    const owner=await rep.newPage(), discover=await member.newPage();
+    owner.setDefaultTimeout(12000);
+    discover.setDefaultTimeout(12000);
+    await owner.goto(origin+workspace+'organization/dashboard?'+scope);
+    await owner.getByRole('link',{name:'Create new',exact:true}).click();
+    await owner.locator('.cr-mode').filter({has:owner.locator('[name=create-mode][value=Online]')}).click();
+    await owner.getByRole('button',{name:'Start the initiative builder'}).click();
+    const fields=initiativeDraft('Browser SQL Initiative');
+    const form=owner.locator('[data-form=builder]');
+    const advance=async heading=>{
+      await form.getByRole('button',{name:'Continue',exact:true}).click();
+      await form.getByRole('heading',{name:heading,exact:true,level:2}).waitFor();
+    };
+    for (const name of ['title','objective','summary','start','end']) await form.locator('[name='+name+']').fill(fields[name]);
+    await advance('Audience, mode & capacity');
+    const id=new URL(owner.url()).hash.match(/initiatives\/([0-9a-f-]{36})\/edit/)[1];
+    await owner.reload();
+    await form.getByRole('heading',{name:'Audience, mode & capacity'}).waitFor();
+    await discover.goto(origin+explorePage);
+    await discover.locator('#ex-count').filter({hasText:/listing/}).waitFor();
+    assert.equal(await discover.locator('[data-open="'+id+'"]').count(),0);
+    await form.locator('[name=audience]').fill(fields.audience);
+    await form.getByLabel('Meeting platform',{exact:true}).click();
+    await form.getByRole('button',{name:'Google Meet',exact:true}).click();
+    await advance('Initiative components');
+    await form.getByRole('button',{name:/Structured Group Activity/}).click();
+    await form.locator('.builder-component-card').filter({hasText:'New Structured Group Activity'}).waitFor();
+    await advance('Staff & groups');
+    await advance('Policies & participation rules');
+    await form.locator('[name=completion]').fill(fields.policies.completion);
+    await advance('Preview & publish');
+    await form.getByRole('button',{name:'Preview',exact:true}).click();
+    await owner.getByRole('dialog').getByText('Browser SQL Initiative',{exact:true}).first().waitFor();
+    await owner.getByRole('dialog').getByRole('button',{name:'Close preview'}).click();
+    await owner.locator('#workspace-dialog').waitFor({state:'hidden'});
+    assert.equal(await form.locator('.builder-blockers').count(),0,await form.innerText());
+    await form.getByRole('button',{name:'Publish',exact:true}).click();
+    const explore=owner.getByRole('link',{name:'Open in Explore'});
+    await explore.waitFor();
+    assert.match(await explore.getAttribute('href'),new RegExp(id+'$'));
+    await discover.reload();
+    await discover.locator('[data-kind=initiative].ex-chip').click();
+    await discover.locator('#ex-search').fill(fields.title);
+    const listing=discover.locator('.ex-card[data-id="'+id+'"]');
+    await listing.getByText('Organized by initiative-browser North').waitFor();
+    await listing.getByRole('button',{name:'View '+fields.title}).click();
+    await discover.locator('[data-sql-initiative="'+id+'"]').getByText(fields.objective).waitFor();
+    await discover.getByRole('dialog').getByRole('button',{name:'Apply to join'}).waitFor();
+    await discover.reload();
+    await discover.locator('[data-sql-initiative="'+id+'"]').waitFor();
+    await discover.route('**'+exploreApi,route=>route.fulfill({status:503}));
+    await discover.goto(origin+explorePage);
+    await discover.locator('#ex-initiative-error').filter({hasText:'Live Initiatives could not be loaded.'}).waitFor();
+    assert.equal(await discover.locator('.ex-card[data-id="'+id+'"]').count(),0);
+  } finally { await browser.close(); }
+});
+
+const admissionsApi = '/api/initiative-applications';
+const applyPath = id => admissionsApi+'/'+id+'/apply';
+const applicantPath = id => admissionsApi+'/mine/'+id;
+const admissionPath = (initiative,application) => admissionsApi+'/owned/'+initiative+(application ? '/'+application : '');
+const applicationInput = extra => ({requestId:randomUUID(),revision:1,age:16,mode:'Online',
+  consent:true,meetsRequirements:true,motivation:'I want to build study habits.',...extra});
+
+async function admissionDraft(rep, token, institution, title, changes = {}, publish = true) {
+  const id = randomUUID();
+  const draft = {...initiativeDraft(title),registrationOpen:futureDate(-1),...changes};
+  const record = await saved(await command(rep,token,ownerApi+'/'+id+'/draft?institution='+institution,{draft,stage:5},'PUT'));
+  if (publish) await saved(await command(rep,token,ownerApi+'/'+id+'/publish',{version:record.version}));
+  return id;
+}
+
+test('Initiative application ownership, validation, retained history and live Representative authority', async () => {
+  const prefix = 'admission-rules';
+  const rep = session(), otherRep = session(), member = session(), stranger = session();
+  await rep.signIn(prefix+'-rep');
+  await otherRep.signIn(prefix+'-other');
+  await member.signIn(prefix+'-member');
+  await stranger.signIn(prefix+'-stranger');
+  const {north,south} = await seedInitiativeOwners(prefix);
+  const [repToken,otherToken,token,strangerToken] = await Promise.all([rep,otherRep,member,stranger].map(communityToken));
+  const id = await admissionDraft(rep,repToken,north,'Admission rules');
+  const draft = await admissionDraft(rep,repToken,north,'Unpublished admission',{},false);
+  const suspended = await admissionDraft(rep,repToken,north,'Suspended admission');
+  const cancelled = await admissionDraft(rep,repToken,north,'Cancelled admission');
+  const upcoming = await admissionDraft(rep,repToken,north,'Future applications',{registrationOpen:futureDate(2)});
+  const expired = await admissionDraft(rep,repToken,north,'Past application window',{registrationOpen:futureDate(-4),registrationClose:futureDate(-2)});
+  const southId = await admissionDraft(otherRep,otherToken,south,'Other Institution admission');
+  await sql(`UPDATE institution.Initiative SET Status='Suspended' WHERE PublicId='${suspended}';
+    UPDATE institution.Initiative SET Status='Cancelled',CancelledAtUtc=SYSUTCDATETIME(),CancellationReason='Test fixture' WHERE PublicId='${cancelled}';`);
+
+  assert.equal((await session().request(admissionsApi+'/mine')).status,401);
+  assert.equal((await member.request(applyPath(id),{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(applicationInput())})).status,400);
+  for (const unavailable of [draft,suspended,cancelled,upcoming,expired])
+    assert.equal((await command(member,token,applyPath(unavailable),applicationInput())).status,409);
+  for (const invalid of [{age:13},{age:19},{consent:false},{meetsRequirements:false},{mode:'InPerson'}])
+    assert.equal((await command(member,token,applyPath(id),applicationInput(invalid))).status,400);
+  assert.equal((await command(member,token,applyPath(id),applicationInput({revision:10}))).status,409);
+
+  const initial = applicationInput({personId:1});
+  const retry = await Promise.all([command(member,token,applyPath(id),initial),command(member,token,applyPath(id),initial)]);
+  const [first,second] = await Promise.all(retry.map(saved));
+  assert.deepEqual(first,second);
+  assert.equal(first.status,'Pending');
+  assert.equal((await command(member,token,applyPath(id),applicationInput())).status,409);
+  assert.equal((await saved(await member.request(admissionsApi+'/mine?initiative='+id))).length,1);
+  assert.equal((await saved(await stranger.request(admissionsApi+'/mine'))).length,0);
+  assert.equal((await stranger.request(applicantPath(first.id))).status,404);
+  const withdraw = (account,csrf,application) => command(account,csrf,admissionsApi+'/mine/'+id+'/'+application+'/withdraw',{});
+  assert.equal((await withdraw(stranger,strangerToken,first.id)).status,404);
+  assert.equal((await otherRep.request(admissionPath(id))).status,404);
+  assert.equal((await otherRep.request(admissionPath(id,first.id))).status,404);
+  assert.equal((await otherRep.request(admissionPath(southId,first.id))).status,404);
+  const decide = (application,kind,reason,account=rep,csrf=repToken) =>
+    command(account,csrf,admissionPath(id,application.id)+'/'+kind,{version:application.version,reason});
+  assert.equal((await decide(first,'approve','',stranger,strangerToken)).status,404);
+  assert.equal((await decide(first,'approve','',member,token)).status,404);
+  assert.equal((await decide(first,'approve','',otherRep,otherToken)).status,404);
+  assert.equal((await decide(first,'reject','  ')).status,400);
+
+  const owned = await saved(await rep.request(admissionPath(id)+'?status=Pending'));
+  assert.equal(owned[0].applicantName,prefix+'-member');
+  assert.equal(owned[0].application.id,first.id);
+  assert.equal((await saved(await rep.request(admissionPath(id)+'?status=Accepted'))).length,0);
+  const detail = await saved(await rep.request(admissionPath(id,first.id)));
+  assert.deepEqual(Object.keys(detail).sort(),['answers','applicantName','application','consent','consentAtUtc','history','revisionNo']);
+  assert.equal(detail.answers.age,16);
+  assert.equal(detail.answers.motivation,initial.motivation);
+  assert.equal(detail.revisionNo,1);
+  assert.deepEqual(detail.history.map(row=>[row.actor,row.afterStatus]),[[prefix+'-member','Pending']]);
+  await sql(`UPDATE iam.Person SET Status='Suspended' WHERE NormalizedEmail=UPPER('${prefix}-rep@example.test');`);
+  assert.equal((await decide(first,'approve')).status,401);
+  await sql(`UPDATE iam.Person SET Status='Active' WHERE NormalizedEmail=UPPER('${prefix}-rep@example.test');`);
+  const rejected = await saved(await decide(first,'reject','Eligibility could not be confirmed.'));
+  assert.equal(rejected.status,'Rejected');
+  assert.equal((await decide(first,'approve')).status,409);
+  const blocked = await saved(await decide(rejected,'block','Withdrawn permission to reapply.'));
+  assert.equal(blocked.status,'Blocked');
+  assert.equal((await command(member,token,applyPath(id),applicationInput())).status,409);
+  const fresh = session();
+  await fresh.signIn(prefix+'-member',false);
+  const history = await saved(await fresh.request(applicantPath(first.id)));
+  assert.deepEqual(history.history.map(row=>row.afterStatus),['Pending','Rejected','Blocked']);
+  assert.equal(history.history[1].reason,'Eligibility could not be confirmed.');
+  assert.equal(history.history[1].actorCapacity,'Representative');
+  assert.equal(history.application.status,'Blocked');
+
+  const withdrawId = await admissionDraft(rep,repToken,north,'Withdrawal rules');
+  const withdrawInput = applicationInput();
+  const withdrawal = await saved(await command(member,token,applyPath(withdrawId),withdrawInput));
+  const withdrawUrl = admissionsApi+'/mine/'+withdrawId+'/'+withdrawal.id+'/withdraw';
+  assert.equal((await saved(await command(member,token,withdrawUrl,{}))).status,'Withdrawn');
+  assert.equal((await saved(await command(member,token,withdrawUrl,{}))).status,'Withdrawn');
+  assert.equal((await saved(await command(member,token,applyPath(withdrawId),withdrawInput))).id,withdrawal.id);
+  const again = await saved(await command(member,token,applyPath(withdrawId),applicationInput()));
+  assert.notEqual(again.id,withdrawal.id);
+  assert.equal((await saved(await fresh.request(applicantPath(again.id)))).application.attemptNo,2);
+  await sql(`UPDATE institution.InitiativeApplication SET WithdrawalCutoffAtUtc=SYSUTCDATETIME() WHERE PublicId='${again.id}';`);
+  assert.equal((await command(member,token,admissionsApi+'/mine/'+withdrawId+'/'+again.id+'/withdraw',{})).status,409);
+
+  const self = await saved(await command(rep,repToken,applyPath(id),applicationInput()));
+  assert.equal((await decide(self,'approve')).status,403);
+  const grant = "WHERE OrganizationId=(SELECT Id FROM org.Organization WHERE Name='admission-rules North')";
+  await sql("UPDATE org.OrganizationMember SET Status='Revoked',RevokedAtUtc=SYSUTCDATETIME() "+grant);
+  assert.equal((await rep.request(admissionPath(id,first.id))).status,404);
+  assert.equal((await decide(blocked,'restore','Revoked authority')).status,404);
+});
+
+test('Concurrent approval allows the 135th seat and queues the next while suspension retains a seat', async () => {
+  const prefix = 'admission-capacity';
+  const rep = session(), first = session(), second = session();
+  await rep.signIn(prefix+'-rep');
+  await first.signIn(prefix+'-first');
+  await second.signIn(prefix+'-second');
+  const {north} = await seedInitiativeOwners(prefix);
+  const [repToken,firstToken,secondToken] = await Promise.all([rep,first,second].map(communityToken));
+  const id = await admissionDraft(rep,repToken,north,'Capacity 135',{capacity:135});
+  const independent = await admissionDraft(rep,repToken,north,'Independent capacity',{capacity:1,
+    policies:{completion:'Attend the workshop.',waitlist:false}});
+  await sql(`DECLARE @initiative bigint=(SELECT Id FROM institution.Initiative WHERE PublicId='${id}');
+    DECLARE @terms bigint=(SELECT CurrentRevisionId FROM institution.Initiative WHERE Id=@initiative);
+    DECLARE @people TABLE(Id bigint);
+    INSERT iam.Person(DisplayName,Status,IndividualEnabledAtUtc) OUTPUT inserted.Id INTO @people
+      SELECT TOP (134) 'Seat fixture '+CONVERT(varchar(10),ROW_NUMBER() OVER (ORDER BY a.object_id,b.object_id)),'Active',SYSUTCDATETIME()
+      FROM sys.objects a CROSS JOIN sys.objects b;
+    INSERT institution.InitiativeApplication(InitiativeId,PersonId,AttemptNo,TermsRevisionId,ParticipationMode,Status,SubmittedAtUtc,ConsentAtUtc,AcceptedAtUtc)
+      SELECT @initiative,Id,1,@terms,'Online','Accepted',SYSUTCDATETIME(),SYSUTCDATETIME(),SYSUTCDATETIME() FROM @people;`);
+  const a = await saved(await command(first,firstToken,applyPath(id),applicationInput()));
+  const b = await saved(await command(second,secondToken,applyPath(id),applicationInput()));
+  const decide = (initiative,application,kind='approve',reason) => command(rep,repToken,
+    admissionPath(initiative,application.id)+'/'+kind,{version:application.version,reason});
+  const outcomes = await Promise.all((await Promise.all([decide(id,a),decide(id,b)])).map(saved));
+  const winner = outcomes.find(item=>item.status==='Accepted');
+  const waiting = outcomes.find(item=>item.status==='Queued');
+  assert.ok(winner && waiting,JSON.stringify(outcomes));
+  assert.equal((await decide(id,winner)).status,409);
+  assert.equal((await saved(await rep.request(admissionPath(id)+'?status=Accepted'))).length,135);
+  assert.equal((await saved(await rep.request(admissionPath(id)+'?status=Queued'))).length,1);
+  const counts = await saved(await rep.request(ownerApi+'/'+id));
+  assert.deepEqual([counts.initiative.accepted,counts.initiative.suspended,counts.initiative.pending,counts.initiative.queued],[135,0,0,1]);
+  const suspension = await saved(await decide(id,winner,'suspend','Temporary suspension'));
+  assert.equal(suspension.status,'Suspended');
+  assert.deepEqual(await saved(await decide(id,waiting)),waiting);
+  const ownSeats = await saved(await first.request(exploreApi+'/'+id));
+  assert.equal(ownSeats.seatsLeft,0);
+  const suspendedCounts = (await saved(await rep.request(ownerApi+'/'+id))).initiative;
+  assert.deepEqual([suspendedCounts.accepted,suspendedCounts.suspended],[134,1]);
+
+  const winnerAccount = winner.id === a.id ? first : second;
+  const winnerToken = winner.id === a.id ? firstToken : secondToken;
+  const waitingAccount = waiting.id === a.id ? first : second;
+  const waitingToken = waiting.id === a.id ? firstToken : secondToken;
+  const winnerSecond = await saved(await command(winnerAccount,winnerToken,applyPath(independent),applicationInput()));
+  assert.equal((await decide(independent,winnerSecond)).status,409,'V5 allows one accepted or suspended Initiative per person');
+  const independentPending = await saved(await command(waitingAccount,waitingToken,applyPath(independent),applicationInput()));
+  assert.equal((await saved(await decide(independent,independentPending))).status,'Accepted','capacity applies per Initiative');
+  assert.equal((await decide(id,waiting)).status,409);
+  const independentRemoved = await saved(await decide(independent,{...independentPending,
+    version:(await saved(await rep.request(admissionPath(independent,independentPending.id)))).application.version},'remove','Release test seat'));
+  assert.equal(independentRemoved.status,'Removed');
+
+  const restored = await saved(await decide(id,suspension,'restore','Suspension ended'));
+  assert.equal(restored.status,'Accepted');
+  assert.equal((await decide(id,suspension,'restore','Retry')).status,409);
+  const removed = await saved(await decide(id,restored,'remove','Participation ended'));
+  assert.equal(removed.status,'Removed');
+  assert.equal((await saved(await waitingAccount.request(exploreApi+'/'+id))).seatsLeft,1);
+  assert.equal((await saved(await decide(id,waiting))).status,'Accepted');
+  assert.equal((await saved(await waitingAccount.request(applicantPath(waiting.id)))).application.status,'Accepted');
+  const sqlCounts = await sql(`SELECT CONCAT(COUNT(*),':',SUM(CASE WHEN a.Status IN ('Accepted','Suspended') THEN 1 ELSE 0 END))
+    FROM institution.InitiativeApplication a JOIN institution.Initiative i ON i.Id=a.InitiativeId WHERE i.PublicId='${id}';`);
+  assert.equal(sqlCounts,'136:135');
+  assert.equal(await sql(`SELECT COUNT(*) FROM coach.GroupMembership g JOIN institution.InitiativeApplication a ON a.Id=g.ApplicationId
+    JOIN institution.Initiative i ON i.Id=a.InitiativeId WHERE i.PublicId='${id}';`),'0');
+});
+
+test('Regular Explore and Institution Applications agree after refresh and separate login', async () => {
+  const prefix = 'admission-browser';
+  const rep = session();
+  await rep.signIn(prefix+'-rep');
+  const {north} = await seedInitiativeOwners(prefix);
+  const id = await admissionDraft(rep,await communityToken(rep),north,'Shared application record');
+  const browser = await chromium.launch({headless:true});
+  try {
+    const applicantContext = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
+    const repContext = await browser.newContext({reducedMotion:'reduce'});
+    await registerBrowser(applicantContext,'Admission Browser Individual',prefix+'-person@example.test');
+    await repContext.addCookies([{name:'DeepSproutAuth',value:rep.authCookie().slice('DeepSproutAuth='.length),url:origin}]);
+    const [member,owner] = await Promise.all([applicantContext.newPage(),repContext.newPage()]);
+    const pageErrors = [];
+    for (const page of [member,owner]) {
+      page.setDefaultTimeout(10000);
+      page.on('pageerror',error=>pageErrors.push(error.message));
+    }
+    await member.goto(origin+explorePage+'#initiative='+id);
+    const sheet = member.getByRole('dialog');
+    await sheet.getByRole('button',{name:'Apply to join'}).click();
+    await sheet.getByLabel('Your age').fill('16');
+    await sheet.getByLabel('Why would you like to join? (optional)').fill('Joining from the regular Explore form.');
+    await sheet.getByLabel('I meet the published eligibility requirements.',{exact:false}).check();
+    await sheet.getByText('Agree to respectful participation.',{exact:true}).click();
+    await sheet.getByRole('button',{name:'Review',exact:true}).click();
+    await sheet.getByRole('button',{name:'Submit application'}).click();
+    const confirmation = sheet.getByRole('heading',{name:'Application sent'});
+    const submissionError = sheet.locator('#ex-live-error:visible');
+    await confirmation.or(submissionError).waitFor();
+    assert.equal(await submissionError.count(),0,await submissionError.allTextContents());
+    await sheet.getByRole('button',{name:'See My Initiatives'}).click();
+    const application = member.locator('#ex-my-initiatives [data-admission]');
+    await application.getByText('Pending review',{exact:true}).waitFor();
+    const appId = await application.getAttribute('data-admission');
+
+    await owner.goto(origin+'/workspaces.html?partner=live#/organization/dashboard?institution='+north);
+    await owner.getByRole('link',{name:'Applications',exact:true}).first().click();
+    const row = owner.getByRole('row').filter({hasText:'Admission Browser Individual'});
+    await row.getByRole('button',{name:'Details'}).click();
+    await owner.getByRole('dialog').getByText('Joining from the regular Explore form.').waitFor();
+    await owner.getByRole('dialog').getByRole('button',{name:'Close dialog'}).click();
+    await row.getByRole('button',{name:'Approve',exact:true}).click();
+    await owner.getByRole('dialog').getByRole('button',{name:'Approve',exact:true}).click();
+    await owner.getByRole('dialog').waitFor({state:'hidden'});
+    await owner.reload();
+    await row.getByText('Accepted',{exact:true}).waitFor();
+
+    await member.reload();
+    await application.getByText('Accepted',{exact:true}).waitFor();
+    await application.locator('summary').click();
+    await application.getByText('Accepted · Representative',{exact:false}).waitFor();
+    assert.equal(await application.getAttribute('data-admission'),appId);
+    const fresh = session();
+    await fresh.signIn(prefix+'-person',false);
+    assert.equal((await saved(await fresh.request(applicantPath(appId)))).application.status,'Accepted');
+    await application.getByRole('button',{name:'Withdraw application'}).click();
+    await application.getByRole('button',{name:'Yes, withdraw'}).click();
+    await application.getByText('Withdrawn',{exact:true}).waitFor();
+    await owner.reload();
+    await owner.getByRole('link',{name:/Closed & history/}).click();
+    await row.getByText('Withdrawn',{exact:true}).waitFor();
+    assert.deepEqual(pageErrors,[]);
+  } finally { await browser.close(); }
+});
+
+const staffApi = '/api/initiative-staff';
+const staffOwned = (initiative, id, decision) => staffApi+'/owned/'+initiative+(id ? '/'+id : '')+(decision ? '/'+decision : '');
+const staffScope = (role, initiative) => staffApi+'/scope/'+role+'/'+initiative;
+const inviteStaff = (account, csrf, initiative, role, email) => command(account,csrf,staffOwned(initiative),{role,email});
+const respondToStaff = (account, csrf, initiative, invite, decision='accept') =>
+  command(account,csrf,staffApi+'/invitation/'+initiative+'/'+invite.id+'/'+decision,{token:invite.token});
+const confirmStaffTestEmail = names => sql(`UPDATE dbo.AspNetUsers SET EmailConfirmed=1
+  WHERE NormalizedEmail IN (${names.map(name=>`UPPER('${name}@example.test')`).join(',')});`);
+
+test('Initiative staff invitations enforce tenant scope, verified ownership, history, and live revocation', async () => {
+  const prefix = 'staff-rules';
+  const [rep,otherRep,coach,recipient,ordinary] = Array.from({length:5},session);
+  const names = ['rep','other','coach','recipient','ordinary'].map(name=>prefix+'-'+name);
+  await Promise.all([rep,otherRep,coach,recipient,ordinary].map((account,index)=>account.signIn(names[index])));
+  await confirmStaffTestEmail([names[2]]);
+  const {north,south} = await seedInitiativeOwners(prefix);
+  const [repToken,otherToken,coachToken,recipientToken,ordinaryToken] =
+    await Promise.all([rep,otherRep,coach,recipient,ordinary].map(communityToken));
+  const initiative = await admissionDraft(rep,repToken,north,'Staff authorization');
+  const sameTenant = await admissionDraft(rep,repToken,north,'Different Initiative');
+  const otherTenant = await admissionDraft(otherRep,otherToken,south,'Foreign Institution');
+  const draft = await admissionDraft(rep,repToken,north,'Draft Initiative',{},false);
+  const coachEmail = names[2]+'@example.test', recipientEmail = names[3]+'@example.test';
+  const noAuth = session();
+  assert.equal((await noAuth.request(staffApi+'/mine')).status,401);
+  assert.equal((await inviteStaff(ordinary,ordinaryToken,initiative,'Coach',coachEmail)).status,404);
+  assert.equal((await inviteStaff(otherRep,otherToken,initiative,'Coach',coachEmail)).status,404);
+  assert.equal((await inviteStaff(rep,repToken,randomUUID(),'Coach',coachEmail)).status,404);
+  assert.equal((await inviteStaff(rep,repToken,draft,'Coach',coachEmail)).status,409);
+  assert.equal((await inviteStaff(rep,repToken,initiative,'Requested',coachEmail)).status,400);
+  assert.equal((await inviteStaff(rep,repToken,initiative,'Coach','wrong')).status,400);
+  assert.equal((await rep.request(staffOwned(initiative),{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({role:'Coach',email:coachEmail})})).status,400);
+
+  const invitation = await saved(await inviteStaff(rep,repToken,initiative,'Coach',coachEmail.toUpperCase()));
+  assert.equal(invitation.status,'Pending');
+  assert.match(invitation.token,/^[A-Za-z0-9_-]{43}$/);
+  const hash = await sql(`SELECT CONVERT(varchar(64),TokenHash,2) FROM org.StaffAppointment WHERE PublicId='${invitation.id}';`);
+  assert.equal(hash.toLowerCase(),createHash('sha256').update(Buffer.from(invitation.token,'base64url')).digest('hex'));
+  const pending = await saved(await rep.request(staffOwned(initiative)));
+  assert.equal(pending.appointments[0].appointment.id,invitation.id);
+  assert.equal(JSON.stringify(pending).includes(invitation.token),false);
+  assert.deepEqual((await saved(await coach.request(staffApi+'/mine'))).map(row=>[row.status,row.canOpen]),[['Pending',false]]);
+  assert.equal((await coach.request(staffScope('Coach',initiative))).status,404);
+  assert.equal((await otherRep.request(staffOwned(initiative,invitation.id))).status,404);
+  assert.equal((await rep.request(staffOwned(sameTenant,invitation.id))).status,404);
+  assert.equal((await inviteStaff(rep,repToken,initiative,'Coach',coachEmail)).status,409);
+  assert.equal((await respondToStaff(ordinary,ordinaryToken,initiative,invitation)).status,403);
+  assert.equal((await respondToStaff(coach,coachToken,sameTenant,invitation)).status,404);
+  assert.equal((await respondToStaff(coach,coachToken,initiative,{...invitation,token:Buffer.alloc(32,3).toString('base64url')})).status,404);
+  const unverified = await saved(await inviteStaff(rep,repToken,initiative,'Supervisor',recipientEmail));
+  assert.equal((await respondToStaff(recipient,recipientToken,initiative,unverified)).status,403);
+  assert.equal((await recipient.request(staffScope('Supervisor',initiative))).status,404);
+  await confirmStaffTestEmail([names[3]]);
+  assert.equal((await saved(await respondToStaff(recipient,recipientToken,initiative,unverified,'decline'))).status,'Declined');
+  assert.equal((await respondToStaff(recipient,recipientToken,initiative,unverified)).status,409);
+
+  const cancelled = await saved(await inviteStaff(rep,repToken,initiative,'Supervisor',recipientEmail));
+  assert.equal((await saved(await command(rep,repToken,staffOwned(initiative,cancelled.id,'cancel'),{}))).status,'Cancelled');
+  assert.equal((await respondToStaff(recipient,recipientToken,initiative,cancelled)).status,409);
+  const expired = await saved(await inviteStaff(rep,repToken,initiative,'Supervisor',recipientEmail));
+  await sql(`UPDATE org.StaffAppointment SET ExpiresAtUtc=DATEADD(second,-1,SYSUTCDATETIME()) WHERE PublicId='${expired.id}';`);
+  const preview = await saved(await respondToStaff(recipient,recipientToken,initiative,expired,'inspect'));
+  assert.equal(preview.status,'Expired');
+  assert.equal(preview.canRespond,false);
+  assert.equal((await respondToStaff(recipient,recipientToken,initiative,expired)).status,409);
+  const replacement = await saved(await inviteStaff(rep,repToken,initiative,'Supervisor',recipientEmail));
+  assert.equal(replacement.status,'Pending');
+  assert.equal((await saved(await respondToStaff(recipient,recipientToken,initiative,replacement))).status,'Active');
+  assert.equal((await saved(await recipient.request(staffScope('Supervisor',initiative)))).initiative.title,'Staff authorization');
+  assert.equal((await recipient.request(staffScope('Supervisor',sameTenant))).status,404);
+  assert.equal((await recipient.request(staffScope('Supervisor',otherTenant))).status,404);
+  assert.equal((await command(recipient,recipientToken,staffOwned(initiative,invitation.id,'cancel'),{})).status,404);
+
+  const person = `(SELECT PersonId FROM dbo.AspNetUsers WHERE NormalizedEmail=UPPER('${coachEmail}'))`;
+  const accepted = await saved(await respondToStaff(coach,coachToken,initiative,invitation));
+  assert.equal(accepted.status,'Active');
+  assert.equal((await respondToStaff(coach,coachToken,initiative,invitation)).status,409);
+  assert.equal((await inviteStaff(rep,repToken,initiative,'Coach',coachEmail)).status,409);
+  assert.equal(await sql(`SELECT COUNT(*) FROM org.StaffAppointment a JOIN personal.IndividualProfile p ON p.PersonId=a.PersonId
+    WHERE a.PublicId='${invitation.id}' AND p.PersonId=${person};`),'1');
+  assert.equal(await sql(`SELECT COUNT(*) FROM iam.Person WHERE NormalizedEmail=UPPER('${coachEmail}');`),'1');
+  const ownGroup = randomUUID(), otherGroup = randomUUID(), unassigned = randomUUID();
+  await sql(`DECLARE @coach bigint=${person}, @grant bigint=(SELECT Id FROM org.StaffAppointment WHERE PublicId='${invitation.id}');
+    INSERT coach.OperationalGroup(PublicId,InitiativeId,Name,Status,CoachPersonId,CoachStaffAppointmentId)
+    VALUES ('${ownGroup}',(SELECT Id FROM institution.Initiative WHERE PublicId='${initiative}'),'Assigned group','Open',@coach,@grant),
+      ('${unassigned}',(SELECT Id FROM institution.Initiative WHERE PublicId='${initiative}'),'Unassigned group','Open',NULL,NULL),
+      ('${otherGroup}',(SELECT Id FROM institution.Initiative WHERE PublicId='${sameTenant}'),'Foreign group','Open',NULL,NULL);`);
+  const coachScope = await saved(await coach.request(staffScope('Coach',initiative)));
+  assert.deepEqual(coachScope.groups.map(row=>row.id),[ownGroup]);
+  assert.equal((await saved(await coach.request(staffScope('Coach',initiative)+'/groups/'+ownGroup))).name,'Assigned group');
+  assert.equal((await coach.request(staffScope('Coach',initiative)+'/groups/'+unassigned)).status,404);
+  assert.equal((await coach.request(staffScope('Coach',initiative)+'/groups/'+otherGroup)).status,404);
+  assert.equal((await coach.request(staffScope('Coach',sameTenant))).status,404);
+  assert.equal((await coach.request(staffScope('Supervisor',initiative))).status,404);
+  assert.equal((await command(coach,coachToken,staffScope('Coach',initiative)+'/groups/'+unassigned,{})).status,405);
+  assert.equal((await command(recipient,recipientToken,staffOwned(initiative,invitation.id,'revoke'),{reason:'Out of scope'})).status,404);
+  const fresh = session();
+  await fresh.signIn(names[2],false);
+  assert.equal((await saved(await fresh.request(staffApi+'/mine')))[0].canOpen,true);
+  await sql(`UPDATE iam.Person SET Status='Suspended' WHERE Id=${person};`);
+  assert.equal((await coach.request(staffScope('Coach',initiative))).status,401);
+  await sql(`UPDATE iam.Person SET Status='Active' WHERE Id=${person};`);
+  assert.equal((await command(rep,repToken,staffOwned(initiative,invitation.id,'revoke'),{reason:' '})).status,400);
+  const revoked = await saved(await command(rep,repToken,staffOwned(initiative,invitation.id,'revoke'),{reason:'Appointment ended.'}));
+  assert.equal(revoked.status,'Revoked');
+  assert.equal((await coach.request(staffScope('Coach',initiative)+'/groups/'+ownGroup)).status,404);
+  assert.equal((await fresh.request(staffScope('Coach',initiative))).status,404);
+  assert.equal((await respondToStaff(coach,coachToken,initiative,invitation)).status,409);
+  const history = await saved(await rep.request(staffOwned(initiative,invitation.id)));
+  assert.deepEqual(history.history.map(row=>[row.actor,row.afterStatus]),[
+    [names[0],'Pending'],[names[2],'Active'],[names[0],'Revoked']]);
+  assert.equal(history.history[2].reason,'Appointment ended.');
+  assert.equal((await saved(await fresh.request(staffApi+'/mine')))[0].status,'Revoked');
+});
+
+test('Simultaneous Initiative Supervisor acceptance preserves three slots independently of Coaches and other Initiatives', async () => {
+  const prefix = 'staff-capacity';
+  const rep = session();
+  const members = Array.from({length:5},session);
+  const names = members.map((_,index)=>prefix+'-person-'+index);
+  await rep.signIn(prefix+'-rep');
+  await Promise.all(members.map((account,index)=>account.signIn(names[index])));
+  await confirmStaffTestEmail(names);
+  const {north} = await seedInitiativeOwners(prefix);
+  const [repToken,...tokens] = await Promise.all([rep,...members].map(communityToken));
+  const first = await admissionDraft(rep,repToken,north,'Supervisor capacity');
+  const other = await admissionDraft(rep,repToken,north,'Independent Supervisor capacity');
+  const invites = [];
+  for (const name of names) invites.push(await saved(await inviteStaff(rep,repToken,first,'Supervisor',name+'@example.test')));
+  const coach = await saved(await inviteStaff(rep,repToken,first,'Coach',names[0]+'@example.test'));
+  assert.equal((await saved(await respondToStaff(members[0],tokens[0],first,coach))).status,'Active');
+  const accept = index=>respondToStaff(members[index],tokens[index],first,invites[index]);
+  assert.equal((await saved(await accept(0))).status,'Active');
+  assert.equal((await saved(await accept(1))).status,'Active');
+  const boundary = await Promise.all([accept(2),accept(3)]);
+  assert.deepEqual(boundary.map(response=>response.status).sort(),[200,409]);
+  const waitingIndex = boundary[0].ok ? 3 : 2;
+  assert.equal((await accept(4)).status,409);
+  const read = await saved(await rep.request(staffOwned(first)));
+  assert.equal(read.appointments.filter(row=>row.appointment.role==='Supervisor' && row.appointment.status==='Active').length,3);
+  assert.equal(read.appointments.filter(row=>row.appointment.role==='Supervisor' && row.appointment.status==='Pending').length,2);
+  const independent = await saved(await inviteStaff(rep,repToken,other,'Supervisor',names[4]+'@example.test'));
+  assert.equal((await saved(await respondToStaff(members[4],tokens[4],other,independent))).status,'Active');
+  assert.equal((await members[4].request(staffScope('Supervisor',first))).status,404);
+  await saved(await command(rep,repToken,staffOwned(first,invites[0].id,'revoke'),{reason:'Rotation'}));
+  assert.equal((await members[0].request(staffScope('Supervisor',first))).status,404);
+  assert.equal((await members[0].request(staffScope('Coach',first))).status,200);
+  assert.equal((await saved(await accept(waitingIndex))).status,'Active');
+  assert.equal(await sql(`SELECT COUNT(*) FROM org.StaffAppointment a JOIN institution.Initiative i ON i.Id=a.InitiativeId
+    WHERE i.PublicId='${first}' AND a.Role='Supervisor' AND a.Status='Active';`),'3');
+});
+
+test('Institution Team and invited Coach and Supervisor workspaces use the same SQL appointments', async () => {
+  const prefix = 'staff-browser';
+  const rep = session(), coach = session(), supervisor = session();
+  await Promise.all([rep.signIn(prefix+'-rep'),coach.signIn(prefix+'-coach'),supervisor.signIn(prefix+'-supervisor')]);
+  await confirmStaffTestEmail([prefix+'-coach',prefix+'-supervisor']);
+  const {north} = await seedInitiativeOwners(prefix);
+  const initiative = await admissionDraft(rep,await communityToken(rep),north,'Shared staff workspace');
+  const browser = await chromium.launch({headless:true});
+  const live = '/workspaces.html?partner=live#/';
+  try {
+    const contexts = await Promise.all([rep,coach,supervisor].map(async account=>{
+      const context = await browser.newContext({reducedMotion:'reduce'});
+      await context.addCookies([{name:'DeepSproutAuth',value:account.authCookie().slice('DeepSproutAuth='.length),url:origin}]);
+      const page = await context.newPage();
+      page.setDefaultTimeout(12000);
+      return page;
+    }));
+    const [owner,teacher,lead] = contexts;
+    const pageErrors = [];
+    for (const page of contexts) page.on('pageerror', error=>pageErrors.push(error.message));
+    await owner.goto(origin+live+'organization/dashboard?institution='+north);
+    await owner.getByRole('link',{name:'Team & Groups',exact:true}).click();
+    const dialog = owner.getByRole('dialog');
+    async function linkFor(role, name) {
+      await owner.getByRole('button',{name:'Invite '+role,exact:true}).click();
+      await dialog.getByLabel('Email address').fill(prefix+'-'+name+'@example.test');
+      await dialog.getByRole('button',{name:'Create invitation'}).click();
+      const link = await dialog.getByLabel('Invitation link').inputValue();
+      assert.equal(new URL(link).searchParams.has('token'),false);
+      assert.match(new URL(link).hash,/\?token=[A-Za-z0-9_-]{43}$/);
+      await dialog.getByRole('button',{name:'Close dialog'}).click();
+      return link;
+    }
+    const coachLink = await linkFor('Coach','coach');
+    const supervisorLink = await linkFor('Supervisor','supervisor');
+    await owner.reload();
+    const coachRow = owner.getByRole('row').filter({hasText:prefix+'-coach'});
+    await coachRow.getByText('Pending',{exact:true}).waitFor();
+    await teacher.goto(origin+live+'mentor/dashboard?initiative='+initiative);
+    await teacher.getByText('An active appointment for this Initiative is required.').waitFor();
+    const guestContext = await browser.newContext();
+    const guest = await guestContext.newPage();
+    await guest.goto(coachLink);
+    await guest.getByRole('link',{name:'Sign in (opens a new tab)'}).waitFor();
+    assert.equal(await guest.getByRole('button',{name:'Accept as Coach'}).count(),0);
+    await teacher.goto(coachLink);
+    await teacher.getByRole('button',{name:'Accept as Coach'}).click();
+    await teacher.getByRole('heading',{name:'Shared staff workspace',exact:true}).waitFor();
+    await teacher.getByRole('link',{name:'My Groups'}).click();
+    await teacher.getByText('You have no assigned groups for this Initiative.').waitFor();
+    await lead.goto(supervisorLink);
+    await lead.getByRole('button',{name:'Accept as Supervisor'}).click();
+    await lead.getByRole('heading',{name:'Shared staff workspace',exact:true}).waitFor();
+    await lead.reload();
+    await lead.getByRole('heading',{name:'Shared staff workspace',exact:true}).waitFor();
+    await owner.reload();
+    await coachRow.getByText('Active',{exact:true}).waitFor();
+    await coachRow.getByRole('button',{name:'Revoke',exact:true}).click();
+    await dialog.getByLabel('Reason (shared with the staff member)').fill('Change of staff.');
+    await dialog.getByRole('button',{name:'Revoke access'}).click();
+    await coachRow.getByText('Revoked',{exact:true}).waitFor();
+    await teacher.reload();
+    await teacher.getByText('This appointment was revoked.').waitFor();
+    assert.deepEqual(pageErrors,[]);
+  } finally { await browser.close(); }
+});
+
+const studentApi = '/api/initiative-student';
+const groupApi = id => '/api/initiative-groups/manage/'+id;
+const groupPut = (account,csrf,path,data) => command(account,csrf,path,data,'PUT');
+const groupInput = (name, extra) => ({name,status:'Open',...extra});
+const studentView = id => studentApi+'?initiative='+id;
+
+async function groupAdmission(rep, repToken, member, token, initiative, decision='approve') {
+  const app = await saved(await command(member,token,applyPath(initiative),applicationInput()));
+  if (!decision) return app;
+  return saved(await command(rep,repToken,admissionPath(initiative,app.id)+'/'+decision,
+    {version:app.version,reason:decision==='reject'?'Eligibility requirements not met.':null}));
+}
+
+async function groupStaff(rep, repToken, account, token, name, initiative, role) {
+  const invitation = await saved(await inviteStaff(rep,repToken,initiative,role,name+'@example.test'));
+  await saved(await respondToStaff(account,token,initiative,invitation));
+  return invitation.id;
+}
+
+test('Initiative groups enforce management and roster scopes and serialize transfers without adding seats', async () => {
+  const prefix = 'groups-sql';
+  const names = ['rep','other','supervisor','coach','other-coach','student','second','pending','rejected'].map(item=>prefix+'-'+item);
+  const accounts = names.map(()=>session());
+  await Promise.all(accounts.map((account,index)=>account.signIn(names[index])));
+  await confirmStaffTestEmail(names.slice(2,5));
+  const [rep,other,supervisor,coach,otherCoach,student,second,pending,rejected] = accounts;
+  const [repToken,otherToken,superToken,coachToken,otherCoachToken,studentToken,secondToken,pendingToken,rejectedToken] =
+    await Promise.all(accounts.map(communityToken));
+  const {north,south} = await seedInitiativeOwners(prefix);
+  const initiative = await admissionDraft(rep,repToken,north,'Group allocation');
+  const secondInitiative = await admissionDraft(rep,repToken,north,'Another Initiative');
+  const foreign = await admissionDraft(other,otherToken,south,'Other Institution groups');
+  const api = groupApi(initiative);
+  const supervisorId = await groupStaff(rep,repToken,supervisor,superToken,names[2],initiative,'Supervisor');
+  const coachId = await groupStaff(rep,repToken,coach,coachToken,names[3],initiative,'Coach');
+  const wrongCoach = await groupStaff(rep,repToken,otherCoach,otherCoachToken,names[4],secondInitiative,'Coach');
+  const pendingCoach = await saved(await inviteStaff(rep,repToken,initiative,'Coach',names[4]+'@example.test'));
+  const [alpha,beta,gamma,foreignGroup] = Array.from({length:4},randomUUID);
+  assert.equal((await groupPut(other,otherToken,api+'/'+alpha,groupInput('Denied'))).status,404);
+  assert.equal((await groupPut(coach,coachToken,api+'/'+alpha,groupInput('Denied'))).status,404);
+  assert.equal((await groupPut(supervisor,superToken,groupApi(secondInitiative)+'/'+alpha,groupInput('Denied'))).status,404);
+  const a = await saved(await groupPut(rep,repToken,api+'/'+alpha,groupInput('Alpha',{capacity:1,purpose:'staff-only note'})));
+  const b = await saved(await groupPut(supervisor,superToken,api+'/'+beta,groupInput('Beta',{description:'Beta collective description'})));
+  await saved(await groupPut(supervisor,superToken,api+'/'+gamma,groupInput('Gamma')));
+  await saved(await groupPut(other,otherToken,groupApi(foreign)+'/'+foreignGroup,groupInput('Foreign group')));
+  await saved(await groupPut(supervisor,superToken,api+'/'+beta,groupInput('Beta',{version:b.version,description:'Beta collective description'})));
+  assert.equal((await groupPut(rep,repToken,api+'/'+foreignGroup,groupInput('Spoof',{version:a.version}))).status,404);
+  assert.equal((await other.request(api)).status,404);
+  assert.equal((await supervisor.request(groupApi(secondInitiative))).status,404);
+  const allocateCoach = (id,appointment,version=a.version)=>groupPut(supervisor,superToken,api+'/'+id+'/coach',{appointmentId:appointment,version});
+  assert.equal((await allocateCoach(alpha,wrongCoach)).status,404);
+  assert.equal((await allocateCoach(alpha,pendingCoach.id)).status,404);
+  assert.equal((await otherCoach.request(staffScope('Coach',initiative)+'/groups/'+alpha)).status,404);
+  const appointed = await saved(await allocateCoach(alpha,coachId));
+
+  const learner = await groupAdmission(rep,repToken,student,studentToken,initiative);
+  const learnerTwo = await groupAdmission(rep,repToken,second,secondToken,initiative);
+  const wait = await groupAdmission(rep,repToken,pending,pendingToken,initiative,null);
+  const denied = await groupAdmission(rep,repToken,rejected,rejectedToken,initiative,'reject');
+  const place = (account,csrf,application,groupId,version=null) =>
+    groupPut(account,csrf,api+'/students/'+application.id,{groupId,version});
+  assert.equal((await place(rep,repToken,wait,alpha)).status,409);
+  assert.equal((await place(rep,repToken,denied,alpha)).status,409);
+  assert.equal((await place(student,studentToken,learner,alpha)).status,404);
+  assert.equal((await place(rep,repToken,learner,foreignGroup)).status,404);
+  const first = await saved(await place(rep,repToken,learner,alpha));
+  assert.deepEqual(await saved(await place(rep,repToken,learner,alpha)),first);
+  assert.equal((await place(supervisor,superToken,learnerTwo,alpha)).status,409);
+  const groupState = await saved(await student.request(studentView(initiative)));
+  assert.equal(groupState.group.name,'Alpha');
+  assert.equal(groupState.group.memberCount,1);
+  assert.equal(groupState.group.coach,names[3]);
+  assert.equal(JSON.stringify(groupState).includes('staff-only note'),false);
+  assert.equal((await student.request(studentView(secondInitiative))).status,404);
+  assert.equal((await second.request(staffScope('Coach',initiative)+'/groups/'+alpha)).status,404);
+  assert.deepEqual((await saved(await coach.request(staffScope('Coach',initiative)+'/groups/'+alpha))).students,[{name:names[5]}]);
+  assert.equal((await coach.request(staffScope('Coach',initiative)+'/groups/'+beta)).status,404);
+  assert.equal((await command(supervisor,superToken,staffOwned(initiative,coachId,'revoke'),{reason:'Unsupported'})).status,404);
+
+  const options = await Promise.all([place(rep,repToken,learner,beta,first.version),place(supervisor,superToken,learner,gamma,first.version)]);
+  assert.deepEqual(options.map(item=>item.status).sort(),[200,409]);
+  const moved = await saved(options.find(item=>item.ok));
+  assert.equal(await sql(`SELECT COUNT(*) FROM coach.GroupMembership m JOIN institution.InitiativeApplication a ON a.Id=m.ApplicationId
+    WHERE a.PublicId='${learner.id}' AND m.Status='Active';`),'1');
+  assert.equal(await sql(`SELECT COUNT(*) FROM institution.InitiativeApplication a JOIN institution.Initiative i ON i.Id=a.InitiativeId
+    WHERE i.PublicId='${initiative}' AND a.Status='Accepted';`),'2');
+  const history = await saved(await rep.request(api+'/'+alpha+'/history'));
+  assert.equal(history.periods[0].endReason,'Transferred');
+  assert.ok(history.audit.some(row=>row.action==='CoachAllocated' && row.actorCapacity==='Supervisor'));
+  const fresh = session();
+  await fresh.signIn(names[5],false);
+  const transferState = await saved(await fresh.request(studentView(initiative)));
+  assert.equal(transferState.group.id,moved.groupId);
+  assert.equal(transferState.selected.applicationId,learner.id);
+  assert.equal(transferState.history.length,2);
+  assert.deepEqual((await saved(await coach.request(staffScope('Coach',initiative)+'/groups/'+alpha))).students,[]);
+  await saved(await place(rep,repToken,learnerTwo,alpha));
+  const suspend = await saved(await command(rep,repToken,admissionPath(initiative,learner.id)+'/suspend',
+    {version:learner.version,reason:'Temporary pause'}));
+  const paused = await saved(await fresh.request(studentView(initiative)));
+  assert.equal(paused.group,null);
+  assert.equal(paused.selected.canAccess,false);
+  const restored = await saved(await command(rep,repToken,admissionPath(initiative,learner.id)+'/restore',
+    {version:suspend.version,reason:'Restored'}));
+  assert.equal((await saved(await fresh.request(studentView(initiative)))).group.id,moved.groupId);
+  await saved(await command(rep,repToken,admissionPath(initiative,learner.id)+'/remove',{version:restored.version,reason:'Participation ended'}));
+  const ended = await saved(await fresh.request(studentView(initiative)));
+  assert.equal(ended.group,null);
+  assert.equal(ended.history[0].endReason,'Removed');
+  await saved(await command(rep,repToken,staffOwned(initiative,coachId,'revoke'),{reason:'Rotation'}));
+  assert.equal((await coach.request(staffScope('Coach',initiative)+'/groups/'+alpha)).status,404);
+  assert.equal((await allocateCoach(alpha,coachId,appointed.version)).status,404);
+  await saved(await allocateCoach(alpha,null,appointed.version));
+  assert.equal((await saved(await second.request(studentView(initiative)))).group.coach,null);
+  await saved(await command(rep,repToken,staffOwned(initiative,supervisorId,'revoke'),{reason:'Rotation'}));
+  assert.equal((await supervisor.request(api)).status,404);
+  assert.equal((await groupPut(supervisor,superToken,api+'/'+randomUUID(),groupInput('Revoked'))).status,404);
+});
+
+test('A limited admitted Student upgrades the existing Person and resumes ordinary onboarding without changing placements', async () => {
+  const prefix = 'group-upgrade';
+  const rep = session(), student = session(), stranger = session();
+  await Promise.all([rep.signIn(prefix+'-rep'),student.signIn(prefix+'-student'),stranger.signIn(prefix+'-stranger')]);
+  const [repToken,token,strangerToken] = await Promise.all([rep,student,stranger].map(communityToken));
+  const {north} = await seedInitiativeOwners(prefix);
+  const initiative = await admissionDraft(rep,repToken,north,'Identity continuity');
+  const group = randomUUID(), api = groupApi(initiative);
+  await saved(await groupPut(rep,repToken,api+'/'+group,groupInput('Continuity group')));
+  const admission = await groupAdmission(rep,repToken,student,token,initiative);
+  await saved(await groupPut(rep,repToken,api+'/students/'+admission.id,{groupId:group,version:null}));
+  const person = `(SELECT PersonId FROM dbo.AspNetUsers WHERE NormalizedEmail=UPPER('${prefix}-student@example.test'))`;
+  await sql(`DELETE FROM personal.IndividualProfile WHERE PersonId=${person};
+    UPDATE iam.Person SET IndividualEnabledAtUtc=NULL WHERE Id=${person};`);
+  const fresh = session();
+  assert.equal(await fresh.signIn(prefix+'-student',false),'/workspaces.html?partner=live#/student/dashboard');
+  const before = await saved(await fresh.request(studentView(initiative)));
+  assert.equal(before.individualEnabled,false);
+  assert.equal(before.group.id,group);
+  assert.equal((await fresh.request('/api/onboarding')).status,403);
+  assert.equal((await fresh.request('/api/community/posts')).status,403);
+  const dashboard = await fresh.request('/src/pages/member/dashboard/dashboard.html');
+  assert.equal(dashboard.headers.get('location'),'/workspaces.html?partner=live#/student/dashboard');
+  const url = studentApi+'/'+initiative+'/upgrade';
+  assert.equal((await command(student,token,url,{acceptTerms:false})).status,400);
+  assert.equal((await command(stranger,strangerToken,url,{acceptTerms:true})).status,404);
+  assert.equal((await command(student,token,url,{acceptTerms:true})).status,403);
+  await confirmStaffTestEmail([prefix+'-student']);
+  const attempts = await Promise.all([command(student,token,url,{acceptTerms:true}),command(student,token,url,{acceptTerms:true})]);
+  for (const result of await Promise.all(attempts.map(saved))) assert.equal(result.url,onboarding);
+  const after = await saved(await fresh.request(studentView(initiative)));
+  assert.equal(after.personId,before.personId);
+  assert.equal(after.individualEnabled,true);
+  assert.equal(after.individualUrl,onboarding);
+  assert.equal(after.selected.applicationId,admission.id);
+  assert.deepEqual(after.history,before.history);
+  const setupState = await saved(await fresh.request(setup));
+  assert.equal(setupState.stage,'Started');
+  assert.equal(await sql(`SELECT CONCAT(COUNT(*),':',MIN(p.OnboardingStage)) FROM personal.IndividualProfile p WHERE p.PersonId=${person};`),'1:Started');
+  assert.equal(await sql(`SELECT COUNT(*) FROM ops.AuditEvent WHERE Action='IndividualEnabledFromStudent' AND ActorPersonId=${person};`),'1');
+  assert.equal(await sql(`SELECT COUNT(*) FROM dbo.AspNetUsers WHERE PersonId=${person};`),'1');
+});
+
+test('Institution Groups, Coach roster and Student My Group stay in sync across browser reloads', async () => {
+  const prefix = 'group-browser';
+  const rep = session(), coach = session(), student = session();
+  await Promise.all([rep.signIn(prefix+'-rep'),coach.signIn(prefix+'-coach'),student.signIn(prefix+'-student')]);
+  await confirmStaffTestEmail([prefix+'-coach']);
+  const [repToken,coachToken,studentToken] = await Promise.all([rep,coach,student].map(communityToken));
+  const {north} = await seedInitiativeOwners(prefix);
+  const initiative = await admissionDraft(rep,repToken,north,'Group browser journey');
+  const admission = await groupAdmission(rep,repToken,student,studentToken,initiative);
+  await groupStaff(rep,repToken,coach,coachToken,prefix+'-coach',initiative,'Coach');
+  const browser = await chromium.launch({headless:true});
+  try {
+    async function browserPage(account,viewport) {
+      const context = await browser.newContext({viewport,reducedMotion:'reduce'});
+      await context.addCookies([{name:'DeepSproutAuth',value:account.authCookie().slice('DeepSproutAuth='.length),url:origin}]);
+      const page = await context.newPage();
+      page.setDefaultTimeout(12000);
+      return page;
+    }
+    const owner = await browserPage(rep,{width:1200,height:850});
+    const learner = await browserPage(student,{width:390,height:844});
+    const teacher = await browserPage(coach,{width:1200,height:850});
+    const live = origin+'/workspaces.html?partner=live#/';
+    await owner.goto(live+'organization/team?institution='+north+'&initiative='+initiative);
+    await owner.getByRole('link',{name:'Groups & allocation'}).click();
+    await owner.getByRole('button',{name:'Create group',exact:true}).click();
+    const dialog = owner.getByRole('dialog');
+    await dialog.getByLabel('Group name').fill('Browser group');
+    await dialog.getByLabel('Description shared with students').fill('Group meeting description.');
+    await dialog.getByRole('button',{name:'Create group',exact:true}).click();
+    await owner.getByRole('heading',{name:'Browser group'}).waitFor();
+    await owner.getByRole('button',{name:'Assign Coach',exact:true}).click();
+    await dialog.locator('select[name=coach]').selectOption({label:prefix+'-coach'});
+    await dialog.getByRole('button',{name:'Save Coach'}).click();
+    await dialog.waitFor({state:'hidden'});
+    await owner.getByRole('button',{name:'Add to group'}).click();
+    await dialog.getByRole('button',{name:'Save placement'}).click();
+    await dialog.waitFor({state:'hidden'});
+    await owner.reload();
+    await owner.locator('.iw-gcard').filter({hasText:'Browser group'}).getByText(prefix+'-student',{exact:true}).waitFor();
+
+    await teacher.goto(live+'mentor/groups?initiative='+initiative);
+    await teacher.getByRole('link',{name:'Open group'}).click();
+    await teacher.getByRole('heading',{name:'Student roster'}).waitFor();
+    await teacher.getByRole('cell',{name:prefix+'-student',exact:true}).waitFor();
+    await learner.goto(live+'student/dashboard?initiative='+initiative);
+    await learner.getByRole('main').getByRole('link',{name:'My Group',exact:true}).click();
+    await learner.getByRole('heading',{name:'Browser group'}).waitFor();
+    await learner.getByText('Group meeting description.').waitFor();
+    await learner.reload();
+    await learner.getByRole('heading',{name:'Browser group'}).waitFor();
+    assert.equal((await saved(await student.request(studentView(initiative)))).selected.applicationId,admission.id);
+
+    const learnerId = `(SELECT PersonId FROM dbo.AspNetUsers WHERE NormalizedEmail=UPPER('${prefix}-student@example.test'))`;
+    await sql(`DELETE FROM personal.IndividualProfile WHERE PersonId=${learnerId};
+      UPDATE iam.Person SET IndividualEnabledAtUtc=NULL WHERE Id=${learnerId};`);
+    await confirmStaffTestEmail([prefix+'-student']);
+    await learner.goto(live+'student/account?initiative='+initiative);
+    await learner.getByRole('button',{name:'Enable Individual access'}).click();
+    await learner.getByLabel('I agree to the Terms of Service and Privacy Policy.').check();
+    await learner.getByRole('button',{name:'Continue to Individual'}).click();
+    await learner.waitForURL(origin+onboarding);
+    await learner.goto(live+'student/group?initiative='+initiative);
+    await learner.getByRole('heading',{name:'Browser group'}).waitFor();
+
+    const learnerChip = owner.locator('.iw-gcard [data-drag-person]');
+    await learnerChip.dragTo(owner.locator('[data-live-group-drop][data-drop-group=""]'));
+    await owner.getByRole('button',{name:'Add to group'}).waitFor();
+    await learner.reload();
+    await learner.getByRole('heading',{name:'No current group'}).waitFor();
+    await learner.getByText('Unallocated',{exact:false}).waitFor();
+  } finally { await browser.close(); }
+});
+
+const workApi = '/api/initiative-work';
+const reportApi = '/api/initiative-reports';
+const coachWork = id => workApi+'/coach/'+id;
+const studentWork = (id,task,step) => workApi+'/mine/'+id+'/'+task+'/'+step;
+const reviewWork = (id,task,recipient) => workApi+'/review/'+id+'/'+task+'/'+recipient;
+const draftWork = (groupId, extra) => ({groupId,title:'Reading reflection',instructions:'Read the assigned passage and explain your choice.',
+  dueAtUtc:new Date(Date.now()+2*86400000).toISOString(),isRequired:true,allowLate:false,...extra});
+
+async function workFixture(prefix) {
+  const names = ['rep','other','coach','supervisor','student','peer','other-coach'].map(role=>prefix+'-'+role);
+  const accounts = names.map(()=>session());
+  await Promise.all(accounts.map((account,index)=>account.signIn(names[index])));
+  await confirmStaffTestEmail([names[2],names[3],names[6]]);
+  const [rep,other,coach,supervisor,student,peer,otherCoach] = accounts;
+  const [repToken,otherToken,coachToken,superToken,studentToken,peerToken,otherCoachToken] = await Promise.all(accounts.map(communityToken));
+  const {north,south} = await seedInitiativeOwners(prefix);
+  const initiative = await admissionDraft(rep,repToken,north,'Initiative work');
+  const foreign = await admissionDraft(other,otherToken,south,'Foreign Institution work');
+  const coachId = await groupStaff(rep,repToken,coach,coachToken,names[2],initiative,'Coach');
+  await groupStaff(rep,repToken,supervisor,superToken,names[3],initiative,'Supervisor');
+  await groupStaff(other,otherToken,otherCoach,otherCoachToken,names[6],foreign,'Coach');
+  const groupId = randomUUID(), secondGroup = randomUUID(), groupPath = groupApi(initiative);
+  const first = await saved(await groupPut(rep,repToken,groupPath+'/'+groupId,groupInput('Reflection group')));
+  await saved(await groupPut(rep,repToken,groupPath+'/'+secondGroup,groupInput('Transfer group')));
+  await saved(await groupPut(rep,repToken,groupPath+'/'+groupId+'/coach',{appointmentId:coachId,version:first.version}));
+  const admission = await groupAdmission(rep,repToken,student,studentToken,initiative);
+  const peerAdmission = await groupAdmission(rep,repToken,peer,peerToken,initiative);
+  const placed = await saved(await groupPut(rep,repToken,groupPath+'/students/'+admission.id,{groupId,version:null}));
+  await saved(await groupPut(rep,repToken,groupPath+'/students/'+peerAdmission.id,{groupId,version:null}));
+  return {names,rep,other,coach,supervisor,student,peer,otherCoach,repToken,otherToken,coachToken,superToken,studentToken,peerToken,
+    otherCoachToken,north,south,initiative,foreign,groupId,secondGroup,admission,peerAdmission,placed,coachId};
+}
+
+test('SQL Initiative assignments preserve versions, attempts, decision privacy, authorship and transferred Student history', async () => {
+  const f = await workFixture('work-sql');
+  const {rep,coach,supervisor,student,peer,otherCoach,initiative,foreign,groupId,secondGroup} = f;
+  const id = randomUUID(), path = coachWork(initiative)+'/'+id;
+  const payload = draftWork(groupId,{studentApplicationIds:[f.admission.id]});
+  assert.equal((await groupPut(otherCoach,f.otherCoachToken,path,payload)).status,404);
+  assert.equal((await groupPut(supervisor,f.superToken,path,payload)).status,404);
+  assert.equal((await groupPut(coach,f.coachToken,path,draftWork(secondGroup))).status,404);
+  assert.equal((await groupPut(coach,f.coachToken,path,draftWork(groupId,{studentApplicationIds:[randomUUID()]}))).status,400);
+  const assignment = await saved(await groupPut(coach,f.coachToken,path,payload));
+  const edited = await saved(await groupPut(coach,f.coachToken,path,draftWork(groupId,{title:'Reading reflection revised',
+    version:assignment.version,reason:'Clarify the task'})));
+  assert.equal(edited.revisionNo,2);
+  const coachView = await saved(await coach.request(coachWork(initiative)));
+  const row = coachView.assignments.find(task=>task.id===id);
+  assert.equal(row.history[0].title,'Reading reflection');
+  assert.equal(row.history[0].reason,'Clarify the task');
+  assert.deepEqual(row.recipients.map(recipient=>recipient.student),[f.names[4]]);
+  assert.equal((await otherCoach.request(coachWork(initiative))).status,404);
+  assert.equal((await coach.request(coachWork(foreign))).status,404);
+  assert.equal((await peer.request(workApi+'/mine?id='+id)).status,404);
+  const mine = await saved(await student.request(workApi+'/mine?id='+id));
+  assert.equal(mine[0].terms.revisionNo,2);
+  assert.equal(mine[0].canWork,true);
+  const view = reviewWork(initiative,id,row.recipients[0].recipientId);
+  const step = (step,expectedAttemptNo,body) => command(student,f.studentToken,studentWork(initiative,id,step),{revisionNo:2,expectedAttemptNo,body});
+  assert.equal((await saved(await step('start',0))).status,'InProgress');
+  assert.equal((await groupPut(coach,f.coachToken,path,draftWork(groupId,{version:edited.version,reason:'Too late'}))).status,409);
+  const retry = await Promise.all([step('submit',0,'My original reflection'),step('submit',0,'My original reflection')]);
+  assert.deepEqual((await Promise.all(retry.map(saved))).map(row=>row.lastAttemptNo),[1,1]);
+  assert.equal((await peer.request(view)).status,404);
+  const reviewed = (attemptNo,decision,feedback,privateNote) => command(coach,f.coachToken,view,{attemptNo,decision,feedback,privateNote});
+  assert.equal((await saved(await reviewed(1,'NeedsRevision','Add one example.','Restricted review note'))).status,'NeedsRevision');
+  const revised = await saved(await step('submit',1,'My revised reflection'));
+  assert.equal(revised.lastAttemptNo,2);
+  assert.equal((await reviewed(1,'Approved')).status,409);
+  assert.equal((await command(supervisor,f.superToken,view,{attemptNo:2,decision:'Approved'})).status,404);
+  const approvals = await Promise.all([reviewed(2,'Approved','Good revision.'),reviewed(2,'Approved','Duplicate')]);
+  assert.deepEqual(approvals.map(result=>result.status).sort(),[200,409]);
+  const own = (await saved(await student.request(workApi+'/mine?id='+id)))[0];
+  assert.equal(own.status,'Approved');
+  assert.deepEqual(own.attempts.map(row=>row.body),['My original reflection','My revised reflection']);
+  assert.equal(own.attempts[0].reviews[0].feedback,'Add one example.');
+  assert.equal(Object.hasOwn(own.attempts[0].reviews[0],'privateNote'),false);
+  const supervision = await saved(await supervisor.request(view));
+  assert.equal(supervision.attempts[0].reviews[0].privateNote,'Restricted review note');
+  assert.equal(supervision.canReview,false);
+  assert.equal((await rep.request(view)).status,404);
+
+  const rejectId = randomUUID();
+  await saved(await groupPut(coach,f.coachToken,coachWork(initiative)+'/'+rejectId,draftWork(groupId,{title:'Second response'})));
+  const queue = await saved(await coach.request(coachWork(initiative)));
+  const peerWork = queue.assignments.find(item=>item.id===rejectId).recipients.find(item=>item.student===f.names[5]);
+  await saved(await command(peer,f.peerToken,studentWork(initiative,rejectId,'submit'),{revisionNo:1,expectedAttemptNo:0,body:'A submitted answer'}));
+  const rejection = reviewWork(initiative,rejectId,peerWork.recipientId);
+  assert.equal((await saved(await command(coach,f.coachToken,rejection,{attemptNo:1,decision:'Rejected',feedback:'The response is incomplete.'}))).status,'Rejected');
+  assert.equal((await command(peer,f.peerToken,studentWork(initiative,rejectId,'submit'),{revisionNo:1,expectedAttemptNo:1,body:'Another try'})).status,409);
+  assert.equal((await saved(await coach.request(rejection))).attempts[0].body,'A submitted answer');
+  await saved(await groupPut(rep,f.repToken,groupApi(initiative)+'/students/'+f.admission.id,{groupId:secondGroup,version:f.placed.version}));
+  const fresh = session();
+  await fresh.signIn(f.names[4],false);
+  const history = (await saved(await fresh.request(workApi+'/mine?id='+id)))[0];
+  assert.equal(history.id,id);
+  assert.equal(history.canWork,false);
+  assert.deepEqual(history.attempts,own.attempts);
+  assert.equal((await coach.request(view)).status,404);
+  assert.equal((await supervisor.request(view)).status,200);
+  await saved(await command(rep,f.repToken,staffOwned(initiative,f.coachId,'revoke'),{reason:'Rotation'}));
+  assert.equal((await coach.request(coachWork(initiative))).status,404);
+  assert.equal((await groupPut(coach,f.coachToken,coachWork(initiative)+'/'+randomUUID(),draftWork(groupId))).status,404);
+  assert.equal((await command(coach,f.coachToken,rejection,{attemptNo:1,decision:'Approved'})).status,404);
+});
+
+test('Initiative reports freeze SQL counts and link reviewed Coach originals to the authorized Institution inbox', async () => {
+  const f = await workFixture('report-sql');
+  const {initiative,groupId,coach,supervisor,rep,other,student} = f;
+  const id = randomUUID();
+  await saved(await groupPut(coach,f.coachToken,coachWork(initiative)+'/'+id,draftWork(groupId)));
+  await saved(await command(student,f.studentToken,studentWork(initiative,id,'submit'),{expectedAttemptNo:0,revisionNo:1,body:'Actual work'}));
+  const base = role => reportApi+'/'+role+'/'+initiative;
+  const period = {from:futureDate(-1),to:futureDate(0)};
+  const overview = await saved(await supervisor.request(base('Supervisor')));
+  assert.equal(overview.metrics.assignments,1);
+  assert.equal(overview.metrics.assignedTasks,2);
+  assert.equal(overview.metrics.submittedTasks,1);
+  assert.equal(overview.metrics.pendingReviews,1);
+  assert.equal(overview.records.length,2);
+  assert.equal((await other.request(base('Representative'))).status,404);
+  assert.equal((await coach.request(base('Supervisor'))).status,404);
+  assert.equal((await student.request(base('Representative'))).status,404);
+  const report = randomUUID(), summary = randomUUID();
+  const created = await saved(await groupPut(coach,f.coachToken,base('Coach')+'/'+report,
+    {...period,groupId,observations:'A draft observation',submit:false}));
+  const submit = await saved(await groupPut(coach,f.coachToken,base('Coach')+'/'+report,
+    {...period,groupId,observations:'A frozen Coach observation',submit:true,version:created.version}));
+  const early = await groupPut(supervisor,f.superToken,base('Supervisor')+'/'+summary,
+    {...period,observations:'Supervisor summary',submit:true,coachReportIds:[report]});
+  assert.equal(early.status,409);
+  const reviewPath = base('Supervisor')+'/'+report+'/review';
+  await saved(await command(supervisor,f.superToken,reviewPath,{version:submit.version,note:'Reviewed against submitted records.'}));
+  assert.equal((await command(supervisor,f.superToken,reviewPath,{version:submit.version,note:'Stale'})).status,409);
+  const coachData = await saved(await coach.request(coachWork(initiative)));
+  const recipient = coachData.assignments[0].recipients.find(row=>row.student===f.names[4]).recipientId;
+  await saved(await command(coach,f.coachToken,reviewWork(initiative,id,recipient),{attemptNo:1,decision:'Approved',privateNote:'Unshared note'}));
+  await saved(await groupPut(supervisor,f.superToken,base('Supervisor')+'/'+summary,
+    {...period,observations:'Supervisor summary',submit:true,coachReportIds:[report]}));
+  const inbox = await saved(await rep.request(base('Representative')));
+  assert.equal(inbox.records,null);
+  assert.equal(inbox.metrics.approvedTasks,1);
+  const original = inbox.reports.find(item=>item.id===report);
+  const sent = inbox.reports.find(item=>item.id===summary);
+  assert.equal(original.includedIn,summary);
+  assert.equal(original.narrative.observations,'A frozen Coach observation');
+  assert.equal(original.snapshot.metrics.pendingReviews,1);
+  assert.equal(sent.snapshot.metrics.approvedTasks,1);
+  assert.deepEqual(sent.snapshot.assignmentIds,[id]);
+  assert.equal(JSON.stringify(inbox).includes('Unshared note'),false);
+  assert.equal((await groupPut(supervisor,f.superToken,base('Supervisor')+'/'+randomUUID(),
+    {...period,observations:'Duplicate attachment',submit:true,coachReportIds:[report]})).status,409);
+});
+
+test('Coach Assignments and Reviews, Student Tasks and Individual Assigned share the same SQL work in browsers', async () => {
+  const f = await workFixture('work-browser');
+  await finishSetup(f.student);
+  const browser = await chromium.launch({headless:true});
+  const workspace = origin+'/workspaces.html?partner=live#/';
+  const scope = '?initiative='+f.initiative;
+  try {
+    async function pageFor(account,viewport) {
+      const context = await browser.newContext({viewport,reducedMotion:'reduce'});
+      await context.addCookies([{name:'DeepSproutAuth',value:account.authCookie().slice('DeepSproutAuth='.length),url:origin}]);
+      const page = await context.newPage();
+      page.setDefaultTimeout(12000);
+      return page;
+    }
+    const coach = await pageFor(f.coach,{width:1250,height:850});
+    const student = await pageFor(f.student,{width:390,height:844});
+    const individual = await pageFor(f.student,{width:1250,height:850});
+    const supervisor = await pageFor(f.supervisor,{width:1250,height:850});
+    const representative = await pageFor(f.rep,{width:1250,height:850});
+    await coach.goto(workspace+'mentor/assignments'+scope);
+    await coach.getByRole('button',{name:'Create assignment'}).click();
+    const taskDialog = coach.getByRole('dialog');
+    await taskDialog.getByLabel('Title',{exact:false}).fill('Browser assignment');
+    await taskDialog.getByLabel('Instructions and references').fill('Explain the evidence from the selected passage.');
+    await taskDialog.getByLabel('Due date and time').fill(new Date(Date.now()+2*86400000).toISOString().slice(0,16));
+    await taskDialog.getByLabel(f.names[4],{exact:true}).check();
+    await taskDialog.getByRole('button',{name:'Publish assignment'}).click();
+    await coach.getByText('Browser assignment',{exact:true}).waitFor();
+    await student.goto(workspace+'student/tasks'+scope);
+    const studentTask = student.locator('.tk-item').filter({hasText:'Browser assignment'});
+    await studentTask.locator('summary').click();
+    const id = await studentTask.getAttribute('data-task');
+    await studentTask.getByRole('button',{name:'Start work'}).click();
+    await studentTask.locator('.tk-brief').getByText('In progress',{exact:true}).waitFor();
+    await individual.goto(origin+'/src/pages/member/training/training.html#assigned');
+    const individualTask = individual.locator('#assigned [data-task="'+id+'"]');
+    await individualTask.locator('summary').click();
+    await individualTask.locator('textarea[name=text]').fill('Submitted from the full Individual workspace.');
+    await individualTask.getByRole('button',{name:'Submit for review'}).click();
+    await individualTask.getByText('Submitted from the full Individual workspace.',{exact:true}).waitFor();
+    await coach.getByRole('link',{name:'Reviews',exact:true}).click();
+    await coach.getByRole('link',{name:'Open submission'}).click();
+    await coach.getByText('Submitted from the full Individual workspace.',{exact:true}).waitFor();
+    await coach.getByRole('button',{name:'Approve',exact:true}).click();
+    await taskDialog.getByLabel('Feedback to student').fill('Your evidence supports the answer.');
+    await taskDialog.getByLabel('Restricted note',{exact:false}).fill('Internal browser test note.');
+    await taskDialog.getByRole('button',{name:'Save review'}).click();
+    await taskDialog.waitFor({state:'hidden'});
+    await student.reload();
+    await studentTask.locator('summary').click();
+    await studentTask.getByText('Your evidence supports the answer.',{exact:true}).waitFor();
+    assert.equal(await studentTask.getByText('Internal browser test note.',{exact:true}).count(),0);
+    await individual.reload();
+    await individualTask.locator('summary').click();
+    await individualTask.getByText('Your evidence supports the answer.',{exact:true}).waitFor();
+
+    await coach.goto(workspace+'mentor/reports'+scope);
+    await coach.getByRole('button',{name:'Prepare Coach report'}).click();
+    await taskDialog.getByLabel('Observations').fill('Coach source observations.');
+    await taskDialog.getByLabel('Submit report now').check();
+    await taskDialog.getByRole('button',{name:'Save report'}).click();
+    await taskDialog.waitFor({state:'hidden'});
+    await supervisor.goto(workspace+'supervisor/reports'+scope);
+    const supervisorDialog = supervisor.getByRole('dialog');
+    await supervisor.getByRole('button',{name:'Review report'}).click();
+    await supervisorDialog.getByLabel('Review note').fill('Checked against the assignment.');
+    await supervisorDialog.getByRole('button',{name:'Save review'}).click();
+    await supervisorDialog.waitFor({state:'hidden'});
+    await supervisor.getByRole('button',{name:'Prepare summary'}).click();
+    await supervisorDialog.getByLabel('Summary').fill('Shared Supervisor summary.');
+    await supervisorDialog.locator('[name=child]').check();
+    await supervisorDialog.getByLabel('Submit report now').check();
+    await supervisorDialog.getByRole('button',{name:'Save report'}).click();
+    await supervisorDialog.waitFor({state:'hidden'});
+    await representative.goto(workspace+'organization/reports'+scope+'&institution='+f.north);
+    await representative.getByRole('button',{name:'Details',exact:true}).click();
+    const inbox = representative.getByRole('dialog');
+    await inbox.getByText('Shared Supervisor summary.',{exact:true}).waitFor();
+    await inbox.locator('details summary').click();
+    await inbox.getByText('Coach source observations.',{exact:true}).waitFor();
   } finally { await browser.close(); }
 });
 
@@ -2234,6 +3367,28 @@ test('Roadmap, Activities and Digital Shield wait for the signed-in identity', a
   }
 });
 
+test('a failed Roadmap load shows only the error, not setup, cycle or routine defaults', async () => {
+  const browser = await chromium.launch({headless:true});
+  try {
+    const context = await browser.newContext({reducedMotion:'reduce'});
+    await registerBrowser(context,'Roadmap Failure','roadmap-failure@example.test');
+    await activateBrowser(context,'depth');
+    const page = await context.newPage();
+    page.setDefaultTimeout(10000);
+    await page.route('**'+recovery,route=>route.fulfill({status:503,body:'Unavailable'}));
+    await page.goto(origin+'/src/pages/member/recovery-plan/recovery-plan.html#adjust');
+    await page.getByRole('heading',{name:'Your roadmap couldn’t be loaded'}).waitFor();
+    for (const name of ['Start your journey','Start Next Cycle','Enter Maintenance','Record cycle review'])
+      assert.equal(await page.getByRole('button',{name}).or(page.getByRole('link',{name})).filter({visible:true}).count(),0,name);
+    assert.equal(await page.getByRole('tablist').isVisible(),false);
+    assert.equal(await page.getByText('No routine yet',{exact:true}).isVisible(),false);
+    assert.equal(await page.locator('#cycle-day').textContent(),'Plan unavailable');
+    await page.unroute('**'+recovery);
+    await page.goto(origin+'/src/pages/member/recovery-plan/recovery-plan.html');
+    await page.locator('#recovery-status-title').getByText(/Active · Cycle 1/).waitFor();
+  } finally { await browser.close(); }
+});
+
 test('both interactive practices save real results through the Activities page', async () => {
   const browser = await chromium.launch(process.env.CHROME_PATH
     ? { executablePath: process.env.CHROME_PATH } : { channel: 'chrome' });
@@ -2328,4 +3483,416 @@ test('both interactive practices save real results through the Activities page',
   } finally {
     await browser.close();
   }
+});
+
+const initiativeGardenPath = (id,role) => '/api/initiative-gardens/'+id+'/'+role;
+const initiativeGarden = (account,id,role) => account.request(initiativeGardenPath(id,role)).then(saved);
+
+async function importScoredAssignment(f, account, groupId) {
+  await activateFor(account,['depth']);
+  const state = await saved(await account.request(recovery));
+  const action = state.actions.find(row=>row.kind==='Practice' && row.date===state.today);
+  const catalog = JSON.parse(await readFile(join(web,'wwwroot','src','data','practices.json'),'utf8')).definitions;
+  const result = await scoreInsightPractice(account,state,action,catalog.find(item=>item.id===action.activityCode));
+  assert.equal(result.rewardEligible,true);
+  const task = randomUUID(), sourceId = Number(result.id.slice('sql-attempt-'.length));
+  assert.ok(sourceId > 0);
+  // Model existing assignment intake using a real server-scored attempt from this disposable account.
+  // Move its original source link so the same practice is never credited as both Plan and Assignment.
+  const recipient = Number(await sql(`
+    DECLARE @attempt bigint=${sourceId}, @coach bigint=(SELECT PersonId FROM org.StaffAppointment WHERE PublicId='${f.coachId}'),
+      @group bigint=(SELECT Id FROM coach.OperationalGroup WHERE PublicId='${groupId}'),
+      @person bigint, @version bigint, @started datetime2(3), @ended datetime2(3), @scheduled bigint;
+    SELECT @person=PersonId,@version=PracticeVersionId,@started=StartedAtUtc,@ended=EndedAtUtc,@scheduled=ScheduledActionId
+    FROM activity.PracticeAttempt WHERE Id=@attempt;
+    UPDATE recovery.ScheduledAction SET CompletedAttemptId=NULL,Status='Excluded' WHERE Id=@scheduled AND CompletedAttemptId=@attempt;
+    UPDATE activity.PracticeAttempt SET Source='Assignment',ScheduledActionId=NULL WHERE Id=@attempt;
+    INSERT task.Assignment(PublicId,GroupId,AuthorPersonId,Status,Title,PracticeVersionId,Instructions,ReviewMode,IsRequired)
+    VALUES('${task}',@group,@coach,'Published','Imported practice',@version,'Complete the scored exercise','CoachReview',1);
+    INSERT task.AssignmentRecipient(AssignmentId,PersonId,Status,LastAttemptNo,AssignedAtUtc,AssignedRevisionNo)
+    VALUES(SCOPE_IDENTITY(),@person,'Submitted',1,@started,1);
+    DECLARE @recipient bigint=SCOPE_IDENTITY();
+    INSERT task.SubmissionAttempt(RecipientId,AttemptNo,Body,PracticeAttemptId,SubmittedAtUtc)
+    VALUES(@recipient,1,'Private assignment submission',@attempt,@ended);
+    SELECT @recipient;`));
+  assert.ok(recipient > 0);
+  return {recipient,path:reviewWork(f.initiative,task,recipient),practiceTitle:result.title};
+}
+
+test('Initiative Group Garden projects eligible scored sources once across groups and retains corrected history', async () => {
+  const f = await workFixture('group-garden-sql');
+  const {rep,other,coach,supervisor,student,peer,otherCoach,initiative,foreign,groupId,secondGroup} = f;
+  const read = (account,role,id=initiative) => initiativeGarden(account,id,role);
+  const elsewhere = await admissionDraft(rep,f.repToken,f.north,'Independent Garden in same Institution');
+  assert.equal((await session().request(initiativeGardenPath(initiative,'Student'))).status,401);
+  const empty = await read(rep,'Representative');
+  assert.equal(empty.initiativeId,initiative);
+  assert.equal(empty.institutionId,f.north);
+  assert.deepEqual([empty.contributionCount,empty.contributorCount,empty.contributingGroupCount,empty.history],[0,0,0,[]]);
+  assert.deepEqual(await read(coach,'Coach'),empty);
+  const south = await read(other,'Representative',foreign);
+  assert.equal(south.initiativeId,foreign);
+  assert.equal(south.institutionId,f.south);
+  assert.deepEqual(await read(otherCoach,'Coach',foreign),south);
+  assert.equal((await read(rep,'Representative',elsewhere)).contributionCount,0);
+  for (const [actor,role,id] of [[other,'Representative',initiative],[rep,'Representative',foreign],
+    [otherCoach,'Coach',initiative],[coach,'Coach',foreign],[coach,'Coach',elsewhere],[supervisor,'Supervisor',foreign],
+    [supervisor,'Supervisor',elsewhere],[student,'Student',foreign],[student,'Student',elsewhere],
+    [other,'Student',initiative],[student,'Representative',initiative],[student,'Coach',initiative]]) {
+    assert.equal((await actor.request(initiativeGardenPath(id,role))).status,404);
+  }
+
+  const generic = randomUUID();
+  await saved(await groupPut(coach,f.coachToken,coachWork(initiative)+'/'+generic,draftWork(groupId)));
+  await saved(await command(student,f.studentToken,studentWork(initiative,generic,'submit'),
+    {expectedAttemptNo:0,revisionNo:1,body:'A regular written response'}));
+  const assignments = (await saved(await coach.request(coachWork(initiative)))).assignments;
+  const recipient = assignments.find(row=>row.id===generic).recipients.find(row=>row.student===f.names[4]).recipientId;
+  await saved(await command(coach,f.coachToken,reviewWork(initiative,generic,recipient),{attemptNo:1,decision:'Approved'}));
+  assert.deepEqual(await read(supervisor,'Supervisor'),empty);
+
+  const teams = async () => (await saved(await rep.request(groupApi(initiative)))).groups;
+  const team = (await teams()).find(row=>row.id===secondGroup);
+  await saved(await groupPut(rep,f.repToken,groupApi(initiative)+'/'+secondGroup+'/coach',
+    {appointmentId:f.coachId,version:team.version}));
+  const peerPlacement = (await saved(await rep.request(groupApi(initiative)))).students.find(row=>row.id===f.peerAdmission.id);
+  await saved(await groupPut(rep,f.repToken,groupApi(initiative)+'/students/'+f.peerAdmission.id,
+    {groupId:secondGroup,version:peerPlacement.version}));
+  const first = await importScoredAssignment(f,student,groupId);
+  const second = await importScoredAssignment(f,peer,secondGroup);
+  const plan = await saved(await student.request(recovery));
+  const routineId = plan.routines[0].id.slice('sql-routine-'.length);
+  await saved(await command(student,plan.requestToken,'/api/offline-routines/'+routineId+'/check-in',{status:'done'},'PUT'));
+  assert.deepEqual(await read(student,'Student'),empty);
+  const approve = item => command(coach,f.coachToken,item.path,
+    {attemptNo:1,decision:'Approved',feedback:'Good work',privateNote:'Restricted Coach note'});
+  const statuses = await Promise.all([approve(first),approve(first),approve(second)].map(async request=>(await request).status));
+  assert.deepEqual(statuses.sort(),[200,200,409]);
+  const reads = await Promise.all([read(rep,'Representative'),read(coach,'Coach'),
+    read(supervisor,'Supervisor'),read(student,'Student'),read(peer,'Student'),read(student,'Student')]);
+  const earned = reads[0];
+  assert.ok(reads.every(row=>JSON.stringify(row)===JSON.stringify(earned)));
+  assert.deepEqual([earned.contributionCount,earned.contributorCount,earned.contributingGroupCount],[2,2,2]);
+  assert.equal(earned.history.length,2);
+  assert.ok(earned.history.every(row=>row.practiceVersion && row.assignmentRevision===1 && row.correctedAtUtc===null));
+  const publicGarden = JSON.stringify(earned);
+  for (const secret of ['Private assignment submission','Restricted Coach note','Good work','Recovery','Shield','Lab',f.names[4],f.names[5]]) {
+    assert.equal(publicGarden.includes(secret),false);
+  }
+  assert.deepEqual(await read(other,'Representative',foreign),south);
+
+  const personal = await readGarden(student);
+  assert.deepEqual(personal.policy.treeSteps,[1,3,7,12]);
+  assert.deepEqual(personal.types.map(row=>row.sources.length),[1,0,0,0]);
+  await saved(await groupPut(rep,f.repToken,groupApi(initiative)+'/students/'+f.admission.id,{groupId:secondGroup,version:f.placed.version}));
+  const replacement = await groupStaff(rep,f.repToken,otherCoach,f.otherCoachToken,f.names[6],initiative,'Coach');
+  await saved(await groupPut(rep,f.repToken,groupApi(initiative)+'/'+groupId+'/coach',
+    {appointmentId:replacement,version:(await teams()).find(row=>row.id===groupId).version}));
+  await saved(await command(rep,f.repToken,staffOwned(initiative,f.coachId,'revoke'),{reason:'Scheduled rotation'}));
+  assert.equal((await coach.request(initiativeGardenPath(initiative,'Coach'))).status,404);
+  const reloaded = session();
+  await reloaded.signIn(f.names[4],false);
+  assert.deepEqual(await read(reloaded,'Student'),earned);
+  assert.deepEqual(await read(otherCoach,'Coach'),earned);
+  assert.deepEqual(await readGarden(reloaded),personal);
+
+  // V5 corrections append a decision to the original review and retain both rows.
+  await sql(`DECLARE @coach bigint=(SELECT PersonId FROM org.StaffAppointment WHERE PublicId='${replacement}');
+    INSERT task.ReviewDecision(AttemptId,SupersedesId,ReviewerPersonId,Decision,DecidedAtUtc)
+    SELECT review.AttemptId,review.Id,@coach,'NeedsRevision',SYSUTCDATETIME()
+    FROM task.ReviewDecision review JOIN task.SubmissionAttempt submission ON submission.Id=review.AttemptId
+    WHERE submission.RecipientId=${first.recipient};
+    UPDATE task.AssignmentRecipient SET Status='NeedsRevision' WHERE Id=${first.recipient};`);
+  const corrected = await read(supervisor,'Supervisor');
+  assert.deepEqual([corrected.contributionCount,corrected.contributorCount,corrected.contributingGroupCount,corrected.history.length],[1,1,1,2]);
+  assert.equal(corrected.history.filter(row=>row.correctedAtUtc).length,1);
+  assert.equal(await sql(`SELECT COUNT(*) FROM task.ReviewDecision r JOIN task.SubmissionAttempt s ON s.Id=r.AttemptId
+    WHERE s.RecipientId=${first.recipient}`),'2');
+  assert.deepEqual(await read(reloaded,'Student'),corrected);
+  await saved(await command(rep,f.repToken,admissionPath(initiative,f.admission.id)+'/suspend',
+    {version:f.admission.version,reason:'Temporary participation pause'}));
+  assert.equal((await reloaded.request(initiativeGardenPath(initiative,'Student'))).status,404);
+  assert.deepEqual(await read(rep,'Representative'),corrected);
+});
+
+test('Live Initiative Group Garden opens from each workspace and renders shared SQL evidence', async () => {
+  const f = await workFixture('group-garden-browser');
+  const imported = await importScoredAssignment(f,f.student,f.groupId);
+  await saved(await command(f.coach,f.coachToken,imported.path,{attemptNo:1,decision:'Approved'}));
+  const peerPerson = `(SELECT PersonId FROM dbo.AspNetUsers WHERE NormalizedEmail=UPPER('${f.names[5]}@example.test'))`;
+  await sql(`DELETE FROM personal.IndividualProfile WHERE PersonId=${peerPerson};
+    UPDATE iam.Person SET IndividualEnabledAtUtc=NULL WHERE Id=${peerPerson};`);
+  assert.equal((await f.peer.request('/api/personal-garden')).status,403);
+  const workspace = origin+'/workspaces.html?partner=live#/';
+  const scope = '?initiative='+f.initiative;
+  const browser = await chromium.launch({headless:true});
+  try {
+    const errors = [];
+    async function pageFor(account,width=1200) {
+      const context = await browser.newContext({viewport:{width,height:840},reducedMotion:'reduce'});
+      await context.addCookies([{name:'DeepSproutAuth',value:account.authCookie().slice('DeepSproutAuth='.length),url:origin}]);
+      const page = await context.newPage();
+      page.setDefaultTimeout(12000);
+      page.on('pageerror',error=>errors.push(error.message));
+      return page;
+    }
+    async function verify(page) {
+      await page.getByRole('heading',{name:'Initiative work',exact:true}).waitFor();
+      await page.getByText(imported.practiceTitle,{exact:true}).waitFor();
+      await page.getByText('Collective milestone thresholds are pending approval.').waitFor();
+      assert.equal(await page.locator('.iw-stat').filter({hasText:'Qualifying contributions'}).locator('b').textContent(),'1');
+      assert.equal(await page.locator('.gg-sprout').isVisible(),false);
+    }
+    for (const [account,area] of [[f.coach,'mentor'],[f.supervisor,'supervisor']]) {
+      const page = await pageFor(account);
+      await page.goto(workspace+area+'/dashboard'+scope);
+      await page.getByRole('link',{name:'Group Garden',exact:true}).click();
+      await verify(page);
+    }
+    const representative = await pageFor(f.rep);
+    await representative.goto(workspace+'organization/initiatives/'+f.initiative+'?institution='+f.north);
+    await representative.getByRole('link',{name:'Group Garden',exact:true}).click();
+    await verify(representative);
+    const student = await pageFor(f.peer,390);
+    await student.goto(workspace+'student/dashboard'+scope);
+    await student.locator('main').getByRole('link',{name:'Group Garden',exact:true}).click();
+    await verify(student);
+    assert.equal(await student.getByRole('link',{name:'Open my Individual app'}).count(),0);
+    assert.equal(await student.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),true);
+    await student.reload();
+    await verify(student);
+
+    const individual = await pageFor(f.student);
+    await individual.goto(origin+'/src/pages/member/garden/garden.html');
+    await individual.locator('#garden-initiative-links').getByRole('link',{name:'Initiative work',exact:true}).click();
+    await verify(individual);
+    await individual.route('**/api/initiative-gardens/**',route=>route.fulfill({status:503,body:'Unavailable'}));
+    await individual.reload();
+    await individual.getByRole('alert').filter({hasText:'could not be loaded'}).waitFor();
+    assert.equal(await individual.getByText(imported.practiceTitle,{exact:true}).count(),0);
+    const unrelated = await pageFor(f.other);
+    await unrelated.goto(workspace+'student/garden'+scope);
+    await unrelated.getByRole('alert').filter({hasText:'unavailable to your account'}).waitFor();
+    assert.deepEqual(errors,[]);
+  } finally { await browser.close(); }
+});
+
+const sessionApi = '/api/initiative-sessions';
+const sessionsFor = (id,role='Representative') => sessionApi+'/manage/'+role+'/'+id;
+const sessionDraft = extra => ({title:'Hybrid study workshop',mode:'Hybrid',timeZoneId:'Europe/London',
+  startsAt:futureDate(9)+'T15:00',endsAt:futureDate(9)+'T16:00',venue:'Training room, Amman',
+  meetingLink:'https://meet.google.com/abc-defg-hij',onlineCapacity:1,inPersonCapacity:1,attendanceRequired:true,...extra});
+
+test('Initiative Sessions use authorized publication, distinct registrations and atomic per-mode capacity in V5 SQL', async () => {
+  const f = await workFixture('sessions-sql');
+  const {rep,other,coach,supervisor,student,peer,initiative,foreign} = f;
+  const limitedPerson = `(SELECT PersonId FROM dbo.AspNetUsers WHERE NormalizedEmail=UPPER('${f.names[5]}@example.test'))`;
+  await sql(`DELETE FROM personal.IndividualProfile WHERE PersonId=${limitedPerson};
+    UPDATE iam.Person SET IndividualEnabledAtUtc=NULL WHERE Id=${limitedPerson};`);
+  assert.equal((await peer.request('/api/personal-garden')).status,403);
+  const id = randomUUID(), manage = sessionsFor(initiative)+'/'+id, publicPath = sessionApi+'/discover/'+id;
+  const put = (account,token,payload,path=manage) => command(account,token,path,payload,'PUT');
+  const draft = sessionDraft({meetingLink:null});
+  const roster = () => rep.request(manage).then(saved);
+  const mine = account => account.request(sessionApi+'/mine').then(saved);
+  const register = (account,token,payload,sessionId=id) => command(account,token,sessionApi+'/'+sessionId+'/register',payload);
+  const cancel = (account,token,registration,sessionId=id) => command(account,token,
+    sessionApi+'/'+sessionId+'/registrations/'+registration+'/cancel',{});
+  assert.deepEqual(await mine(student),[]);
+  assert.deepEqual(await mine(peer),[]);
+  assert.equal((await put(other,f.otherToken,draft)).status,404);
+  assert.equal((await put(coach,f.coachToken,draft)).status,404);
+  assert.equal((await put(supervisor,f.superToken,draft)).status,404);
+  assert.equal((await put(rep,f.repToken,{...draft,meetingLink:'https://meet.google.com.unrelated.test/room'})).status,400);
+  assert.equal((await rep.request(manage,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(draft)})).status,400);
+  const created = await saved(await put(rep,f.repToken,draft));
+  assert.equal(created.status,'Draft');
+  const firstLogin = session();
+  await firstLogin.signIn(f.names[0],false);
+  assert.equal((await saved(await firstLogin.request(manage))).session.version,created.version);
+  assert.equal((await session().request(publicPath)).status,404);
+  assert.equal((await supervisor.request(sessionsFor(initiative,'Supervisor')+'/'+id)).status,404);
+  assert.equal((await command(rep,f.repToken,manage+'/publish',{version:created.version})).status,400);
+  assert.equal((await roster()).session.status,'Draft');
+  assert.equal((await put(rep,f.repToken,sessionDraft({version:'stale',publish:true}))).status,409);
+  const fixed = await saved(await put(rep,f.repToken,sessionDraft({version:created.version})));
+  const published = await saved(await command(rep,f.repToken,manage+'/publish',{version:fixed.version}));
+  assert.equal((await command(rep,f.repToken,manage+'/close',{version:published.version})).status,409);
+  const guest = session();
+  const discovery = await saved(await guest.request(sessionApi+'/discover'));
+  const publicRow = discovery.find(row=>row.id===id);
+  assert.equal(publicRow.institutionId,f.north);
+  assert.equal(publicRow.initiative,'Initiative work');
+  assert.equal(publicRow.organizer,'sessions-sql North');
+  assert.equal((await saved(await guest.request(publicPath))).meetingLink,null);
+  assert.equal(JSON.stringify(publicRow).includes('meet.google.com'),false);
+  assert.equal((await coach.request(sessionsFor(initiative,'Supervisor'))).status,404);
+  assert.equal((await supervisor.request(sessionsFor(foreign,'Supervisor'))).status,404);
+  assert.equal((await other.request(sessionsFor(foreign)+'/'+id)).status,404);
+  assert.equal((await student.request(sessionApi+'/student/'+foreign)).status,404);
+
+  const online = {mode:'Online',consent:true,version:published.version};
+  assert.equal((await register(other,f.otherToken,{...online,requestId:randomUUID(),personId:f.names[4]})).status,403);
+  assert.equal((await register(student,f.studentToken,{...online,requestId:randomUUID(),consent:false})).status,400);
+  assert.equal((await register(student,f.studentToken,{...online,requestId:randomUUID(),mode:'Other'})).status,400);
+  assert.equal((await register(student,f.studentToken,{...online,requestId:randomUUID(),version:'stale'})).status,409);
+  const competitors = [[student,f.studentToken],[peer,f.peerToken]];
+  const requests = competitors.map(()=>({...online,requestId:randomUUID(),personId:1234}));
+  const results = await Promise.all(competitors.map(([account,token],index)=>register(account,token,requests[index])));
+  assert.deepEqual(results.map(row=>row.status).sort(),[200,409]);
+  const winnerIndex = results.findIndex(row=>row.ok);
+  const winner = competitors[winnerIndex], loser = competitors[1-winnerIndex];
+  const first = await saved(results[winnerIndex]);
+  assert.equal(first.id,requests[winnerIndex].requestId);
+  assert.equal((await saved(await register(...winner,{...online,requestId:randomUUID()}))).id,first.id);
+  assert.equal((await saved(await register(...winner,requests[winnerIndex]))).id,first.id);
+  assert.equal((await cancel(...loser,first.id)).status,404);
+  assert.equal((await saved(await loser[0].request(publicPath))).registration,null);
+  assert.deepEqual(await mine(loser[0]),[]);
+  const inPerson = await saved(await register(...loser,{...online,mode:'InPerson',requestId:randomUUID()}));
+  let staff = await saved(await supervisor.request(sessionsFor(initiative,'Supervisor')+'/'+id));
+  assert.deepEqual([staff.session.onlineUsed,staff.session.inPersonUsed,staff.session.registrationState],[1,1,'Full']);
+  assert.deepEqual(staff.roster.map(row=>row.status),['Confirmed','Confirmed']);
+  assert.equal((await put(rep,f.repToken,sessionDraft({mode:'Online',venue:null,inPersonCapacity:null,version:published.version}))).status,409);
+  const edited = await saved(await put(rep,f.repToken,sessionDraft({endsAt:futureDate(9)+'T17:00',version:published.version,reason:'Extend discussion'})));
+  assert.equal((await roster()).history[0].action,'SessionRescheduled');
+  assert.equal((await roster()).roster.length,2);
+  assert.equal((await saved(await cancel(...winner,first.id))).status,'Cancelled');
+  assert.equal((await saved(await cancel(...winner,first.id))).status,'Cancelled');
+  assert.equal((await saved(await register(...winner,requests[winnerIndex]))).status,'Cancelled');
+  assert.equal((await roster()).session.onlineUsed,0);
+  assert.equal((await register(...winner,{...online,requestId:randomUUID()})).status,409);
+  const next = await saved(await register(...winner,{...online,version:edited.version,requestId:randomUUID()}));
+
+  const newLogin = session();
+  await newLogin.signIn(f.names[winnerIndex===0 ? 4 : 5],false);
+  assert.deepEqual((await mine(newLogin)).map(row=>row.registration.id),[next.id,first.id]);
+  assert.equal((await saved(await newLogin.request(publicPath))).registration.id,next.id);
+  assert.equal((await saved(await newLogin.request(sessionApi+'/student/'+initiative)))[0].id,id);
+  assert.equal(await sql(`SELECT COUNT(*) FROM institution.InitiativeApplication a JOIN institution.Initiative i ON a.InitiativeId=i.Id
+    WHERE i.PublicId='${initiative}';`),'2');
+  assert.equal(await sql(`SELECT CONCAT(COUNT(a.Id),':',COUNT(r.CredentialHash)) FROM session.Session s
+    LEFT JOIN session.SessionRegistration r ON s.Id=r.SessionId LEFT JOIN session.Attendance a ON s.Id=a.SessionId
+    WHERE s.PublicId='${id}'`),'0:0');
+  assert.equal(await sql(`SELECT COUNT(*) FROM session.Completion c JOIN institution.InitiativeApplication a ON c.ApplicationId=a.Id
+    JOIN institution.Initiative i ON i.Id=a.InitiativeId WHERE i.PublicId='${initiative}'`),'0');
+  assert.deepEqual((await readGarden(student)).rabbits,[]);
+  assert.equal((await initiativeGarden(student,initiative,'Student')).contributionCount,0);
+  assert.equal(await sql(`SELECT COUNT(*) FROM ops.AuditEvent WHERE ResourceKind='session.SessionRegistration'
+    AND Action='SessionRegistered' AND JSON_VALUE(DetailJson,'$.sessionId')='${id}'
+    AND JSON_VALUE(DetailJson,'$.noticeVersion')='session-participation-v1'`),'3');
+
+  await saved(await command(rep,f.repToken,manage+'/cancel',{version:edited.version,reason:'Venue unavailable'}));
+  assert.ok((await roster()).roster.every(row=>row.status==='Cancelled'));
+  assert.equal((await register(...winner,{...online,requestId:randomUUID()})).status,409);
+  assert.ok(!(await saved(await guest.request(sessionApi+'/discover'))).some(row=>row.id===id));
+  assert.equal((await guest.request(publicPath)).status,404);
+  assert.equal((await mine(loser[0]))[0].registration.id,inPerson.id);
+  assert.equal((await mine(loser[0]))[0].registration.status,'Cancelled');
+  assert.equal((await saved(await newLogin.request(publicPath))).session.registrationState,'Cancelled');
+
+  const closedId = randomUUID(), closedPath = sessionsFor(initiative)+'/'+closedId;
+  await saved(await put(rep,f.repToken,sessionDraft({publish:true}),closedPath));
+  await sql(`UPDATE session.Session SET StartsAtUtc=DATEADD(hour,-2,SYSUTCDATETIME()),
+    EndsAtUtc=DATEADD(hour,-1,SYSUTCDATETIME()) WHERE PublicId='${closedId}'`);
+  const closedRow = await saved(await rep.request(closedPath));
+  assert.equal(closedRow.session.registrationState,'Closed');
+  assert.equal((await register(student,f.studentToken,{...online,version:closedRow.session.version,requestId:randomUUID()},closedId)).status,409);
+  assert.equal((await saved(await command(rep,f.repToken,closedPath+'/close',{version:closedRow.session.version}))).status,'Completed');
+  const supervisors = await saved(await rep.request(staffOwned(initiative)));
+  const supervisorId = supervisors.appointments.find(row=>row.appointment.role==='Supervisor').appointment.id;
+  await saved(await command(rep,f.repToken,staffOwned(initiative,supervisorId,'revoke'),{reason:'End of appointment'}));
+  assert.equal((await supervisor.request(sessionsFor(initiative,'Supervisor')+'/'+id)).status,404);
+});
+
+test('Initiative Sessions publish and registrations sync across Institution, Explore, Student and Supervisor browsers', async () => {
+  const f = await workFixture('sessions-browser');
+  await finishSetup(f.student);
+  const browser = await chromium.launch({headless:true});
+  const workspace = origin+'/workspaces.html?partner=live#/';
+  const title = 'Browser session workshop';
+  try {
+    const pageErrors = [];
+    async function page(account, width=1260) {
+      const context = await browser.newContext({viewport:{width,height:870},reducedMotion:'reduce'});
+      await context.addCookies([{name:'DeepSproutAuth',value:account.authCookie().slice('DeepSproutAuth='.length),url:origin}]);
+      const tab = await context.newPage();
+      tab.on('pageerror',error=>pageErrors.push(error.message));
+      tab.setDefaultTimeout(12000);
+      return tab;
+    }
+    const rep = await page(f.rep), individual = await page(f.student), student = await page(f.student,390);
+    const supervisor = await page(f.supervisor);
+    await rep.goto(workspace+'organization/initiatives/'+f.initiative+'?institution='+f.north);
+    await rep.getByRole('link',{name:'Sessions',exact:true}).click();
+    await rep.getByRole('button',{name:'Create session'}).click();
+    const dialog = rep.getByRole('dialog');
+    await dialog.getByLabel('Session title').fill(title);
+    await dialog.locator('[name=startsAt]').fill(futureDate(9)+'T15:00');
+    await dialog.locator('[name=endsAt]').fill(futureDate(9)+'T16:00');
+    await dialog.getByRole('radio',{name:'On-site',exact:true}).check();
+    await dialog.getByLabel('Venue or street address').fill('Study room in Amman');
+    await dialog.getByLabel('On-site seats').fill('3');
+    await dialog.getByRole('button',{name:'Save draft',exact:true}).click();
+    await rep.getByRole('heading',{name:title}).waitFor();
+    const sessionId = rep.url().match(/sessions\/([0-9a-f-]{36})/)[1];
+    await rep.reload();
+    await rep.getByRole('button',{name:'Edit draft'}).waitFor();
+    await individual.goto(origin+explorePage);
+    await individual.locator('.ex-card[data-kind=initiative]').first().waitFor();
+    assert.equal(await individual.locator('.ex-card[data-id="'+sessionId+'"]').count(),0);
+    await rep.getByRole('button',{name:'Publish',exact:true}).click();
+    await dialog.getByRole('button',{name:'Confirm',exact:true}).click();
+    await rep.getByText('Published',{exact:true}).waitFor();
+
+    await individual.reload();
+    const listing = individual.locator('.ex-card[data-id="'+sessionId+'"]');
+    await listing.getByRole('button',{name:'View '+title}).click();
+    const sheet = individual.locator('#ex-sheet');
+    await sheet.getByRole('heading',{name:title}).waitFor();
+    await sheet.getByText('sessions-browser North',{exact:true}).waitFor();
+    await sheet.getByRole('button',{name:'Initiative work',exact:true}).waitFor();
+    await sheet.getByLabel('I agree to attend',{exact:false}).check();
+    await sheet.getByRole('button',{name:'Register for this session'}).click();
+    await sheet.getByText('Confirmed',{exact:true}).waitFor();
+    await individual.reload();
+    await sheet.getByText('Confirmed',{exact:true}).waitFor();
+    await sheet.getByRole('button',{name:'Close',exact:true}).click();
+    const mine = individual.locator('#ex-mine-list .ex-mine-item').filter({hasText:title});
+    await mine.getByText('Confirmed',{exact:true}).waitFor();
+    const registrationId = await mine.getAttribute('data-session-registration');
+
+    await student.goto(workspace+'student/dashboard?initiative='+f.initiative);
+    await student.locator('main').getByRole('link',{name:'Session schedule',exact:true}).click();
+    await student.getByRole('link',{name:title,exact:true}).first().click();
+    const studentRegistration = student.locator('.iw-card').filter({has:student.getByRole('heading',{name:'Your registration',exact:true})});
+    await studentRegistration.getByText('Confirmed',{exact:true}).waitFor();
+    await supervisor.goto(workspace+'supervisor/dashboard?initiative='+f.initiative);
+    await supervisor.getByRole('link',{name:'Sessions & meetings'}).click();
+    await supervisor.getByRole('link',{name:title,exact:true}).click();
+    await supervisor.getByRole('row').filter({hasText:f.names[4]}).getByText('Confirmed',{exact:true}).waitFor();
+    await rep.reload();
+    await rep.getByRole('row').filter({hasText:f.names[4]}).getByText('Confirmed',{exact:true}).waitFor();
+
+    await student.getByRole('button',{name:'Cancel registration',exact:true}).click();
+    await student.getByRole('dialog').getByRole('button',{name:'Confirm',exact:true}).click();
+    await student.getByText('Cancelled',{exact:true}).waitFor();
+    await individual.reload();
+    await individual.locator('[data-session-registration="'+registrationId+'"]').getByText('Cancelled',{exact:true}).waitFor();
+    await supervisor.reload();
+    await supervisor.getByRole('row').filter({hasText:f.names[4]}).getByText('Cancelled',{exact:true}).waitFor();
+    await rep.reload();
+    await rep.getByRole('row').filter({hasText:f.names[4]}).getByText('Cancelled',{exact:true}).waitFor();
+    await studentRegistration.getByRole('checkbox').check();
+    await studentRegistration.getByRole('button',{name:'Register for this session'}).click();
+    await studentRegistration.getByText('Confirmed',{exact:true}).waitFor();
+    await individual.goto(origin+explorePage+'#session='+sessionId);
+    await individual.reload();
+    await sheet.getByText('Confirmed',{exact:true}).waitFor();
+    await sheet.getByRole('button',{name:'Cancel registration',exact:true}).click();
+    await sheet.getByText('Cancelled',{exact:true}).waitFor();
+    await student.reload();
+    await studentRegistration.getByText('Cancelled',{exact:true}).waitFor();
+    assert.deepEqual(pageErrors,[]);
+  } finally { await browser.close(); }
 });

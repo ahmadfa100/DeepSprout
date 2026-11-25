@@ -102,6 +102,8 @@ doc?.addEventListener('drop', e => {
   e.preventDefault(); zone.classList.remove('is-drop-over');
   const select = document.querySelector(`select[data-action=allocate][data-person="${CSS.escape(dragged)}"]`);
   if (select && select.value !== zone.dataset.dropGroup) { select.value = zone.dataset.dropGroup; select.dispatchEvent(new Event('change', {bubbles:true})); }
+  if (!select && zone.hasAttribute('data-live-group-drop'))
+    zone.dispatchEvent(new CustomEvent('live-group-drop',{bubbles:true,detail:{student:dragged,groupId:zone.dataset.dropGroup || null}}));
 });
 
 /** Call after content renders (page or dialog). */

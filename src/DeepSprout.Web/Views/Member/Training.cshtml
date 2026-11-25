@@ -28,7 +28,7 @@
   <script src="assigned.js?v=20261111-1" defer></script>
   <script src="../../../js/data/shield-bridge.js" defer></script>
 </head>
-<body data-page="training" data-root="../../../../">
+<body data-page="training" data-root="../../../../" data-live-assigned="@(User.Identity?.IsAuthenticated == true ? "yes" : "no")">
   <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
     <symbol id="i-shapes" viewBox="0 0 32 32"><circle cx="9" cy="9" r="5"/><path d="m23 4 5 10H18z"/><rect x="4" y="18" width="10" height="10" rx="1.5"/><path d="m23 18 5 5-5 5-5-5z"/></symbol>
     <symbol id="i-evidence" viewBox="0 0 32 32"><rect x="3" y="4" width="11" height="9" rx="2"/><rect x="18" y="19" width="11" height="9" rx="2"/><path d="M8.5 13v9a2 2 0 0 0 2 2H18M18 8h10M18 12h7"/></symbol>
@@ -83,7 +83,7 @@
       <!-- ------------------------------------------------------------ assigned -->
       <section class="block assigned-block" id="assigned" aria-labelledby="assigned-title" hidden>
         <div class="block-head">
-          <div><p class="kicker">Assigned</p><h2 id="assigned-title">From your Coach <button type="button" class="ds-help" aria-expanded="false" aria-label="About assigned tasks" data-help="Tasks from your initiative group or Coach program. Send a reflection, a document, a PDF or a photo. Your Coach reviews it; approved work grows the matching tree in your Garden once."><span aria-hidden="true">?</span></button></h2><p class="as-summary" id="assigned-count" aria-live="polite"></p></div>
+          <div><p class="kicker">Assigned</p><h2 id="assigned-title">From your Coach <button type="button" class="ds-help" aria-expanded="false" aria-label="About assigned tasks" data-help="Assignments from your Initiative group. Submit a written response and check your Coach’s feedback here."><span aria-hidden="true">?</span></button></h2><p class="as-summary" id="assigned-count" aria-live="polite"></p></div>
         </div>
         <div class="as-list" id="assigned-list"></div>
       </section>

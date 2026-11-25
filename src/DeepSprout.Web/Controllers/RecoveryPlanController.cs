@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DeepSprout.Web.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = PersonalRecords.IndividualPolicy)]
 [Route("api/recovery-plan")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed partial class RecoveryPlanController(DeepSproutV5DbContext db, IAntiforgery antiforgery,

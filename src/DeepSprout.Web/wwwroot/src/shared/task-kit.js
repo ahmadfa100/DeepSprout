@@ -136,7 +136,7 @@ export function bucketOf(t) {
   if (['Approved', 'Rejected'].includes(t.status)) return 'done';
   return 'closed';
 }
-const STATUS_WORD = {Assigned:'To do', 'In Progress':'In progress', Submitted:'With your Coach', 'Needs Revision':'Revise', Approved:'Approved', Rejected:'Not accepted', Cancelled:'Cancelled'};
+const STATUS_WORD = {Assigned:'To do', 'In Progress':'In progress', Submitted:'With your Coach', 'Needs Revision':'Revise', Approved:'Approved', Rejected:'Not accepted', Cancelled:'Cancelled', Expired:'Expired'};
 const AUDIENCE = {you:['person', 'Just for you'], chosen:['people', 'You and a few others'], group:['people', 'Your group'], 'all-groups':['layers', 'Every group']};
 
 function statusMark(t, fresh) {
@@ -166,10 +166,10 @@ export function todoItem(t, {today, open = false, criteria = [], levels = [], fo
   const reviewed = sub && sub.status !== 'Submitted' && (sub.feedback || sub.evaluation);
   const form = t.actionable ? `<form class="tk-send" data-tk-submit="${esc(t.id)}" data-submit="${esc(t.id)}" ${formAttrs.replaceAll('{id}', esc(t.id))}>
       <h4>${t.status === 'Needs Revision' || t.status === 'Rejected' ? 'Send a new attempt' : 'Send your work'}</h4>
-      <label class="tk-field"><span>${t.status === 'Needs Revision' ? 'What did you change?' : 'What did you do, and what did you notice?'}</span><textarea name="text" rows="4" placeholder="A few honest sentences are enough.">${''}</textarea></label>
-      ${dropzone({name:'files', title:'Add a document, PDF or photo'})}
+      <label class="tk-field"><span>${t.status === 'Needs Revision' ? 'What did you change?' : 'What did you do, and what did you notice?'}</span><textarea name="text" rows="4" ${t.textOnly ? 'required maxlength="12000"' : ''} placeholder="A few honest sentences are enough."></textarea></label>
+      ${t.textOnly ? '' : dropzone({name:'files', title:'Add a document, PDF or photo'})}
       <p class="tk-form-error form-error" role="alert"></p>
-      <div class="tk-send-foot"><small>Write a reflection, attach a file, or both.</small><button class="tk-btn is-primary" type="submit">${icon('send')}<span>${sub ? 'Resubmit for review' : 'Submit for review'}</span></button></div>
+      <div class="tk-send-foot"><small>${t.textOnly ? 'Submit a written response.' : 'Write a reflection, attach a file, or both.'}</small><button class="tk-btn is-primary" type="submit">${icon('send')}<span>${sub ? 'Resubmit for review' : 'Submit for review'}</span></button></div>
     </form>` : '';
   return `<details class="tk-item is-${bucket}${late ? ' is-late' : ''}" data-tk-item="${esc(t.id)}" data-task="${esc(t.id)}" data-bucket="${bucket}" ${open ? 'open' : ''}>
     <summary class="tk-row" data-toggle="${esc(t.id)}">
@@ -189,7 +189,10 @@ export function todoItem(t, {today, open = false, criteria = [], levels = [], fo
     <div class="tk-body"><div class="tk-body-inner">
       <div class="tk-brief">
         <h4>What to do</h4>
+        ${t.textOnly ? `<p class="tk-note"><strong>${esc(STATUS_WORD[t.status] || t.status)}</strong></p>` : ''}
         <p class="tk-instructions as-instructions">${esc(t.instructions)}</p>
+        ${t.schedule ? `<p class="tk-note">${esc(t.schedule)}</p>` : ''}
+        ${t.canStart ? `<button type="button" class="tk-btn is-quiet" data-action="live-task-start" data-id="${esc(t.id)}">Start work</button>` : ''}
         ${t.evidence ? `<p class="tk-ask">${icon('send')}<span><b>Send back:</b> ${esc(t.evidence)}</span></p>` : ''}
         ${files ? `<h4>From your Coach</h4>${fileTiles(t.attachments)}` : ''}
         ${t.activityId ? `<p class="tk-source">Activity reference ${esc(t.activityId)} · version ${esc(t.activityVersion)}${t.contentVersion ? ` · ${esc(t.contentVersion)}` : ''}</p>` : ''}
@@ -200,7 +203,7 @@ export function todoItem(t, {today, open = false, criteria = [], levels = [], fo
         ${reviewed ? evaluationView({decision:sub.status, evaluation:sub.evaluation, feedback:sub.feedback, reviewer:`Coach ${t.coach}`, at:sub.reviewedAt, criteria, levels, fresh}) : ''}
         ${sub?.status === 'Submitted' ? `<div class="tk-waiting">${icon('send')}<div><b>Sent ${esc(fmtDate(sub.submitted))}</b><p>Coach ${esc(t.coach)} will review it. You’ll see their feedback here.</p></div></div>` : ''}
         ${form}
-        ${history.length ? `<h4>${history.length > 1 ? 'Your attempts' : 'What you sent'}</h4><ol class="tk-attempts">${history.map((h, n) => `<li class="${h.current ? 'is-current' : ''}"><span class="tk-attempt-n">${n + 1}</span><div><small>${esc(fmtDate(h.created))}${h.status && !h.current ? ` · ${esc(STATUS_WORD[h.status] || h.status)}` : ''}</small>${h.text ? `<p>${esc(h.text)}</p>` : ''}${fileTiles(h.files || [], {cls:'is-compact'})}</div></li>`).join('')}</ol>` : ''}
+        ${history.length ? `<h4>${history.length > 1 ? 'Your attempts' : 'What you sent'}</h4><ol class="tk-attempts">${history.map((h, n) => `<li class="${h.current ? 'is-current' : ''}"><span class="tk-attempt-n">${n + 1}</span><div><small>${esc(fmtDate(h.created))}${h.status && !h.current ? ` · ${esc(STATUS_WORD[h.status] || h.status)}` : ''}</small>${h.text ? `<p>${esc(h.text)}</p>` : ''}${h.feedback ? `<p>${esc(h.feedback)}</p>` : ''}${fileTiles(h.files || [], {cls:'is-compact'})}</div></li>`).join('')}</ol>` : ''}
       </div>
     </div></div>
   </details>`;

@@ -10,6 +10,26 @@ namespace DeepSprout.Web.Services;
 
 internal static class PersonalRecords
 {
+    internal const string IndividualPolicy = "IndividualWorkspace";
+    internal const string IndividualClaim = "deepsprout:individual-workspace";
+    internal const string OnboardingPath = "/src/pages/member/onboarding/onboarding.html";
+    internal const string HomePath = "/src/pages/member/dashboard/dashboard.html";
+    internal const string TermsPurpose = "TermsAndPrivacy";
+    internal const string TermsNotice = "2026-11-10";
+
+    internal static IndividualProfile NewProfile(long personId, DateTime now) => new()
+    {
+        PersonId = personId, OnboardingStage = "Started", JourneyLevel = 1, PreferredTimeZone = "UTC", CreatedAtUtc = now
+    };
+
+    internal static ConsentRecord AcceptTerms(long personId, DateTime now) => new()
+    {
+        PersonId = personId, PurposeCode = TermsPurpose, NoticeVersion = TermsNotice, Decision = "Accepted",
+        DecidedAtUtc = now, CreatedAtUtc = now
+    };
+
+    internal static bool NeedsOnboarding(string? stage) => stage is "Started" or "QuickSetup" or "Story";
+
     internal static IQueryable<Person> PlatformAdmins(DeepSproutV5DbContext db) =>
         db.Set<Person>().Where(person => person.Status == "Active" && person.PlatformRole == "Admin");
 

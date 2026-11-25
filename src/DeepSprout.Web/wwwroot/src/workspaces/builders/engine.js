@@ -6,7 +6,19 @@
  */
 import * as u from '../ui.js';
 import {dispatch} from '../store.js';
-export function draftFor(ctx,kind,initial){ctx.localUI.builders??={};const key=`${ctx.person.id}:${kind}:${ctx.route.id||'new'}`;return ctx.localUI.builders[key]??=(structuredClone(ctx.s.builderDrafts[`${ctx.person.id}:${kind}:${ctx.route.id||'new'}`]||{...initial,step:0}));}
+export function draftFor(ctx,kind,initial){
+ if(ctx.liveInstitution){
+  const record=ctx.institutionData.record?.initiative;
+  const key=`${ctx.liveInstitution.id}:${ctx.route.id}:${ctx.route.tail||''}`;
+  let entry=ctx.localUI.initiativeBuilder;
+  if(entry?.key!==key || entry.draft.serverVersion!==record?.version){
+   const step=record?.stage||0;
+   entry=ctx.localUI.initiativeBuilder={key,draft:structuredClone({...initial,step,maxStep:step,serverVersion:record?.version,savedAt:record?.savedAt})};
+  }
+  return entry.draft;
+ }
+ ctx.localUI.builders??={};const key=`${ctx.person.id}:${kind}:${ctx.route.id||'new'}`;return ctx.localUI.builders[key]??=(structuredClone(ctx.s.builderDrafts[key]||{...initial,step:0}));
+}
 export function frame(ctx,config,draft,body){
  ctx.localUI.activeBuilder={config,draft};draft.maxStep=Math.max(draft.maxStep||0,draft.step);
  const total=config.steps.length,pct=Math.round((draft.step+1)/total*100);
@@ -16,7 +28,7 @@ export function frame(ctx,config,draft,body){
  return u.header(config.eyebrow,config.title,config.description,(config.headerActions||'')+u.link('Back to list',config.listPath))
   +(config.banner?config.banner(draft):'')
   +`<div class="builder-layout ${config.layoutClass||''}"><nav class="builder-rail" aria-label="Creation steps"><div class="builder-progress" role="progressbar" aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${draft.step+1}" aria-valuetext="Step ${draft.step+1} of ${total}: ${u.esc(config.steps[draft.step])}"><i style="--w:${pct}%"></i></div><ol class="builder-steps">${config.steps.map(stepItem).join('')}</ol>${saved}</nav>`
-  +`<form class="builder-card" data-form="builder"><div class="builder-card-head"><p class="eyebrow">STEP ${draft.step+1} OF ${total}</p><h2>${u.esc(config.steps[draft.step])}</h2>${config.stepIntro?.[draft.step]?`<p class="builder-intro">${u.esc(config.stepIntro[draft.step])}</p>`:''}</div><div class="builder-body" data-step="${draft.step}">${body}</div><p class="form-error" role="alert" tabindex="-1">${draft.errors?.length?u.esc(draft.errors.join(' · ')):''}</p><div class="builder-actions"><div>${draft.step?u.button('Back','builder-back',{},'button quiet'):''}</div><div class="actions">${u.button('Save draft','builder-save',{},'button quiet')}${config.preview?u.button('Preview','builder-preview',{},'button quiet'):''}${draft.step<total-1?u.button('Continue','builder-next',{},'button primary'):publishBtn}</div></div></form>${config.aside?config.aside(draft):''}</div>`;
+  +`<form class="builder-card" data-form="builder"><div class="builder-card-head"><p class="eyebrow">STEP ${draft.step+1} OF ${total}</p><h2>${u.esc(config.steps[draft.step])}</h2>${config.stepIntro?.[draft.step]?`<p class="builder-intro">${u.esc(config.stepIntro[draft.step])}</p>`:''}</div><div class="builder-body" data-step="${draft.step}">${body}</div><p class="form-error" role="alert" tabindex="-1">${draft.errors?.length?u.esc(draft.errors.join(' · ')):''}</p><div class="builder-actions"><div>${draft.step?u.button('Back','builder-back',{},'button quiet'):''}</div><div class="actions">${config.revising?'':u.button('Save draft','builder-save',{},'button quiet')}${config.preview?u.button('Preview','builder-preview',{},'button quiet'):''}${draft.step<total-1?u.button('Continue','builder-next',{},'button primary'):publishBtn}</div></div></form>${config.aside?config.aside(draft):''}</div>`;
 }
 export function persistDraft(ctx,config,draft){draft.savedAt=new Date().toISOString();dispatch('builder.save',{kind:config.kind,id:ctx.route.id||'new',draft:structuredClone(draft)});}
 export function builderAction(action,target,ctx){
@@ -24,9 +36,10 @@ export function builderAction(action,target,ctx){
  if(action==='builder-next'&&!form.reportValidity())return true;
  config.capture(draft,u.formValues(form),form);
  if(action==='builder-preview'){u.modal(`Preview · ${draft.title||'Untitled'}`,config.preview(draft),()=>{},'Close preview',{readonly:true,wide:true});return true;}
- if(config.itemAction?.(action,target,draft,ctx)){persistDraft(ctx,config,draft);ctx.render();return true;}
- if(action==='builder-next'&&config.validate){const errors=config.validate(draft,draft.step);draft.errors=errors;if(errors.length){persistDraft(ctx,config,draft);ctx.render();requestAnimationFrame(()=>document.querySelector('[data-form=builder] .form-error')?.focus());return true;}}
+ if(config.itemAction?.(action,target,draft,ctx)){if(!ctx.liveInstitution)persistDraft(ctx,config,draft);ctx.render();return true;}
+ if(action==='builder-next'&&config.validate){const errors=config.validate(draft,draft.step);draft.errors=errors;if(errors.length){if(!ctx.liveInstitution)persistDraft(ctx,config,draft);ctx.render();requestAnimationFrame(()=>document.querySelector('[data-form=builder] .form-error')?.focus());return true;}}
  draft.errors=[];
+ if(ctx.liveInstitution) return liveBuilderAction(action,target,ctx,config,draft,form);
  if(action==='builder-goto'){draft.step=Number(target.dataset.step);persistDraft(ctx,config,draft);ctx.render();focusStep();return true;}
  if(action==='builder-next')draft.step++;else if(action==='builder-back')draft.step--;
  else if(action==='builder-save'||action==='builder-publish'){
@@ -36,6 +49,24 @@ export function builderAction(action,target,ctx){
   ctx.go(`${config.listPath}/${recordId}${action==='builder-publish'?'?published=1':''}`);return true;
  }
  persistDraft(ctx,config,draft);if(['builder-next','builder-back'].includes(action)){ctx.render();focusStep();}return true;
+}
+async function liveBuilderAction(action,target,ctx,config,draft,form){
+ const previous= draft.step;
+ if(action==='builder-next') draft.step++;
+ else if(action==='builder-back') draft.step--;
+ else if(action==='builder-goto') draft.step=Number(target.dataset.step);
+ else if(!['builder-save','builder-publish'].includes(action)) return false;
+ form.inert=true;
+ try {
+  await ctx.saveInitiative(draft,action==='builder-publish');
+ } catch(error) {
+  draft.step=previous;
+  const alert=form.querySelector('.form-error');
+  alert.textContent=error.message;
+  form.inert=false;
+  alert.focus();
+ } finally { form.inert=false; }
+ return true;
 }
 /** After a step change, move focus to the new step heading (keyboard and screen-reader continuity). */
 function focusStep(){requestAnimationFrame(()=>{const h=document.querySelector('.builder-card-head h2');if(h){h.tabIndex=-1;h.focus({preventScroll:false});}});}

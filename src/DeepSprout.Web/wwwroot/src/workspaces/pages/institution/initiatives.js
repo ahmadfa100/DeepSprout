@@ -13,7 +13,7 @@ import {builderChoice} from '../../builders/controls.js';
 
 const cover = i => i.cover?.image ? `<img class="iw-cover" src="${esc(i.cover.image)}" alt="${esc(i.cover.alt || '')}">` : `<div class="iw-cover is-blank" aria-hidden="true">${u.icon('nodes')}</div>`;
 // One status pill (the state that matters now) plus a quiet line of detail — not three competing pills.
-const statusLine = (s, i) => { const sum = summary(s, i); if (i.status !== 'Published') return pill(i.status); return `${pill(sum.phase === 'Running' ? 'Running' : sum.phase, sum.phase)}<span class="iw-status-note">Published · applications ${esc(sum.registration.toLowerCase())}</span>`; };
+const statusLine = (s, i) => { const sum = summary(s, i); if (i.status !== 'Published') return pill(i.status); return `${pill(sum.phase === 'Running' ? 'Running' : sum.phase, sum.phase)}<span class="iw-status-note">Published · ${esc(i.applicationWindow || 'applications '+sum.registration.toLowerCase())}</span>`; };
 
 /** Dashboard and listing live in rep-dashboard.js (shared design system); detail and lifecycle stay here. */
 export function renderDashboard(ctx, initiatives) { return renderRepDashboard(ctx, initiatives); }
@@ -22,7 +22,11 @@ export function renderInitiativeList(ctx, initiatives) { return renderInitiative
 const componentHref = c => { const path = c.type === 'Session' ? `organization/sessions/${c.resourceId}` : c.type === 'Survey or Quiz' ? `organization/forms/${c.resourceId}` : c.type === 'Competition' ? `organization/competitions/${c.resourceId}` : c.type === 'Outdoor Activity' ? `organization/activities/${c.resourceId}` : ''; return path ? u.link('Open', path, 'text-link') : '<small>Linked</small>'; };
 export function renderInitiativeDetail(ctx, i) {
   const {s, route:r} = ctx;
+  const live = !!ctx.liveInstitution, past = live && r.query.has('revision');
+  const path = ctx.workspacePath || (value=>value);
+  const detailPath = `organization/initiatives/${i.id}`;
   const sum = summary(s, i), tab = r.query.get('tab') || 'overview';
+  if (live) sum.registration = i.applicationWindow;
   // One clear primary action; everything else lives in a “More” menu (Cancel stays visibly destructive).
   const primary = [], more = [];
   if (i.status === 'Draft') { primary.push(u.link('Continue editing', `organization/initiatives/${i.id}/edit`, 'button primary'), u.button('Publish', 'initiative-publish', {id:i.id}, 'button secondary')); }
@@ -34,13 +38,44 @@ export function renderInitiativeDetail(ctx, i) {
   more.push(u.button('Duplicate as draft', 'initiative-duplicate', {id:i.id}, 'iw-menu-item'));
   if (['Completed','Cancelled','Draft','Published'].includes(i.status)) more.push(u.button('Archive', 'initiative-archive', {id:i.id}, 'iw-menu-item'));
   if (!['Cancelled','Archived','Completed'].includes(i.status)) more.push(u.button('Cancel initiative…', 'initiative-cancel', {id:i.id}, 'iw-menu-item is-danger'));
+  if (live) {
+    primary.length = more.length = 0;
+    if (past) primary.push(u.link('Current version',path(detailPath),'button primary'));
+    else {
+      if (i.status === 'Draft') primary.push(u.link('Continue editing',path(detailPath+'/edit'),'button primary'));
+      if (i.status === 'Published') primary.push(u.link('Update details',path(detailPath+'/edit'),'button primary'),
+        u.button('Close applications','initiative-reg-close',{},'button quiet'));
+      if (i.status === 'RegistrationClosed') primary.push(u.button('Reopen applications','initiative-reg-open',{},'button quiet'));
+      if (['Completed','Cancelled','Draft','Published'].includes(i.status))
+        more.push(u.button('Archive','initiative-archive',{},'iw-menu-item'));
+      if (['Draft','Published','RegistrationClosed'].includes(i.status))
+        more.push(u.button('Cancel initiative…','initiative-cancel',{},'iw-menu-item is-danger'));
+    }
+  }
   const manage = [...primary, more.length ? `<details class="iw-menu"><summary class="button quiet">More<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></summary><div class="iw-menu-panel">${more.join('')}</div></details>` : ''];
-  const tabsBar = tabs([['Overview', `organization/initiatives/${i.id}`, 'overview'], ['Applications', withInitiative('organization/participants', i), 'x', sum.pending], ['Staff', withInitiative('organization/team', i), 'x'], ['Groups', withInitiative('organization/team?tab=groups', i), 'x'], ['Agenda', withInitiative('organization/sessions', i), 'x'], ['Attendance & excuses', withInitiative('organization/attendance', i), 'x', sum.excusesForRep.length], ['Reports', withInitiative('organization/reports', i), 'x'], ['History', `organization/initiatives/${i.id}?tab=history`, 'history']], tab);
+  const tabsBar = tabs(live ? [['Overview',path(detailPath),'overview'],...(i.version && !past ? [
+    ['Applications',path(withInitiative('organization/participants',i)),'applications',i.pending],
+    ['Staff',path(withInitiative('organization/team',i)),'staff'],
+    ['Sessions',path(withInitiative('organization/sessions',i)),'sessions'],
+    ['Group Garden',path(withInitiative('organization/group-garden',i)),'garden']] : []),
+    ['History',path(detailPath+'?tab=history'),'history']]
+    : [['Overview', detailPath, 'overview'], ['Applications', withInitiative('organization/participants', i), 'x', sum.pending], ['Staff', withInitiative('organization/team', i), 'x'], ['Groups', withInitiative('organization/team?tab=groups', i), 'x'], ['Agenda', withInitiative('organization/sessions', i), 'x'], ['Attendance & excuses', withInitiative('organization/attendance', i), 'x', sum.excusesForRep.length], ['Reports', withInitiative('organization/reports', i), 'x'], ['History', detailPath+'?tab=history', 'history']], tab);
   const mode = i.deliveryMode || (i.modes?.length > 1 ? 'Hybrid' : i.modes?.[0]) || 'Online';
-  const justPublished = r.query.get('published') === '1' && i.status === 'Published' ? ds.banner('positive', 'Published to Explore.', `Individuals can now discover and apply to <strong>${esc(i.title)}</strong> in the regular Explore page. ${sum.supervisors.length ? '' : 'Invite a Supervisor so attendance-bearing sessions can open check-in.'}`, `<a class="button primary small" href="src/pages/member/explore/explore.html">Open Explore</a>${u.link('Invite staff', withInitiative('organization/team', i), 'button quiet small')}${u.link('Create another', 'organization/create', 'button quiet small')}`) : '';
-  const heroBlock = `<p class="breadcrumbs">${u.link('Initiatives', 'organization/initiatives', 'text-link')} / ${esc(i.title)}</p>${justPublished}<section class="iw-detail-hero iw-reveal">${cover(i)}<div><div class="actions">${statusLine(s, i)}${ds.chip('Mode', deliveryLabel(mode))}</div><h1>${esc(i.title)}</h1><p class="iw-lead">${esc(i.summary || '')}</p><div class="actions">${manage.join('')}</div>${i.status === 'Published' ? `<p class="iw-muted">${u.icon('mountain')} Visible now in the regular Individual Explore page.</p>` : i.status === 'Draft' ? `<p class="iw-muted">Draft — not visible in Explore.</p>` : ''}${i.cancelReason ? `<p class="iw-muted">Cancelled: ${esc(i.cancelReason)}</p>` : ''}</div></section>`;
+  const justPublished = !live && r.query.get('published') === '1' && i.status === 'Published' ? ds.banner('positive', 'Published to Explore.', `Individuals can now discover and apply to <strong>${esc(i.title)}</strong> in the regular Explore page. ${sum.supervisors.length ? '' : 'Invite a Supervisor so attendance-bearing sessions can open check-in.'}`, `<a class="button primary small" href="src/pages/member/explore/explore.html">Open Explore</a>${u.link('Invite staff', withInitiative('organization/team', i), 'button quiet small')}${u.link('Create another', 'organization/create', 'button quiet small')}`) : '';
+  const publication = live ? `<p class="iw-muted">Organized by ${esc(ctx.liveInstitution.name)}${i.version ? ` · Revision ${esc(i.version)}` : ''}</p>${!past && i.discoverable ? `<a class="button quiet small" href="/src/pages/member/explore/explore.html#initiative=${esc(i.id)}">Open in Explore</a>` : ''}` :
+    i.status === 'Published' ? `<p class="iw-muted">${u.icon('mountain')} Visible now in the regular Individual Explore page.</p>` : i.status === 'Draft' ? `<p class="iw-muted">Draft — not visible in Explore.</p>` : '';
+  const heroBlock = `<p class="breadcrumbs">${u.link('Initiatives', path('organization/initiatives'), 'text-link')} / ${esc(i.title)}</p>${justPublished}<section class="iw-detail-hero iw-reveal">${cover(i)}<div><div class="actions">${past ? pill('Historical revision') : statusLine(s, i)}${ds.chip('Mode', deliveryLabel(mode))}</div><h1>${esc(i.title)}</h1><p class="iw-lead">${esc(i.summary || '')}</p><div class="actions">${manage.join('')}</div>${publication}${i.cancelReason ? `<p class="iw-muted">Cancelled: ${esc(i.cancelReason)}</p>` : ''}</div></section>`;
+  if (live && tab === 'history') {
+    const {history,versions} = ctx.institutionData.record;
+    return heroBlock + tabsBar
+      + card('Published revisions',`<ul class="iw-mini-list">${versions.map(v=>`<li>${u.link('Revision '+v.revisionNo,path(detailPath+'?revision='+v.revisionNo),'text-link')}<span>${esc(v.changeKind)} · ${esc(u.date(v.publishedAtUtc))}${v.changeReason ? ' · '+esc(v.changeReason) : ''}</span></li>`).join('') || '<li>No published revisions.</li>'}</ul>`)
+      + card('Decision history',`<ol class="iw-history">${history.map(h=>`<li><time>${esc(u.date(h.atUtc))}</time><span><strong>${esc(h.action)}</strong>${h.reason ? ' · '+esc(h.reason) : ''}</span><small>${esc(h.actor || '')}</small></li>`).join('')}</ol>`);
+  }
   if (tab === 'history') return heroBlock + tabsBar + card('Version & decision history', `<ol class="iw-history">${(i.history || []).slice().reverse().map(h => `<li><time>${esc(fmtDate(h.at))}</time><span><strong>v${esc(h.version || i.version)}</strong> · ${esc(h.change)}${h.reason ? ` · ${esc(h.reason)}` : ''}${h.before ? `<small>${esc(Object.entries(h.before).map(([k, v]) => `${k}: ${v} → ${h.after[k]}`).join(' · '))}</small>` : ''}</span><small>${esc(h.actorId === 'system' ? 'System' : nameOf(s, h.actorId))}</small></li>`).join('')}</ol>`);
-  const comp = (i.components || []).map(c => `<li><span class="iw-comp-type">${esc(c.type)}</span><strong>${esc(c.title || `New ${c.type}`)}</strong>${c.planned ? `<small>Planned · details can be added later</small>${i.status === 'Published' ? u.button('Add details', 'initiative-component-edit', {id:i.id, component:c.id}, 'button quiet small') : ''}` : c.resourceId ? componentHref(c) : '<small>Part of this initiative</small>'}</li>`).join('');
+  const comp = (i.components || []).map(c => `<li><span class="iw-comp-type">${esc(c.type)}</span><strong>${esc(c.title || `New ${c.type}`)}</strong>${c.planned ? `<small>Planned · details can be added later</small>${!live && i.status === 'Published' ? u.button('Add details', 'initiative-component-edit', {id:i.id, component:c.id}, 'button quiet small') : ''}` : !live && c.resourceId ? componentHref(c) : '<small>Part of this initiative</small>'}</li>`).join('');
+  if (live) return heroBlock + tabsBar + invitationCard(i,sum)
+    + card('Components',`<ul class="iw-components">${comp || '<li>No components.</li>'}</ul>`,{eyebrow:'WHAT IT CONTAINS'})
+    + rulesCard(i);
   return heroBlock + tabsBar
     + stats([stat(sum.accepted, 'Accepted students', {of:sum.cap}), stat(sum.pending, 'Pending'), stat(sum.queued + sum.offered, 'Waiting list'), stat(sum.supervisors.length, 'Active Supervisors', {of:MAX_SUPERVISORS}), stat(sum.coaches.length, 'Coaches'), stat(sum.sessions.filter(x => x.status === 'Published').length, 'Published sessions')])
     + invitationCard(i, sum)
@@ -60,7 +95,8 @@ function rulesCard(i) {
   const rules = [
     ['people','Admission',i.policies?.admission],['calendar','Withdrawal',i.withdrawal],['calendar','Attendance',i.policies?.attendance],
     ['hybrid','Make-up / waiver',i.policies?.makeup],['shield','Privacy',i.policies?.privacy],
-    ['calendar','Waiting list',i.policies?.waitlist ? i.policies.offerManual ? 'On · offers end when you release them' : `On · offers held ${i.policies.offerHours || 24} h` : 'Off'],
+    ['calendar','Waiting list',i.policies?.waitlist ? i.admissionLive ? 'Eligible applicants can be queued when all seats are in use.' :
+      i.policies.offerManual ? 'On · offers end when you release them' : `On · offers held ${i.policies.offerHours || 24} h` : 'Off'],
     ['shield','Discipline',i.policies?.discipline],['form','Excuses',i.policies?.excuse],['check','Completion',i.policies?.completion],['mail','Notifications',i.policies?.notifications]
   ].filter(([, , value]) => value);
   return card('Participation rules', `<p class="rules-intro">The key rules for joining and taking part in this initiative.</p><dl class="rules-grid">${rules.map(([icon, label, value]) => `<div class="rule-item"><span class="inv-icon" aria-hidden="true">${u.icon(icon)}</span><div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div></div>`).join('')}</dl>${i.consent ? `<div class="rule-consent"><span class="inv-icon" aria-hidden="true">${u.icon('check')}</span><strong>Consent</strong><p>${esc(i.consent)}</p></div>` : ''}`, {eyebrow:'PUBLISHED RULES'});

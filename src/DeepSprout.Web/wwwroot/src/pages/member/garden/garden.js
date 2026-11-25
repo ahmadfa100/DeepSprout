@@ -614,7 +614,7 @@
       .sort((a, b) => String(b.on).localeCompare(String(a.on))).slice(0, 5);
     // The meta line keeps the record's own outcome and source; a generic catalog title is not repeated.
     const metaOf = x => [x.named ? x.title : '', x.detail, x.source].filter((part, index, all) => part && all.indexOf(part) === index).map(esc).join(' · ');
-    const groupLinks = repo && me ? repo.selectors.myInitiatives(repo.read(), me.id).filter(m => ['Accepted', 'Completed', 'Suspended'].includes(m.admission.status)) : [];
+    const groupLinks = !saved && repo && me ? repo.selectors.myInitiatives(repo.read(), me.id).filter(m => ['Accepted', 'Completed', 'Suspended'].includes(m.admission.status)) : [];
     const routineCount = journal.routineDays.length;
     card.innerHTML = `<header class="garden-achievement-head">
         <p class="garden-achievement-eyebrow">Recently grown</p>
@@ -627,7 +627,8 @@
         <time datetime="${esc(x.on)}">${esc(fmt.date(x.on, { year: true }))}</time>
       </li>`).join('')}</ul>` : ''}
       <footer class="garden-achievement-foot">
-        ${groupLinks.length ? `<p class="garden-groups">Group Gardens are shared and separate: ${groupLinks.map(m => `<a href="#group-${esc(m.initiative.id)}" data-group-garden="${esc(m.initiative.id)}">${esc(m.initiative.title)}</a>`).join(', ')}</p><div id="group-garden-panel"></div>` : ''}
+        ${saved ? '<div id="garden-initiative-links" role="status" aria-atomic="true">Loading Group Garden links…</div>' :
+          groupLinks.length ? `<p class="garden-groups">Demo Group Gardens · ${groupLinks.map(m => `<a href="#group-${esc(m.initiative.id)}" data-group-garden="${esc(m.initiative.id)}">${esc(m.initiative.title)}</a>`).join(', ')}</p><div id="group-garden-panel"></div>` : ''}
         <details class="garden-rules">
           <summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>How flowers, rabbits and birdhouses appear</summary>
           <ul>
@@ -638,6 +639,7 @@
           <p>Joining, registering, an accepted excuse or completing an initiative add nothing here.</p>
         </details>
       </footer>`;
+    if (saved) loadInitiativeLinks($('garden-initiative-links'));
     card.querySelectorAll('[data-group-garden]').forEach(link => link.addEventListener('click', event => {
       event.preventDefault();
       const g = repo.selectors.initiativeGarden(repo.read(), link.dataset.groupGarden);
@@ -659,4 +661,19 @@
     $('garden-next').setAttribute('role', 'alert');
     $('garden-next').textContent = 'Your garden couldn’t be loaded.';
   });
+
+  async function loadInitiativeLinks(host) {
+    try {
+      const response = await fetch('/api/initiative-student', {cache:'no-store'});
+      if (!response.ok) throw new Error('Group Garden links are unavailable.');
+      const {memberships} = await response.json();
+      const options = Array.from(new Map(memberships.filter(row => row.canAccess).map(row => [row.initiativeId, row])));
+      host.className = 'garden-groups';
+      host.innerHTML = options.length ? 'Group Gardens · ' + options.map(([id, row]) =>
+        `<a href="/workspaces.html?partner=live#/student/garden?initiative=${encodeURIComponent(id)}">${esc(row.title)}</a>`).join(', ') : '';
+    } catch {
+      host.setAttribute('role', 'alert');
+      host.textContent = 'Group Garden links could not be loaded.';
+    }
+  }
 })();

@@ -23,8 +23,8 @@ public sealed class AccountController(
     private const string LoginView = "~/Views/Auth/Login.cshtml";
     private const string RegisterView = "~/Views/Auth/Register.cshtml";
     private const string LoginPath = "/src/pages/auth/login/login.html";
-    private const string OnboardingPath = "/src/pages/member/onboarding/onboarding.html";
-    private const string DefaultDestination = "/src/pages/member/dashboard/dashboard.html";
+    private const string OnboardingPath = PersonalRecords.OnboardingPath;
+    private const string DefaultDestination = PersonalRecords.HomePath;
 
     [HttpGet]
     [AllowAnonymous]
@@ -68,6 +68,9 @@ public sealed class AccountController(
 
         if (await PersonalRecords.PlatformAdmins(db).AnyAsync(person => person.Id == user.PersonId))
             return LocalRedirect("/admin.html");
+
+        if (!await db.Set<Person>().AnyAsync(person => person.Id == user.PersonId && person.IndividualEnabledAtUtc != null))
+            return LocalRedirect("/workspaces.html?partner=live#/student/dashboard");
 
         var onboardingPending = await db.Set<IndividualProfile>().AnyAsync(profile => profile.PersonId == user.PersonId
             && (profile.OnboardingStage == "Started" || profile.OnboardingStage == "QuickSetup" || profile.OnboardingStage == "Story"));
@@ -129,17 +132,8 @@ public sealed class AccountController(
                 return View(RegisterView, model);
             }
 
-            db.Set<IndividualProfile>().Add(new IndividualProfile
-            {
-                PersonId = person.Id, OnboardingStage = "Started", JourneyLevel = 1,
-                PreferredTimeZone = "UTC", CreatedAtUtc = now
-            });
-            db.Set<ConsentRecord>().Add(new ConsentRecord
-            {
-                PersonId = person.Id, PurposeCode = "TermsAndPrivacy",
-                NoticeVersion = "2026-11-10", Decision = "Accepted",
-                DecidedAtUtc = now, CreatedAtUtc = now
-            });
+            db.Set<IndividualProfile>().Add(PersonalRecords.NewProfile(person.Id, now));
+            db.Set<ConsentRecord>().Add(PersonalRecords.AcceptTerms(person.Id, now));
             await db.SaveChangesAsync();
             await transaction.CommitAsync();
             await IssueCookieAsync(user);
@@ -162,6 +156,8 @@ public sealed class AccountController(
         var user = userId is null ? null : await users.FindByIdAsync(userId);
         if (user is null) return Challenge();
         var person = await db.Set<Person>().AsNoTracking().SingleAsync(item => item.Id == user.PersonId);
+        ViewData["HasStudentParticipation"] = await db.Set<InitiativeApplication>().AnyAsync(row => row.PersonId == person.Id &&
+            (row.AcceptedAtUtc != null || row.Status == "Accepted" || row.Status == "Suspended"));
         return View("~/Views/Account/Profile.cshtml", new ProfileViewModel(person.DisplayName, user.Email ?? ""));
     }
 

@@ -12,6 +12,13 @@
 (() => {
   const host = document.getElementById('assigned-list');
   if (!host) return;
+  if (document.body.dataset.liveAssigned === 'yes' && new URLSearchParams(location.search).get('account') !== 'demo') {
+    import('../../../workspaces/pages/student-work.js').then(work=>work.mountActivities(host)).catch(()=>{
+      document.getElementById('assigned').hidden = false;
+      host.textContent = 'Assignments could not be loaded. Refresh to try again.';
+    });
+    return;
+  }
   const PRACTICE_SESSION = { depth: 'depth', listening: 'listening', 'visual-observation': 'visual', 'digital-judgment': 'judgment' };
   const repo = () => window.DeepSproutRepo;
 
@@ -23,7 +30,7 @@
     if (!me) { section.hidden = true; return; }
     const tasks = r.selectors.assignedTasks(r.read(), me.id);
     section.hidden = !tasks.length && !location.hash.includes('assigned');
-    document.getElementById('assigned-count').textContent = tasks.length ? `${tasks.filter(t => t.actionable).length} to do · ${tasks.filter(t => t.status === 'Submitted').length} with your Coach · ${tasks.filter(t => t.status === 'Approved').length} approved` : '';
+    document.getElementById('assigned-count').textContent = tasks.length ? `Browser demo · ${tasks.filter(t => t.actionable).length} to do · ${tasks.filter(t => t.status === 'Submitted').length} with your Coach · ${tasks.filter(t => t.status === 'Approved').length} approved` : '';
     const kit = r.taskKit;
     host.innerHTML = kit.todoBoard(tasks, { today: r.today(), criteria: r.review.criteria, levels: r.review.levels, key: 'member-assigned',
       emptyText: 'No Coach has assigned you a task yet. When you join an initiative group or a Coach program, tasks appear here.' });

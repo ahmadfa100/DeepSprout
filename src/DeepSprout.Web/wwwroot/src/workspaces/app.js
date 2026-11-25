@@ -19,8 +19,8 @@ function navFor(area,s,p){
  return navigation.supervisor.filter(([key])=>key==='§'||((initiative||!inst.includes(key))&&(activity||!outdoor.includes(key))));
 }
 /** Sidebar markup: labelled groups, with empty groups dropped. */
-function navMarkup(items,area,page){
- const out=[];items.forEach(([key,icon,label],i)=>{if(key==='§'){const next=items[i+1];if(next&&next[0]!=='§')out.push(`<p class="nav-group">${ui.esc(icon)}</p>`);return;}out.push(`<a href="${ui.href(`${area}/${key}`)}" ${page===key?'aria-current="page"':''}>${ui.icon(icon)}<span>${label}</span></a>`);});
+function navMarkup(items,area,page,path=key=>`${area}/${key}`){
+ const out=[];items.forEach(([key,icon,label],i)=>{if(key==='§'){const next=items[i+1];if(next&&next[0]!=='§')out.push(`<p class="nav-group">${ui.esc(icon)}</p>`);return;}out.push(`<a href="${ui.href(path(key))}" ${page===key?'aria-current="page"':''}>${ui.icon(icon)}<span>${label}</span></a>`);});
  return out.join('');
 }
 const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -58,17 +58,31 @@ export async function render(){
  const serverCommunity=(communityRoute || verificationRoute) && !!adminName;
  const workspaceUrl=new URL(location.href);
  const liveAdmin=workspaceUrl.searchParams.get('community')==='live';
- const serverInstitution=!liveAdmin && workspaceUrl.searchParams.get('partner')==='live';
+ const staffArea=['mentor','supervisor'].includes(r.area);
+ const studentArea=r.area==='student';
+ const migratedInstitutionPage=r.area==='organization' && ['group-garden','sessions'].includes(r.page);
+ if(!liveAdmin && (staffArea||studentArea||migratedInstitutionPage) && auth==='signed-in' && workspaceUrl.searchParams.get('demo')!=='1' &&
+    workspaceUrl.searchParams.get('partner')!=='live'){
+   workspaceUrl.searchParams.set('partner','live');
+   history.replaceState(history.state,'',workspaceUrl);
+ }
+ const livePartner=!liveAdmin && workspaceUrl.searchParams.get('partner')==='live';
+ const serverStaff=livePartner && (staffArea || r.area==='auth' && ['staff-access','staff-invitation'].includes(r.page));
+ const serverStudent=livePartner && studentArea;
+ const liveScoped=serverStaff||serverStudent;
+ const serverInstitution=livePartner && !liveScoped;
  const institutionRoute=serverInstitution || serverCommunity && verificationRoute;
- const s=institutionRoute?{}:read();
+ const s=institutionRoute||liveScoped?{}:read();
  const p=serverCommunity ? {id:'server-admin',name:adminName,individual:true}
-   : serverInstitution ? {id:'server-institution',name:'Representative',individual:true} : person(s);
+   : serverStudent ? {id:'server-student',name:'Student',individual:false}
+   : serverStaff ? {id:'server-staff',name:document.body.dataset.representative || 'Staff',individual:document.body.dataset.individual==='yes'}
+   : serverInstitution ? {id:'server-institution',name:document.body.dataset.representative || 'Representative',individual:true} : person(s);
  if(liveAdmin && !communityRoute && !verificationRoute){
    go('admin/moderation');
    return;
  }
  if(serverInstitution && !(r.area==='auth' && (r.page==='application-status' || r.page==='application' && r.id==='organization')) &&
-    !(r.area==='organization' && r.page==='settings' && r.id)){
+    !(r.area==='organization' && (['dashboard','initiatives','create','participants','team','reports','group-garden','sessions'].includes(r.page) || r.page==='settings' && r.id))){
    go(r.path ? 'auth/application-status' : 'auth/application/organization');
    return;
  }
@@ -88,23 +102,41 @@ export async function render(){
  if(!modules[r.area]){app.innerHTML=`<main id="main" class="main">${ui.missing()}</main>`;return;}
  if(!publicArea&&!p){go('auth/login');return;}
  if(r.area==='provider'){const module=await modules.provider();if(version!==generation)return;app.innerHTML=`<main id="main" class="auth-wrap" tabindex="-1">${module.render({s,person:p,route:r,ui})}</main>`;document.title='Outdoor Provider retired — DeepSprout';return;}
- if(!serverCommunity&&!serverInstitution&&!publicArea&&!workspaces(s).includes(r.area)&&!(r.area==='supervisor'&&p.workspaces.includes('supervisor'))&&!(r.area==='student'&&initiativeStudent(s,p))){app.innerHTML=`<main id="main" class="auth-wrap">${ui.header('WORKSPACE ACCESS','This workspace is unavailable.','The current demo identity has no active membership or approved application for this workspace.')}${ui.link('Choose an available workspace','auth/workspaces')}${demoPanel(s)}</main>`;return;}
+ if(!serverCommunity&&!serverInstitution&&!liveScoped&&!publicArea&&!workspaces(s).includes(r.area)&&!(r.area==='supervisor'&&p.workspaces.includes('supervisor'))&&!(r.area==='student'&&initiativeStudent(s,p))){app.innerHTML=`<main id="main" class="auth-wrap">${ui.header('WORKSPACE ACCESS','This workspace is unavailable.','The current demo identity has no active membership or approved application for this workspace.')}${ui.link('Choose an available workspace','auth/workspaces')}${demoPanel(s)}</main>`;return;}
+ if(livePartner && ['garden','group-garden'].includes(r.page)){
+   const loading='<p role="status">Loading Group Garden…</p>';
+   const main=app.querySelector('main');
+   if(main)main.innerHTML=loading;
+   else app.innerHTML='<main id="main" class="auth-wrap">'+loading+'</main>';
+ } else if(!app.children.length && (serverStudent || livePartner && ['team','groups','students','schedule','sessions'].includes(r.page)))
+   app.innerHTML='<main id="main" class="auth-wrap"><p role="status">Loading workspace…</p></main>';
  const [module,community]=await Promise.all([
-   institutionRoute?import('./pages/institution-live.js'):modules[r.area](),
+   serverStudent?import('./pages/student-live.js'):serverStaff?import('./pages/staff-live.js'):institutionRoute?import('./pages/institution-live.js'):modules[r.area](),
    serverCommunity&&communityRoute?loadServerCommunity(r):null]);
  const institutionData=institutionRoute?await module.load(r):null;
+ const staffData=liveScoped?await module.load(r,auth==='signed-in'):null;
  if(version!==generation)return;
- const workspaceHome=serverInstitution && institutionData.profile
-   ? 'organization/settings/'+institutionData.profile.id : `${r.area}/${defaults[r.area]}`;
+ if(serverStudent && !staffData.error){
+   p.name=staffData.displayName;
+   p.individual=staffData.individualEnabled;
+ }
+ const orgId=serverInstitution && institutionData.profile?.id;
+ const liveNav=(serverStaff && staffData.scope || serverStudent && !staffData.error) ? key=>module.navPath(staffData,key) :
+   orgId ? key=>key==='settings' ? 'organization/settings/'+orgId
+   : 'organization/'+key+'?institution='+orgId : undefined;
+ const workspaceHome=liveNav ? liveNav('dashboard') : `${r.area}/${defaults[r.area]}`;
+ if(serverInstitution && !(r.page==='initiatives' && (r.id==='new' || r.tail==='edit')))
+   delete localUI.initiativeBuilder;
  const view=location.hash,refresh=view===lastView,keep=refresh?{y:scrollY,focus:focusKey()}:null;lastView=view;
- const ctx={s,person:p,route:r,go,run,render,ui,localUI,community,institutionData};currentModule=module;currentContext=ctx;
+ const ctx={s,person:p,route:r,go,run,render,ui,localUI,community,institutionData,staffData};currentModule=module;currentContext=ctx;
  let content;
- if(!publicArea&&(r.page==='account'||(['profile','settings'].includes(r.page)&&!['organization','admin'].includes(r.area))))content=renderAccount(ctx);
+ if(liveScoped)content=module.render(ctx);
+ else if(!publicArea&&(r.page==='account'||(['profile','settings'].includes(r.page)&&!['organization','admin'].includes(r.area))))content=renderAccount(ctx);
  else if(r.page==='notifications')content=renderNotifications(ctx);
  else content=module.render(ctx);
  content=content??ui.missing();
- if(publicArea || serverInstitution && institutionData.error){app.innerHTML=`<div class="auth-scene" aria-hidden="true"></div><main id="main" data-route="${ui.esc(r.path)}" class="auth-wrap"><div class="auth-top"><a class="brand" href="index.html"><img src="assets/brand/floral-mark.png" alt=""><span>DeepSprout</span></a><div class="actions">${serverInstitution?'<a class="button quiet" href="/account/profile">Account security</a>':'<span class="demo-dot">Frontend demonstration</span>'+ui.link('Demo sign in','auth/login','button quiet')}</div></div>${content}${serverInstitution?'':demoPanel(s)}<p class="auth-foot">${serverInstitution?'':'Fictional local demonstration · no emails, uploads, payments or real verification<br>'}© 2026 DeepSprout · ${serverInstitution?'':ui.link('Help & privacy','auth/help','text-link')+' · '}<a class="text-link" href="index.html">Home</a></p></main>`;}
- else{/* A Coach exists only by institution invitation: list the Coach workspace only for someone holding an active Coach role. */const available=serverCommunity?['admin']:serverInstitution?['organization']:workspaces(s).filter(w=>w!=='mentor'||w===r.area||activeGrants(s,p.id,'coach').length);if(!available.includes(r.area))available.unshift(r.area);const items=serverCommunity?navigation.admin.filter(([key])=>['organizations','moderation','audit'].includes(key)):serverInstitution?[]:navFor(r.area,s,p),pageLabel=items.find(x=>x[0]===r.page)?.[2]||{create:'Create new',account:'Account',notifications:'Notifications',checkin:'Check in'}[r.page]||'Details';app.innerHTML=`<div class="shell ${ui.esc(r.area)} ${drawer?'drawer-open':''}"><button class="mobile-shade" data-action="drawer-close" aria-label="Close navigation"></button><aside class="sidebar" ${matchMedia('(max-width:900px)').matches&&!drawer?'inert':''} aria-label="${labels[r.area]} navigation"><a class="brand" href="${ui.href(workspaceHome)}"><img src="assets/brand/floral-mark.png" alt=""><span>DeepSprout<small>GROW, TOGETHER</small></span></a>${sidebarIdentity(r.area,s,p,serverInstitution?institutionData.profile||null:undefined)}<p class="eyebrow workspace-label">${labels[r.area]} WORKSPACE</p><nav>${navMarkup(items,r.area,r.page)}</nav><div class="sidebar-bottom"><a class="text-link" href="${p.individual?'index.html':ui.href('student/account')}">${p.individual?'Open my Individual app':'Upgrade to Individual'}</a><a class="text-link" href="${p.individual?'src/pages/member/explore/explore.html':ui.href('participant/discover')}">${p.individual?'Regular Explore':'Explore opportunities'}</a>${serverCommunity||serverInstitution?'':'<p>Fictional records · local demo</p>'}</div></aside><div class="shell-content"><header class="topbar"><button type="button" class="icon-button mobile-menu" data-action="drawer-open" aria-label="Open navigation" aria-expanded="${drawer}">${ui.icon('menu')}</button><nav class="context" aria-label="Breadcrumb"><a href="${ui.href(workspaceHome)}">${ui.esc(labels[r.area])}</a><span aria-hidden="true">/</span><span aria-current="page">${ui.esc(pageLabel)}</span></nav><div class="actions">${serverCommunity||serverInstitution?'':'<span class="demo-dot">Demo mode</span>'}<label class="sr-only" for="workspace-switch">Current workspace</label><select id="workspace-switch" class="workspace-select">${available.map(w=>`<option value="${w}" ${w===r.area?'selected':''}>${ui.esc(workspaceOptionLabel(w))}</option>`).join('')}</select><a href="${serverCommunity||serverInstitution?'/account/profile':ui.href(`${r.area}/account`)}" class="person-line" aria-label="Account for ${ui.esc(p.name)}">${ui.avatar(p.name)}<strong>${ui.esc(p.name.split(' ')[0])}</strong></a>${serverCommunity||serverInstitution?'<a class="button quiet small" href="/">Member Home</a>':ui.button('Sign out','logout',{},'button quiet small')}</div></header><main id="main" data-route="${ui.esc(r.path)}" data-page="${ui.esc(r.page)}" class="main" tabindex="-1">${content}${serverCommunity||serverInstitution?'':demoPanel(s)}</main></div></div>`;app.querySelector('.sidebar').scrollTop=sidebarScroll.get(`${p.id}:${r.area}`)||0;}
+ if(publicArea || serverInstitution && institutionData.error || liveScoped && staffData.error){app.innerHTML=`<div class="auth-scene" aria-hidden="true"></div><main id="main" data-route="${ui.esc(r.path)}" class="auth-wrap"><div class="auth-top"><a class="brand" href="index.html"><img src="assets/brand/floral-mark.png" alt=""><span>DeepSprout</span></a><div class="actions">${(serverInstitution||liveScoped)?'<a class="button quiet" href="/account/profile">Account security</a>':'<span class="demo-dot">Frontend demonstration</span>'+ui.link('Demo sign in','auth/login','button quiet')}</div></div>${content}${(serverInstitution||liveScoped)?'':demoPanel(s)}<p class="auth-foot">${(serverInstitution||liveScoped)?'':'Fictional local demonstration · no emails, uploads, payments or real verification<br>'}© 2026 DeepSprout · ${(serverInstitution||liveScoped)?'':ui.link('Help & privacy','auth/help','text-link')+' · '}<a class="text-link" href="index.html">Home</a></p></main>`;}
+ else{/* A Coach exists only by institution invitation: list the Coach workspace only for someone holding an active Coach role. */const available=serverCommunity?['admin']:serverInstitution?['organization']:liveScoped?[r.area]:workspaces(s).filter(w=>w!=='mentor'||w===r.area||activeGrants(s,p.id,'coach').length);if(!available.includes(r.area))available.unshift(r.area);const items=serverCommunity?navigation.admin.filter(([key])=>['organizations','moderation','audit'].includes(key)):serverInstitution?navigation.organization.filter(([key])=>['dashboard','initiatives','participants','team','sessions','reports','settings'].includes(key)):liveScoped?module.navigation(navigation[r.area],r.area):navFor(r.area,s,p),pageLabel=items.find(x=>x[0]===r.page)?.[2]||{create:'Create new',account:'Account',notifications:'Notifications',checkin:'Check in'}[r.page]||'Details';app.innerHTML=`<div class="shell ${ui.esc(r.area)} ${drawer?'drawer-open':''}"><button class="mobile-shade" data-action="drawer-close" aria-label="Close navigation"></button><aside class="sidebar" ${matchMedia('(max-width:900px)').matches&&!drawer?'inert':''} aria-label="${labels[r.area]} navigation"><a class="brand" href="${ui.href(workspaceHome)}"><img src="assets/brand/floral-mark.png" alt=""><span>DeepSprout<small>GROW, TOGETHER</small></span></a>${sidebarIdentity(r.area,s,p,serverInstitution?institutionData.profile||null:undefined)}<p class="eyebrow workspace-label">${labels[r.area]} WORKSPACE</p><nav>${navMarkup(items,r.area,r.page,liveNav)}</nav><div class="sidebar-bottom"><a class="text-link" href="${p.individual?'index.html':ui.href('student/account')}">${p.individual?'Open my Individual app':'Upgrade to Individual'}</a>${liveScoped && !p.individual ? '' : `<a class="text-link" href="${p.individual?'src/pages/member/explore/explore.html':ui.href('participant/discover')}">${p.individual?'Regular Explore':'Explore opportunities'}</a>`}${serverCommunity||serverInstitution||liveScoped?'':'<p>Fictional records · local demo</p>'}</div></aside><div class="shell-content"><header class="topbar"><button type="button" class="icon-button mobile-menu" data-action="drawer-open" aria-label="Open navigation" aria-expanded="${drawer}">${ui.icon('menu')}</button><nav class="context" aria-label="Breadcrumb"><a href="${ui.href(workspaceHome)}">${ui.esc(labels[r.area])}</a><span aria-hidden="true">/</span><span aria-current="page">${ui.esc(pageLabel)}</span></nav><div class="actions">${serverCommunity||serverInstitution||liveScoped?'':'<span class="demo-dot">Demo mode</span>'}<label class="sr-only" for="workspace-switch">Current workspace</label><select id="workspace-switch" class="workspace-select">${available.map(w=>`<option value="${w}" ${w===r.area?'selected':''}>${ui.esc(workspaceOptionLabel(w))}</option>`).join('')}</select><a href="${serverCommunity||serverInstitution||liveScoped?'/account/profile':ui.href(`${r.area}/account`)}" class="person-line" aria-label="Account for ${ui.esc(p.name)}">${ui.avatar(p.name)}<strong>${ui.esc(p.name.split(' ')[0])}</strong></a>${serverStudent&&!p.individual?'':serverCommunity||serverInstitution||liveScoped?'<a class="button quiet small" href="/">Member Home</a>':ui.button('Sign out','logout',{},'button quiet small')}</div></header><main id="main" data-route="${ui.esc(r.path)}" data-page="${ui.esc(r.page)}" class="main" tabindex="-1">${content}${serverCommunity||(serverInstitution||liveScoped)?'':demoPanel(s)}</main></div></div>`;app.querySelector('.sidebar').scrollTop=sidebarScroll.get(`${p.id}:${r.area}`)||0;}
  document.title=`${document.querySelector('h1')?.textContent||labels[r.area]} — DeepSprout`;
  syncRegistrationExperience(r);
  if(r.area==='student')portalArrival();
@@ -172,6 +204,10 @@ document.addEventListener('click',e=>{document.querySelectorAll('.b-choice[open]
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.b-choice[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary')?.focus();});});
 app.addEventListener('submit',async e=>{e.preventDefault();e.target.dataset.submitter=e.submitter?.value||'';if(e.submitter?.value!=='draft'&&!e.target.reportValidity())return;try{registrationFeedback('submitting');await currentModule?.submit?.(e.target,currentContext);registrationFeedback('local-complete');}catch(error){registrationFeedback('error');const errorNode=e.target.querySelector('.form-error');if(errorNode){errorNode.textContent=error.message;errorNode.id||=`workspace-form-error-${generation}`;errorNode.tabIndex=-1;e.target.setAttribute('aria-describedby',errorNode.id);errorNode.focus();}else ui.toast(error.message,true);}});
 app.addEventListener('change',e=>{if(e.target.id==='workspace-switch'){go(`${e.target.value}/${defaults[e.target.value]}`);return;}if(e.target.matches('[data-filter]'))ui.applyFilters(app);currentModule?.change?.(e.target,currentContext);});
+app.addEventListener('live-group-drop',async event=>{
+  try { await currentModule?.drop?.(event.detail,currentContext); }
+  catch (error) { ui.toast(error.message,true); }
+});
 app.addEventListener('pointerdown',e=>{if(e.target.closest('[data-create] input[name^="create-"]'))(localUI.create ||= {}).beforeChoiceScroll=window.scrollY;});
 app.addEventListener('pointerdown',e=>{const map=e.target.closest('.builder-map');if(!map)return;mapDrag={map,id:e.pointerId,x:e.clientX,y:e.clientY,lat:Number(map.dataset.lat),lon:Number(map.dataset.lon)};map.setPointerCapture(e.pointerId);});
 app.addEventListener('pointermove',e=>{if(!mapDrag||e.pointerId!==mapDrag.id)return;mapDrag.map.querySelector('.builder-map-tiles').style.transform=`translate(${e.clientX-mapDrag.x}px,${e.clientY-mapDrag.y}px)`;});

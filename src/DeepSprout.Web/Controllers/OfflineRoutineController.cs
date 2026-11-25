@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DeepSprout.Web.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = PersonalRecords.IndividualPolicy)]
 [Route("api/offline-routines")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class OfflineRoutineController(DeepSproutV5DbContext db, TimeProvider clock) : ControllerBase

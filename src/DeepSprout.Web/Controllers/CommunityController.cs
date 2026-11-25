@@ -53,6 +53,7 @@ public sealed partial class CommunityController(DeepSproutV5DbContext db, TimePr
         return parts.Length == 2 ? parts[1] : "";
     }
 
+    [Authorize(Policy = PersonalRecords.IndividualPolicy)]
     [HttpGet("posts")]
     public async Task<IActionResult> Posts([FromQuery] string? category, [FromQuery] string? search,
         [FromQuery] DateTimeOffset? before, [FromQuery] Guid? beforeId, [FromQuery] int limit = 30,
@@ -90,6 +91,7 @@ public sealed partial class CommunityController(DeepSproutV5DbContext db, TimePr
             ? new { before = Utc(page[^1].SortDate), beforeId = page[^1].Post.PublicId } : null });
     }
 
+    [Authorize(Policy = PersonalRecords.IndividualPolicy)]
     [HttpGet("posts/{id:guid}")]
     public async Task<IActionResult> ReadPost(Guid id, CancellationToken ct)
     {
@@ -133,6 +135,7 @@ public sealed partial class CommunityController(DeepSproutV5DbContext db, TimePr
 
     private const string PostInputError = "Choose a category, title (1–100 characters), and message (1–600 characters).";
 
+    [Authorize(Policy = PersonalRecords.IndividualPolicy)]
     [HttpPost("posts")]
     public async Task<IActionResult> CreatePost([FromBody] NewPost input, CancellationToken ct)
     {
@@ -156,6 +159,7 @@ public sealed partial class CommunityController(DeepSproutV5DbContext db, TimePr
         return StatusCode(StatusCodes.Status201Created, new { id = post.PublicId, status = post.Status });
     }
 
+    [Authorize(Policy = PersonalRecords.IndividualPolicy)]
     [HttpPatch("posts/{id:guid}")]
     public async Task<IActionResult> EditPost(Guid id, [FromBody] NewPost input, CancellationToken ct)
     {
@@ -177,6 +181,7 @@ public sealed partial class CommunityController(DeepSproutV5DbContext db, TimePr
         return NoContent();
     }
 
+    [Authorize(Policy = PersonalRecords.IndividualPolicy)]
     [HttpDelete("posts/{id:guid}")]
     public async Task<IActionResult> DeletePost(Guid id, CancellationToken ct)
     {
@@ -192,6 +197,7 @@ public sealed partial class CommunityController(DeepSproutV5DbContext db, TimePr
         return NoContent();
     }
 
+    [Authorize(Policy = PersonalRecords.IndividualPolicy)]
     [HttpGet("posts/{id:guid}/comments")]
     public async Task<IActionResult> Comments(Guid id, [FromQuery] long after = 0,
         [FromQuery] int limit = 50, CancellationToken ct = default)
@@ -216,6 +222,7 @@ public sealed partial class CommunityController(DeepSproutV5DbContext db, TimePr
         id = item.Id, body = item.Body, author, createdAt = Utc(item.CreatedAtUtc), own = item.AuthorPersonId == actorId
     };
 
+    [Authorize(Policy = PersonalRecords.IndividualPolicy)]
     [HttpPost("posts/{id:guid}/comments")]
     public async Task<IActionResult> AddComment(Guid id, [FromBody] NewComment input, CancellationToken ct)
     {
@@ -259,6 +266,7 @@ public sealed partial class CommunityController(DeepSproutV5DbContext db, TimePr
         await db.SaveChangesAsync(ct);
     }
 
+    [Authorize(Policy = PersonalRecords.IndividualPolicy)]
     [HttpPut("posts/{id:guid}/interactions/{kind}")]
     public async Task<IActionResult> AddInteraction(Guid id, string kind, CancellationToken ct)
     {
@@ -281,6 +289,7 @@ public sealed partial class CommunityController(DeepSproutV5DbContext db, TimePr
         return NoContent();
     }
 
+    [Authorize(Policy = PersonalRecords.IndividualPolicy)]
     [HttpDelete("posts/{id:guid}/interactions/{kind}")]
     public async Task<IActionResult> RemoveInteraction(Guid id, string kind, CancellationToken ct)
     {
@@ -300,6 +309,7 @@ public sealed partial class CommunityController(DeepSproutV5DbContext db, TimePr
 
     public sealed record NewReport(string? Reason, string? Details);
 
+    [Authorize(Policy = PersonalRecords.IndividualPolicy)]
     [HttpPost("posts/{id:guid}/reports")]
     public async Task<IActionResult> ReportPost(Guid id, [FromBody] NewReport input, CancellationToken ct)
     {
@@ -322,6 +332,7 @@ public sealed partial class CommunityController(DeepSproutV5DbContext db, TimePr
         return Accepted();
     }
 
+    [Authorize(Policy = PersonalRecords.IndividualPolicy)]
     [HttpPost("comments/{id:long}/reports")]
     public async Task<IActionResult> ReportComment(long id, [FromBody] NewReport input, CancellationToken ct)
     {
