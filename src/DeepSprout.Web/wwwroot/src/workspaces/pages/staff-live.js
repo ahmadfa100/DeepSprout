@@ -6,12 +6,14 @@ import * as work from './coach-work.js';
 import * as reports from './reports-live.js';
 import {loadGarden,renderLiveGarden} from './institution/garden.js';
 import * as sessions from './institution/sessions-live.js';
+import * as attendance from './attendance-live.js';
+import {attendanceRequest} from '../attendance-api.js';
 
 const login = '/src/pages/auth/login/login.html?returnUrl=%2Faccount%2Fprofile';
 const workspace = (role,page,initiative) => (role === 'Coach' ? 'mentor' : 'supervisor')+'/'+page+'?initiative='+encodeURIComponent(initiative);
 const date = value => value ? new Date(value).toLocaleString() : '—';
 const pagesFor = role => role === 'Coach' ? ['dashboard','groups','assignments','reviews','reports','group-garden'] :
-  ['dashboard','students','schedule','reports','group-garden'];
+  ['dashboard','students','schedule','attendance','excuses','reports','group-garden'];
 export const teamPath = id => 'organization/team?initiative='+encodeURIComponent(id);
 
 export const request = (path,payload) => workspaceRequest('/api/initiative-staff/'+path,payload);
@@ -27,12 +29,17 @@ export async function load(route, signedIn) {
     const role = route.area === 'mentor' ? 'Coach' : 'Supervisor';
     if (!pagesFor(role).includes(route.page))
       return {error:'This page is unavailable in the live staff workspace.'};
-    const scopes = access.filter(row=>row.role === role && row.canOpen);
+    const attendancePage = role === 'Supervisor' && ['attendance','excuses'].includes(route.page);
+    const scopes = attendancePage ? await attendanceRequest('/scopes/Supervisor') : access.filter(row=>row.role === role && row.canOpen);
     const selected = route.query.get('initiative');
     const id = selected || scopes[0]?.initiativeId;
     if (!id || !scopes.some(row=>row.initiativeId === id)) {
       const revoked = access.some(row=>row.role === role && row.status === 'Revoked' && (!id || id === row.initiativeId));
       return {error:revoked ? 'This appointment was revoked.' : 'An active appointment for this Initiative is required.'};
+    }
+    if (attendancePage) {
+      const title = scopes.find(row=>row.initiativeId === id).title;
+      return {access,scopes,role,id,scope:{initiative:{title}},attendance:await attendance.load(role,id,route.page,route.id)};
     }
     const path = 'scope/'+role+'/'+encodeURIComponent(id);
     const scope = await request(path);
@@ -41,9 +48,10 @@ export async function load(route, signedIn) {
     const assignments = role === 'Coach' && ['assignments','reviews'].includes(route.page) ? await work.load(id) : null;
     const review = role === 'Coach' && route.page === 'reviews' && route.id && route.tail ? await work.review(id,route.id,route.tail) : null;
     const reporting = route.page === 'reports' ? await reports.load(role,id,route.query) : null;
+    const attendanceReport = route.page === 'reports' && role === 'Supervisor' ? await attendance.load(role,id,'attendance') : null;
     const garden = route.page === 'group-garden' ? await loadGarden(id,role) : null;
     const schedule = route.page === 'schedule' ? await sessions.load(role,id,route.id) : null;
-    return {access,scopes,scope,group,managedGroups,role,id,work:assignments,review,reporting,garden,schedule};
+    return {access,scopes,scope,group,managedGroups,role,id,work:assignments,review,reporting,attendanceReport,garden,schedule};
   } catch (error) { return {error:error.message}; }
 }
 
@@ -93,10 +101,12 @@ export function render(ctx) {
   const row = data.scope.initiative;
   const groupsPath = workspace(data.role,'groups',data.id);
   const picker = select('live-staff-scope','Initiative',data.scopes.map(item=>[item.initiativeId,item.title]),data.id);
+  if (data.attendance) return attendance.render(ctx,data.attendance,data.role,{id:data.id,title:row.title},picker);
   if (data.garden) return renderLiveGarden(data.garden,picker);
   if (data.schedule) return sessions.render(ctx,data.schedule,{id:data.id,title:row.title},picker);
   if (data.work) return work.render(ctx,data,picker);
-  if (data.reporting) return reports.render(ctx,data.role,data.id,data.reporting,picker);
+  if (data.reporting) return reports.render(ctx,data.role,data.id,data.reporting,picker)+
+    attendance.summary(ctx,data.attendanceReport,data.role,data.id);
   const header = head({eyebrow:data.role+' · '+row.institution,title:row.title,lead:row.summary,meta:picker,actions:accessLink()});
   if (data.managedGroups) return groups.render(ctx,data.managedGroups,{id:data.id,title:row.title},picker);
   if (data.group) return header + card(data.group.name,pill(data.group.status)+
@@ -128,6 +138,7 @@ export function drop(detail,ctx) {
 }
 
 export async function action(action,target,ctx) {
+  if (ctx.staffData.attendance && action.startsWith('live-att-')) return attendance.action(action,target,ctx,ctx.staffData.attendance);
   if (ctx.staffData.work && (action.startsWith('live-assignment-') || action === 'live-work-review'))
     return work.action(action,target,ctx,ctx.staffData);
   if (ctx.staffData.reporting && action.startsWith('live-report-'))

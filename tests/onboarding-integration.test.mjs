@@ -3438,9 +3438,13 @@ test('both interactive practices save real results through the Activities page',
     assert.equal(animated,true);
     await page.locator('#ip-question').waitFor();
     await answer(1,true);
+    const pause = page.waitForResponse(response=>response.request().method()==='POST' &&
+      /\/api\/activities\/attempts\/[^/]+\/pause$/.test(response.url()));
     await page.keyboard.press('Escape');
     await page.locator('#session-dialog').waitFor({state:'hidden'});
+    assert.equal((await (await pause).json()).status,'Paused');
     await page.reload();
+    await page.locator('#foryou-pick[data-family]').waitFor({state:'attached'});
     await open('visual');
     await page.getByRole('button',{name:'Resume attempt'}).click();
     await page.getByText('Question 2 of 4').waitFor();
@@ -3894,5 +3898,238 @@ test('Initiative Sessions publish and registrations sync across Institution, Exp
     await student.reload();
     await studentRegistration.getByText('Cancelled',{exact:true}).waitFor();
     assert.deepEqual(pageErrors,[]);
+  } finally { await browser.close(); }
+});
+
+const attendanceApi = '/api/initiative-attendance';
+const attendanceSession = id => attendanceApi+'/sessions/'+id;
+const attendanceStaff = (f,role,id='') => attendanceApi+'/'+role+'/'+f.initiative+(id ? '/'+id : '');
+const attendanceOwn = (id,account) => account.request(attendanceApi+'/mine?session='+id).then(saved);
+
+async function attendanceFixture(f, title, modes) {
+  const id = randomUUID(), url = attendanceSession(id);
+  const session = await saved(await command(f.rep,f.repToken,sessionsFor(f.initiative)+'/'+id,
+    sessionDraft({title,publish:true,onlineCapacity:10,inPersonCapacity:10}),'PUT'));
+  const registrations = [];
+  for (const [index,mode] of modes.entries()) {
+    const account = [f.student,f.peer][index], token = [f.studentToken,f.peerToken][index];
+    registrations.push(await saved(await command(account,token,sessionApi+'/'+id+'/register',
+      {mode,consent:true,requestId:randomUUID(),version:session.version})));
+  }
+  const staff = await saved(await f.rep.request(staffOwned(f.initiative)));
+  const appointment = staff.appointments.find(row=>row.appointment.role==='Supervisor').appointment.id;
+  return {id,url,registrations,appointment,assign:active=>command(f.rep,f.repToken,url+'/duty/'+appointment,{active},'PUT')};
+}
+
+async function setAttendanceWindow(f, id, endSeconds=1800) {
+  await sql(`UPDATE institution.InitiativeRevision SET StartsAtUtc=DATEADD(day,-1,SYSUTCDATETIME())
+    WHERE Id=(SELECT CurrentRevisionId FROM institution.Initiative WHERE PublicId='${f.initiative}');
+    UPDATE session.Session SET StartsAtUtc=DATEADD(minute,-20,SYSUTCDATETIME()),
+    EndsAtUtc=DATEADD(second,${endSeconds},SYSUTCDATETIME()) WHERE PublicId='${id}'`);
+}
+
+test('Initiative attendance secures QR and typed check-in and keeps factual attendance and excuse decisions separate', async () => {
+  const f = await workFixture('attendance-sql');
+  const qr = await attendanceFixture(f,'Mixed attendance',['InPerson','Online']);
+  const typed = await attendanceFixture(f,'Typed check-in',['InPerson','InPerson']);
+  const expiring = await attendanceFixture(f,'Expiring pass',['InPerson']);
+  const checkIn = (item,credential,account=f.supervisor,token=f.superToken) => command(account,token,item.url+'/check-in',{credential});
+  const record = (item,index,body) => command(f.supervisor,f.superToken,item.url+'/registrations/'+item.registrations[index].id+'/record',body);
+  const pass = (item,account=f.student,token=f.studentToken) => command(account,token,item.url+'/pass',{});
+  const confirm = (session,item,step,account,token,body) => command(account,token,session.url+'/excuses/'+item.id+'/'+step,body);
+  const staff = (item,role='Supervisor',account=f.supervisor) => account.request(attendanceStaff(f,role,item.id)).then(saved);
+  const factual = async (item,index=0) => (await staff(item)).roster.find(row=>row.registrationId===item.registrations[index].id);
+  const baseCounts = await staff(qr);
+  assert.equal(baseCounts.summary.needsSupervisor,true);
+  assert.equal(baseCounts.summary.notRecorded,2);
+  assert.equal(baseCounts.summary.absent,0);
+  assert.equal((await attendanceOwn(qr.id,f.student))[0].status,'NotRecorded');
+  assert.equal((await pass(qr)).status,409,'publication does not supply an open check-in window');
+  await setAttendanceWindow(f,qr.id);
+  await setAttendanceWindow(f,typed.id);
+  assert.equal((await pass(qr)).status,409,'a session without a duty cannot issue a pass');
+  assert.equal((await checkIn(qr,'DS-TEST')).status,403);
+  assert.equal((await command(f.supervisor,f.superToken,qr.url+'/duty/'+qr.appointment,{active:true},'PUT')).status,404);
+  assert.equal((await command(f.other,f.otherToken,qr.url+'/duty/'+qr.appointment,{active:true},'PUT')).status,404);
+  await saved(await qr.assign(true));
+  await saved(await typed.assign(true));
+  await saved(await expiring.assign(true));
+  assert.equal((await pass(qr,f.peer,f.peerToken)).status,404,'an online registrant has no in-person pass');
+  const first = await saved(await pass(qr));
+  const signed = await saved(await pass(qr));
+  assert.match(signed.qrPayload,/^DSQR2\./);
+  assert.notEqual(signed.code,first.code);
+  assert.equal((await checkIn(qr,first.qrPayload)).status,409);
+  assert.equal((await checkIn(typed,signed.qrPayload)).status,409);
+  assert.equal((await checkIn(typed,signed.code)).status,409);
+  assert.equal((await checkIn(qr,'plain-participant-id')).status,400);
+  const separator = signed.qrPayload.indexOf('.')+1;
+  const malformed = signed.qrPayload.slice(0,separator)+(signed.qrPayload[separator]==='A' ? 'B' : 'A')+signed.qrPayload.slice(separator+1);
+  assert.equal((await checkIn(qr,malformed)).status,409);
+  assert.equal((await checkIn(qr,signed.code,f.coach,f.coachToken)).status,404);
+  assert.equal((await checkIn(qr,signed.code,f.rep,f.repToken)).status,404);
+  assert.equal((await f.supervisor.request(qr.url+'/check-in',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({credential:signed.code})})).status,400);
+  const simultaneous = await Promise.all([checkIn(qr,signed.qrPayload),checkIn(qr,signed.code)]);
+  assert.deepEqual(simultaneous.map(response=>response.status).sort(),[200,409]);
+  assert.equal((await checkIn(qr,signed.qrPayload)).status,409);
+  const confirmed = await factual(qr);
+  assert.equal(confirmed.status,'Late');
+  assert.ok(['QrScan','BookingCode'].includes(confirmed.method));
+  assert.equal(confirmed.history.length,1);
+  const printed = await saved(await pass(typed));
+  await saved(await checkIn(typed,printed.code.toLowerCase().replaceAll('-',' ')));
+  assert.equal((await factual(typed)).method,'BookingCode');
+
+  await setAttendanceWindow(f,expiring.id,5);
+  const exp = await saved(await pass(expiring));
+  await setAttendanceWindow(f,expiring.id,1800);
+  await delay(Math.max(0,new Date(exp.expiresAtUtc).getTime()-Date.now()+100));
+  const expiredQr = await checkIn(expiring,exp.qrPayload), expiredCode = await checkIn(expiring,exp.code);
+  assert.equal(expiredQr.status,409);
+  assert.match(await expiredQr.text(),/expired/i);
+  assert.equal(expiredCode.status,409);
+  assert.match(await expiredCode.text(),/expired/i);
+  assert.equal((await factual(expiring)).status,'NotRecorded');
+
+  assert.equal((await record(qr,0,{status:'Late',method:'Online'})).status,409);
+  assert.equal((await record(typed,1,{status:'Present',method:'Online'})).status,400);
+  assert.equal((await record(typed,1,{status:'Present',method:'Manual',reason:' '})).status,400);
+  assert.equal((await record(typed,1,{status:'Absent',method:'Manual',reason:'Unseen so far'})).status,409);
+  const online = await saved(await record(qr,1,{status:'Present',method:'Online'}));
+  assert.equal((await factual(qr,1)).method,'OnlineRoster');
+  assert.equal((await record(qr,1,{status:'NotRecorded',method:'Correct',reason:'Roster ambiguous',version:'stale'})).status,409);
+  await saved(await record(qr,1,{status:'NotRecorded',method:'Correct',reason:'Roster ambiguous',version:online.version}));
+  const corrected = await factual(qr,1);
+  assert.deepEqual([corrected.status,corrected.history[0].beforeStatus,corrected.history[0].reason],
+    ['NotRecorded','Present','Roster ambiguous']);
+  assert.equal(corrected.history[0].actor,f.names[3]);
+  assert.deepEqual((await readGarden(f.peer)).rabbits,[]);
+  await setAttendanceWindow(f,typed.id,-30);
+  await saved(await record(typed,1,{status:'Absent',method:'Manual',reason:'On-site supervisor confirmed the absence'}));
+  assert.equal((await factual(typed,1)).status,'Absent');
+  assert.equal((await factual(typed,1)).history[0].reason,'On-site supervisor confirmed the absence');
+  const excuseRequest = {registrationId:typed.registrations[1].id,reason:'I missed the workshop because of a family obligation.'};
+  assert.equal((await command(f.peer,f.peerToken,typed.url+'/excuse',{...excuseRequest,fileId:1234})).status,400);
+  assert.equal((await command(f.student,f.studentToken,typed.url+'/excuse',excuseRequest)).status,404);
+  assert.equal((await command(f.student,f.studentToken,typed.url+'/excuse',{...excuseRequest,registrationId:typed.registrations[0].id})).status,409);
+  const excuse = await saved(await command(f.peer,f.peerToken,typed.url+'/excuse',excuseRequest));
+  assert.equal((await saved(await command(f.peer,f.peerToken,typed.url+'/excuse',excuseRequest))).id,excuse.id);
+  const getExcuses = (account,role) => account.request(attendanceStaff(f,role,'excuses'));
+  assert.equal((await getExcuses(f.other,'Representative')).status,404);
+  assert.equal((await getExcuses(f.coach,'Supervisor')).status,404);
+  assert.equal((await attendanceOwn(typed.id,f.student))[0].excuse,null);
+  const accept = {decision:'Accepted',reason:'Confirmed supporting details.',version:excuse.version};
+  assert.equal((await confirm(typed,excuse,'decide',f.rep,f.repToken,accept)).status,409);
+  const recommended = await saved(await confirm(typed,excuse,'recommend',f.supervisor,f.superToken,
+    {decision:'Accept',reason:'Restricted recommendation note.',version:excuse.version}));
+  assert.equal(recommended.status,'Recommended');
+  accept.version = recommended.version;
+  assert.equal((await confirm(typed,excuse,'decide',f.supervisor,f.superToken,accept)).status,404);
+  assert.equal((await confirm(typed,excuse,'decide',f.other,f.otherToken,accept)).status,404);
+  assert.equal((await confirm(typed,excuse,'decide',f.peer,f.peerToken,accept)).status,404);
+  assert.equal((await saved(await confirm(typed,excuse,'decide',f.rep,f.repToken,accept))).status,'Accepted');
+  const freshLogin = session();
+  await freshLogin.signIn(f.names[5],false);
+  const [own] = await attendanceOwn(typed.id,freshLogin);
+  assert.deepEqual([own.status,own.excuse.status,own.excuse.decisionReason],['Absent','Accepted',accept.reason]);
+  assert.equal(JSON.stringify(own).includes('Restricted recommendation note.'),false);
+  assert.equal((await saved(await getExcuses(f.rep,'Representative')))[0].decisionMaker,f.names[0]);
+  assert.equal((await staff(typed,'Representative',f.rep)).summary.excused,1);
+  assert.deepEqual((await readGarden(f.peer)).rabbits,[]);
+  assert.equal((await readGarden(f.student)).rabbits.length,2,'two verified sessions earn two existing Personal Garden effects');
+  assert.equal((await initiativeGarden(f.student,f.initiative,'Student')).contributionCount,0);
+  assert.equal(await sql(`SELECT COUNT(*) FROM session.Completion c JOIN institution.InitiativeApplication a
+    ON c.ApplicationId=a.Id JOIN institution.Initiative i ON a.InitiativeId=i.Id WHERE i.PublicId='${f.initiative}'`),'0');
+  const remaining = await saved(await pass(expiring));
+  await saved(await command(f.rep,f.repToken,staffOwned(f.initiative,qr.appointment,'revoke'),{reason:'End of role'}));
+  assert.equal((await checkIn(expiring,remaining.code)).status,404);
+  assert.equal((await f.supervisor.request(attendanceStaff(f,'Supervisor',qr.id))).status,404);
+  assert.equal((await attendanceOwn(qr.id,f.student))[0].status,'Late');
+});
+
+test('Initiative attendance and excuses synchronize across authenticated Student, Explore, Supervisor and Institution browsers', async () => {
+  const f = await workFixture('attendance-browser');
+  await finishSetup(f.student);
+  const open = await attendanceFixture(f,'Browser check-in session',['InPerson']);
+  const past = await attendanceFixture(f,'Browser absence session',['InPerson']);
+  await setAttendanceWindow(f,open.id);
+  await setAttendanceWindow(f,past.id,-90);
+  const browser = await chromium.launch({headless:true});
+  const workspace = origin+'/workspaces.html?partner=live#/';
+  const scope = '?initiative='+f.initiative;
+  const repScope = scope+'&institution='+f.north;
+  const issues = [];
+  try {
+    async function page(account,width=1220) {
+      const context = await browser.newContext({viewport:{width,height:860},reducedMotion:'reduce'});
+      await context.addCookies([{name:'DeepSproutAuth',value:account.authCookie().slice('DeepSproutAuth='.length),url:origin}]);
+      const page = await context.newPage();
+      page.setDefaultTimeout(12000);
+      page.on('pageerror',error=>issues.push(error.message));
+      return page;
+    }
+    const representative = await page(f.rep), supervisor = await page(f.supervisor);
+    const student = await page(f.student,390), individual = await page(f.student);
+    for (const session of [open,past]) {
+      await representative.goto(workspace+'organization/attendance/'+session.id+repScope);
+      await representative.getByRole('heading',{name:'Needs Supervisor'}).waitFor();
+      await representative.getByRole('button',{name:'Assign duty'}).click();
+      await representative.getByRole('button',{name:'Remove duty'}).waitFor();
+    }
+    await student.goto(workspace+'student/sessions/'+open.id+scope);
+    const studentPass = student.waitForResponse(response=>response.url().endsWith(open.url+'/pass') && response.request().method()==='POST');
+    await student.getByRole('button',{name:'Show check-in pass'}).click();
+    const credential = await (await studentPass).json();
+    await student.locator('[aria-label="Check-in QR pass"] svg').waitFor();
+    assert.equal(await student.locator('[data-typed-attendance-code]').textContent(),credential.code);
+    await supervisor.goto(workspace+'supervisor/attendance/'+open.id+scope);
+    const staffRow = supervisor.getByRole('row').filter({hasText:f.names[4]});
+    await staffRow.getByText('Not Recorded',{exact:true}).waitFor();
+    await supervisor.getByRole('button',{name:'Validate QR or code'}).click();
+    const checkIn = supervisor.getByRole('dialog');
+    await checkIn.getByLabel('QR pass or typed code').fill(credential.qrPayload);
+    await checkIn.getByRole('button',{name:'Confirm check-in'}).click();
+    await staffRow.getByText('Late',{exact:true}).waitFor();
+    await staffRow.getByText('QR check-in',{exact:true}).waitFor();
+    await student.reload();
+    await student.locator('[data-factual-attendance]').filter({hasText:/^Late$/}).waitFor();
+
+    await supervisor.goto(workspace+'supervisor/attendance/'+past.id+scope);
+    await supervisor.getByRole('button',{name:'Record manually'}).click();
+    const manual = supervisor.getByRole('dialog');
+    await manual.getByLabel('Factual status').selectOption('Absent');
+    await manual.getByLabel('Reason').fill('Supervisor confirmed the participant did not attend.');
+    await manual.getByRole('button',{name:'Save attendance'}).click();
+    await staffRow.getByText('Absent',{exact:true}).waitFor();
+    await individual.goto(origin+explorePage+'#session='+past.id);
+    const sheet = individual.locator('#ex-sheet');
+    await sheet.locator('[data-factual-attendance]').filter({hasText:/^Absent$/}).waitFor();
+    await sheet.getByLabel('Reason for absence').fill('A family obligation prevented attendance.');
+    await sheet.getByRole('button',{name:'Submit excuse'}).click();
+    await sheet.getByText('Excuse: Submitted',{exact:true}).waitFor();
+    await supervisor.locator('main').getByRole('link',{name:'Excuses',exact:true}).click();
+    await supervisor.getByRole('button',{name:'Recommend',exact:true}).click();
+    const recommend = supervisor.getByRole('dialog');
+    await recommend.getByLabel('Recommendation').selectOption('Accept');
+    await recommend.getByLabel('Supervisor note').fill('Restricted recommendation.');
+    await recommend.getByRole('button',{name:'Send recommendation'}).click();
+    await supervisor.getByText('Recommended',{exact:true}).waitFor();
+    await representative.goto(workspace+'organization/excuses'+repScope);
+    await representative.getByRole('button',{name:'Accept excuse',exact:true}).click();
+    const decision = representative.getByRole('dialog');
+    await decision.getByLabel('Decision reason').fill('The reason meets the Institution’s criteria.');
+    await decision.getByRole('button',{name:'Save final decision'}).click();
+    await representative.getByText('Excused Absence',{exact:true}).waitFor();
+    await individual.reload();
+    await sheet.getByText('Factual attendance: Absent',{exact:true}).waitFor();
+    await sheet.locator('[data-factual-attendance]').filter({hasText:/^Excused Absence$/}).waitFor();
+    assert.equal(await sheet.getByText('Restricted recommendation.').count(),0);
+    await student.goto(workspace+'student/progress'+scope);
+    await student.getByText('Excused Absence',{exact:true}).waitFor();
+    await representative.goto(workspace+'organization/reports'+repScope);
+    await representative.getByRole('heading',{name:'Session attendance and excuses'}).waitFor();
+    await representative.getByRole('row').filter({hasText:'Browser absence session'}).getByRole('link').waitFor();
+    assert.deepEqual(issues,[]);
   } finally { await browser.close(); }
 });

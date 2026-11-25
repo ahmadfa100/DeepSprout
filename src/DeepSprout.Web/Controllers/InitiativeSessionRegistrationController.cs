@@ -155,6 +155,7 @@ public sealed class InitiativeSessionRegistrationController(DeepSproutV5DbContex
             registration.Status, "Cancelled", null, now, new { sessionId });
         registration.Status = "Cancelled";
         registration.CancelledAtUtc = now;
+        registration.CredentialHash = null;
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         return Ok(Registration(registration, false));

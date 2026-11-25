@@ -490,8 +490,7 @@ function renderForYou(){
  const scheduledType=today?.action?.kind==='practice'&&today.state!=='completed'?today.action.activityType:null;
  const allowed=account.practiceDefinitions().filter(d=>d.access.allowed&&(d.access.core||d.level===account.training().find(t=>t.id===d.practiceType)?.level));
  const byGoal=allowed.filter(d=>d.goalTags.includes(goal?.id));
- const depth = scheduledDepth();
- const d=(scheduledType&&allowed.find(d=>d.practiceType===scheduledType&&d.access.core))||(depth&&pinnedDepthListing(depth))||byGoal.find(d=>d.practiceType!==scheduledType)||byGoal[0]||allowed[0]||null;
+ const d=(scheduledType&&allowed.find(d=>d.practiceType===scheduledType&&d.access.core))||byGoal.find(d=>d.practiceType!==scheduledType)||byGoal[0]||allowed[0]||null;
  document.getElementById('practice-suggestion').textContent=d?`${sessions[SESSION_BY_TYPE[d.practiceType]].title} · ${d.title} · Level ${d.level}`:'';
  if(!d){
   pick.dataset.family='none';

@@ -21,7 +21,9 @@ export function render(ctx,data,initiative,picker) {
     const actions = (data.canEdit ? u.button(session.status === 'Draft' ? 'Edit draft' : 'Edit / reschedule','live-session-edit') : '')+
       (data.canEdit && session.status === 'Draft' ? u.button('Publish','live-session-publish',{},'button primary') : '')+
       (data.canEdit ? u.button('Cancel session','live-session-cancel',{},'button danger') : '')+
-      (data.canClose ? u.button('Close session','live-session-close',{},'button quiet') : '');
+      (data.canClose ? u.button('Close session','live-session-close',{},'button quiet') : '')+
+      (data.attendanceRequired && ['Published','Completed'].includes(session.status) ?
+        u.link('Attendance',scoped(ctx,initiative,ctx.route.area+'/attendance/'+session.id),'button quiet') : '');
     return `<p class="breadcrumbs">${u.link(title,details(),'text-link')} / ${esc(session.title)}</p>`+
       head({eyebrow:session.initiative+' · '+session.organizer,title:session.title,meta:pill(session.status),actions})+
       `<div class="iw-split">${card('Details',`<dl class="iw-facts">
@@ -75,6 +77,8 @@ function editForm(session,initiative) {
       ${u.field('venue','Venue or street address',row.venue,'text',false,'maxlength="300"')}
       ${u.field('inPersonCapacity','On-site seats (optional)',row.inPersonCapacity ?? '','number',false,'min="1" max="1000"')}</section>
     ${u.checkbox('attendanceRequired','Attendance is required for this session',row.attendanceRequired === true)}
+    <div class="form-grid">${u.field('checkInBeforeMinutes','Check-in opens · minutes before start',row.checkInBeforeMinutes ?? 0,'number',true,'min="0" max="240"')}
+      ${u.field('checkInAfterMinutes','Check-in closes · minutes after end',row.checkInAfterMinutes ?? 0,'number',true,'min="0" max="720"')}</div>
     ${row.status === 'Published' ? u.area('reason','Reason for the change','',false,'maxlength="800"') : ''}`;
 }
 
@@ -83,7 +87,8 @@ export async function action(action,ctx,data,initiative) {
   const endpoint = base('Representative',initiative.id);
   if (action === 'live-session-create' || action === 'live-session-edit') {
     const id = session?.id || crypto.randomUUID();
-    const record = session ? {...session,meetingLink:data.meetingLink,attendanceRequired:data.attendanceRequired} : null;
+    const record = session ? {...session,meetingLink:data.meetingLink,attendanceRequired:data.attendanceRequired,
+      checkInBeforeMinutes:data.checkInBeforeMinutes,checkInAfterMinutes:data.checkInAfterMinutes} : null;
     let publish = false;
     u.modal(session?.status === 'Published' ? 'Edit or reschedule session' : session ? 'Edit draft' : 'Create a session',
       editForm(record,initiative),async (values,form)=>{
@@ -93,7 +98,8 @@ export async function action(action,ctx,data,initiative) {
           startsAt:values.startsAt,endsAt:values.endsAt,meetingLink:online ? values.meetingLink || null : null,
           onlineCapacity:online && values.onlineCapacity ? Number(values.onlineCapacity) : null,venue:inPerson ? values.venue || null : null,
           inPersonCapacity:inPerson && values.inPersonCapacity ? Number(values.inPersonCapacity) : null,
-          attendanceRequired:form.elements.attendanceRequired.checked,version:session?.version,reason:values.reason,publish},'PUT');
+          attendanceRequired:form.elements.attendanceRequired.checked,checkInBeforeMinutes:Number(values.checkInBeforeMinutes),
+          checkInAfterMinutes:Number(values.checkInAfterMinutes),version:session?.version,reason:values.reason,publish},'PUT');
         if (session) await ctx.render();
         else ctx.go(path(ctx,id)+'?initiative='+initiative.id);
         u.toast(publish ? 'Session published.' : session?.status === 'Published' ? 'Session updated.' : 'Session draft saved.');

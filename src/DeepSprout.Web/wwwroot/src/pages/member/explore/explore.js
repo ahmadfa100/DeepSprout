@@ -40,6 +40,7 @@
   let publishedInitiatives = [];
   let myApplications = [], applicationsError = '';
   let publishedSessions = [], mySessions = [], sessionHistoryError = '', sessionApi;
+  let myAttendance = [], attendanceApi, attendanceError = '';
   const sessionError = message => {
     const node = $('ex-session-error');
     if (node) { node.textContent = message; node.hidden = !message; }
@@ -55,6 +56,11 @@
     if (!signedIn || !sessionApi) return;
     try { mySessions = await sessionApi.sessionRequest('/mine'); sessionHistoryError = ''; }
     catch { mySessions = []; sessionHistoryError = 'Your live session registrations could not be loaded.'; }
+    try {
+      attendanceApi = await import('../../../workspaces/attendance-api.js');
+      myAttendance = await attendanceApi.attendanceRequest('/mine');
+      attendanceError = '';
+    } catch { myAttendance = []; attendanceError = 'Your attendance could not be loaded.'; }
   }
   function sqlSession(session) {
     return {...session,sessionMode:session.mode,listing:'sql-session',kind:'session',kindLabel:'Session / Workshop',
@@ -341,9 +347,13 @@
     const entries = account.allRegistrations().filter(entry => entry.listing && (demoApplications || !['initiative','session'].includes(entry.listing.kind)))
       .sort((a, b) => (a.status === 'cancelled') - (b.status === 'cancelled') || a.listing.startDate.localeCompare(b.listing.startDate));
     const outdoorEntries=activityRegistrations();
-    const sessionEntries = mySessions.map(({session,registration})=>`<li class="ex-mine-item" data-session-registration="${esc(registration.id)}">
-      <div><strong>${esc(session.title)}</strong><small>${esc(session.organizer)} · ${esc(sessionApi.sessionMode(registration.mode))} · ${esc(sessionApi.sessionWhen(session))}</small></div>
-      <div class="ex-mine-actions">${appChip(registration.status)}<button type="button" class="ex-card-link" data-open="${esc(session.id)}" data-sql-session-link>View session</button></div></li>`).join('');
+    const sessionEntries = mySessions.map(({session,registration})=>{
+      const fact = myAttendance.find(row=>row.registrationId === registration.id);
+      return `<li class="ex-mine-item" data-session-registration="${esc(registration.id)}">
+        <div><strong>${esc(session.title)}</strong><small>${esc(session.organizer)} · ${esc(sessionApi.sessionMode(registration.mode))} · ${esc(sessionApi.sessionWhen(session))}
+        ${fact?.attendanceRequired ? ' · '+esc(attendanceApi.attendanceLabel(fact.status,fact.excuse?.status)) : ''}</small></div>
+        <div class="ex-mine-actions">${appChip(registration.status)}<button type="button" class="ex-card-link" data-open="${esc(session.id)}" data-sql-session-link>View session</button></div></li>`;
+    }).join('');
     if (!entries.length && !outdoorEntries && !sessionEntries && !sessionHistoryError) {
       list.innerHTML = '<li><p class="ex-mine-empty">You haven’t registered for anything yet. When you do, it appears here with its real status.</p></li>';
       return;
@@ -570,12 +580,13 @@
     const sessions = publishedSessions.filter(item=>item.initiativeId === initiativeId);
     return sessions.length ? '<ul class="ex-session-list">'+sessions.map(item=>
       `<li class="ex-session"><strong>${esc(item.title)}</strong><small>${esc(when(item))}</small>
-        <button type="button" class="ex-card-link" data-open="${esc(item.id)}" data-sql-session-link>View session</button></li>`).join('')+'</ul>' : '';
+        <button type="button" class="ex-button is-quiet ex-small" data-open="${esc(item.id)}" data-sql-session-link>View session</button></li>`).join('')+'</ul>' : '';
   }
 
   function showSqlSession() {
     const item = current;
     const {session,registration,eligible,consent,meetingLink} = item.details;
+    const fact = myAttendance.find(row=>row.registrationId === registration?.id);
     const modes = sessionApi.sessionModes(session).filter(row=>row.remaining !== 0);
     const signIn = '/src/pages/auth/login/login.html?returnUrl='+encodeURIComponent(location.pathname+location.search+'#session='+session.id);
     const registrationForm = !signedIn ? `<a class="ex-button" href="${esc(signIn)}">Sign in to register</a>` :
@@ -590,8 +601,11 @@
       title:session.title,by:'Organized by <strong>'+esc(session.organizer)+'</strong>',
       facts:[['When',esc(when(item)),'i-calendar'],['Where',esc(where(item)),'i-pin'],
         ['Seats',esc(sessionApi.modeSeats(session)),'i-users'],['Registration',esc(session.registrationState),'i-clock']],
-      sections:[section('Initiative',`<button type="button" class="ex-card-link" data-open="${esc(session.initiativeId)}">${esc(session.initiative)}</button>`),
-        session.cancelReason ? section('Cancellation','<p>'+esc(session.cancelReason)+'</p>') : ''],
+      sections:[section('Initiative',`<button type="button" class="ex-button is-quiet ex-small" data-open="${esc(session.initiativeId)}">${esc(session.initiative)}</button>`),
+        session.cancelReason ? section('Cancellation','<p>'+esc(session.cancelReason)+'</p>') : '',
+        fact?.attendanceRequired ? section('Attendance and excuse','<div data-live-participant-attendance>'+
+          attendanceApi.participantAttendance(fact,'ex-button')+'</div>') :
+          registration && attendanceError ? section('Attendance','<p class="ex-error" role="alert">'+esc(attendanceError)+'</p>') : ''],
       action:(registration ? '<div>'+appChip(registration.status)+' · '+esc(sessionApi.sessionMode(registration.mode))+'</div>' : '')+
         (meetingLink ? `<a class="ex-button" href="${esc(meetingLink)}" target="_blank" rel="noopener noreferrer">Join online</a>` : '')+
         (registration?.canCancel ? '<button type="button" class="ex-button is-quiet" data-live-session-cancel>Cancel registration</button>' : '')+
@@ -605,6 +619,11 @@
     });
     body.querySelector('[data-live-session-cancel]')?.addEventListener('click',event=>
       changeSessionRegistration(event.currentTarget,session,()=>sessionApi.cancelSessionRegistration(session.id,registration.id)));
+    attendanceApi?.bindParticipantAttendance(body.querySelector('[data-live-participant-attendance]'),fact,async ()=>{
+      await loadMySessions();
+      renderMine();
+      if (sheet.open && current?.id === session.id) showSqlSession();
+    });
   }
 
   async function changeSessionRegistration(button,session,save) {

@@ -11,6 +11,7 @@ import * as reports from './reports-live.js';
 import {select} from './institution/common.js';
 import {loadGarden,renderLiveGarden} from './institution/garden.js';
 import * as sessions from './institution/sessions-live.js';
+import * as attendance from './attendance-live.js';
 
 export function workspacePath(institution, path) {
   return path+(path.includes('?') ? '&' : '?')+'institution='+encodeURIComponent(institution);
@@ -63,6 +64,14 @@ export async function load(route, profile) {
   }
   if (route.page === 'initiatives' && route.id === 'new') return {profile};
   const initiatives = (await request(selection(profile.id))).map(entry);
+  if (['attendance','excuses'].includes(route.page)) {
+    const published = initiatives.filter(item=>item.version);
+    const id = route.query.get('initiative');
+    const attendanceInitiative = id ? published.find(item=>item.id === id) : published[0];
+    if (id && !attendanceInitiative) return {profile,error:'This Initiative is unavailable to your Institution.'};
+    return {profile,initiatives,attendanceInitiative,attendance:attendanceInitiative ?
+      await attendance.load('Representative',attendanceInitiative.id,route.page,route.id) : null};
+  }
   if (route.page === 'sessions') {
     const published = initiatives.filter(item=>item.version);
     const id = route.query.get('initiative');
@@ -85,8 +94,9 @@ export async function load(route, profile) {
     const initiative = id ? published.find(item=>item.id === id) :
       published.find(item=>item.status === 'Published') || published[0];
     if (id && !initiative) return {profile,error:'This Initiative is unavailable to your Institution.'};
-    return {profile,initiatives,reportInitiative:initiative,
-      reporting:initiative ? await reports.load('Representative',initiative.id,route.query) : null};
+    const [reporting,attendanceReport] = await (initiative ? Promise.all([
+      reports.load('Representative',initiative.id,route.query),attendance.load('Representative',initiative.id,'attendance')]) : [null,null]);
+    return {profile,initiatives,reportInitiative:initiative,reporting,attendanceReport};
   }
   if (route.page === 'team') {
     const published = initiatives.filter(item=>item.version);
@@ -122,6 +132,11 @@ export function render(ctx) {
   const {route:r,institutionData:data} = scoped;
   if (r.page === 'dashboard') return renderDashboard(scoped,data.initiatives);
   if (r.page === 'participants') return admissions.render(scoped);
+  if (['attendance','excuses'].includes(r.page)) {
+    const picker = data.attendanceInitiative ? select('live-attendance-initiative','Initiative',data.initiatives.filter(item=>item.version)
+      .map(item=>[item.id,item.title]),data.attendanceInitiative.id) : '';
+    return attendance.render(scoped,data.attendance,'Representative',data.attendanceInitiative,picker);
+  }
   if (r.page === 'sessions') {
     const picker = data.sessionInitiative ? select('live-session-initiative','Initiative',data.initiatives.filter(item=>item.version)
       .map(item=>[item.id,item.title]),data.sessionInitiative.id) : '';
@@ -136,7 +151,8 @@ export function render(ctx) {
     if (!data.reporting) return u.header('INSTITUTION REPORTS','Reports from your supervisors','There are no published Initiatives to report on.');
     const picker = select('live-report-initiative','Initiative',data.initiatives.filter(item=>item.version)
       .map(item=>[item.id,item.title]),data.reportInitiative.id);
-    return reports.render(scoped,'Representative',data.reportInitiative.id,data.reporting,picker);
+    return reports.render(scoped,'Representative',data.reportInitiative.id,data.reporting,picker)+
+      attendance.summary(scoped,data.attendanceReport,'Representative',data.reportInitiative.id);
   }
   if (r.page === 'team') {
     if (data.groups) return staff.teamTabs(scoped,data.staffInitiative,'groups')+
@@ -183,6 +199,8 @@ async function save(ctx, path, draft, publish) {
 
 export async function action(action,target,ctx) {
   const scoped = builderContext(ctx);
+  if (ctx.institutionData.attendance && action.startsWith('live-att-'))
+    return attendance.action(action,target,scoped,ctx.institutionData.attendance);
   if (ctx.route.page === 'sessions' && ctx.institutionData.schedule && action.startsWith('live-session-'))
     return sessions.action(action,scoped,ctx.institutionData.schedule,ctx.institutionData.sessionInitiative);
   if (ctx.route.page === 'participants') return admissions.action(action,target,scoped,admissionRequest);
@@ -221,6 +239,10 @@ export async function action(action,target,ctx) {
 }
 
 export function change(target,ctx) {
+  if (target.name === 'live-attendance-initiative') {
+    builderContext(ctx).go('organization/'+ctx.route.page+'?initiative='+encodeURIComponent(target.value));
+    return;
+  }
   if (target.name === 'live-session-initiative') {
     builderContext(ctx).go('organization/sessions?initiative='+encodeURIComponent(target.value));
     return;

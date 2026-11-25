@@ -7,7 +7,7 @@ import * as sessions from './student-sessions.js';
 
 const api = '/api/initiative-student';
 export const navPath = (data,key) => 'student/'+key+(data.selected ? '?initiative='+encodeURIComponent(data.selected.initiativeId) : '');
-const pages = ['dashboard','group','tasks','garden','account','sessions'];
+const pages = ['dashboard','group','tasks','garden','account','sessions','progress'];
 export const navigation = items => [...items,['sessions','calendar','Session schedule']].filter(([key])=>pages.includes(key))
   .map(item=>item[0] === 'group' ? ['group',item[1],'My Group'] : item);
 
@@ -18,7 +18,7 @@ export async function load(route) {
     const id = route.query.get('initiative');
     const data = await workspaceRequest(api+(id ? '?initiative='+encodeURIComponent(id) : ''));
     if (route.page === 'tasks') data.tasks = await work.load(id,route.id);
-    if (route.page === 'sessions') data.sessions = await sessions.load(data.selected,route.id);
+    if (route.page === 'sessions' || route.page === 'progress') data.sessions = await sessions.load(data.selected,route.id);
     if (route.page === 'garden' && data.selected)
       data.garden = await loadGarden(data.selected.initiativeId,'Student');
     return data;
@@ -35,6 +35,7 @@ export function render(ctx) {
   const picker = choices.length > 1 ? select('live-student-initiative','Initiative',choices,selected?.initiativeId) : '';
   if (ctx.route.page === 'garden') return renderLiveGarden(data.garden,picker);
   if (ctx.route.page === 'sessions') return sessions.render(data.sessions,picker,selected);
+  if (ctx.route.page === 'progress') return sessions.progress(data.sessions,selected,picker);
   if (ctx.route.page === 'tasks') return head({eyebrow:'INITIATIVE ASSIGNMENTS',title:'My Tasks',meta:picker})+
     work.render(data.tasks,'live-student-work',Boolean(ctx.route.id));
   if (ctx.route.page === 'account') {
@@ -70,6 +71,10 @@ export function render(ctx) {
     ${u.link('Session schedule',navPath(data,'sessions'),'button quiet')}
     ${selected.canAccess ? u.link('Group Garden',navPath(data,'garden'),'button quiet') : ''}
     ${u.link('Account & upgrade',navPath(data,'account'),'button quiet')}</div>`)+history;
+}
+
+export function mount(ctx) {
+  if (ctx.route.page === 'sessions') sessions.mount(ctx.staffData.sessions,ctx);
 }
 
 export function change(target,ctx) {

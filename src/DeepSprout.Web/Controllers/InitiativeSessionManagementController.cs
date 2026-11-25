@@ -20,7 +20,8 @@ public sealed class InitiativeSessionManagementController(DeepSproutV5DbContext 
         [Required, MaxLength(80)] string TimeZoneId, DateTime? StartsAt, DateTime? EndsAt,
         [MaxLength(300)] string? Venue, [MaxLength(300)] string? MeetingLink,
         [Range(1, 1000)] int? OnlineCapacity, [Range(1, 1000)] int? InPersonCapacity, bool AttendanceRequired,
-        bool Publish, [MaxLength(30)] string? Version, [MaxLength(800)] string? Reason);
+        bool Publish, [MaxLength(30)] string? Version, [MaxLength(800)] string? Reason,
+        [Range(0, 240)] short? CheckInBeforeMinutes, [Range(0, 720)] short? CheckInAfterMinutes);
 
     public sealed record TransitionInput([Required, MaxLength(30)] string Version, [MaxLength(800)] string? Reason);
 
@@ -59,11 +60,12 @@ public sealed class InitiativeSessionManagementController(DeepSproutV5DbContext 
                              orderby entry.Id descending
                              select new { entry.Action, entry.Reason, entry.AtUtc, actor = person.DisplayName }).ToListAsync(ct);
         await transaction.CommitAsync(ct);
-        return Ok(new { session = View(record, operational, now), session.AttendanceRequired,
+        return Ok(new { session = View(record, operational, now), session.AttendanceRequired, session.CheckInBeforeMinutes, session.CheckInAfterMinutes,
             meetingLink = MeetingLink(session.ProtectedLinkRef), roster, history,
             canEdit = role == "Representative" && operational && (session.Status == "Draft" ||
                 session.Status == "Published" && session.StartsAtUtc > now),
-            canClose = role == "Representative" && session.Status == "Published" && session.EndsAtUtc <= now });
+            canClose = role == "Representative" && session.Status == "Published" &&
+                (session.AttendanceRequired ? AttendanceQrService.WindowEnd(session) : session.EndsAtUtc) <= now });
     }
 
     [HttpPut("Representative/{initiativeId:guid}/{sessionId:guid}")]
@@ -104,11 +106,14 @@ public sealed class InitiativeSessionManagementController(DeepSproutV5DbContext 
             session = new Session { InitiativeId = initiative.Id, PublicId = sessionId, Purpose = "Session", Status = "Draft", CreatedAtUtc = now };
         }
         var current = session!;
+        var checkInBefore = input.CheckInBeforeMinutes ?? current.CheckInBeforeMinutes;
+        var checkInAfter = input.CheckInAfterMinutes ?? current.CheckInAfterMinutes;
         // Identical retries return the current record, including when the first draft save created it.
         var same = !created && current.Title == title && current.Mode == input.Mode && current.TimeZoneId == zone &&
             current.StartsAtUtc == start && current.EndsAtUtc == end && current.Venue == venue && current.ProtectedLinkRef == meeting &&
             current.OnlineCapacity == input.OnlineCapacity && current.InPersonCapacity == input.InPersonCapacity &&
-            current.AttendanceRequired == input.AttendanceRequired;
+            current.AttendanceRequired == input.AttendanceRequired && current.CheckInBeforeMinutes == checkInBefore &&
+            current.CheckInAfterMinutes == checkInAfter;
         if (same && (input.Publish ? current.Status == "Published" : current.Status is "Draft" or "Published"))
             return Ok(Saved(current));
         if (!created && input.Version != InitiativeWork.Version(current.RowVersion)) return Conflict("This session changed. Reopen it before saving.");
@@ -125,7 +130,9 @@ public sealed class InitiativeSessionManagementController(DeepSproutV5DbContext 
             active.Count(row => row.Mode == "InPerson") > input.InPersonCapacity)
             return Conflict("Keep the delivery modes and seats needed by existing registrations.");
         var rescheduled = before == "Published" && (current.StartsAtUtc != start || current.EndsAtUtc != end ||
-            current.Mode != input.Mode || current.Venue != venue || current.ProtectedLinkRef != meeting);
+            current.Mode != input.Mode || current.Venue != venue || current.ProtectedLinkRef != meeting ||
+            current.AttendanceRequired != input.AttendanceRequired || current.CheckInBeforeMinutes != checkInBefore ||
+            current.CheckInAfterMinutes != checkInAfter);
         current.Title = title;
         current.Mode = input.Mode;
         current.TimeZoneId = zone;
@@ -136,6 +143,10 @@ public sealed class InitiativeSessionManagementController(DeepSproutV5DbContext 
         current.OnlineCapacity = input.OnlineCapacity;
         current.InPersonCapacity = input.InPersonCapacity;
         current.AttendanceRequired = input.AttendanceRequired;
+        current.CheckInBeforeMinutes = checkInBefore;
+        current.CheckInAfterMinutes = checkInAfter;
+        if (rescheduled)
+            foreach (var registration in active) registration.CredentialHash = null;
         if (input.Publish || before == "Published")
         {
             if (PublicationError(current) is string error) return BadRequest(error);
@@ -188,11 +199,12 @@ public sealed class InitiativeSessionManagementController(DeepSproutV5DbContext 
                     "RegistrationCancelledWithSession", registration.Status, after, reason, now);
                 registration.Status = "Cancelled";
                 registration.CancelledAtUtc = now;
+                registration.CredentialHash = null;
             }
             Notices(active, session, "SessionCancelled", now);
         }
-        else if (before != "Published" || session.EndsAtUtc > now)
-            return Conflict("A published session can close after its scheduled end.");
+        else if (before != "Published" || (session.AttendanceRequired ? AttendanceQrService.WindowEnd(session) : session.EndsAtUtc) > now)
+            return Conflict("A published session can close after its scheduled end and check-in window.");
 
         session.Status = after;
         Audit(session, actor, before, "Session" + after, reason, now);
@@ -225,7 +237,7 @@ public sealed class InitiativeSessionManagementController(DeepSproutV5DbContext 
             ? TimeZoneInfo.ConvertTimeToUtc(time, timeZone) : null;
     private static object Saved(Session row) => new { id = row.PublicId, row.Status, version = InitiativeWork.Version(row.RowVersion) };
     private static object Snapshot(Session row) => new { row.Title, row.Mode, row.TimeZoneId, row.StartsAtUtc, row.EndsAtUtc,
-        row.Venue, row.OnlineCapacity, row.InPersonCapacity, row.AttendanceRequired };
+        row.Venue, row.OnlineCapacity, row.InPersonCapacity, row.AttendanceRequired, row.CheckInBeforeMinutes, row.CheckInAfterMinutes };
 
     private void Audit(Session row, long actor, string? before, string action, string? reason, DateTime now, object? previous = null) =>
         InitiativeWork.Audit(db, SessionResource, row.Id, actor, "Representative", action, before, row.Status, reason, now,
